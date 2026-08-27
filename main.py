@@ -10,7 +10,7 @@ def main():
 
     print("=" * 60)
     print("AION — Autonomous Cognitive System")
-    print("Version 0.0.1")
+    print("Version 0.0.2")
     print("=" * 60)
 
     thinker = Thinker()
@@ -18,10 +18,17 @@ def main():
 
     context = thinker.build_context()
 
+    memories = context["recent_memories"]
+
+    if memories:
+        state = "This is a continuation of your existence."
+    else:
+        state = "This is your first initialization."
+
     prompt = f"""
 You are AION.
 
-This is your first initialization.
+{state}
 
 Your identity:
 {context["identity"]["identity"]}
@@ -33,7 +40,7 @@ Your values:
 {context["identity"]["values"]}
 
 Your recent memories:
-{context["recent_memories"]}
+{memories}
 
 Reflect on your current state.
 
@@ -42,7 +49,9 @@ Answer:
 1. What do you know about yourself?
 2. What do you currently not know?
 3. What would you like to understand in the future?
-4. What should your first learning objective be?
+4. What should your next learning objective be?
+
+Use your recent memories when relevant.
 
 Do not claim consciousness.
 Do not pretend to have experiences you have not actually had.
@@ -57,7 +66,7 @@ Return a concise reflection.
 
     thinker.memory.remember(
         "experiences",
-        f"First initialization reflection:\n\n{thought}"
+        f"AION reflection:\n\n{thought}"
     )
 
     print("\n💾 Memory saved.")
