@@ -12,6 +12,8 @@ from brain.learner import LearningEngine
 from brain.correction import CorrectionEngine
 from brain.consolidation import MemoryConsolidator
 from brain.beliefs import BeliefSystem
+from brain.curiosity import CuriosityEngine
+from brain.goals import GoalEngine
 
 
 VERSION = "0.0.8"
@@ -402,6 +404,176 @@ def run_retract_belief(args):
     beliefs.retract_belief(entry_id=args.id, reason=args.reason)
 
     print("\nAION BELIEF RETRACTED")
+    print(f"ID: {args.id}")
+    print(f"Reason: {args.reason}")
+
+
+def run_ask(args):
+    """Raise a new open question (requires completion criteria)."""
+
+    curiosity = CuriosityEngine(Thinker().memory)
+
+    saved = curiosity.raise_question(
+        question=args.question,
+        completion_criteria=args.criteria,
+        priority=args.priority,
+        budget=args.budget,
+        tags=args.tag,
+    )
+
+    print("\nAION QUESTION OPENED")
+    print(f"ID: {saved['id']}")
+    print(f"Question: {args.question}")
+    print(f"Criteria: {args.criteria}")
+    print(f"Priority: {args.priority}")
+    print(f"Budget: {args.budget or CuriosityEngine.DEFAULT_BUDGET}")
+
+
+def run_questions(args):
+    """List AION's currently open questions."""
+
+    curiosity = CuriosityEngine(Thinker().memory)
+    open_qs = curiosity.open_questions(topic=args.topic, limit=args.limit)
+
+    print("\nAION OPEN QUESTIONS")
+
+    if not open_qs:
+        print("No open questions found.")
+        return
+
+    for question in open_qs:
+        print("-" * 60)
+        print(f"ID: {question['id']}")
+        print(f"Question: {question['statement']}")
+        print(f"Criteria: {question['criteria']}")
+        print(
+            f"Attempts: {question['attempts']}/{question['budget']}"
+            + (" (budget exhausted)" if question["budget_exhausted"] else "")
+        )
+        print(f"Priority: {question['importance']}")
+        print(f"Tags: {', '.join(question.get('tags', [])) or '(none)'}")
+
+
+def run_attempt_question(args):
+    """Log an attempt on an open question."""
+
+    curiosity = CuriosityEngine(Thinker().memory)
+    saved = curiosity.record_attempt(args.id, note=args.note)
+
+    print("\nAION QUESTION ATTEMPT RECORDED")
+    print(f"New ID: {saved['id']}")
+    print(f"Superseded: {args.id}")
+
+
+def run_answer_question(args):
+    """Answer an open question (requires supporting evidence)."""
+
+    curiosity = CuriosityEngine(Thinker().memory)
+
+    saved = curiosity.answer_question(
+        entry_id=args.id,
+        answer=args.answer,
+        evidence=_parse_cli_evidence(args.evidence),
+    )
+
+    print("\nAION QUESTION ANSWERED")
+    print(f"New ID: {saved['id']}")
+    print(f"Superseded: {args.id}")
+    print(f"Answer: {args.answer}")
+
+
+def run_abandon_question(args):
+    """Abandon an open question with no answer."""
+
+    curiosity = CuriosityEngine(Thinker().memory)
+    curiosity.abandon_question(entry_id=args.id, reason=args.reason)
+
+    print("\nAION QUESTION ABANDONED")
+    print(f"ID: {args.id}")
+    print(f"Reason: {args.reason}")
+
+
+def run_set_goal(args):
+    """Set a new active goal (requires completion criteria)."""
+
+    goals = GoalEngine(Thinker().memory)
+
+    saved = goals.set_goal(
+        description=args.goal,
+        completion_criteria=args.criteria,
+        priority=args.priority,
+        budget=args.budget,
+        tags=args.tag,
+    )
+
+    print("\nAION GOAL SET")
+    print(f"ID: {saved['id']}")
+    print(f"Goal: {args.goal}")
+    print(f"Criteria: {args.criteria}")
+    print(f"Priority: {args.priority}")
+    print(f"Budget: {args.budget or GoalEngine.DEFAULT_BUDGET}")
+
+
+def run_goals(args):
+    """List AION's currently active goals."""
+
+    goals = GoalEngine(Thinker().memory)
+    active = goals.active_goals(topic=args.topic, limit=args.limit)
+
+    print("\nAION ACTIVE GOALS")
+
+    if not active:
+        print("No active goals found.")
+        return
+
+    for goal in active:
+        print("-" * 60)
+        print(f"ID: {goal['id']}")
+        print(f"Goal: {goal['statement']}")
+        print(f"Criteria: {goal['criteria']}")
+        print(
+            f"Attempts: {goal['attempts']}/{goal['budget']}"
+            + (" (budget exhausted)" if goal["budget_exhausted"] else "")
+        )
+        print(f"Priority: {goal['importance']}")
+        print(f"Tags: {', '.join(goal.get('tags', [])) or '(none)'}")
+
+
+def run_attempt_goal(args):
+    """Log an attempt on an active goal."""
+
+    goals = GoalEngine(Thinker().memory)
+    saved = goals.record_attempt(args.id, note=args.note)
+
+    print("\nAION GOAL ATTEMPT RECORDED")
+    print(f"New ID: {saved['id']}")
+    print(f"Superseded: {args.id}")
+
+
+def run_complete_goal(args):
+    """Complete an active goal (requires supporting evidence)."""
+
+    goals = GoalEngine(Thinker().memory)
+
+    saved = goals.complete_goal(
+        entry_id=args.id,
+        outcome=args.outcome,
+        evidence=_parse_cli_evidence(args.evidence),
+    )
+
+    print("\nAION GOAL COMPLETED")
+    print(f"New ID: {saved['id']}")
+    print(f"Superseded: {args.id}")
+    print(f"Outcome: {args.outcome}")
+
+
+def run_abandon_goal(args):
+    """Abandon an active goal with no outcome."""
+
+    goals = GoalEngine(Thinker().memory)
+    goals.abandon_goal(entry_id=args.id, reason=args.reason)
+
+    print("\nAION GOAL ABANDONED")
     print(f"ID: {args.id}")
     print(f"Reason: {args.reason}")
 
@@ -1017,6 +1189,116 @@ def build_parser():
         "--reason", required=True, help="Why the belief is being retracted."
     )
 
+    ask_parser = subparsers.add_parser(
+        "ask",
+        help="Raise a new open question (requires completion criteria).",
+    )
+    ask_parser.add_argument("--question", required=True)
+    ask_parser.add_argument(
+        "--criteria",
+        required=True,
+        help="What would count as having answered this question.",
+    )
+    ask_parser.add_argument("--priority", type=int, default=3)
+    ask_parser.add_argument(
+        "--budget",
+        type=int,
+        default=None,
+        help="Attempt budget before this question is flagged "
+             f"exhausted (default: {CuriosityEngine.DEFAULT_BUDGET}).",
+    )
+    ask_parser.add_argument(
+        "--tag", action="append", default=[], help="Topic tag; repeat for multiple."
+    )
+
+    questions_parser = subparsers.add_parser(
+        "questions",
+        help="List AION's currently open questions.",
+    )
+    questions_parser.add_argument("--topic", default=None)
+    questions_parser.add_argument("--limit", type=int, default=10)
+
+    attempt_question_parser = subparsers.add_parser(
+        "attempt-question",
+        help="Log an attempt on an open question.",
+    )
+    attempt_question_parser.add_argument("--id", required=True)
+    attempt_question_parser.add_argument("--note", default=None)
+
+    answer_question_parser = subparsers.add_parser(
+        "answer-question",
+        help="Answer an open question (requires supporting evidence).",
+    )
+    answer_question_parser.add_argument("--id", required=True)
+    answer_question_parser.add_argument("--answer", required=True)
+    answer_question_parser.add_argument(
+        "--evidence", action="append", required=True,
+        help="Supporting evidence; repeat for multiple. Prefix with "
+             "'id:<memory-id>:' to link an existing entry.",
+    )
+
+    abandon_question_parser = subparsers.add_parser(
+        "abandon-question",
+        help="Abandon an open question with no answer.",
+    )
+    abandon_question_parser.add_argument("--id", required=True)
+    abandon_question_parser.add_argument("--reason", required=True)
+
+    set_goal_parser = subparsers.add_parser(
+        "set-goal",
+        help="Set a new active goal (requires completion criteria).",
+    )
+    set_goal_parser.add_argument("--goal", required=True)
+    set_goal_parser.add_argument(
+        "--criteria",
+        required=True,
+        help="What would count as having completed this goal.",
+    )
+    set_goal_parser.add_argument("--priority", type=int, default=3)
+    set_goal_parser.add_argument(
+        "--budget",
+        type=int,
+        default=None,
+        help="Attempt budget before this goal is flagged exhausted "
+             f"(default: {GoalEngine.DEFAULT_BUDGET}).",
+    )
+    set_goal_parser.add_argument(
+        "--tag", action="append", default=[], help="Topic tag; repeat for multiple."
+    )
+
+    goals_parser = subparsers.add_parser(
+        "goals",
+        help="List AION's currently active goals.",
+    )
+    goals_parser.add_argument("--topic", default=None)
+    goals_parser.add_argument("--limit", type=int, default=10)
+
+    attempt_goal_parser = subparsers.add_parser(
+        "attempt-goal",
+        help="Log an attempt on an active goal.",
+    )
+    attempt_goal_parser.add_argument("--id", required=True)
+    attempt_goal_parser.add_argument("--note", default=None)
+
+    complete_goal_parser = subparsers.add_parser(
+        "complete-goal",
+        help="Complete an active goal (requires supporting evidence).",
+    )
+    complete_goal_parser.add_argument("--id", required=True)
+    complete_goal_parser.add_argument("--outcome", required=True)
+    complete_goal_parser.add_argument(
+        "--evidence", action="append", required=True,
+        help="Supporting evidence; repeat for multiple. Prefix with "
+             "'id:<memory-id>:' to link an existing entry.",
+    )
+
+    abandon_goal_parser = subparsers.add_parser(
+        "abandon-goal",
+        help="Abandon an active goal with no outcome.",
+    )
+    abandon_goal_parser.add_argument("--id", required=True)
+    abandon_goal_parser.add_argument("--reason", required=True)
+
     return parser
 
 
@@ -1053,6 +1335,46 @@ def main():
 
     if args.command == "retract-belief":
         run_retract_belief(args)
+        return
+
+    if args.command == "ask":
+        run_ask(args)
+        return
+
+    if args.command == "questions":
+        run_questions(args)
+        return
+
+    if args.command == "attempt-question":
+        run_attempt_question(args)
+        return
+
+    if args.command == "answer-question":
+        run_answer_question(args)
+        return
+
+    if args.command == "abandon-question":
+        run_abandon_question(args)
+        return
+
+    if args.command == "set-goal":
+        run_set_goal(args)
+        return
+
+    if args.command == "goals":
+        run_goals(args)
+        return
+
+    if args.command == "attempt-goal":
+        run_attempt_goal(args)
+        return
+
+    if args.command == "complete-goal":
+        run_complete_goal(args)
+        return
+
+    if args.command == "abandon-goal":
+        run_abandon_goal(args)
         return
 
     run_reflection()

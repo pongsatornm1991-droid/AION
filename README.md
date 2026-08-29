@@ -155,6 +155,51 @@ provider — belief formation, revision, and retraction are pure code with a
 hard requirement for evidence, so this whole subsystem is covered by
 `run_tests.py`, unlike `consolidate`.
 
+## Curiosity and goals
+
+`CuriosityEngine` (open questions) and `GoalEngine` (active goals) are both
+built on the same `BoundedItemTracker`: an item can't be opened without
+stating its own completion criteria, only `max_open` items may be open at
+once (default 10 — resolve or abandon one to open another), each item has
+its own attempt budget that only ever gets *flagged* exhausted (never
+auto-abandoned), and resolving one always requires evidence, the same rule
+`BeliefSystem` enforces.
+
+Raise a question:
+
+```powershell
+python main.py ask `
+  --question "Why do staged rollouts reduce rollback incidents?" `
+  --criteria "Find at least 2 confirming decisions." `
+  --priority 4 `
+  --budget 3 `
+  --tag rollout
+```
+
+```powershell
+python main.py questions --topic rollout --limit 10
+python main.py attempt-question --id "<id>" --note "Checked one decision."
+python main.py answer-question --id "<id>" --answer "..." --evidence "id:<memory-id>:..."
+python main.py abandon-question --id "<id>" --reason "No longer relevant."
+```
+
+Goals use the identical shape:
+
+```powershell
+python main.py set-goal --goal "Ship staged rollout tooling." --criteria "Deployed and used once." --priority 5
+python main.py goals
+python main.py attempt-goal --id "<id>" --note "Built prototype."
+python main.py complete-goal --id "<id>" --outcome "..." --evidence "deployment log"
+python main.py abandon-goal --id "<id>" --reason "Deprioritized."
+```
+
+Nothing here is edited in place: `attempt-question`/`attempt-goal` and
+`answer-question`/`complete-goal` each write a new entry superseding the
+current one, so the full attempt/revision history stays on disk (see
+`CuriosityEngine.history()` / `GoalEngine.history()`). None of these
+commands call an AI provider, so this whole subsystem is covered by
+`run_tests.py` too.
+
 ## Offline verification
 
 Single deterministic command (unit tests + both offline benchmarks; never

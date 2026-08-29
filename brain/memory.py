@@ -13,6 +13,8 @@ class MemoryEngine:
         "belief",
         "decision",
         "semantic",
+        "question",
+        "goal",
     }
 
     def __init__(self, root="memory"):

@@ -54,6 +54,9 @@ Question + options + facts + inferences + uncertainties
 | `DecisionHistory` | Lists and conditionally promotes persisted decisions |
 | `MemoryConsolidator` | Summarizes old, low-importance memories into semantic knowledge, gated on `OutputEvaluator`'s claim-safety sub-score |
 | `BeliefSystem` | Explicit claims with confidence, required evidence, revision lineage, and computed expiration — never an in-place edit |
+| `BoundedItemTracker` | Shared base for a bounded, evidence-gated open-item tracker (raise/open with completion criteria + budget, log attempts, resolve only with evidence, or abandon with a reason) — never an in-place edit |
+| `CuriosityEngine` | AION's bounded set of open questions, built on `BoundedItemTracker` |
+| `GoalEngine` | AION's bounded set of active goals, built on `BoundedItemTracker` |
 
 ## Explicit boundaries
 
@@ -66,6 +69,10 @@ Question + options + facts + inferences + uncertainties
 - A belief is never created from bare AI output: `BeliefSystem.form_belief()`
   raises if no evidence is supplied, regardless of how confident the
   statement sounds.
+- A question or goal can never be opened without stating its own
+  completion criteria, and can never be resolved without supporting
+  evidence — the same discipline as beliefs, applied to curiosity and
+  goal-selection. Only a bounded number may be open at once.
 
 ## Intended evolution
 

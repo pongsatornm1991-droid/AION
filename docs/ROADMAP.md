@@ -79,17 +79,59 @@ never destroys the previous version, expiration is verifiably computed
 rather than stored, and every path is covered by deterministic tests with
 no live API dependency. **Met.**
 
+## Phase 6 — Curiosity and goals (done, 2026-08-29)
+
+Goal: AION can hold open questions and active goals, each bounded by its own
+completion criteria and attempt budget, and never resolved without evidence.
+
+- `brain/bounded_tracker.py` — `BoundedItemTracker`: the shared mechanics
+  behind both curiosity and goal-selection. `open_item()` refuses an item
+  with no completion criteria, and refuses a new item once `max_open` are
+  already open system-wide (default 10) — something must be resolved or
+  abandoned first. Each item also carries its own attempt `budget`;
+  exhausting it only sets a `budget_exhausted` flag on read, it never
+  auto-abandons anything.
+- Nothing is edited in place: `record_attempt()` and `resolve_item()` each
+  write a new entry (`Predecessor:` field + `related` metadata) and tag the
+  previous one `superseded`; `history()` walks the full chain oldest-first,
+  exactly like `BeliefSystem`. `resolve_item()` requires at least one piece
+  of evidence, same rule as `form_belief()`. `abandon_item()` tags the item
+  `abandoned` and logs a companion `lessons` entry recording why.
+- `brain/curiosity.py` — `CuriosityEngine` (category `questions`,
+  `TYPE: question`): `raise_question()` / `answer_question()` /
+  `abandon_question()` / `open_questions()`.
+- `brain/goals.py` — `GoalEngine` (category `goals`, `TYPE: goal`, default
+  budget 5): `set_goal()` / `complete_goal()` / `abandon_goal()` /
+  `active_goals()`. Both memory types were added to
+  `MemoryEngine.MEMORY_TYPES`.
+- New CLI: `main.py ask` / `questions` / `attempt-question` /
+  `answer-question` / `abandon-question`, and the goal equivalents
+  `set-goal` / `goals` / `attempt-goal` / `complete-goal` / `abandon-goal`.
+  None of this calls an AI provider, so it is fully covered by
+  `run_tests.py`.
+- Tests: `tests/test_curiosity_goals.py` (19 tests, no AI call anywhere) —
+  criteria/priority/budget validation, the bounded max-open cap and a slot
+  freeing up on resolution, attempt supersession, the budget-exhausted flag
+  never forcing a transition, evidence-gated resolution, refusing further
+  attempts/resolution on an already-resolved item, abandonment + its lesson
+  entry, full history-chain walking across attempts and resolution, topic
+  filtering, and a lighter GoalEngine lifecycle test confirming the
+  subclass wiring.
+
+Exit criteria: an item can never be opened without completion criteria, the
+system-wide open-item cap is enforced, resolution always requires evidence,
+and every path (including the bounded-cap and budget-exhaustion behavior)
+is covered by deterministic tests with no live API dependency. **Met.**
+
 ## Later phases
 
-1. **Curiosity and goals** — bounded open questions, priorities, budgets, and
-   completion criteria.
-2. **Experiments and reflection** — prediction, observed result, error, lesson,
+1. **Experiments and reflection** — prediction, observed result, error, lesson,
    and measurable belief/behavior change.
-3. **Metacognition** — monitor recurring errors, calibration, memory quality,
+2. **Metacognition** — monitor recurring errors, calibration, memory quality,
    and tool reliability.
-4. **Controlled tools and lifecycle** — read-only research first, action levels,
+3. **Controlled tools and lifecycle** — read-only research first, action levels,
    approval gates, scheduling, recovery, budgets, and kill switch.
-5. **External integration** — only after the prior controls are verified;
+4. **External integration** — only after the prior controls are verified;
    Facebook and messaging integrations should begin as drafts requiring review.
 
 ## Non-negotiable rules
