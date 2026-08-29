@@ -1,3 +1,5 @@
+import os
+
 from .identity import Identity
 from .memory import MemoryEngine
 
@@ -6,7 +8,13 @@ class Thinker:
 
     def __init__(self):
         self.identity = Identity()
-        self.memory = MemoryEngine()
+
+        # Overridable so a real memory/ that has been symlinked
+        # elsewhere (e.g. to an OneDrive folder) can be pointed at an
+        # isolated location for testing, without changing default
+        # behavior for anyone who has not set this.
+        memory_root = os.getenv("AION_MEMORY_ROOT", "memory")
+        self.memory = MemoryEngine(root=memory_root)
 
     def build_context(self):
 

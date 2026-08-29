@@ -1,7 +1,10 @@
 """Automated tests for AION's structured decision and audit flow."""
 
+import os
+import shutil
 import subprocess
 import sys
+import tempfile
 from pathlib import Path
 import unittest
 
@@ -21,6 +24,18 @@ from main import decision_category, decision_status, save_decision_record
 class DecisionAndAuditTests(unittest.TestCase):
 
     def setUp(self):
+        # The decide/history subprocess tests below invoke main.py for
+        # real. Point AION_MEMORY_ROOT at an isolated tempdir so they
+        # never read or write the project's actual memory/ folder —
+        # which, on a machine where memory/ has been symlinked
+        # elsewhere (e.g. to a synced OneDrive folder), may not even
+        # be reachable from every environment these tests run in.
+        self.memory_root = tempfile.mkdtemp(prefix="aion_cli_memory_")
+        self.subprocess_env = {
+            **os.environ,
+            "AION_MEMORY_ROOT": self.memory_root,
+        }
+
         self.facts = [
             "The test plan covers the intended scope.",
             "The rollback procedure is documented.",
@@ -32,6 +47,9 @@ class DecisionAndAuditTests(unittest.TestCase):
         self.uncertainties = [
             "Demand may vary after release.",
         ]
+
+    def tearDown(self):
+        shutil.rmtree(self.memory_root, ignore_errors=True)
 
     def test_decision_and_audit_share_supported_confidence(self):
         decision = DecisionEngine().evaluate(
@@ -227,6 +245,7 @@ class DecisionAndAuditTests(unittest.TestCase):
                 "--no-save",
             ],
             cwd=PROJECT_ROOT,
+            env=self.subprocess_env,
             capture_output=True,
             text=True,
             check=False,
@@ -242,6 +261,7 @@ class DecisionAndAuditTests(unittest.TestCase):
         result = subprocess.run(
             [sys.executable, "main.py", "history", "--limit", "1"],
             cwd=PROJECT_ROOT,
+            env=self.subprocess_env,
             capture_output=True,
             text=True,
             check=False,
