@@ -123,15 +123,62 @@ system-wide open-item cap is enforced, resolution always requires evidence,
 and every path (including the bounded-cap and budget-exhaustion behavior)
 is covered by deterministic tests with no live API dependency. **Met.**
 
+## Phase 7 — Experiments and reflection (done, 2026-08-29)
+
+Goal: AION can state a prediction, record what was actually observed, and
+derive a lesson — with a real, optional path from a measured result to a
+revised belief, never an automatic one.
+
+- `brain/experiments.py` — `ExperimentEngine` (category `experiments`,
+  `TYPE: experiment`): `predict()` / `observe()` / `conclude()` /
+  `abandon()`. Unlike beliefs, questions, and goals, `predict()` itself
+  requires no evidence — a prediction is a stated expectation, not yet
+  a claim. `observe()` does require at least one piece of evidence
+  (an observation is a claim), rejects a non-bool `matched`, and
+  requires an `error_description` whenever `matched=False`. `conclude()`
+  only runs on an observed experiment, always logs a companion
+  `lessons` entry, and — only when the caller supplies both
+  `belief_system` and `belief_id` — drives a real
+  `BeliefSystem.revise_belief()` call, tying a measured surprise back
+  into what AION believes without ever doing so silently.
+- Nothing is edited in place: `observe()` and `conclude()` each write a
+  new entry (`Predecessor:` field + `related` metadata) and tag the
+  previous one `superseded`; `history()` walks the full chain
+  oldest-first, exactly like `BeliefSystem`/`BoundedItemTracker`.
+  `status_of()` derives `predicted`/`observed`/`concluded`/`abandoned`
+  purely from parsed content fields plus the `abandoned` tag, no extra
+  lifecycle bookkeeping needed.
+- `"experiment"` was added to `MemoryEngine.MEMORY_TYPES`.
+- New CLI: `main.py predict` / `experiments --status pending|awaiting` /
+  `observe` / `conclude` / `abandon-experiment`. None of this calls an
+  AI provider, so it is fully covered by `run_tests.py`.
+- Tests: `tests/test_experiments.py` (29 tests, no AI call anywhere) —
+  prediction validation (empty statement, out-of-range/bool/non-numeric
+  confidence, no evidence required), observation validation (evidence
+  required, non-bool matched rejected, mismatch without
+  error_description rejected, cannot observe twice or observe an
+  abandoned/unknown experiment), conclusion validation (cannot conclude
+  before observed or twice, empty lesson rejected, companion lesson
+  entry logged, optional belief revision wired end-to-end with a real
+  `BeliefSystem`, and confirmed no belief is touched when `belief_id`
+  is omitted), abandonment from either `predicted` or `observed` (never
+  from `concluded`) with its own lesson entry, full history-chain
+  walking across predict/observe/conclude, and pending/awaiting
+  filtering + sorting + limit.
+
+Exit criteria: a prediction can be stated freely, but an observation can
+never be recorded without evidence and a mismatch never without an
+explanation; a belief only ever changes from an experiment's conclusion
+when the caller explicitly asks for it; every path is covered by
+deterministic tests with no live API dependency. **Met.**
+
 ## Later phases
 
-1. **Experiments and reflection** — prediction, observed result, error, lesson,
-   and measurable belief/behavior change.
-2. **Metacognition** — monitor recurring errors, calibration, memory quality,
+1. **Metacognition** — monitor recurring errors, calibration, memory quality,
    and tool reliability.
-3. **Controlled tools and lifecycle** — read-only research first, action levels,
+2. **Controlled tools and lifecycle** — read-only research first, action levels,
    approval gates, scheduling, recovery, budgets, and kill switch.
-4. **External integration** — only after the prior controls are verified;
+3. **External integration** — only after the prior controls are verified;
    Facebook and messaging integrations should begin as drafts requiring review.
 
 ## Non-negotiable rules

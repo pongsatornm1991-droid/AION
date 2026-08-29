@@ -15,6 +15,7 @@ class MemoryEngine:
         "semantic",
         "question",
         "goal",
+        "experiment",
     }
 
     def __init__(self, root="memory"):

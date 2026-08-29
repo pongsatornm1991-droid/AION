@@ -57,6 +57,7 @@ Question + options + facts + inferences + uncertainties
 | `BoundedItemTracker` | Shared base for a bounded, evidence-gated open-item tracker (raise/open with completion criteria + budget, log attempts, resolve only with evidence, or abandon with a reason) — never an in-place edit |
 | `CuriosityEngine` | AION's bounded set of open questions, built on `BoundedItemTracker` |
 | `GoalEngine` | AION's bounded set of active goals, built on `BoundedItemTracker` |
+| `ExperimentEngine` | A predict -> observe -> conclude loop: predictions need no evidence, but an observation always does; conclude() can optionally revise an existing belief — never in place |
 
 ## Explicit boundaries
 
@@ -73,6 +74,13 @@ Question + options + facts + inferences + uncertainties
   completion criteria, and can never be resolved without supporting
   evidence — the same discipline as beliefs, applied to curiosity and
   goal-selection. Only a bounded number may be open at once.
+- An experiment's observation can never be recorded without evidence,
+  and a mismatched prediction can never be recorded without stating
+  what the mismatch was. Whether a prediction "matched" is always
+  stated explicitly by the caller — `ExperimentEngine` never infers
+  it. A belief is only ever revised from an experiment's conclusion
+  when the caller explicitly names both the belief and the
+  experiment; nothing here revises a belief automatically.
 
 ## Intended evolution
 

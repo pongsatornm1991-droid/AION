@@ -14,6 +14,7 @@ from brain.consolidation import MemoryConsolidator
 from brain.beliefs import BeliefSystem
 from brain.curiosity import CuriosityEngine
 from brain.goals import GoalEngine
+from brain.experiments import ExperimentEngine
 
 
 VERSION = "0.0.8"
@@ -574,6 +575,110 @@ def run_abandon_goal(args):
     goals.abandon_goal(entry_id=args.id, reason=args.reason)
 
     print("\nAION GOAL ABANDONED")
+    print(f"ID: {args.id}")
+    print(f"Reason: {args.reason}")
+
+
+def run_predict(args):
+    """Record a prediction before anything is observed."""
+
+    experiments = ExperimentEngine(Thinker().memory)
+
+    saved = experiments.predict(
+        prediction=args.prediction,
+        confidence=args.confidence,
+        tags=args.tag,
+    )
+
+    print("\nAION EXPERIMENT PREDICTED")
+    print(f"ID: {saved['id']}")
+    print(f"Prediction: {args.prediction}")
+    print(f"Confidence: {args.confidence:.2f}")
+
+
+def run_experiments(args):
+    """List AION's pending experiments (predicted) or those awaiting a
+    conclusion (observed but no lesson yet)."""
+
+    experiments = ExperimentEngine(Thinker().memory)
+
+    if args.status == "awaiting":
+        items = experiments.awaiting_conclusion(limit=args.limit)
+        heading = "AION EXPERIMENTS AWAITING CONCLUSION"
+    else:
+        items = experiments.pending_experiments(limit=args.limit)
+        heading = "AION PENDING EXPERIMENTS"
+
+    print(f"\n{heading}")
+
+    if not items:
+        print("None found.")
+        return
+
+    for item in items:
+        print("-" * 60)
+        print(f"ID: {item['id']}")
+        print(f"Prediction: {item['prediction']}")
+        print(f"Confidence: {item['confidence']:.2f}")
+        if args.status == "awaiting":
+            print(f"Observed: {item['observed']}")
+            print(f"Matched: {item['matched']}")
+        print(f"Tags: {', '.join(item.get('tags', [])) or '(none)'}")
+
+
+def run_observe(args):
+    """Record what was actually observed for a prediction (requires
+    supporting evidence)."""
+
+    experiments = ExperimentEngine(Thinker().memory)
+
+    saved = experiments.observe(
+        entry_id=args.id,
+        observed_result=args.result,
+        matched=(args.matched == "yes"),
+        evidence=_parse_cli_evidence(args.evidence),
+        error_description=args.error,
+    )
+
+    print("\nAION EXPERIMENT OBSERVED")
+    print(f"New ID: {saved['id']}")
+    print(f"Superseded: {args.id}")
+    print(f"Matched: {args.matched}")
+
+
+def run_conclude(args):
+    """Derive a lesson from an observed experiment, optionally revising
+    an existing belief with the result."""
+
+    memory = Thinker().memory
+    experiments = ExperimentEngine(memory)
+
+    belief_system = BeliefSystem(memory) if args.belief_id else None
+
+    result = experiments.conclude(
+        entry_id=args.id,
+        lesson=args.lesson,
+        belief_system=belief_system,
+        belief_id=args.belief_id,
+        new_belief_confidence=args.belief_confidence,
+    )
+
+    print("\nAION EXPERIMENT CONCLUDED")
+    print(f"New ID: {result['experiment']['id']}")
+    print(f"Superseded: {args.id}")
+    print(f"Lesson: {args.lesson}")
+
+    if result["revised_belief"] is not None:
+        print(f"Revised belief ID: {result['revised_belief']['id']}")
+
+
+def run_abandon_experiment(args):
+    """Abandon an experiment before it is concluded."""
+
+    experiments = ExperimentEngine(Thinker().memory)
+    experiments.abandon(entry_id=args.id, reason=args.reason)
+
+    print("\nAION EXPERIMENT ABANDONED")
     print(f"ID: {args.id}")
     print(f"Reason: {args.reason}")
 
@@ -1299,6 +1404,71 @@ def build_parser():
     abandon_goal_parser.add_argument("--id", required=True)
     abandon_goal_parser.add_argument("--reason", required=True)
 
+    predict_parser = subparsers.add_parser(
+        "predict",
+        help="Record a prediction before anything is observed.",
+    )
+    predict_parser.add_argument("--prediction", required=True)
+    predict_parser.add_argument("--confidence", required=True, type=float)
+    predict_parser.add_argument(
+        "--tag", action="append", default=[], help="Topic tag; repeat for multiple."
+    )
+
+    experiments_parser = subparsers.add_parser(
+        "experiments",
+        help="List pending experiments or those awaiting a conclusion.",
+    )
+    experiments_parser.add_argument(
+        "--status",
+        choices=["pending", "awaiting"],
+        default="pending",
+        help="pending = predicted but not observed; "
+             "awaiting = observed but not yet concluded (default: pending).",
+    )
+    experiments_parser.add_argument("--limit", type=int, default=10)
+
+    observe_parser = subparsers.add_parser(
+        "observe",
+        help="Record what was observed for a prediction (requires evidence).",
+    )
+    observe_parser.add_argument("--id", required=True)
+    observe_parser.add_argument("--result", required=True)
+    observe_parser.add_argument(
+        "--matched", required=True, choices=["yes", "no"],
+        help="Whether the observed result matched the prediction.",
+    )
+    observe_parser.add_argument(
+        "--evidence", action="append", required=True,
+        help="Supporting evidence; repeat for multiple. Prefix with "
+             "'id:<memory-id>:' to link an existing entry.",
+    )
+    observe_parser.add_argument(
+        "--error", default=None,
+        help="Required when --matched no: what the mismatch was.",
+    )
+
+    conclude_parser = subparsers.add_parser(
+        "conclude",
+        help="Derive a lesson from an observed experiment.",
+    )
+    conclude_parser.add_argument("--id", required=True)
+    conclude_parser.add_argument("--lesson", required=True)
+    conclude_parser.add_argument(
+        "--belief-id", default=None,
+        help="Optional: revise this existing belief with the result.",
+    )
+    conclude_parser.add_argument(
+        "--belief-confidence", type=float, default=None,
+        help="New confidence for the revised belief (used with --belief-id).",
+    )
+
+    abandon_experiment_parser = subparsers.add_parser(
+        "abandon-experiment",
+        help="Abandon an experiment before it is concluded.",
+    )
+    abandon_experiment_parser.add_argument("--id", required=True)
+    abandon_experiment_parser.add_argument("--reason", required=True)
+
     return parser
 
 
@@ -1375,6 +1545,26 @@ def main():
 
     if args.command == "abandon-goal":
         run_abandon_goal(args)
+        return
+
+    if args.command == "predict":
+        run_predict(args)
+        return
+
+    if args.command == "experiments":
+        run_experiments(args)
+        return
+
+    if args.command == "observe":
+        run_observe(args)
+        return
+
+    if args.command == "conclude":
+        run_conclude(args)
+        return
+
+    if args.command == "abandon-experiment":
+        run_abandon_experiment(args)
         return
 
     run_reflection()

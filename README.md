@@ -200,6 +200,40 @@ current one, so the full attempt/revision history stays on disk (see
 commands call an AI provider, so this whole subsystem is covered by
 `run_tests.py` too.
 
+## Experiments and reflection
+
+`ExperimentEngine` is AION's predict -> observe -> conclude loop. A
+prediction states a confidence level before anything is known (no
+evidence required — a prediction isn't a claim yet); an observation
+always requires supporting evidence, since claiming what was actually
+seen is a claim like any other; concluding derives a lesson and can
+optionally revise an existing belief, but only when the caller
+explicitly names a `--belief-id` — nothing here changes a belief on
+its own.
+
+```powershell
+python main.py predict --prediction "Staged rollout reduces rollback incidents." --confidence 0.7 --tag rollout
+python main.py experiments --status pending
+```
+
+```powershell
+python main.py observe --id "<id>" --result "Rollbacks dropped 40% over 2 weeks." --matched yes --evidence "id:<memory-id>:rollback log"
+python main.py observe --id "<id>" --result "Latency got worse." --matched no --evidence "note" --error "Cache warmup not accounted for."
+python main.py experiments --status awaiting
+```
+
+```powershell
+python main.py conclude --id "<id>" --lesson "Confirmed staged rollout reduces incidents."
+python main.py conclude --id "<id>" --lesson "Raise confidence." --belief-id "<belief-id>" --belief-confidence 0.85
+python main.py abandon-experiment --id "<id>" --reason "No longer relevant."
+```
+
+Like beliefs, questions, and goals, nothing here is edited in place:
+`observe` and `conclude` each write a new entry superseding the
+current one, so the full predict/observe/conclude trail stays on disk
+(see `ExperimentEngine.history()`). None of this calls an AI provider,
+so this whole subsystem is covered by `run_tests.py` too.
+
 ## Offline verification
 
 Single deterministic command (unit tests + both offline benchmarks; never
