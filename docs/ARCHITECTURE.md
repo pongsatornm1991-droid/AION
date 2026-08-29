@@ -59,6 +59,7 @@ Question + options + facts + inferences + uncertainties
 | `GoalEngine` | AION's bounded set of active goals, built on `BoundedItemTracker` |
 | `ExperimentEngine` | A predict -> observe -> conclude loop: predictions need no evidence, but an observation always does; conclude() can optionally revise an existing belief — never in place |
 | `MetacognitionEngine` | Reports calibration, recurring lesson sources, and memory quality purely from what's on disk; reports tool reliability as not-yet-applicable rather than fabricating a figure |
+| `ToolRegistry` / `ToolLifecycle` | Propose -> approve/reject -> execute -> recover/abandon for any registered tool, gated by action level, a kill switch, per-level budgets, and scheduling; only read-only tools are actually registered yet |
 
 ## Explicit boundaries
 
@@ -89,6 +90,15 @@ Question + options + facts + inferences + uncertainties
   little data is reported as `insufficient_data` rather than guessed
   at. Tool reliability is reported `not_applicable` until a tool
   framework exists to measure.
+- No action -- of any level -- executes while the kill switch is
+  engaged; this is checked first, unconditionally, in
+  `ToolLifecycle.execute()`, before approval, schedule, or budget are
+  even considered. A `HIGH_RISK` action can never be approved by AION
+  itself (`approve()` raises if the approver is "aion"); only a
+  `LOW_RISK` or `READ_ONLY` action can be self-approved. Only
+  genuinely read-only tools are registered for real right now
+  (`build_builtin_tools()`) -- nothing claims AION can already act on
+  the outside world.
 
 ## Intended evolution
 

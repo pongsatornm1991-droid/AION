@@ -221,11 +221,77 @@ is thin, and tool reliability is honestly reported as not-yet-
 applicable rather than invented. Every path is covered by deterministic
 tests with no live API dependency. **Met.**
 
+## Phase 9 — Controlled tools and lifecycle (done, 2026-08-29)
+
+Goal: build the safety machinery a real external tool will need before
+any real external tool exists to plug into it -- "read-only research
+first" taken literally: only genuinely read-only tools are wired up
+for real right now.
+
+- `brain/tools.py`:
+  - `ActionLevel` (`READ_ONLY`/`LOW_RISK`/`HIGH_RISK`) and
+    `ToolRegistry` (name -> callable + level + description; rejects a
+    duplicate name, an unknown level, or a non-callable).
+  - `ToolLifecycle` implements propose -> approve/reject -> execute ->
+    recover/abandon, in the same append-only, never-edit-in-place
+    style as `BeliefSystem`/`ExperimentEngine`: every step writes a
+    new entry superseding the last, so `history()` walks the full
+    chain. `propose()` requires a registered tool; `approve()`
+    requires a non-empty approver and rejects self-approval by "aion"
+    for `HIGH_RISK`; `execute()` lets `READ_ONLY` run straight from
+    "proposed" but requires "approved" for the other two levels;
+    a tool's own exception is caught and recorded as a "failed" entry
+    rather than propagated, so the audit trail never has a gap;
+    `recover()` only runs on a "failed" entry and requires evidence,
+    same discipline as everywhere else -- it documents how a failure
+    was handled, it never silently retries.
+  - **Kill switch**: `engage_kill_switch()`/`disengage_kill_switch()`/
+    `kill_switch_engaged()`, checked first and unconditionally inside
+    `execute()` -- when engaged, nothing runs, at any level, no matter
+    what else is true.
+  - **Budgets**: a rolling-window cap (default 24h) per action level
+    on how many actions may actually run (`READ_ONLY` unlimited,
+    `LOW_RISK`/`HIGH_RISK` capped); counts both successes and failures
+    (an attempt is an attempt), and the window genuinely rolls forward
+    over time.
+  - **Scheduling**: `propose()` accepts a `scheduled_for` time;
+    `execute()` refuses to run it early.
+  - `build_builtin_tools()` registers the only tools that actually
+    exist right now, all `READ_ONLY`: `memory_stats`, `quality_report`,
+    `metacognition_report` -- thin wrappers around primitives that
+    already exist elsewhere in this codebase. `LOW_RISK`/`HIGH_RISK`
+    tool registration works and is fully tested, but nothing dangerous
+    is pluggable in the CLI yet -- that's the next phase.
+  - Adds `"action"` to `MemoryEngine.MEMORY_TYPES`.
+- New CLI: `main.py tools` / `propose-action` / `actions` /
+  `approve-action` / `reject-action` / `execute-action` /
+  `recover-action` / `abandon-action` / `engage-kill-switch` /
+  `disengage-kill-switch` / `kill-switch-status`. None of this calls an
+  AI provider, so it is fully covered by `run_tests.py`.
+- Tests: `tests/test_tools.py` (53 tests, no AI call anywhere) --
+  registry validation, the full propose/approve/reject/execute/
+  recover/abandon lifecycle for all three action levels, self-approval
+  allowed for `LOW_RISK` and forbidden for `HIGH_RISK`, tool-exception
+  capture as a "failed" record, evidence-gated recovery, the kill
+  switch halting execution at every level (with a real clock-mock test
+  confirming the budget window actually rolls forward), scheduling
+  (future/past/none), full history-chain walking, status/limit
+  filtering, and the built-in read-only tools executing against a real
+  `MemoryEngine`. Also confirms `MemoryEngine`'s own duplicate-content
+  detection would otherwise silently drop a repeated identical
+  proposal or kill-switch toggle -- fixed by giving every generated
+  entry a random nonce.
+
+Exit criteria: no action can execute while the kill switch is engaged,
+a `HIGH_RISK` action can never be self-approved, a budget genuinely
+caps how much can run in a window, a failed action is always captured
+rather than propagated, and only tools that actually, honestly exist
+are registered. Every path is covered by deterministic tests with no
+live API dependency. **Met.**
+
 ## Later phases
 
-1. **Controlled tools and lifecycle** — read-only research first, action levels,
-   approval gates, scheduling, recovery, budgets, and kill switch.
-2. **External integration** — only after the prior controls are verified;
+1. **External integration** — only after the prior controls are verified;
    Facebook and messaging integrations should begin as drafts requiring review.
 
 ## Non-negotiable rules

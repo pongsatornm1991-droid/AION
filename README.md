@@ -271,6 +271,61 @@ python main.py metacognition --report memory-quality
 None of this calls an AI provider, so it's fully covered by
 `run_tests.py` too.
 
+## Controlled tools and lifecycle
+
+`ToolLifecycle` is the plumbing the next phase ("External integration")
+will plug real tools into -- not the tools themselves. The only tools
+wired up for real right now are read-only (`build_builtin_tools()`:
+`memory_stats`, `quality_report`, `metacognition_report`); nothing here
+pretends AION can already send a message or touch the outside world,
+because it can't yet.
+
+Every action goes through the same propose -> approve/reject ->
+execute (-> recover if it failed) or abandon discipline as the rest of
+this codebase, plus four safeguards enforced in code, none overridable
+by anything an AI provider says:
+
+- **Action levels**: `READ_ONLY` needs no approval at all; `LOW_RISK`
+  can be approved by AION itself; `HIGH_RISK` can only ever be
+  approved by someone who is not AION.
+- **A kill switch**: once engaged, `execute()` refuses everything --
+  every level, regardless of approval, schedule, or budget -- until
+  it's explicitly disengaged.
+- **Budgets**: a rolling-window cap on how many `LOW_RISK`/`HIGH_RISK`
+  actions may actually run (`READ_ONLY` is unlimited).
+- **Scheduling**: a proposed action can carry a future time it must
+  not run before.
+
+```powershell
+python main.py tools
+python main.py propose-action --tool memory_stats --param category=experiences
+python main.py execute-action --id "<id>"
+```
+
+```powershell
+python main.py propose-action --tool memory_stats --param category=beliefs
+python main.py approve-action --id "<id>" --approver aion
+python main.py execute-action --id "<id>"
+python main.py actions --status executed
+```
+
+```powershell
+python main.py reject-action --id "<id>" --reason "Not needed." --rejector Pongsatorn
+python main.py recover-action --id "<id>" --resolution "Escalated to a human." --evidence "ops note"
+python main.py abandon-action --id "<id>" --reason "No longer needed."
+```
+
+```powershell
+python main.py engage-kill-switch --reason "Investigating an incident."
+python main.py kill-switch-status
+python main.py disengage-kill-switch --reason "Incident resolved."
+```
+
+Nothing here is edited in place: every step writes a new entry
+superseding the last, so the full lifecycle of every attempted action
+stays on disk (see `ToolLifecycle.history()`). None of this calls an
+AI provider, so it's fully covered by `run_tests.py` too.
+
 ## Offline verification
 
 Single deterministic command (unit tests + both offline benchmarks; never

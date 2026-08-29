@@ -16,6 +16,7 @@ class MemoryEngine:
         "question",
         "goal",
         "experiment",
+        "action",
     }
 
     def __init__(self, root="memory"):

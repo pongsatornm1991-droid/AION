@@ -16,6 +16,7 @@ from brain.curiosity import CuriosityEngine
 from brain.goals import GoalEngine
 from brain.experiments import ExperimentEngine
 from brain.metacognition import MetacognitionEngine
+from brain.tools import ToolLifecycle, build_builtin_tools
 
 
 VERSION = "0.0.8"
@@ -769,6 +770,195 @@ def run_metacognition(args):
             "Not applicable: no external tool-execution framework exists "
             "yet (see roadmap: Controlled tools and lifecycle)."
         )
+
+
+def _build_tool_lifecycle():
+    """The lifecycle manager used by the CLI: only genuinely read-only
+    tools are wired in right now (see brain.tools.build_builtin_tools)
+    -- LOW_RISK/HIGH_RISK tool registration is available programmatically
+    for whoever plugs in real external tools in the next phase."""
+
+    memory = Thinker().memory
+    return ToolLifecycle(memory, registry=build_builtin_tools(memory))
+
+
+def _parse_cli_params(raw_items):
+    """Turn --param key=value strings into a dict of string values."""
+
+    params = {}
+
+    for raw in raw_items or []:
+        if "=" not in raw:
+            raise ValueError(
+                f"--param must be in key=value form, got: {raw!r}"
+            )
+
+        key, value = raw.split("=", 1)
+        params[key.strip()] = value.strip()
+
+    return params
+
+
+def run_tools(args):
+    """List every tool AION currently has registered, and at what
+    action level."""
+
+    lc = _build_tool_lifecycle()
+
+    print("\nAION REGISTERED TOOLS")
+
+    for tool in lc.registry.list_tools():
+        print("-" * 60)
+        print(f"Name: {tool['name']}")
+        print(f"Level: {tool['level']}")
+        print(f"Description: {tool['description']}")
+
+
+def run_propose_action(args):
+    """Propose running a registered tool. READ_ONLY actions can be
+    executed straight from here; LOW_RISK/HIGH_RISK need approve-action
+    first."""
+
+    lc = _build_tool_lifecycle()
+
+    saved = lc.propose(
+        tool_name=args.tool,
+        params=_parse_cli_params(args.param),
+        scheduled_for=args.scheduled_for,
+    )
+
+    print("\nAION ACTION PROPOSED")
+    print(f"ID: {saved['id']}")
+    print(f"Tool: {saved['tool']}")
+    print(f"Level: {saved['level']}")
+    print(f"Scheduled for: {saved['scheduled_for'] or 'immediately'}")
+
+
+def run_actions(args):
+    """List AION's proposed/approved/executed/failed/etc. actions."""
+
+    lc = _build_tool_lifecycle()
+    items = lc.actions(status=args.status, limit=args.limit)
+
+    print("\nAION ACTIONS")
+
+    if not items:
+        print("No actions found.")
+        return
+
+    for item in items:
+        print("-" * 60)
+        print(f"ID: {item['id']}")
+        print(f"Tool: {item['tool']}")
+        print(f"Level: {item['level']}")
+        print(f"Status: {item['status']}")
+        print(f"Params: {item['params']}")
+        if item["result"] is not None:
+            print(f"Result: {item['result']}")
+        if item["error"] is not None:
+            print(f"Error: {item['error']}")
+
+
+def run_approve_action(args):
+    """Approve a proposed action. HIGH_RISK actions can never be
+    approved by AION itself -- the approver must be a person."""
+
+    lc = _build_tool_lifecycle()
+    saved = lc.approve(args.id, approver=args.approver)
+
+    print("\nAION ACTION APPROVED")
+    print(f"New ID: {saved['id']}")
+    print(f"Superseded: {args.id}")
+    print(f"Approver: {args.approver}")
+
+
+def run_reject_action(args):
+    """Reject a proposed action before it ever runs."""
+
+    lc = _build_tool_lifecycle()
+    saved = lc.reject(args.id, reason=args.reason, rejector=args.rejector)
+
+    print("\nAION ACTION REJECTED")
+    print(f"New ID: {saved['id']}")
+    print(f"Superseded: {args.id}")
+    print(f"Reason: {args.reason}")
+
+
+def run_execute_action(args):
+    """Execute an approved (or, for READ_ONLY, proposed) action. Checks
+    the kill switch, approval, schedule, and budget before running
+    anything."""
+
+    lc = _build_tool_lifecycle()
+    saved = lc.execute(args.id)
+
+    print("\nAION ACTION EXECUTED" if saved["status"] == "executed" else "\nAION ACTION FAILED")
+    print(f"New ID: {saved['id']}")
+    print(f"Superseded: {args.id}")
+    print(f"Status: {saved['status']}")
+    if saved["result"] is not None:
+        print(f"Result: {saved['result']}")
+    if saved["error"] is not None:
+        print(f"Error: {saved['error']}")
+
+
+def run_recover_action(args):
+    """Document how a failed action was handled (never a silent
+    automatic retry)."""
+
+    lc = _build_tool_lifecycle()
+
+    saved = lc.recover(
+        args.id,
+        resolution=args.resolution,
+        evidence=_parse_cli_evidence(args.evidence),
+    )
+
+    print("\nAION ACTION RECOVERED")
+    print(f"New ID: {saved['id']}")
+    print(f"Superseded: {args.id}")
+    print(f"Resolution: {args.resolution}")
+
+
+def run_abandon_action(args):
+    """Abandon an action before it executes (or after it failed)."""
+
+    lc = _build_tool_lifecycle()
+    lc.abandon(args.id, reason=args.reason)
+
+    print("\nAION ACTION ABANDONED")
+    print(f"ID: {args.id}")
+    print(f"Reason: {args.reason}")
+
+
+def run_engage_kill_switch(args):
+    """Halt every action AION can execute, effective immediately."""
+
+    lc = _build_tool_lifecycle()
+    lc.engage_kill_switch(reason=args.reason)
+
+    print("\nAION KILL SWITCH ENGAGED")
+    print(f"Reason: {args.reason}")
+    print("No action -- of any level -- will execute until disengaged.")
+
+
+def run_disengage_kill_switch(args):
+    """Resume normal operation after the kill switch was engaged."""
+
+    lc = _build_tool_lifecycle()
+    lc.disengage_kill_switch(reason=args.reason)
+
+    print("\nAION KILL SWITCH DISENGAGED")
+    print(f"Reason: {args.reason}")
+
+
+def run_kill_switch_status(args):
+    """Report whether the kill switch is currently engaged."""
+
+    lc = _build_tool_lifecycle()
+    engaged = lc.kill_switch_engaged()
+
+    print(f"\nKill switch engaged: {engaged}")
 
 
 def run_consolidate(args):
@@ -1581,6 +1771,98 @@ def build_parser():
         help="Maximum lesson sources to list (default: 10).",
     )
 
+    subparsers.add_parser(
+        "tools",
+        help="List every tool AION currently has registered.",
+    )
+
+    propose_action_parser = subparsers.add_parser(
+        "propose-action",
+        help="Propose running a registered tool.",
+    )
+    propose_action_parser.add_argument("--tool", required=True)
+    propose_action_parser.add_argument(
+        "--param", action="append", default=[],
+        help="Tool parameter as key=value; repeat for multiple.",
+    )
+    propose_action_parser.add_argument(
+        "--scheduled-for", default=None,
+        help="ISO datetime this action must not run before "
+             "(default: immediately).",
+    )
+
+    actions_parser = subparsers.add_parser(
+        "actions",
+        help="List AION's proposed/approved/executed/failed/etc. actions.",
+    )
+    actions_parser.add_argument(
+        "--status",
+        choices=["proposed", "approved", "rejected", "executed", "failed",
+                 "recovered", "abandoned"],
+        default=None,
+    )
+    actions_parser.add_argument("--limit", type=int, default=10)
+
+    approve_action_parser = subparsers.add_parser(
+        "approve-action",
+        help="Approve a proposed action.",
+    )
+    approve_action_parser.add_argument("--id", required=True)
+    approve_action_parser.add_argument(
+        "--approver", required=True,
+        help="Who is approving this. HIGH_RISK actions reject "
+             "'aion' as an approver -- they need a person.",
+    )
+
+    reject_action_parser = subparsers.add_parser(
+        "reject-action",
+        help="Reject a proposed action before it ever runs.",
+    )
+    reject_action_parser.add_argument("--id", required=True)
+    reject_action_parser.add_argument("--reason", required=True)
+    reject_action_parser.add_argument("--rejector", required=True)
+
+    execute_action_parser = subparsers.add_parser(
+        "execute-action",
+        help="Execute an approved (or READ_ONLY proposed) action.",
+    )
+    execute_action_parser.add_argument("--id", required=True)
+
+    recover_action_parser = subparsers.add_parser(
+        "recover-action",
+        help="Document how a failed action was handled.",
+    )
+    recover_action_parser.add_argument("--id", required=True)
+    recover_action_parser.add_argument("--resolution", required=True)
+    recover_action_parser.add_argument(
+        "--evidence", action="append", required=True,
+        help="Supporting evidence; repeat for multiple.",
+    )
+
+    abandon_action_parser = subparsers.add_parser(
+        "abandon-action",
+        help="Abandon an action before it executes (or after it failed).",
+    )
+    abandon_action_parser.add_argument("--id", required=True)
+    abandon_action_parser.add_argument("--reason", required=True)
+
+    engage_kill_switch_parser = subparsers.add_parser(
+        "engage-kill-switch",
+        help="Halt every action AION can execute, effective immediately.",
+    )
+    engage_kill_switch_parser.add_argument("--reason", required=True)
+
+    disengage_kill_switch_parser = subparsers.add_parser(
+        "disengage-kill-switch",
+        help="Resume normal operation after the kill switch was engaged.",
+    )
+    disengage_kill_switch_parser.add_argument("--reason", required=True)
+
+    subparsers.add_parser(
+        "kill-switch-status",
+        help="Report whether the kill switch is currently engaged.",
+    )
+
     return parser
 
 
@@ -1681,6 +1963,50 @@ def main():
 
     if args.command == "metacognition":
         run_metacognition(args)
+        return
+
+    if args.command == "tools":
+        run_tools(args)
+        return
+
+    if args.command == "propose-action":
+        run_propose_action(args)
+        return
+
+    if args.command == "actions":
+        run_actions(args)
+        return
+
+    if args.command == "approve-action":
+        run_approve_action(args)
+        return
+
+    if args.command == "reject-action":
+        run_reject_action(args)
+        return
+
+    if args.command == "execute-action":
+        run_execute_action(args)
+        return
+
+    if args.command == "recover-action":
+        run_recover_action(args)
+        return
+
+    if args.command == "abandon-action":
+        run_abandon_action(args)
+        return
+
+    if args.command == "engage-kill-switch":
+        run_engage_kill_switch(args)
+        return
+
+    if args.command == "disengage-kill-switch":
+        run_disengage_kill_switch(args)
+        return
+
+    if args.command == "kill-switch-status":
+        run_kill_switch_status(args)
         return
 
     run_reflection()
