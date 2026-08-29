@@ -11,6 +11,7 @@ from brain.evaluator import OutputEvaluator
 from brain.learner import LearningEngine
 from brain.correction import CorrectionEngine
 from brain.consolidation import MemoryConsolidator
+from brain.beliefs import BeliefSystem
 
 
 VERSION = "0.0.8"
@@ -303,6 +304,106 @@ def print_evaluation(evaluation, title="OUTPUT EVALUATION"):
 
     else:
         print("\n✓ No evaluation flags.")
+
+
+def _parse_cli_evidence(raw_items):
+    """Turn --evidence strings into BeliefSystem evidence items.
+
+    A plain string becomes a description with no linked id. Prefixing
+    with "id:<memory-id>:" links the evidence to an existing memory or
+    decision entry, e.g. "id:a1b2c3d4e5f6:Decision was accepted LOW risk."
+    """
+
+    parsed = []
+
+    for raw in raw_items or []:
+        if raw.startswith("id:"):
+            remainder = raw[len("id:"):]
+
+            if ":" in remainder:
+                entry_id, description = remainder.split(":", 1)
+                parsed.append({
+                    "id": entry_id.strip(),
+                    "description": description.strip(),
+                })
+                continue
+
+        parsed.append({"description": raw.strip()})
+
+    return parsed
+
+
+def run_believe(args):
+    """Form a new explicit belief. Refuses to save one with no evidence."""
+
+    beliefs = BeliefSystem(Thinker().memory)
+
+    saved = beliefs.form_belief(
+        statement=args.statement,
+        confidence=args.confidence,
+        evidence=_parse_cli_evidence(args.evidence),
+        tags=args.tag,
+        expires_in_days=args.expires_days,
+    )
+
+    print("\nAION BELIEF FORMED")
+    print(f"ID: {saved['id']}")
+    print(f"Statement: {args.statement}")
+    print(f"Confidence: {args.confidence:.2f}")
+    print(f"Importance: {saved['importance']}")
+    print(f"Tags: {', '.join(saved.get('tags', [])) or '(none)'}")
+
+
+def run_beliefs(args):
+    """List AION's currently active beliefs."""
+
+    beliefs = BeliefSystem(Thinker().memory)
+    active = beliefs.active_beliefs(topic=args.topic, limit=args.limit)
+
+    print("\nAION ACTIVE BELIEFS")
+
+    if not active:
+        print("No active beliefs found.")
+        return
+
+    for belief in active:
+        print("-" * 60)
+        print(f"ID: {belief['id']}")
+        print(f"Statement: {belief['statement']}")
+        print(f"Confidence: {belief['confidence']:.2f}")
+        print(f"Expires: {belief['expires'] or 'none'}")
+        print(f"Tags: {', '.join(belief.get('tags', [])) or '(none)'}")
+
+
+def run_revise_belief(args):
+    """Supersede an existing belief with a revised one."""
+
+    beliefs = BeliefSystem(Thinker().memory)
+
+    saved = beliefs.revise_belief(
+        entry_id=args.id,
+        reason=args.reason,
+        new_statement=args.statement,
+        new_confidence=args.confidence,
+        additional_evidence=_parse_cli_evidence(args.evidence),
+        expires_in_days=args.expires_days,
+    )
+
+    print("\nAION BELIEF REVISED")
+    print(f"New ID: {saved['id']}")
+    print(f"Superseded: {args.id}")
+    print(f"Reason: {args.reason}")
+
+
+def run_retract_belief(args):
+    """Retract a belief with no replacement."""
+
+    beliefs = BeliefSystem(Thinker().memory)
+    beliefs.retract_belief(entry_id=args.id, reason=args.reason)
+
+    print("\nAION BELIEF RETRACTED")
+    print(f"ID: {args.id}")
+    print(f"Reason: {args.reason}")
 
 
 def run_consolidate(args):
@@ -838,6 +939,84 @@ def build_parser():
              "(default: 8).",
     )
 
+    believe_parser = subparsers.add_parser(
+        "believe",
+        help="Form a new explicit belief (requires supporting evidence).",
+    )
+    believe_parser.add_argument("--statement", required=True)
+    believe_parser.add_argument("--confidence", required=True, type=float)
+    believe_parser.add_argument(
+        "--evidence",
+        action="append",
+        required=True,
+        help="Supporting evidence; repeat for multiple. Prefix with "
+             "'id:<memory-id>:' to link an existing memory/decision "
+             "entry, e.g. 'id:a1b2c3d4e5f6:Decision accepted LOW risk.'",
+    )
+    believe_parser.add_argument(
+        "--tag",
+        action="append",
+        default=[],
+        help="Topic tag; repeat for multiple.",
+    )
+    believe_parser.add_argument(
+        "--expires-days",
+        type=int,
+        default=None,
+        help="Days until this belief expires (default: 90; 0 = never).",
+    )
+
+    beliefs_parser = subparsers.add_parser(
+        "beliefs",
+        help="List AION's currently active beliefs.",
+    )
+    beliefs_parser.add_argument(
+        "--topic",
+        default=None,
+        help="Only show beliefs tagged with this topic.",
+    )
+    beliefs_parser.add_argument(
+        "--limit",
+        type=int,
+        default=10,
+        help="Maximum beliefs to show.",
+    )
+
+    revise_belief_parser = subparsers.add_parser(
+        "revise-belief",
+        help="Supersede an existing belief with a revised one.",
+    )
+    revise_belief_parser.add_argument(
+        "--id", required=True, help="ID of the belief to supersede."
+    )
+    revise_belief_parser.add_argument(
+        "--reason", required=True, help="Why the belief is being revised."
+    )
+    revise_belief_parser.add_argument("--statement", default=None)
+    revise_belief_parser.add_argument(
+        "--confidence", type=float, default=None
+    )
+    revise_belief_parser.add_argument(
+        "--evidence",
+        action="append",
+        default=[],
+        help="Additional supporting evidence; repeat for multiple.",
+    )
+    revise_belief_parser.add_argument(
+        "--expires-days", type=int, default=None
+    )
+
+    retract_belief_parser = subparsers.add_parser(
+        "retract-belief",
+        help="Retract a belief with no replacement.",
+    )
+    retract_belief_parser.add_argument(
+        "--id", required=True, help="ID of the belief to retract."
+    )
+    retract_belief_parser.add_argument(
+        "--reason", required=True, help="Why the belief is being retracted."
+    )
+
     return parser
 
 
@@ -858,6 +1037,22 @@ def main():
 
     if args.command == "consolidate":
         run_consolidate(args)
+        return
+
+    if args.command == "believe":
+        run_believe(args)
+        return
+
+    if args.command == "beliefs":
+        run_beliefs(args)
+        return
+
+    if args.command == "revise-belief":
+        run_revise_belief(args)
+        return
+
+    if args.command == "retract-belief":
+        run_retract_belief(args)
         return
 
     run_reflection()

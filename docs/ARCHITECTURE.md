@@ -52,6 +52,8 @@ Question + options + facts + inferences + uncertainties
 | `DecisionEngine` | Computes structured confidence from supplied inputs |
 | `CognitiveAuditor` | Assesses risk and recommendations for a proposed conclusion |
 | `DecisionHistory` | Lists and conditionally promotes persisted decisions |
+| `MemoryConsolidator` | Summarizes old, low-importance memories into semantic knowledge, gated on `OutputEvaluator`'s claim-safety sub-score |
+| `BeliefSystem` | Explicit claims with confidence, required evidence, revision lineage, and computed expiration — never an in-place edit |
 
 ## Explicit boundaries
 
@@ -61,6 +63,9 @@ Question + options + facts + inferences + uncertainties
   external facts.
 - External communication, web retrieval, social-media actions, scheduling, and
   self-modifying code are not implemented.
+- A belief is never created from bare AI output: `BeliefSystem.form_belief()`
+  raises if no evidence is supplied, regardless of how confident the
+  statement sounds.
 
 ## Intended evolution
 

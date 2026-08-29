@@ -110,6 +110,51 @@ and `related` (a list of other entries' `id`s) alongside the existing
 `RELATED:` ids first, then other entries ranked by shared-tag overlap) —
 are all pure code, so they work fully offline with no AI call.
 
+## Beliefs
+
+Form an explicit belief. `--evidence` is required — `BeliefSystem` refuses
+to save a belief with none. Prefix an item with `id:<memory-id>:` to link it
+to an existing memory or decision entry:
+
+```powershell
+python main.py believe `
+  --statement "Staged rollouts reduce rollback incidents." `
+  --confidence 0.7 `
+  --evidence "id:a1b2c3d4e5f6:Three prior staged rollouts had no rollback." `
+  --tag rollout `
+  --tag ops
+```
+
+List currently active beliefs (excludes superseded, retracted, and expired
+ones — expiration is computed from the stored date at read time, so nothing
+needs a separate cleanup pass):
+
+```powershell
+python main.py beliefs --topic rollout --limit 10
+```
+
+Revising a belief never edits it in place — it writes a new belief entry and
+tags the old one `superseded`, keeping the full lineage on disk:
+
+```powershell
+python main.py revise-belief `
+  --id "80fb5bb871e8" `
+  --reason "New data changed my confidence." `
+  --confidence 0.9
+```
+
+Retracting leaves no replacement, tags the entry `retracted`, and logs a
+companion lesson recording why:
+
+```powershell
+python main.py retract-belief --id "80fb5bb871e8" --reason "Turned out false."
+```
+
+None of `believe`/`beliefs`/`revise-belief`/`retract-belief` calls an AI
+provider — belief formation, revision, and retraction are pure code with a
+hard requirement for evidence, so this whole subsystem is covered by
+`run_tests.py`, unlike `consolidate`.
+
 ## Offline verification
 
 Single deterministic command (unit tests + both offline benchmarks; never
