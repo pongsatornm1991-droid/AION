@@ -7,3 +7,8 @@ link_memory_to_onedrive.bat
 memory_local_backup/
 .obsidian/
 _patch_*.py*
+
+# memory/ is symlinked to a personal OneDrive path on this machine
+# (see aion.md); tracking it in git would commit a machine-specific
+# absolute path that breaks on any other machine or clone.
+memory
