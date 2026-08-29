@@ -12,14 +12,46 @@ class Thinker:
 
         identity = self.identity.load()
 
-        memories = self.memory.recent(
+        recent_memories = self.memory.recent(
             "experiences",
-            limit=5
+            limit=5,
+        )
+
+        important_memories = self.memory.important(
+            "experiences",
+            minimum=4,
+            limit=5,
+        )
+
+        recent_lessons = self.memory.recent(
+            "lessons",
+            limit=5,
+        )
+
+        important_lessons = self.memory.important(
+            "lessons",
+            minimum=4,
+            limit=5,
+        )
+
+        accepted_decisions = self.memory.recent(
+            "decisions_accepted",
+            limit=3,
+        )
+
+        pending_decisions = self.memory.recent(
+            "decisions_pending_verification",
+            limit=3,
         )
 
         context = {
             "identity": identity,
-            "recent_memories": memories,
+            "recent_memories": recent_memories,
+            "important_memories": important_memories,
+            "recent_lessons": recent_lessons,
+            "important_lessons": important_lessons,
+            "accepted_decisions": accepted_decisions,
+            "pending_decisions": pending_decisions,
         }
 
         return context
