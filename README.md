@@ -234,6 +234,43 @@ current one, so the full predict/observe/conclude trail stays on disk
 (see `ExperimentEngine.history()`). None of this calls an AI provider,
 so this whole subsystem is covered by `run_tests.py` too.
 
+## Metacognition
+
+`MetacognitionEngine` reports on AION's own track record -- every
+number is computed directly from what's already on disk, nothing is
+judged or estimated by an AI provider.
+
+```powershell
+python main.py metacognition
+python main.py metacognition --report calibration --bucket-size 0.2
+python main.py metacognition --report recurring-errors --min-occurrences 2
+python main.py metacognition --report memory-quality
+```
+
+- **Calibration** buckets every observed experiment (from
+  `ExperimentEngine.observed_experiments()`) by its stated confidence
+  and compares that to how often it actually matched, flagging each
+  bucket `overconfident` / `underconfident` / `well-calibrated` -- or
+  `insufficient_data` when there simply aren't enough observations yet
+  to say anything honestly.
+- **Recurring errors** groups every logged lesson by its source (e.g.
+  `experiment-abandonment`, `question-abandonment`) and flags any
+  source that recurs at least `--min-occurrences` times -- a literal
+  count, not an AI-judged theme.
+- **Memory quality** aggregates `MemoryEngine`'s own
+  `quality_report()`/`stats()` across every category found on disk,
+  flagging any category (with at least 3 entries, so a couple of thin
+  entries never look like a systemic problem) whose average quality
+  falls below a threshold.
+- **Tool reliability** — the fourth thing this phase names — is
+  deliberately reported as `not_applicable`: AION has no
+  external-tool-execution framework yet (that's the next phase), and
+  inventing a reliability figure for tools that don't exist would be
+  exactly the kind of fabricated self-assessment this project forbids.
+
+None of this calls an AI provider, so it's fully covered by
+`run_tests.py` too.
+
 ## Offline verification
 
 Single deterministic command (unit tests + both offline benchmarks; never

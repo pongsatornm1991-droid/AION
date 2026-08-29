@@ -15,6 +15,7 @@ from brain.beliefs import BeliefSystem
 from brain.curiosity import CuriosityEngine
 from brain.goals import GoalEngine
 from brain.experiments import ExperimentEngine
+from brain.metacognition import MetacognitionEngine
 
 
 VERSION = "0.0.8"
@@ -681,6 +682,93 @@ def run_abandon_experiment(args):
     print("\nAION EXPERIMENT ABANDONED")
     print(f"ID: {args.id}")
     print(f"Reason: {args.reason}")
+
+
+def _print_calibration(report):
+    print(f"Observed experiments analyzed: {report['sample_size']}")
+
+    if not report["buckets"]:
+        print("No observed experiments yet -- nothing to calibrate.")
+        return
+
+    for bucket in report["buckets"]:
+        low, high = bucket["range"]
+        print("-" * 60)
+        print(f"Confidence range: {low:.2f}-{high:.2f}")
+        print(f"Observations: {bucket['count']}")
+        print(f"Average stated confidence: {bucket['average_confidence']:.2f}")
+        print(f"Actual match rate: {bucket['match_rate']:.2f}")
+
+        if bucket["sufficient_data"]:
+            print(f"Assessment: {bucket['assessment']} (gap: {bucket['calibration_gap']:+.2f})")
+        else:
+            print("Assessment: insufficient data (fewer than min-samples observations)")
+
+    if report["overall_calibration_error"] is not None:
+        print("-" * 60)
+        print(f"Overall calibration error: {report['overall_calibration_error']:.3f}")
+
+
+def _print_recurring_errors(report):
+    print(f"Total lessons logged: {report['total_lessons']}")
+
+    if not report["sources"]:
+        print("No lessons logged yet.")
+        return
+
+    for item in report["sources"]:
+        flag = " (recurring)" if item in report["recurring"] else ""
+        print(f"- {item['source']}: {item['count']}{flag}")
+
+    if not report["recurring"]:
+        print("\nNo source has recurred often enough to flag yet.")
+
+
+def _print_memory_quality(report):
+    print(f"Total entries across all categories: {report['total_entries']}")
+    print(f"Overall average quality: {report['overall_average_quality']:.2f}/5")
+
+    for category, stats in sorted(report["categories"].items()):
+        flag = " (flagged low quality)" if category in report["flagged_low_quality"] else ""
+        print(
+            f"- {category}: {stats['total']} entries, "
+            f"avg {stats['average_quality']:.2f}/5{flag}"
+        )
+
+
+def run_metacognition(args):
+    """Report calibration, recurring lessons, and memory quality --
+    all computed directly from what's on disk, no AI provider call."""
+
+    memory = Thinker().memory
+    meta = MetacognitionEngine(memory)
+
+    print("\nAION METACOGNITION REPORT")
+
+    if args.report in ("calibration", "full"):
+        print("\n--- Calibration ---")
+        _print_calibration(
+            meta.calibration_report(bucket_size=args.bucket_size)
+        )
+
+    if args.report in ("recurring-errors", "full"):
+        print("\n--- Recurring errors ---")
+        _print_recurring_errors(
+            meta.recurring_error_report(
+                min_occurrences=args.min_occurrences, limit=args.limit
+            )
+        )
+
+    if args.report in ("memory-quality", "full"):
+        print("\n--- Memory quality ---")
+        _print_memory_quality(meta.memory_quality_overview())
+
+    if args.report == "full":
+        print("\n--- Tool reliability ---")
+        print(
+            "Not applicable: no external tool-execution framework exists "
+            "yet (see roadmap: Controlled tools and lifecycle)."
+        )
 
 
 def run_consolidate(args):
@@ -1469,6 +1557,30 @@ def build_parser():
     abandon_experiment_parser.add_argument("--id", required=True)
     abandon_experiment_parser.add_argument("--reason", required=True)
 
+    metacognition_parser = subparsers.add_parser(
+        "metacognition",
+        help="Report calibration, recurring lessons, and memory quality "
+             "(pure code, no AI call).",
+    )
+    metacognition_parser.add_argument(
+        "--report",
+        choices=["calibration", "recurring-errors", "memory-quality", "full"],
+        default="full",
+    )
+    metacognition_parser.add_argument(
+        "--bucket-size", type=float, default=0.2,
+        help="Confidence bucket width for the calibration report (default: 0.2).",
+    )
+    metacognition_parser.add_argument(
+        "--min-occurrences", type=int, default=2,
+        help="Minimum count for a lesson source to be flagged recurring "
+             "(default: 2).",
+    )
+    metacognition_parser.add_argument(
+        "--limit", type=int, default=10,
+        help="Maximum lesson sources to list (default: 10).",
+    )
+
     return parser
 
 
@@ -1565,6 +1677,10 @@ def main():
 
     if args.command == "abandon-experiment":
         run_abandon_experiment(args)
+        return
+
+    if args.command == "metacognition":
+        run_metacognition(args)
         return
 
     run_reflection()

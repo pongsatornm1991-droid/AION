@@ -172,13 +172,60 @@ explanation; a belief only ever changes from an experiment's conclusion
 when the caller explicitly asks for it; every path is covered by
 deterministic tests with no live API dependency. **Met.**
 
+## Phase 8 — Metacognition (done, 2026-08-29)
+
+Goal: AION can report on its own track record -- calibration, recurring
+failure sources, and memory quality -- using only numbers computed from
+what's already on disk, never an AI-judged self-assessment.
+
+- `brain/metacognition.py` — `MetacognitionEngine`:
+  - `calibration_report()` buckets every experiment that has actually
+    been observed (`ExperimentEngine.observed_experiments()`, a new
+    method that includes concluded and abandoned-after-observation
+    experiments, since the observation itself is real signal
+    regardless of what happened after) by stated confidence, and
+    compares average confidence to actual match rate per bucket.
+    A bucket below `min_samples_per_bucket` (default 3) is reported
+    `insufficient_data` rather than treated as a finding — a single
+    lucky or unlucky guess is never a calibration result.
+  - `recurring_error_report()` groups every `lessons` entry by its
+    `source` field (a literal count, not an AI-judged theme) and flags
+    any source recurring at least `min_occurrences` times.
+  - `memory_quality_overview()` auto-discovers every category file on
+    disk and aggregates `MemoryEngine.quality_report()`/`stats()`
+    across them, flagging a category (with at least 3 entries) whose
+    average quality falls below a threshold.
+  - `full_report()` combines all three, plus `tool_reliability`
+    reported as `not_applicable` — AION has no external-tool-execution
+    framework yet (that's the next phase), so reporting a reliability
+    figure now would be a fabricated number, not a measured one.
+- New CLI: `main.py metacognition --report
+  {calibration,recurring-errors,memory-quality,full}`. None of this
+  calls an AI provider, so it is fully covered by `run_tests.py`.
+- Tests: `tests/test_metacognition.py` (20 tests, no AI call anywhere)
+  — invalid bucket-size validation, empty-state handling for all three
+  reports, insufficient-data flagging, overconfident/underconfident/
+  well-calibrated detection with hand-computed expected gaps,
+  abandoned-after-observation experiments still counting toward
+  calibration, source grouping and the min-occurrences threshold,
+  category auto-discovery vs. an explicit category list, a thin
+  category never being flagged, and a weighted overall-quality
+  average. Plus 5 new tests in `tests/test_experiments.py` for
+  `observed_experiments()` itself (excludes predicted-only and
+  abandoned-before-observation experiments, includes observed/
+  concluded/abandoned-after-observation ones, respects `limit`).
+
+Exit criteria: every reported number traces back to something already
+on disk, a report says "not enough data" rather than guessing when data
+is thin, and tool reliability is honestly reported as not-yet-
+applicable rather than invented. Every path is covered by deterministic
+tests with no live API dependency. **Met.**
+
 ## Later phases
 
-1. **Metacognition** — monitor recurring errors, calibration, memory quality,
-   and tool reliability.
-2. **Controlled tools and lifecycle** — read-only research first, action levels,
+1. **Controlled tools and lifecycle** — read-only research first, action levels,
    approval gates, scheduling, recovery, budgets, and kill switch.
-3. **External integration** — only after the prior controls are verified;
+2. **External integration** — only after the prior controls are verified;
    Facebook and messaging integrations should begin as drafts requiring review.
 
 ## Non-negotiable rules

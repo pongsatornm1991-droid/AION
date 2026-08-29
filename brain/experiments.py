@@ -367,6 +367,25 @@ class ExperimentEngine:
 
         return results
 
+    def observed_experiments(self, limit: int = None):
+        """Every experiment that has actually been observed at least
+        once (matched is known), regardless of whether it has since
+        been concluded or abandoned. This is the raw material for
+        calibration analysis (Metacognition): predicted-but-never-
+        observed experiments carry no signal, so they are excluded."""
+
+        results = [
+            {**entry, **self._parse_content(entry["content"])}
+            for entry in self._latest_entries()
+            if self._parse_content(entry["content"])["matched"] is not None
+        ]
+        results.sort(key=lambda entry: entry["timestamp"], reverse=True)
+
+        if limit is not None:
+            results = results[:limit]
+
+        return results
+
     def history(self, entry_id: str):
         """Full predict -> observe -> conclude chain for one
         experiment, oldest first. Never filtered by status."""

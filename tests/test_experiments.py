@@ -372,5 +372,64 @@ class ExperimentEngineTests(unittest.TestCase):
         self.assertEqual(len(limited), 2)
 
 
+    # -----------------------------------------------------
+    # OBSERVED_EXPERIMENTS (feeds Metacognition's calibration report)
+    # -----------------------------------------------------
+
+    def test_observed_experiments_excludes_predicted_only(self):
+        self.experiments.predict("Never observed.", confidence=0.5)
+
+        self.assertEqual(self.experiments.observed_experiments(), [])
+
+    def test_observed_experiments_includes_observed_and_concluded(self):
+        saved = self.experiments.predict("X happens.", confidence=0.7)
+        observed = self.experiments.observe(
+            saved["id"], "X happened.", matched=True, evidence=["note"]
+        )
+
+        only_observed = self.experiments.observed_experiments()
+        self.assertEqual(len(only_observed), 1)
+        self.assertEqual(only_observed[0]["id"], observed["id"])
+        self.assertTrue(only_observed[0]["matched"])
+        self.assertEqual(only_observed[0]["confidence"], 0.7)
+
+        result = self.experiments.conclude(observed["id"], "Lesson.")
+        concluded = result["experiment"]
+
+        after_conclude = self.experiments.observed_experiments()
+        self.assertEqual(len(after_conclude), 1)
+        self.assertEqual(after_conclude[0]["id"], concluded["id"])
+        self.assertTrue(after_conclude[0]["matched"])
+
+    def test_observed_experiments_includes_abandoned_after_observation(self):
+        saved = self.experiments.predict("X happens.", confidence=0.6)
+        observed = self.experiments.observe(
+            saved["id"], "X happened.", matched=False, evidence=["note"],
+            error_description="Confound present.",
+        )
+        self.experiments.abandon(observed["id"], reason="Data was invalid.")
+
+        results = self.experiments.observed_experiments()
+        self.assertEqual(len(results), 1)
+        self.assertEqual(results[0]["id"], observed["id"])
+        self.assertFalse(results[0]["matched"])
+
+    def test_observed_experiments_excludes_abandoned_before_observation(self):
+        saved = self.experiments.predict("X happens.", confidence=0.6)
+        self.experiments.abandon(saved["id"], reason="No longer relevant.")
+
+        self.assertEqual(self.experiments.observed_experiments(), [])
+
+    def test_observed_experiments_respects_limit(self):
+        for i in range(3):
+            saved = self.experiments.predict(f"P{i}", confidence=0.5)
+            self.experiments.observe(
+                saved["id"], f"Result {i}", matched=True, evidence=["note"]
+            )
+
+        limited = self.experiments.observed_experiments(limit=2)
+        self.assertEqual(len(limited), 2)
+
+
 if __name__ == "__main__":
     unittest.main()

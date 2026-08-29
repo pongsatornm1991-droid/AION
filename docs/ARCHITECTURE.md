@@ -58,6 +58,7 @@ Question + options + facts + inferences + uncertainties
 | `CuriosityEngine` | AION's bounded set of open questions, built on `BoundedItemTracker` |
 | `GoalEngine` | AION's bounded set of active goals, built on `BoundedItemTracker` |
 | `ExperimentEngine` | A predict -> observe -> conclude loop: predictions need no evidence, but an observation always does; conclude() can optionally revise an existing belief — never in place |
+| `MetacognitionEngine` | Reports calibration, recurring lesson sources, and memory quality purely from what's on disk; reports tool reliability as not-yet-applicable rather than fabricating a figure |
 
 ## Explicit boundaries
 
@@ -81,6 +82,13 @@ Question + options + facts + inferences + uncertainties
   it. A belief is only ever revised from an experiment's conclusion
   when the caller explicitly names both the belief and the
   experiment; nothing here revises a belief automatically.
+- `MetacognitionEngine` never invents a self-assessment: calibration
+  and recurring-error numbers come straight from `ExperimentEngine`
+  and logged lessons, memory-quality numbers come straight from
+  `MemoryEngine`'s own primitives, and a bucket/category with too
+  little data is reported as `insufficient_data` rather than guessed
+  at. Tool reliability is reported `not_applicable` until a tool
+  framework exists to measure.
 
 ## Intended evolution
 
