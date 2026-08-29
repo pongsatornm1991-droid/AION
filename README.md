@@ -74,6 +74,42 @@ python main.py verify `
   --fact "The release owner is assigned."
 ```
 
+Consolidate old, low-importance memories into semantic knowledge (calls
+the configured AI provider once per batch, so it needs a valid key — this
+is a live command, not covered by `run_tests.py`):
+
+```powershell
+python main.py consolidate `
+  --category experiences `
+  --target semantic `
+  --max-importance 2 `
+  --min-age-days 30 `
+  --min-group-size 3 `
+  --batch-size 8
+```
+
+Only entries at or below `--max-importance` and at least `--min-age-days`
+old are eligible, and a batch is only summarized once it has at least
+`--min-group-size` eligible entries. Each accepted summary is saved as a
+`TYPE: semantic` entry (tagged with the union of its sources' tags, and
+`RELATED:` pointing back to every source entry's id) in the `--target`
+category, and its source entries are moved — never deleted — to
+`memory/<category>_archived.md`. A drafted summary that fails
+`OutputEvaluator`'s claim-safety check (any consciousness, subjective-
+experience, or other unsafe claim) is rejected and its source entries are
+left exactly where they were; nothing is ever silently lost or silently
+kept.
+
+## Memory tags and related entries
+
+`MemoryEngine.remember()` accepts optional `tags` (a list of short labels)
+and `related` (a list of other entries' `id`s) alongside the existing
+`memory_type`/`source`/`importance` fields; both are stored as `TAGS:`/
+`RELATED:` lines and survive `move()`. Retrieval helpers — `by_tag()`,
+`add_tags()` (retroactive tagging), and `related_entries()` (explicit
+`RELATED:` ids first, then other entries ranked by shared-tag overlap) —
+are all pure code, so they work fully offline with no AI call.
+
 ## Offline verification
 
 Single deterministic command (unit tests + both offline benchmarks; never

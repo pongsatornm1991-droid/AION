@@ -10,6 +10,7 @@ from brain.thinker import Thinker
 from brain.evaluator import OutputEvaluator
 from brain.learner import LearningEngine
 from brain.correction import CorrectionEngine
+from brain.consolidation import MemoryConsolidator
 
 
 VERSION = "0.0.8"
@@ -302,6 +303,50 @@ def print_evaluation(evaluation, title="OUTPUT EVALUATION"):
 
     else:
         print("\n✓ No evaluation flags.")
+
+
+def run_consolidate(args):
+    """Summarize old, low-importance memories into semantic knowledge."""
+
+    load_dotenv()
+
+    memory = Thinker().memory
+    provider = build_provider()
+
+    consolidator = MemoryConsolidator(
+        memory=memory,
+        provider=provider,
+        min_group_size=args.min_group_size,
+        max_importance=args.max_importance,
+        min_age_days=args.min_age_days,
+    )
+
+    report = consolidator.consolidate(
+        category=args.category,
+        target_category=args.target,
+        batch_size=args.batch_size,
+    )
+
+    print("\nAION MEMORY CONSOLIDATION")
+    print(f"Category: {args.category} -> {args.target}")
+    print(f"Candidates found: {report['candidates_found']}")
+    print(f"Batches processed: {len(report['batches'])}")
+    print(f"Consolidated: {report['consolidated_count']}")
+
+    for index, batch_report in enumerate(report["batches"], start=1):
+        print("-" * 60)
+        print(f"Batch {index}: consolidated={batch_report['consolidated']}")
+
+        if batch_report["consolidated"]:
+            print(f"  New semantic entry: {batch_report['summary_id']}")
+            print(
+                f"  Archived {len(batch_report['source_ids'])} source "
+                f"entries to memory/{batch_report['archive_category']}.md"
+            )
+        else:
+            print(f"  Reason: {batch_report['reason']}")
+
+    return report
 
 
 def run_reflection():
@@ -749,6 +794,50 @@ def build_parser():
         help="New verifiable fact; repeat for multiple facts.",
     )
 
+    consolidate_parser = subparsers.add_parser(
+        "consolidate",
+        help="Summarize old, low-importance memories into semantic knowledge.",
+    )
+    consolidate_parser.add_argument(
+        "--category",
+        default="experiences",
+        help="Memory category to consolidate (default: experiences).",
+    )
+    consolidate_parser.add_argument(
+        "--target",
+        default="semantic",
+        help="Category to store consolidated semantic summaries in "
+             "(default: semantic).",
+    )
+    consolidate_parser.add_argument(
+        "--max-importance",
+        type=int,
+        default=2,
+        help="Only consolidate entries at or below this importance "
+             "(default: 2).",
+    )
+    consolidate_parser.add_argument(
+        "--min-age-days",
+        type=int,
+        default=30,
+        help="Only consolidate entries at least this many days old "
+             "(default: 30).",
+    )
+    consolidate_parser.add_argument(
+        "--min-group-size",
+        type=int,
+        default=3,
+        help="Minimum entries per batch to bother consolidating "
+             "(default: 3).",
+    )
+    consolidate_parser.add_argument(
+        "--batch-size",
+        type=int,
+        default=8,
+        help="Maximum entries summarized together per semantic entry "
+             "(default: 8).",
+    )
+
     return parser
 
 
@@ -765,6 +854,10 @@ def main():
 
     if args.command == "verify":
         run_verify(args)
+        return
+
+    if args.command == "consolidate":
+        run_consolidate(args)
         return
 
     run_reflection()

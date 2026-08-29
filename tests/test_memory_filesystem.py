@@ -159,6 +159,103 @@ class MemoryEngineFilesystemTests(unittest.TestCase):
                 entry_id="does-not-exist",
             )
 
+    def test_tags_and_related_survive_a_real_disk_roundtrip(self):
+        first = self.memory.remember(
+            category="experiences",
+            content="Learned something about caching.",
+            tags=["caching", "performance"],
+        )
+        second = self.memory.remember(
+            category="experiences",
+            content="Follow-up finding about the same cache.",
+            tags=["caching", "follow-up"],
+            related=[first["id"]],
+        )
+
+        entries = self.memory.all("experiences")
+        by_id = {entry["id"]: entry for entry in entries}
+
+        self.assertEqual(
+            by_id[first["id"]]["tags"],
+            ["caching", "performance"],
+        )
+        self.assertEqual(
+            by_id[second["id"]]["related"],
+            [first["id"]],
+        )
+
+    def test_add_tags_merges_without_duplicating(self):
+        saved = self.memory.remember(
+            category="experiences",
+            content="Entry to tag later.",
+            tags=["x"],
+        )
+
+        updated = self.memory.add_tags(
+            "experiences", saved["id"], ["y", "x"]
+        )
+
+        self.assertEqual(updated["tags"], ["x", "y"])
+
+        reloaded = self.memory.all("experiences")[0]
+        self.assertEqual(reloaded["tags"], ["x", "y"])
+
+    def test_by_tag_finds_only_matching_entries(self):
+        self.memory.remember(
+            category="experiences", content="Has tag.", tags=["match"]
+        )
+        self.memory.remember(
+            category="experiences", content="No tag.", tags=["other"]
+        )
+
+        found = self.memory.by_tag("experiences", "match")
+
+        self.assertEqual(len(found), 1)
+        self.assertEqual(found[0]["content"], "Has tag.")
+
+    def test_related_entries_prefers_explicit_related_then_tag_overlap(self):
+        a = self.memory.remember(
+            category="experiences", content="A", tags=["shared", "only-a"]
+        )
+        b = self.memory.remember(
+            category="experiences",
+            content="B",
+            tags=["unrelated"],
+            related=[a["id"]],
+        )
+        c = self.memory.remember(
+            category="experiences", content="C", tags=["shared"]
+        )
+
+        related = self.memory.related_entries("experiences", b["id"])
+
+        # Explicitly related entry (a) must come first even though it
+        # shares no tags with b; c is not related at all to b, so it
+        # should not appear.
+        self.assertEqual(related[0]["id"], a["id"])
+        self.assertNotIn(c["id"], [entry["id"] for entry in related])
+
+    def test_move_preserves_tags_and_related(self):
+        saved = self.memory.remember(
+            category="experiences",
+            content="Will be archived.",
+            tags=["x"],
+            related=["some-other-id"],
+        )
+
+        moved = self.memory.move(
+            source_category="experiences",
+            target_category="archived",
+            entry_id=saved["id"],
+        )
+
+        self.assertEqual(moved["tags"], ["x"])
+        self.assertEqual(moved["related"], ["some-other-id"])
+
+        archived_entry = self.memory.all("archived")[0]
+        self.assertEqual(archived_entry["tags"], ["x"])
+        self.assertEqual(archived_entry["related"], ["some-other-id"])
+
 
 class DecisionHistoryFilesystemTests(unittest.TestCase):
     """End-to-end promote() against real decisions_*.md files on disk."""

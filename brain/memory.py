@@ -12,6 +12,7 @@ class MemoryEngine:
         "lesson",
         "belief",
         "decision",
+        "semantic",
     }
 
     def __init__(self, root="memory"):
@@ -29,6 +30,8 @@ class MemoryEngine:
         memory_type: str = "experience",
         source: str = "aion",
         importance: int = 3,
+        tags: list = None,
+        related: list = None,
     ):
         """
         Save a structured memory to a Markdown file.
@@ -88,16 +91,29 @@ class MemoryEngine:
         # text, since two entries can share the same second.
         entry_id = uuid.uuid4().hex[:12]
 
+        tags = self._normalize_list(tags)
+        related = self._normalize_list(related)
+
         filename = self.root / f"{category}.md"
+
+        header_lines = [
+            f"ID: {entry_id}",
+            f"TYPE: {memory_type}",
+            f"SOURCE: {source}",
+            f"IMPORTANCE: {importance}",
+        ]
+
+        if tags:
+            header_lines.append(f"TAGS: {', '.join(tags)}")
+
+        if related:
+            header_lines.append(f"RELATED: {', '.join(related)}")
 
         with open(filename, "a", encoding="utf-8") as file:
             file.write(
                 f"\n## {timestamp}\n\n"
-                f"ID: {entry_id}\n"
-                f"TYPE: {memory_type}\n"
-                f"SOURCE: {source}\n"
-                f"IMPORTANCE: {importance}\n\n"
-                f"{content}\n\n"
+                + "\n".join(header_lines)
+                + f"\n\n{content}\n\n"
             )
 
         return {
@@ -109,6 +125,8 @@ class MemoryEngine:
             "type": memory_type,
             "source": source,
             "importance": importance,
+            "tags": tags,
+            "related": related,
             "content": content,
         }
 
@@ -173,6 +191,8 @@ class MemoryEngine:
             memory_type = "legacy"
             source = "unknown"
             importance = 1
+            tags = []
+            related = []
 
             content_start = 1
 
@@ -212,6 +232,16 @@ class MemoryEngine:
                         min(5, importance)
                     )
 
+                elif line.startswith("TAGS:"):
+                    tags = self._normalize_list(
+                        line.replace("TAGS:", "", 1).split(",")
+                    )
+
+                elif line.startswith("RELATED:"):
+                    related = self._normalize_list(
+                        line.replace("RELATED:", "", 1).split(",")
+                    )
+
                 else:
                     break
 
@@ -227,6 +257,8 @@ class MemoryEngine:
                 "type": memory_type,
                 "source": source,
                 "importance": importance,
+                "tags": tags,
+                "related": related,
                 "content": content,
             })
 
@@ -322,6 +354,24 @@ class MemoryEngine:
         )
 
         return content
+
+    @staticmethod
+    def _normalize_list(values):
+        """Clean a list of strings: strip, drop empties, de-duplicate,
+        preserve order. Accepts None. Used for tags and related-ids."""
+
+        if not values:
+            return []
+
+        normalized = []
+
+        for value in values:
+            value = str(value).strip()
+
+            if value and value not in normalized:
+                normalized.append(value)
+
+        return normalized
 
     # ---------------------------------------------------------
     # DUPLICATE DETECTION
@@ -443,13 +493,27 @@ class MemoryEngine:
         parts = []
 
         for entry in entries:
+
+            header_lines = [
+                f"ID: {entry['id']}",
+                f"TYPE: {entry['type']}",
+                f"SOURCE: {entry['source']}",
+                f"IMPORTANCE: {entry['importance']}",
+            ]
+
+            entry_tags = self._normalize_list(entry.get("tags", []))
+            entry_related = self._normalize_list(entry.get("related", []))
+
+            if entry_tags:
+                header_lines.append(f"TAGS: {', '.join(entry_tags)}")
+
+            if entry_related:
+                header_lines.append(f"RELATED: {', '.join(entry_related)}")
+
             parts.append(
                 f"\n## {entry['timestamp']}\n\n"
-                f"ID: {entry['id']}\n"
-                f"TYPE: {entry['type']}\n"
-                f"SOURCE: {entry['source']}\n"
-                f"IMPORTANCE: {entry['importance']}\n\n"
-                f"{entry['content'].strip()}\n"
+                + "\n".join(header_lines)
+                + f"\n\n{entry['content'].strip()}\n"
             )
 
         filename.write_text(
@@ -608,3 +672,103 @@ class MemoryEngine:
             "importance": importance,
             "types": types,
         }
+
+    # ---------------------------------------------------------
+    # TAGS & RELATED-MEMORY RETRIEVAL
+    # ---------------------------------------------------------
+
+    def add_tags(self, category: str, entry_id: str, tags: list):
+        """Attach additional tags to an existing entry (retroactive
+        tagging). Merges with any tags the entry already has rather
+        than replacing them. Returns the updated entry."""
+
+        entries = self.all(category)
+        matches = [entry for entry in entries if entry["id"] == entry_id]
+
+        if not matches:
+            raise ValueError(
+                "No memory entry matches the supplied id."
+            )
+
+        if len(matches) > 1:
+            raise ValueError(
+                "More than one memory entry matches the supplied id."
+            )
+
+        selected = matches[0]
+        selected["tags"] = self._normalize_list(
+            list(selected.get("tags", [])) + list(tags or [])
+        )
+
+        self._write_entries(category, entries)
+
+        return selected
+
+    def by_tag(self, category: str, tag: str):
+        """Return all entries in a category carrying the given tag
+        (case-insensitive)."""
+
+        tag = str(tag).strip().lower()
+
+        if not tag:
+            return []
+
+        return [
+            entry
+            for entry in self.all(category)
+            if tag in [existing.lower() for existing in entry.get("tags", [])]
+        ]
+
+    def related_entries(self, category: str, entry_id: str, limit=5):
+        """Find other entries in the same category related to one
+        entry, purely from stored metadata — no AI call involved, so
+        this is deterministic and always works offline.
+
+        Entries explicitly listed in the source entry's RELATED field
+        are returned first (in stored order), then any remaining
+        entries are ranked by number of shared tags (highest first).
+        """
+
+        entries = self.all(category)
+        by_id = {entry["id"]: entry for entry in entries}
+
+        source = by_id.get(entry_id)
+
+        if source is None:
+            raise ValueError(
+                "No memory entry matches the supplied id."
+            )
+
+        ordered = []
+        seen = {entry_id}
+
+        for related_id in source.get("related", []):
+            candidate = by_id.get(related_id)
+
+            if candidate is not None and candidate["id"] not in seen:
+                ordered.append(candidate)
+                seen.add(candidate["id"])
+
+        source_tags = set(
+            tag.lower() for tag in source.get("tags", [])
+        )
+
+        if source_tags:
+            scored = []
+
+            for entry in entries:
+                if entry["id"] in seen:
+                    continue
+
+                entry_tags = set(
+                    tag.lower() for tag in entry.get("tags", [])
+                )
+                overlap = len(source_tags & entry_tags)
+
+                if overlap > 0:
+                    scored.append((overlap, entry))
+
+            scored.sort(key=lambda pair: pair[0], reverse=True)
+            ordered.extend(entry for _, entry in scored)
+
+        return ordered[:limit]
