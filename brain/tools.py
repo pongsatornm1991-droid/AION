@@ -41,9 +41,30 @@ class ActionLevel:
     READ_ONLY = "READ_ONLY"
     LOW_RISK = "LOW_RISK"
     HIGH_RISK = "HIGH_RISK"
+    # Changes to AION's own presented identity (Facebook Page bio,
+    # profile photo, etc.) -- kept as its OWN level, distinct from
+    # HIGH_RISK, on purpose: HIGH_RISK covers routine public content
+    # (posts, comment replies) and its budget is meant to flex with
+    # how much AION is actually talking to people; identity changes
+    # are rarer and more sensitive by nature (they change how AION
+    # presents *itself*, not just what it says), so they get their
+    # own small budget that loosening HIGH_RISK's never touches, and
+    # the exact same self-approval ban as HIGH_RISK below.
+    IDENTITY_CHANGE = "IDENTITY_CHANGE"
 
 
-ACTION_LEVELS = {ActionLevel.READ_ONLY, ActionLevel.LOW_RISK, ActionLevel.HIGH_RISK}
+ACTION_LEVELS = {
+    ActionLevel.READ_ONLY,
+    ActionLevel.LOW_RISK,
+    ActionLevel.HIGH_RISK,
+    ActionLevel.IDENTITY_CHANGE,
+}
+
+# Levels that can never be self-approved by AION -- always require a
+# real person's approval. HIGH_RISK and IDENTITY_CHANGE are both
+# publicly-visible-or-identity-altering and irreversible-in-practice,
+# so both live here.
+_NEVER_SELF_APPROVE = {ActionLevel.HIGH_RISK, ActionLevel.IDENTITY_CHANGE}
 
 _KILL_SWITCH_TOOL_NAME = "__kill_switch__"
 
@@ -143,7 +164,24 @@ class ToolLifecycle:
     DEFAULT_BUDGETS = {
         ActionLevel.READ_ONLY: None,  # unlimited: no side effects to bound
         ActionLevel.LOW_RISK: 20,
-        ActionLevel.HIGH_RISK: 5,
+        # Shared by post_to_facebook and reply_to_facebook_comment.
+        # Raised from an earlier, much stricter 5/24h (2026-08-30, at
+        # the user's explicit request: AION's engagement shouldn't be
+        # artificially capped far below what Gemini's free tier or
+        # Facebook's own API can actually sustain -- "mind the real
+        # quota, don't invent a tighter one"). 30/24h is still a real
+        # ceiling, not "unlimited": a budget that can never be hit
+        # stops being a safety control at all, and a shared pool
+        # across posting and replying still guards against either one
+        # silently flooding the Page if something goes wrong upstream
+        # (e.g. a seed/prompt bug that makes every draft pass the
+        # safety gate). Raise further if 30/day is ever actually hit.
+        ActionLevel.HIGH_RISK: 30,
+        # Deliberately small and separate from HIGH_RISK -- see
+        # ActionLevel.IDENTITY_CHANGE's docstring. Changing AION's own
+        # bio/photo more than twice a day would almost certainly mean
+        # something is wrong (a loop, a bad prompt), not real intent.
+        ActionLevel.IDENTITY_CHANGE: 2,
     }
     DEFAULT_BUDGET_WINDOW_HOURS = 24
 
@@ -274,10 +312,10 @@ class ToolLifecycle:
                 f"Cannot approve an action that is {parsed['status']}."
             )
 
-        if parsed["level"] == ActionLevel.HIGH_RISK and approver.lower() == "aion":
+        if parsed["level"] in _NEVER_SELF_APPROVE and approver.lower() == "aion":
             raise ValueError(
-                "HIGH_RISK actions can never be self-approved by AION -- "
-                "they require an approver who is not AION."
+                f"{parsed['level']} actions can never be self-approved by "
+                "AION -- they require an approver who is not AION."
             )
 
         return self._supersede(
@@ -605,6 +643,7 @@ class ToolLifecycle:
             ActionLevel.READ_ONLY: 1,
             ActionLevel.LOW_RISK: 3,
             ActionLevel.HIGH_RISK: 5,
+            ActionLevel.IDENTITY_CHANGE: 5,
         }[level]
 
     @staticmethod

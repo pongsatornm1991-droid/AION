@@ -87,11 +87,21 @@ class ToolLifecycleTests(unittest.TestCase):
             "noop_low", lambda x=1: x * 2, ActionLevel.LOW_RISK, "low-risk"
         )
         self.registry.register("boom", _boom, ActionLevel.HIGH_RISK, "always fails")
+        self.registry.register(
+            "change_bio",
+            lambda text="new bio": text,
+            ActionLevel.IDENTITY_CHANGE,
+            "changes AION's presented identity",
+        )
 
         self.lc = ToolLifecycle(
             self.memory,
             registry=self.registry,
-            budgets={ActionLevel.LOW_RISK: 2, ActionLevel.HIGH_RISK: 1},
+            budgets={
+                ActionLevel.LOW_RISK: 2,
+                ActionLevel.HIGH_RISK: 1,
+                ActionLevel.IDENTITY_CHANGE: 1,
+            },
         )
 
     def tearDown(self):
@@ -208,6 +218,50 @@ class ToolLifecycleTests(unittest.TestCase):
 
         with self.assertRaises(ValueError):
             self.lc.execute(saved["id"])
+
+    # -----------------------------------------------------
+    # IDENTITY_CHANGE: same self-approval ban as HIGH_RISK, but a
+    # budget kept fully separate from HIGH_RISK's.
+    # -----------------------------------------------------
+
+    def test_identity_change_self_approval_by_aion_is_rejected(self):
+        saved = self.lc.propose("change_bio")
+
+        with self.assertRaises(ValueError):
+            self.lc.approve(saved["id"], approver="aion")
+
+        with self.assertRaises(ValueError):
+            self.lc.approve(saved["id"], approver="AION")  # case-insensitive
+
+    def test_identity_change_can_be_approved_by_a_person(self):
+        saved = self.lc.propose("change_bio")
+        approved = self.lc.approve(saved["id"], approver="Pongsatorn")
+
+        self.assertEqual(approved["approver"], "Pongsatorn")
+        self.assertEqual(approved["importance"], 5)
+
+        result = self.lc.execute(approved["id"])
+        self.assertEqual(result["status"], "executed")
+
+    def test_identity_change_budget_enforced_independently_of_high_risk(self):
+        # Use up the HIGH_RISK budget (1) -- IDENTITY_CHANGE's own
+        # budget (1) must be unaffected, and vice versa. This is the
+        # whole reason IDENTITY_CHANGE exists as its own level instead
+        # of just being counted under HIGH_RISK.
+        saved = self.lc.propose("boom")
+        approved = self.lc.approve(saved["id"], approver="Pongsatorn")
+        self.lc.execute(approved["id"])  # HIGH_RISK budget now exhausted
+
+        saved2 = self.lc.propose("change_bio")
+        approved2 = self.lc.approve(saved2["id"], approver="Pongsatorn")
+        result2 = self.lc.execute(approved2["id"])
+        self.assertEqual(result2["status"], "executed")  # unaffected by HIGH_RISK
+
+        saved3 = self.lc.propose("change_bio")
+        approved3 = self.lc.approve(saved3["id"], approver="Pongsatorn")
+
+        with self.assertRaises(ValueError):
+            self.lc.execute(approved3["id"])  # IDENTITY_CHANGE's own budget (1) now hit
 
     # -----------------------------------------------------
     # REJECT
