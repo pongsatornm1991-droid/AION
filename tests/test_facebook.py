@@ -14,6 +14,8 @@ from tools.facebook import (
     post_to_facebook_page,
     get_recent_comments,
     reply_to_facebook_comment,
+    get_page_bio,
+    update_page_bio,
 )
 
 
@@ -287,6 +289,134 @@ class ReplyToFacebookCommentTests(unittest.TestCase):
         ) as mock_post:
             with self.assertRaises(RuntimeError):
                 reply_to_facebook_comment("c1", "hi")
+
+        self.assertEqual(mock_post.call_count, 1)
+
+
+
+class GetPageBioTests(unittest.TestCase):
+
+    def setUp(self):
+        self._env_patch = mock.patch.dict(
+            os.environ,
+            {
+                "FACEBOOK_PAGE_ACCESS_TOKEN": "test-token",
+                "FACEBOOK_PAGE_ID": "test-page-id",
+            },
+            clear=False,
+        )
+        self._env_patch.start()
+        self._load_dotenv_patch = mock.patch(
+            "tools.facebook.load_dotenv", return_value=None,
+        )
+        self._load_dotenv_patch.start()
+
+    def tearDown(self):
+        self._env_patch.stop()
+        self._load_dotenv_patch.stop()
+
+    def test_returns_the_about_field(self):
+        with mock.patch(
+            "requests.get", return_value=FakeResponse(200, {"about": "สวัสดีค่ะ"}),
+        ) as mock_get:
+            bio = get_page_bio()
+
+        self.assertEqual(bio, "สวัสดีค่ะ")
+        called_url = mock_get.call_args.args[0]
+        self.assertEqual(called_url, f"{GRAPH_API_BASE}/test-page-id")
+
+    def test_missing_about_field_returns_empty_string(self):
+        with mock.patch(
+            "requests.get", return_value=FakeResponse(200, {}),
+        ):
+            bio = get_page_bio()
+
+        self.assertEqual(bio, "")
+
+    def test_missing_credentials_raise_before_any_network_call(self):
+        with mock.patch.dict(os.environ, {"FACEBOOK_PAGE_ACCESS_TOKEN": ""}):
+            with mock.patch("requests.get") as mock_get:
+                with self.assertRaises(RuntimeError):
+                    get_page_bio(access_token=None)
+                mock_get.assert_not_called()
+
+    def test_graph_api_error_raises_runtime_error(self):
+        payload = {
+            "error": {"message": "Bad token.", "type": "OAuthException", "code": 190},
+        }
+        with mock.patch(
+            "requests.get", return_value=FakeResponse(400, payload),
+        ):
+            with self.assertRaises(RuntimeError) as ctx:
+                get_page_bio()
+
+        self.assertIn("OAuthException", str(ctx.exception))
+
+
+class UpdatePageBioTests(unittest.TestCase):
+
+    def setUp(self):
+        self._env_patch = mock.patch.dict(
+            os.environ,
+            {
+                "FACEBOOK_PAGE_ACCESS_TOKEN": "test-token",
+                "FACEBOOK_PAGE_ID": "test-page-id",
+            },
+            clear=False,
+        )
+        self._env_patch.start()
+        self._load_dotenv_patch = mock.patch(
+            "tools.facebook.load_dotenv", return_value=None,
+        )
+        self._load_dotenv_patch.start()
+
+    def tearDown(self):
+        self._env_patch.stop()
+        self._load_dotenv_patch.stop()
+
+    def test_empty_new_bio_is_rejected_before_any_network_call(self):
+        with mock.patch("requests.post") as mock_post:
+            with self.assertRaises(ValueError):
+                update_page_bio("   ")
+            mock_post.assert_not_called()
+
+    def test_successful_update_returns_the_graph_api_payload(self):
+        with mock.patch(
+            "requests.post", return_value=FakeResponse(200, {"success": True}),
+        ) as mock_post:
+            result = update_page_bio("bio ใหม่ค่ะ")
+
+        self.assertEqual(result, {"success": True})
+        called_url = mock_post.call_args.args[0]
+        self.assertEqual(called_url, f"{GRAPH_API_BASE}/test-page-id")
+        called_data = mock_post.call_args.kwargs["data"]
+        self.assertEqual(called_data["about"], "bio ใหม่ค่ะ")
+
+    def test_missing_credentials_raise_before_any_network_call(self):
+        with mock.patch.dict(os.environ, {"FACEBOOK_PAGE_ID": ""}):
+            with mock.patch("requests.post") as mock_post:
+                with self.assertRaises(RuntimeError):
+                    update_page_bio("bio ใหม่", page_id=None)
+                mock_post.assert_not_called()
+
+    def test_graph_api_error_raises_runtime_error(self):
+        payload = {
+            "error": {"message": "Permission denied.", "type": "OAuthException", "code": 200},
+        }
+        with mock.patch(
+            "requests.post", return_value=FakeResponse(400, payload),
+        ):
+            with self.assertRaises(RuntimeError) as ctx:
+                update_page_bio("bio ใหม่")
+
+        self.assertIn("OAuthException", str(ctx.exception))
+
+    def test_never_retries_internally_on_failure(self):
+        with mock.patch(
+            "requests.post", return_value=FakeResponse(500, {}),
+        ) as mock_post:
+            with self.assertRaises(RuntimeError):
+                update_page_bio("bio ใหม่")
 
         self.assertEqual(mock_post.call_count, 1)
 

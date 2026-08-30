@@ -19,6 +19,7 @@ from brain.metacognition import MetacognitionEngine
 from brain.tools import ToolLifecycle, ToolRegistry, ActionLevel, build_builtin_tools
 from brain.social import SocialContentGenerator, SocialAutoCycle
 from brain.comment_reply import CommentReplyGenerator, CommentAutoReplyCycle
+from brain.profile_change import ProfileChangeGenerator, ProfileChangeCycle
 
 
 VERSION = "0.0.8"
@@ -785,22 +786,34 @@ def _build_tool_lifecycle():
 
 
 def _build_social_tool_lifecycle():
-    """The lifecycle manager used by the social-posting CLI commands
-    (posts AND comment replies -- both are HIGH_RISK, publicly
-    visible, irreversible-in-practice actions, so they deliberately
-    share one lifecycle/budget pool rather than each getting its own).
+    """The lifecycle manager used by every social/identity CLI command
+    (posts, comment replies, AND profile-bio changes).
+
+    Posts and comment replies are both HIGH_RISK, publicly visible,
+    irreversible-in-practice actions, so they deliberately share one
+    lifecycle/budget pool rather than each getting its own.
+    Profile-bio changes are registered under the separate
+    ActionLevel.IDENTITY_CHANGE instead -- same lifecycle instance
+    (so all three still share the exact same underlying memory/kill
+    switch), but its own small budget that loosening HIGH_RISK's never
+    touches, and the same never-self-approved-by-AION guarantee (see
+    brain/tools.py's _NEVER_SELF_APPROVE).
 
     Starts from the same read-only builtin tools as
     _build_tool_lifecycle(), then additionally registers
-    "post_to_facebook" and "reply_to_facebook_comment" as HIGH_RISK
-    tools -- the real external-facing, side-effecting actions in this
-    codebase. Kept here in main.py rather than inside brain/tools.py
-    or brain/social.py so the top-level `tools` package
+    "post_to_facebook", "reply_to_facebook_comment", and
+    "update_page_bio" -- the real external-facing, side-effecting
+    actions in this codebase. Kept here in main.py rather than inside
+    brain/tools.py or brain/social.py so the top-level `tools` package
     (tools/facebook.py) and the `brain.tools` module never need to
     import one another.
     """
 
-    from tools.facebook import post_to_facebook_page, reply_to_facebook_comment
+    from tools.facebook import (
+        post_to_facebook_page,
+        reply_to_facebook_comment,
+        update_page_bio,
+    )
 
     memory = Thinker().memory
     registry = build_builtin_tools(memory)
@@ -819,6 +832,15 @@ def _build_social_tool_lifecycle():
         ),
         ActionLevel.HIGH_RISK,
         "Reply to one existing comment on AION's configured Facebook Page.",
+    )
+
+    registry.register(
+        "update_page_bio",
+        lambda new_bio: update_page_bio(new_bio),
+        ActionLevel.IDENTITY_CHANGE,
+        "Change AION's configured Facebook Page's About/bio text -- "
+        "requires a real person's approval via Telegram; can never be "
+        "self-approved by AION.",
     )
 
     return ToolLifecycle(memory, registry=registry)
@@ -940,6 +962,77 @@ def _format_comment_telegram_report(report):
             lines.append(f"ข้อผิดพลาด: {action['error']}")
 
     return "\n".join(lines)
+
+
+def _format_profile_proposal_telegram_report(report):
+    """Turn a ProfileChangeCycle.propose_once() report dict into a
+    short Thai summary -- the message body sent alongside the
+    Approve/Reject inline buttons (see run_propose_profile_change()),
+    and also what is printed for stages that never reach a proposal
+    (already-pending / blocked / failed)."""
+
+    lines = ["AION (เปลี่ยน bio หน้า Facebook):"]
+
+    current_bio = report.get("current_bio")
+    if current_bio:
+        lines.append(f"bio เดิม: {current_bio}")
+
+    draft = report.get("draft")
+    if draft:
+        lines.append(f"bio ใหม่ที่ร่างไว้: {draft}")
+
+    stage = report.get("stage")
+
+    if stage == "already-pending":
+        lines.append("มีคำขอเปลี่ยน bio ที่ยังรอการอนุมัติอยู่แล้ว -- ยังไม่ร่างใหม่ซ้ำ")
+    elif stage == "fetch-failed":
+        lines.append(f"ดึง bio ปัจจุบันจาก Facebook ไม่สำเร็จ: {report.get('error')}")
+    elif stage == "draft-failed":
+        lines.append(f"ร่าง bio ไม่สำเร็จ (ปัญหาที่ตัว AI provider): {report.get('error')}")
+    elif stage == "blocked-safety":
+        lines.append(f"ถูกบล็อกที่ตัวกรองความปลอดภัย: {report.get('reason')}")
+    elif stage == "blocked-style":
+        lines.append(
+            f"ถูกบล็อกที่ตัวกรองน้ำเสียง (ฟังดูเป็นระบบ/รายงานเกินไป): "
+            f"{report.get('reason')}"
+        )
+        robotic_terms = report.get("robotic_terms") or []
+        if robotic_terms:
+            lines.append(f"คำที่ตรวจพบ: {', '.join(robotic_terms)}")
+    elif stage == "lifecycle":
+        lines.append(f"ผิดพลาดในระบบ lifecycle: {report.get('error')}")
+    elif stage == "awaiting-approval":
+        lines.append("รอการอนุมัติจากคุณผ่านปุ่มด้านล่างนี้ก่อนถึงจะเปลี่ยน bio จริง")
+
+    return "\n".join(lines)
+
+
+def _format_profile_approval_telegram_report(result):
+    """Turn one ProfileChangeCycle.check_approvals_once() per-item
+    result dict into a short Thai summary."""
+
+    lines = ["AION (ผลการอนุมัติเปลี่ยน bio):"]
+
+    decision = result.get("decision")
+    outcome = result.get("outcome")
+    approver = result.get("approver")
+
+    if decision == "approved":
+        if outcome == "executed":
+            lines.append(f"{approver} อนุมัติแล้ว -- เปลี่ยน bio สำเร็จ ✅")
+        elif outcome == "failed":
+            action = result.get("action") or {}
+            lines.append(f"{approver} อนุมัติแล้ว แต่เปลี่ยน bio ไม่สำเร็จ: {action.get('error')}")
+        else:
+            lines.append(f"{approver} อนุมัติแล้ว แต่เกิดข้อผิดพลาด: {result.get('error')}")
+    elif decision == "rejected":
+        if outcome == "rejected":
+            lines.append(f"{approver} ปฏิเสธคำขอเปลี่ยน bio นี้แล้ว ❌")
+        else:
+            lines.append(f"{approver} พยายามปฏิเสธ แต่เกิดข้อผิดพลาด: {result.get('error')}")
+
+    return "\n".join(lines)
+
 
 
 def _notify_report(report, formatter=None):
@@ -1311,6 +1404,124 @@ def run_check_comments(args):
 
     if report["stage"] != "no-comments":
         notified = _notify_report(report, formatter=_format_comment_telegram_report)
+        if notified is True:
+            print("Notified via Telegram.")
+        elif notified is False:
+            print("Telegram notification attempted but failed (see above).")
+
+
+def run_propose_profile_change(args):
+    """Draft, safety-gate, and -- only if the draft passes and no
+    other proposal is already awaiting approval -- propose one change
+    to AION's configured Facebook Page bio, then send a Telegram
+    message with Approve/Reject buttons.
+
+    Never approves or executes anything by itself: this command's
+    entire job stops at ToolLifecycle.propose() plus sending the
+    approval request. Only run_check_profile_approvals() (triggered by
+    a real person tapping a button) can turn a pending proposal into
+    an actual change.
+    """
+
+    load_dotenv()
+
+    memory = Thinker().memory
+    provider = build_provider()
+    evaluator = OutputEvaluator()
+
+    generator = ProfileChangeGenerator(
+        memory, provider, evaluator=evaluator,
+        min_claim_safety=args.min_claim_safety,
+    )
+    lifecycle = _build_social_tool_lifecycle()
+    cycle = ProfileChangeCycle(memory, generator, lifecycle, tool_name="update_page_bio")
+
+    report = cycle.propose_once()
+
+    print("\nAION PROPOSE PROFILE CHANGE")
+    print(f"Stage: {report['stage']}")
+
+    if report.get("current_bio"):
+        print(f"Current bio: {report['current_bio']}")
+
+    if report.get("draft"):
+        print("-" * 60)
+        print(report["draft"])
+        print("-" * 60)
+
+    if report["stage"] in (
+        "fetch-failed", "draft-failed", "blocked-safety", "blocked-style", "lifecycle",
+    ):
+        print(f"Reason: {report.get('reason') or report.get('error')}")
+
+    if report["stage"] == "awaiting-approval":
+        action_id = report["action"]["id"]
+        text = _format_profile_proposal_telegram_report(report)
+        buttons = [
+            {"text": "\u2705 \u0e2d\u0e19\u0e38\u0e21\u0e31\u0e15\u0e34", "callback_data": f"profile-approve:{action_id}"},
+            {"text": "\u274c \u0e1b\u0e0f\u0e34\u0e40\u0e2a\u0e18", "callback_data": f"profile-reject:{action_id}"},
+        ]
+
+        if os.getenv("TELEGRAM_BOT_TOKEN") and os.getenv("TELEGRAM_CHAT_ID"):
+            from tools.telegram import send_telegram_message_with_buttons
+            try:
+                send_telegram_message_with_buttons(text, buttons)
+                print("Sent Telegram approval request with buttons.")
+            except Exception as exc:
+                print(f"(Telegram approval-request send failed: {exc})")
+        else:
+            print(
+                "(TELEGRAM_BOT_TOKEN/TELEGRAM_CHAT_ID not configured -- "
+                "no approval request sent; run check-profile-approvals "
+                "once they are, or approve manually via "
+                "approve-action/execute-action.)"
+            )
+    elif report["stage"] != "already-pending":
+        notified = _notify_report(report, formatter=_format_profile_proposal_telegram_report)
+        if notified is True:
+            print("Notified via Telegram.")
+        elif notified is False:
+            print("Telegram notification attempted but failed (see above).")
+
+
+def run_check_profile_approvals(args):
+    """Poll Telegram for new Approve/Reject button taps on a pending
+    profile-bio-change proposal, and act on each one: approve+execute
+    or reject the matching action, then notify the outcome.
+
+    Deliberately does not need an AI provider at all -- unlike
+    run_propose_profile_change(), nothing here drafts anything, so a
+    Gemini/Claude API problem can never block checking approvals.
+    Meant to be run repeatedly on a schedule, same discipline as
+    run_check_comments().
+    """
+
+    load_dotenv()
+
+    memory = Thinker().memory
+    lifecycle = _build_social_tool_lifecycle()
+    cycle = ProfileChangeCycle(memory, generator=None, lifecycle=lifecycle, tool_name="update_page_bio")
+
+    report = cycle.check_approvals_once()
+
+    print("\nAION CHECK PROFILE APPROVALS")
+    print(f"Stage: {report['stage']}")
+    print(f"Processed: {report['processed']}")
+
+    if report["stage"] == "fetch-failed":
+        print(f"Reason: {report.get('error')}")
+
+    for result in report.get("results", []):
+        print("-" * 60)
+        print(
+            f"Action: {result.get('action_id')}  "
+            f"Decision: {result.get('decision')}  "
+            f"Outcome: {result.get('outcome')}"
+        )
+        if result.get("error"):
+            print(f"Error: {result['error']}")
+
+        notified = _notify_report(result, formatter=_format_profile_approval_telegram_report)
         if notified is True:
             print("Notified via Telegram.")
         elif notified is False:
@@ -2255,6 +2466,27 @@ def build_parser():
              "reply (default: 5).",
     )
 
+    propose_profile_change_parser = subparsers.add_parser(
+        "propose-profile-change",
+        help="Draft, safety-gate, and -- if no other proposal is "
+             "already pending -- propose one change to AION's "
+             "configured Facebook Page bio, then send a Telegram "
+             "approval request with buttons. Never changes anything "
+             "by itself.",
+    )
+    propose_profile_change_parser.add_argument(
+        "--min-claim-safety", type=int, default=5,
+        help="Minimum claim_safety score (0-5) required to propose "
+             "the draft (default: 5).",
+    )
+
+    subparsers.add_parser(
+        "check-profile-approvals",
+        help="Poll Telegram for new Approve/Reject taps on a pending "
+             "profile-bio-change proposal and act on each one. Meant "
+             "to be run repeatedly on a schedule.",
+    )
+
     return parser
 
 
@@ -2411,6 +2643,14 @@ def main():
 
     if args.command == "check-comments":
         run_check_comments(args)
+        return
+
+    if args.command == "propose-profile-change":
+        run_propose_profile_change(args)
+        return
+
+    if args.command == "check-profile-approvals":
+        run_check_profile_approvals(args)
         return
 
     run_reflection()

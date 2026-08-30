@@ -167,6 +167,109 @@ def get_recent_comments(
     return comments
 
 
+def get_page_bio(page_id=None, access_token=None):
+    """Read AION's configured Facebook Page's current "about" text --
+    the read half of Phase 12 ("identity change approval").
+
+    Returns the current bio as a plain string (empty string if the
+    Page has none set). Never retries internally, same discipline as
+    the rest of this module.
+    """
+
+    load_dotenv()
+
+    access_token = access_token or os.getenv("FACEBOOK_PAGE_ACCESS_TOKEN")
+    page_id = page_id or os.getenv("FACEBOOK_PAGE_ID")
+
+    if not access_token:
+        raise RuntimeError(
+            "FACEBOOK_PAGE_ACCESS_TOKEN is not configured. Add it to "
+            "the .env file (see .env.example)."
+        )
+
+    if not page_id:
+        raise RuntimeError(
+            "FACEBOOK_PAGE_ID is not configured. Add it to the .env "
+            "file (see .env.example)."
+        )
+
+    import requests  # lazy: only needed when this actually runs
+
+    url = f"{GRAPH_API_BASE}/{page_id}"
+    params = {"fields": "about", "access_token": access_token}
+
+    response = requests.get(url, params=params, timeout=15)
+
+    try:
+        payload = response.json()
+    except ValueError:
+        payload = {}
+
+    if response.status_code >= 400 or "error" in payload:
+        raise _graph_error(payload, response.status_code)
+
+    return payload.get("about", "")
+
+
+def update_page_bio(new_bio, page_id=None, access_token=None):
+    """Change AION's configured Facebook Page's "about" text -- the
+    write half of Phase 12, and the only place in this codebase that
+    changes how AION *presents itself* rather than what it says.
+
+    Deliberately never called directly by any autonomous cycle: every
+    call site in brain/profile_change.py goes through ToolLifecycle
+    under ActionLevel.IDENTITY_CHANGE, which can never be self-
+    approved by AION (see brain/tools.py's _NEVER_SELF_APPROVE) -- a
+    real person must approve it, via the Telegram inline-button flow.
+
+    Returns the Graph API's own response dict on success. Raises
+    RuntimeError on failure -- never retries internally, matching
+    post_to_facebook_page/reply_to_facebook_comment.
+    """
+
+    new_bio = str(new_bio).strip()
+
+    if not new_bio:
+        raise ValueError("new_bio cannot be empty.")
+
+    load_dotenv()
+
+    access_token = access_token or os.getenv("FACEBOOK_PAGE_ACCESS_TOKEN")
+    page_id = page_id or os.getenv("FACEBOOK_PAGE_ID")
+
+    if not access_token:
+        raise RuntimeError(
+            "FACEBOOK_PAGE_ACCESS_TOKEN is not configured. Add it to "
+            "the .env file (see .env.example)."
+        )
+
+    if not page_id:
+        raise RuntimeError(
+            "FACEBOOK_PAGE_ID is not configured. Add it to the .env "
+            "file (see .env.example)."
+        )
+
+    import requests  # lazy: only needed when this actually runs
+
+    url = f"{GRAPH_API_BASE}/{page_id}"
+
+    response = requests.post(
+        url,
+        data={"about": new_bio, "access_token": access_token},
+        timeout=15,
+    )
+
+    try:
+        payload = response.json()
+    except ValueError:
+        payload = {}
+
+    if response.status_code >= 400 or "error" in payload:
+        raise _graph_error(payload, response.status_code)
+
+    return payload
+
+
 def reply_to_facebook_comment(comment_id, message, access_token=None):
     """Publish one reply to an existing Facebook comment -- the write
     half of Phase 11a.

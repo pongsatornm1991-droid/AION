@@ -1,0 +1,67 @@
+name: AION - propose profile change
+
+# Runs propose-profile-change a few times a day so AION drafts and
+# (if safe) proposes a change to its own Facebook Page bio, sending a
+# Telegram approval request -- Phase 12. Never changes anything by
+# itself: this command's whole job stops at ToolLifecycle.propose()
+# plus sending the Approve/Reject message; only a real person's
+# button tap (via check-profile-approvals.yml) can turn it into an
+# actual change. Same 6-hourly cadence as social-cycle.yml -- also
+# deliberately not more frequent than that, since a proposal is
+# skipped entirely while one is already pending approval, and
+# identity changes are meant to be rare (see brain/tools.py's
+# ActionLevel.IDENTITY_CHANGE docstring).
+#
+# Shares the same private memory_data repo as check-comments.yml/
+# social-cycle.yml (see check-comments.yml's header comment for why
+# memory/ is not tracked in this public repo).
+
+on:
+  schedule:
+    - cron: "0 */6 * * *"
+  workflow_dispatch: {}
+
+jobs:
+  propose-profile-change:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout AION code
+        uses: actions/checkout@v4
+
+      - name: Checkout AION memory (private repo)
+        uses: actions/checkout@v4
+        with:
+          repository: pongsatornm1991-droid/aion-memory-data
+          token: ${{ secrets.MEMORY_REPO_PAT }}
+          path: memory_data
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: Run propose-profile-change
+        env:
+          AION_MEMORY_ROOT: memory_data
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+          FACEBOOK_PAGE_ACCESS_TOKEN: ${{ secrets.FACEBOOK_PAGE_ACCESS_TOKEN }}
+          FACEBOOK_PAGE_ID: ${{ secrets.FACEBOOK_PAGE_ID }}
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+        run: python main.py propose-profile-change
+
+      - name: Persist memory changes back to the private repo
+        working-directory: memory_data
+        run: |
+          git config user.name "aion-bot"
+          git config user.email "aion-bot@users.noreply.github.com"
+          git add -A
+          if git diff --cached --quiet; then
+            echo "No memory changes this run -- nothing to commit."
+          else
+            git commit -m "AION memory update ($(date -u +%Y-%m-%dT%H:%M:%SZ))"
+            git push
+          fi

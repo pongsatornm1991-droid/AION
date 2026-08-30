@@ -1,0 +1,65 @@
+name: AION - check profile approvals
+
+# Runs check-profile-approvals on a schedule so a Telegram
+# Approve/Reject button tap on a pending bio-change proposal (Phase
+# 12) gets acted on without anyone running it by hand. Same 5-minute
+# cadence as check-comments.yml since this is also just a cheap poll
+# (no AI-provider call at all -- see run_check_profile_approvals()'s
+# own docstring). Minimum useful interval per GitHub's own scheduling
+# rules is 5 minutes; exact timing is best-effort (GitHub may delay a
+# run under high platform load), and a schedule is auto-disabled if
+# this repository goes 60 days with no commits at all -- push
+# something occasionally to keep it alive.
+#
+# Shares the same private memory_data repo as check-comments.yml/
+# social-cycle.yml (see check-comments.yml's header comment for why
+# memory/ is not tracked in this public repo).
+
+on:
+  schedule:
+    - cron: "*/5 * * * *"
+  workflow_dispatch: {}
+
+jobs:
+  check-profile-approvals:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout AION code
+        uses: actions/checkout@v4
+
+      - name: Checkout AION memory (private repo)
+        uses: actions/checkout@v4
+        with:
+          repository: pongsatornm1991-droid/aion-memory-data
+          token: ${{ secrets.MEMORY_REPO_PAT }}
+          path: memory_data
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: Run check-profile-approvals
+        env:
+          AION_MEMORY_ROOT: memory_data
+          FACEBOOK_PAGE_ACCESS_TOKEN: ${{ secrets.FACEBOOK_PAGE_ACCESS_TOKEN }}
+          FACEBOOK_PAGE_ID: ${{ secrets.FACEBOOK_PAGE_ID }}
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+        run: python main.py check-profile-approvals
+
+      - name: Persist memory changes back to the private repo
+        working-directory: memory_data
+        run: |
+          git config user.name "aion-bot"
+          git config user.email "aion-bot@users.noreply.github.com"
+          git add -A
+          if git diff --cached --quiet; then
+            echo "No memory changes this run -- nothing to commit."
+          else
+            git commit -m "AION memory update ($(date -u +%Y-%m-%dT%H:%M:%SZ))"
+            git push
+          fi
