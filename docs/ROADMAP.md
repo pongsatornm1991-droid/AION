@@ -599,11 +599,41 @@ arguably more personal than the code itself).
   were always entered by the user into `.env` themselves, never
   echoed or handled by Claude.
 
-**Status: code and docs complete, not yet live-verified.** The
-workflow files are syntax-checked (YAML parses) but have not run on
-real GitHub Actions yet -- that happens only after the user completes
-the one-time setup in `docs/GITHUB_ACTIONS_SETUP.md`, including the
-`git push` this session could not perform itself.
+**Status: live-verified, one real bug found and fixed.** The user
+completed the full one-time setup themselves (pushed `9610ed7`,
+created the private `aion-memory-data` repo, generated the PAT, added
+all six secrets) and manually triggered both workflows to confirm:
+
+- `social-cycle` -- **succeeded**, but this has not been confirmed to
+  mean a real Facebook post actually happened (the memory repo was
+  brand new and empty at that point, so it may just mean "no seed
+  content yet, nothing to do" rather than a genuine exercised posting
+  path). Needs a follow-up check once real memory content exists.
+- `check-comments` -- **failed** on that first run with an unhandled
+  traceback:
+  `RuntimeError: Facebook Graph API error (OAuthException, code 190):
+  Invalid OAuth access token data.`
+  Root cause had two layers: (1) a real robustness bug --
+  `CommentAutoReplyCycle.run_once()` called
+  `tools.facebook.get_recent_comments()` with no try/except, unlike
+  every other Facebook-touching call in the codebase, so any Graph API
+  error crashed the entire scheduled job instead of degrading
+  gracefully; and (2) a likely credential-formatting issue -- "Invalid
+  OAuth access token data" (distinct from the "Session has expired"
+  message seen during Phase 10's live verification) suggests the
+  `FACEBOOK_PAGE_ACCESS_TOKEN` GitHub Secret value itself may have
+  extra whitespace/newline/quotes from copy-pasting, rather than a
+  cleanly expired token -- not yet confirmed, the user should re-check
+  and re-copy that secret carefully from `.env`.
+
+**Fixed** (commit `ea7ac61`): `run_once()` now wraps the fetch in
+try/except and returns a graceful `"fetch-failed"` stage (error
+captured, no crash) instead of propagating the exception --
+console/Telegram output and a regression test were added too. This
+fix still needs the user to `git push` it (same as every prior
+commit -- this session cannot push). The credential-formatting
+hypothesis above is unverified and is the user's next thing to check
+after pushing and re-running `check-comments`.
 
 ## Later phases
 
