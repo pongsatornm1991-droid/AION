@@ -21,6 +21,7 @@ from brain.social import SocialContentGenerator, SocialAutoCycle
 from brain.comment_reply import CommentReplyGenerator, CommentAutoReplyCycle
 from brain.profile_change import ProfileChangeGenerator, ProfileChangeCycle
 from brain.learning import WebLearningGenerator, WebLearningCycle
+from brain.self_narrative import SelfNarrativeGenerator, SelfNarrativeCycle
 
 
 VERSION = "0.0.8"
@@ -1637,6 +1638,85 @@ def run_learning_cycle(args):
             print("Telegram notification attempted but failed (see above).")
 
 
+def _format_self_narrative_telegram_report(report):
+    """Turn a SelfNarrativeCycle.reflect_once() report dict into a
+    short Thai summary -- the Telegram notification body, and also
+    what is printed for stages that never reach a recorded entry."""
+
+    lines = ["AION (อัตชีวประวัติ):"]
+
+    draft = report.get("draft")
+    if draft:
+        lines.append(f"บันทึกล่าสุด: {draft}")
+
+    stage = report.get("stage")
+
+    if stage == "no-new-activity":
+        lines.append("ยังไม่มีอะไรใหม่เกิดขึ้นตั้งแต่ครั้งก่อน เลยยังไม่เขียนสรุปใหม่")
+    elif stage == "draft-failed":
+        lines.append(f"เขียนสรุปไม่สำเร็จ (ปัญหาที่ตัว AI provider): {report.get('error')}")
+    elif stage == "blocked-safety":
+        lines.append(f"ถูกบล็อกที่ตัวกรองความปลอดภัย: {report.get('reason')}")
+    elif stage == "blocked-style":
+        lines.append(f"ถูกบล็อกที่ตัวกรองน้ำเสียง: {report.get('reason')}")
+    elif stage == "duplicate-skipped":
+        lines.append("ร่างที่ได้เหมือนกับครั้งก่อนเป๊ะ เลยไม่บันทึกซ้ำ")
+    elif stage == "reflected":
+        lines.append("บันทึกเป็นอัตชีวประวัติรายการใหม่แล้ว")
+
+    return "\n".join(lines)
+
+
+def run_self_narrative(args):
+    """Reflect once: if anything new has happened in memory since the
+    last self-narrative entry, gather real evidence about AION's
+    current state, draft a short first-person summary of what AION
+    currently understands about itself, safety/style-gate it, and --
+    if safe -- record it, continuing from the previous entry rather
+    than starting over each time.
+
+    Never touches Facebook/Telegram tools directly and needs no
+    ToolLifecycle -- like run_learning_cycle(), writing to AION's own
+    memory has no external side effect to gate. Meant to be run
+    repeatedly on a schedule (daily by default -- see
+    .github/workflows/self-narrative.yml for why a slower cadence
+    than the action cycles was chosen).
+    """
+
+    load_dotenv()
+
+    memory = Thinker().memory
+    provider = build_provider()
+    evaluator = OutputEvaluator()
+
+    generator = SelfNarrativeGenerator(
+        provider, evaluator=evaluator, min_claim_safety=args.min_claim_safety,
+    )
+    cycle = SelfNarrativeCycle(memory, generator)
+
+    report = cycle.reflect_once(force=args.force)
+
+    print("\nAION SELF-NARRATIVE")
+    print(f"Stage: {report['stage']}")
+
+    if report.get("draft") is not None:
+        print("-" * 60)
+        print(report["draft"])
+        print("-" * 60)
+
+    if report["stage"] in ("draft-failed", "blocked-safety", "blocked-style"):
+        print(f"Reason: {report.get('reason') or report.get('error')}")
+
+    if report["stage"] != "no-new-activity":
+        notified = _notify_report(
+            report, formatter=_format_self_narrative_telegram_report,
+        )
+        if notified is True:
+            print("Notified via Telegram.")
+        elif notified is False:
+            print("Telegram notification attempted but failed (see above).")
+
+
 def run_consolidate(args):
     """Summarize old, low-importance memories into semantic knowledge."""
 
@@ -2609,6 +2689,24 @@ def build_parser():
              "the drafted answer (default: 5).",
     )
 
+    self_narrative_parser = subparsers.add_parser(
+        "run-self-narrative",
+        help="If anything new has happened in memory since the last "
+             "entry, draft a short first-person summary of what AION "
+             "currently understands about itself and record it. "
+             "Meant to be run repeatedly on a schedule.",
+    )
+    self_narrative_parser.add_argument(
+        "--min-claim-safety", type=int, default=5,
+        help="Minimum claim_safety score (0-5) required to accept "
+             "the drafted reflection (default: 5).",
+    )
+    self_narrative_parser.add_argument(
+        "--force", action="store_true",
+        help="Draft a reflection even if nothing new has happened "
+             "since the last entry (for manual/testing use).",
+    )
+
     return parser
 
 
@@ -2777,6 +2875,10 @@ def main():
 
     if args.command == "run-learning-cycle":
         run_learning_cycle(args)
+        return
+
+    if args.command == "run-self-narrative":
+        run_self_narrative(args)
         return
 
     run_reflection()

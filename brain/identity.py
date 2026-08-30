@@ -19,4 +19,9 @@ class Identity:
             "purpose": self._read("purpose.md"),
             "values": self._read("values.md"),
             "birth": self._read("birth.md"),
+            # AION's own growth log (2026-08-30) -- unlike the other
+            # four founding files above, this one is meant to keep
+            # growing over time as new milestones happen; see
+            # core/milestones.md's own header for the append rule.
+            "milestones": self._read("milestones.md"),
         }

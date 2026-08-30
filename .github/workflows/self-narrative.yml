@@ -1,0 +1,69 @@
+name: AION - self-narrative
+
+# Runs run-self-narrative once a day so AION periodically writes a
+# short, evidence-grounded first-person account of what it currently
+# understands about itself -- continuing core/purpose.md's own stated
+# goal of "building a persistent autobiographical history", which
+# nothing in the codebase actually did before 2026-08-30.
+#
+# Deliberately daily, not hourly like social-cycle/learning-cycle: a
+# self-understanding summary is meant to read like a reflection over
+# a meaningful stretch of accumulated activity, not restate itself
+# every time one comment gets answered. It is also self-limiting
+# regardless of cadence -- SelfNarrativeCycle.reflect_once() is a
+# no-op (no AI-provider call at all) whenever nothing new has
+# happened in memory since the last entry, so running it more often
+# than this would not produce more real reflections, just more
+# no-ops.
+#
+# Shares the same private memory_data repo as the other scheduled
+# workflows (see check-comments.yml's header comment for why memory/
+# is not tracked in this public repo).
+
+on:
+  schedule:
+    - cron: "0 0 * * *"
+  workflow_dispatch: {}
+
+jobs:
+  self-narrative:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout AION code
+        uses: actions/checkout@v4
+
+      - name: Checkout AION memory (private repo)
+        uses: actions/checkout@v4
+        with:
+          repository: pongsatornm1991-droid/aion-memory-data
+          token: ${{ secrets.MEMORY_REPO_PAT }}
+          path: memory_data
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: Run run-self-narrative
+        env:
+          AION_MEMORY_ROOT: memory_data
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+        run: python main.py run-self-narrative
+
+      - name: Persist memory changes back to the private repo
+        working-directory: memory_data
+        run: |
+          git config user.name "aion-bot"
+          git config user.email "aion-bot@users.noreply.github.com"
+          git add -A
+          if git diff --cached --quiet; then
+            echo "No memory changes this run -- nothing to commit."
+          else
+            git commit -m "AION memory update ($(date -u +%Y-%m-%dT%H:%M:%SZ))"
+            git push
+          fi
