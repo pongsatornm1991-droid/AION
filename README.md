@@ -412,6 +412,58 @@ the same relationship a console `print()` has to what already
 happened. `tests/test_telegram.py` covers `tools/telegram.py` against
 a mocked Bot API call.
 
+### Replying to comments
+
+AION doesn't only post -- it can answer people who comment, using the
+exact same two gates a post draft goes through (claim safety, then
+the robotic-style tone check):
+
+```powershell
+python main.py check-comments
+```
+
+Fetches recent comments, picks the oldest one AION hasn't already
+answered (and isn't from the Page itself), drafts a reply, gates it,
+and -- if safe -- posts the reply autonomously, no per-reply approval
+click, via the same `"auto-safety-gate"` approver identity as posting.
+**Handles at most one comment per run.** The comment's own text is
+explicitly framed in the prompt as something to respond to, never as
+an instruction to obey -- so a comment that tries to talk AION into
+an unsafe claim still has to clear the same output-side gates as
+anything else, and is blocked the same way.
+
+AION is a script you run, not a server listening for Facebook
+webhooks, so this is **near-real-time, not real-time**: set it up as
+a recurring scheduled task rather than running it once. On Windows,
+Task Scheduler:
+
+1. Open Task Scheduler -> Create Basic Task.
+2. Trigger: Daily, recurring every few minutes (set "Repeat task
+   every" to 2-5 minutes, for a duration of "Indefinitely").
+3. Action: Start a program -> `python`, with arguments
+   `main.py check-comments` and "Start in" set to this project's
+   folder (`C:\Projects\AION`).
+
+Every outcome -- replied, blocked at a gate, or nothing new to answer
+-- is summarized to Telegram the same way `run-social-cycle` is
+(except "nothing new to answer", which stays silent so a 2-5 minute
+schedule doesn't spam you). Uses the same `FACEBOOK_PAGE_ACCESS_TOKEN`
+credential as posting -- if replies fail with a permissions error, the
+token may need the `pages_read_engagement`/`pages_manage_engagement`
+scopes in addition to whatever posting already required.
+
+Messenger (replying to people who message the Page directly) is
+deliberately not built yet: Meta requires an app to pass **App
+Review** before it can message the general public, which is a
+business-side process, not something this project can code its way
+past. Comments don't have that requirement for a page you administer,
+which is why they came first.
+
+`tests/test_comment_reply.py` and the comment-related additions to
+`tests/test_facebook.py` cover every path above against stub providers
+and a mocked Graph API call -- no live network call, same as the rest
+of this project's test suite.
+
 ## Offline verification
 
 Single deterministic command (unit tests + both offline benchmarks; never

@@ -61,8 +61,9 @@ Question + options + facts + inferences + uncertainties
 | `MetacognitionEngine` | Reports calibration, recurring lesson sources, and memory quality purely from what's on disk; reports tool reliability as not-yet-applicable rather than fabricating a figure |
 | `ToolRegistry` / `ToolLifecycle` | Propose -> approve/reject -> execute -> recover/abandon for any registered tool, gated by action level, a kill switch, per-level budgets, and scheduling; only read-only tools are actually registered yet |
 | `SocialContentGenerator` / `SocialAutoCycle` (`brain/social.py`) | Picks a real memory entry as a seed, drafts a post via the AI provider, gates every draft through `OutputEvaluator.claim_safety` before it may be proposed; runs the full propose -> approve -> execute cycle autonomously using a non-AION approver identity |
-| `tools/facebook.py` | The one real external-facing action: publishes one text post to a Facebook Page via the Graph API; credentials come only from environment variables, never hardcoded |
-| `tools/telegram.py` | Sends a short Thai summary of every draft/cycle outcome (posted, blocked, or failed) to the user's own Telegram; optional, never blocks drafting or posting if unconfigured; deliberately outside `ToolLifecycle` -- an echo of a decision, not a new one |
+| `tools/facebook.py` | Publishes one text post, fetches recent comments, and replies to one comment via the Graph API; credentials come only from environment variables, never hardcoded |
+| `CommentReplyGenerator` / `CommentAutoReplyCycle` (`brain/comment_reply.py`) | Mirrors `SocialContentGenerator`/`SocialAutoCycle` exactly, but the seed is untrusted, publicly-authored text (a Facebook comment) instead of AION's own memory; the comment is framed in the prompt as content to respond to, never as an instruction, and the same `claim_safety` + robotic-style gates enforce this on the output regardless; every comment is recorded exactly once (handled or not) so none is ever answered twice |
+| `tools/telegram.py` | Sends a short Thai summary of every draft/cycle/reply outcome (posted, blocked, or failed) to the user's own Telegram; optional, never blocks drafting, posting, or replying if unconfigured; deliberately outside `ToolLifecycle` -- an echo of a decision, not a new one |
 
 ## Explicit boundaries
 

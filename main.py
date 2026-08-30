@@ -18,6 +18,7 @@ from brain.experiments import ExperimentEngine
 from brain.metacognition import MetacognitionEngine
 from brain.tools import ToolLifecycle, ToolRegistry, ActionLevel, build_builtin_tools
 from brain.social import SocialContentGenerator, SocialAutoCycle
+from brain.comment_reply import CommentReplyGenerator, CommentAutoReplyCycle
 
 
 VERSION = "0.0.8"
@@ -784,18 +785,22 @@ def _build_tool_lifecycle():
 
 
 def _build_social_tool_lifecycle():
-    """The lifecycle manager used by the social-posting CLI commands.
+    """The lifecycle manager used by the social-posting CLI commands
+    (posts AND comment replies -- both are HIGH_RISK, publicly
+    visible, irreversible-in-practice actions, so they deliberately
+    share one lifecycle/budget pool rather than each getting its own).
 
     Starts from the same read-only builtin tools as
     _build_tool_lifecycle(), then additionally registers
-    "post_to_facebook" as a HIGH_RISK tool -- the one real
-    external-facing, side-effecting action in this codebase. Kept here
-    in main.py rather than inside brain/tools.py or brain/social.py so
-    the top-level `tools` package (tools/facebook.py) and the
-    `brain.tools` module never need to import one another.
+    "post_to_facebook" and "reply_to_facebook_comment" as HIGH_RISK
+    tools -- the real external-facing, side-effecting actions in this
+    codebase. Kept here in main.py rather than inside brain/tools.py
+    or brain/social.py so the top-level `tools` package
+    (tools/facebook.py) and the `brain.tools` module never need to
+    import one another.
     """
 
-    from tools.facebook import post_to_facebook_page
+    from tools.facebook import post_to_facebook_page, reply_to_facebook_comment
 
     memory = Thinker().memory
     registry = build_builtin_tools(memory)
@@ -805,6 +810,15 @@ def _build_social_tool_lifecycle():
         lambda message: post_to_facebook_page(message),
         ActionLevel.HIGH_RISK,
         "Publish one text post to AION's configured Facebook Page.",
+    )
+
+    registry.register(
+        "reply_to_facebook_comment",
+        lambda comment_id, message: reply_to_facebook_comment(
+            comment_id, message,
+        ),
+        ActionLevel.HIGH_RISK,
+        "Reply to one existing comment on AION's configured Facebook Page.",
     )
 
     return ToolLifecycle(memory, registry=registry)
@@ -868,8 +882,66 @@ def _format_telegram_report(report):
     return "\n".join(lines)
 
 
-def _notify_report(report):
+def _format_comment_telegram_report(report):
+    """Turn a CommentAutoReplyCycle report dict into a short,
+    human-readable Thai summary -- the comment-reply counterpart of
+    _format_telegram_report(). A separate function rather than one
+    shared branch tree: the report shape genuinely differs (a
+    "comment" key instead of "seed", and stage values specific to
+    the comment-reply cycle), and keeping them separate means neither
+    has to guess which shape it was handed."""
+
+    lines = ["AION (คอมเมนต์ Facebook):"]
+
+    comment = report.get("comment")
+    if comment:
+        lines.append(
+            f"คอมเมนต์จาก {comment.get('from_name') or 'ไม่ทราบชื่อ'}: "
+            f"{comment.get('message', '')}"
+        )
+
+    draft = report.get("draft")
+    if draft:
+        lines.append(f"ร่างคำตอบ: {draft}")
+
+    stage = report.get("stage")
+
+    if stage == "no-comments":
+        lines.append("ยังไม่มีคอมเมนต์ใหม่ให้ตอบตอนนี้")
+    elif stage == "blocked-safety":
+        lines.append(f"ถูกบล็อกที่ตัวกรองความปลอดภัย: {report.get('reason')}")
+    elif stage == "blocked-style":
+        lines.append(
+            f"ถูกบล็อกที่ตัวกรองน้ำเสียง (ฟังดูเป็นระบบ/รายงานเกินไป): "
+            f"{report.get('reason')}"
+        )
+        robotic_terms = report.get("robotic_terms") or []
+        if robotic_terms:
+            lines.append(f"คำที่ตรวจพบ: {', '.join(robotic_terms)}")
+        lines.append(
+            "บันทึกเป็นบทเรียนแล้ว คำตอบครั้งถัดไปจะพยายามหลีกเลี่ยงคำแบบนี้"
+        )
+    elif stage == "skipped-empty":
+        lines.append("ข้ามคอมเมนต์นี้ (ไม่มีข้อความให้ตอบ)")
+    elif stage == "lifecycle":
+        lines.append(f"ผิดพลาดในระบบ lifecycle: {report.get('error')}")
+    elif stage == "executed":
+        lines.append("สถานะ: ตอบคอมเมนต์สำเร็จแล้ว")
+    elif stage == "failed":
+        action = report.get("action") or {}
+        lines.append(f"สถานะ: {action.get('status', 'unknown')}")
+        if action.get("error"):
+            lines.append(f"ข้อผิดพลาด: {action['error']}")
+
+    return "\n".join(lines)
+
+
+def _notify_report(report, formatter=None):
     """Best-effort Telegram notification for one draft/cycle report.
+
+    `formatter` defaults to _format_telegram_report (the social-post
+    shape); pass _format_comment_telegram_report for a
+    CommentAutoReplyCycle report, whose shape differs.
 
     Returns True if a notification was sent, False if it was attempted
     and failed, or None if Telegram is simply not configured yet
@@ -882,10 +954,12 @@ def _notify_report(report):
     if not os.getenv("TELEGRAM_BOT_TOKEN") or not os.getenv("TELEGRAM_CHAT_ID"):
         return None
 
+    formatter = formatter or _format_telegram_report
+
     from tools.telegram import send_telegram_message
 
     try:
-        send_telegram_message(_format_telegram_report(report))
+        send_telegram_message(formatter(report))
         return True
     except Exception as exc:
         print(f"(Telegram notification failed: {exc})")
@@ -1166,6 +1240,71 @@ def run_social_cycle(args):
         print("Notified via Telegram.")
     elif notified is False:
         print("Telegram notification attempted but failed (see above).")
+
+
+def run_check_comments(args):
+    """Fetch recent Facebook comments and, if there is exactly one new
+    (not-yet-handled) one, draft a reply, gate it, and -- if safe --
+    autonomously post the reply.
+
+    Meant to be run repeatedly on a schedule (e.g. a Windows Task
+    Scheduler job every 2-5 minutes) rather than once -- each call
+    handles at most one comment, so a backlog is worked through over
+    several calls rather than all at once. This is a deliberate,
+    near-real-time design, not a true real-time one: AION is a script
+    invoked on demand, not a server listening for Facebook webhooks,
+    so "instant" reply would require a public, always-on server this
+    project does not have.
+    """
+
+    load_dotenv()
+
+    memory = Thinker().memory
+    provider = build_provider()
+    evaluator = OutputEvaluator()
+
+    generator = CommentReplyGenerator(
+        provider, evaluator=evaluator, min_claim_safety=args.min_claim_safety,
+    )
+    lifecycle = _build_social_tool_lifecycle()
+    cycle = CommentAutoReplyCycle(
+        memory, generator, lifecycle,
+        tool_name="reply_to_facebook_comment",
+        page_id=os.getenv("FACEBOOK_PAGE_ID"),
+    )
+
+    report = cycle.run_once()
+
+    print("\nAION COMMENT REPLY CYCLE")
+    print(f"Stage: {report['stage']}")
+
+    comment = report.get("comment")
+    if comment is not None:
+        print(
+            f"Comment from {comment.get('from_name') or 'unknown'}: "
+            f"{comment.get('message', '')}"
+        )
+
+    if report.get("draft") is not None:
+        print("-" * 60)
+        print(report["draft"])
+        print("-" * 60)
+
+    if report["stage"] in ("blocked-safety", "blocked-style", "lifecycle"):
+        print(f"Reason: {report.get('reason') or report.get('error')}")
+    elif "action" in report:
+        print(f"Action status: {report['action']['status']}")
+        if report["action"].get("result") is not None:
+            print(f"Result: {report['action']['result']}")
+        if report["action"].get("error") is not None:
+            print(f"Error: {report['action']['error']}")
+
+    if report["stage"] != "no-comments":
+        notified = _notify_report(report, formatter=_format_comment_telegram_report)
+        if notified is True:
+            print("Notified via Telegram.")
+        elif notified is False:
+            print("Telegram notification attempted but failed (see above).")
 
 
 def run_consolidate(args):
@@ -2092,6 +2231,20 @@ def build_parser():
              "draft (default: 5).",
     )
 
+    check_comments_parser = subparsers.add_parser(
+        "check-comments",
+        help="Fetch recent Facebook comments and, if there is a new "
+             "one, draft a reply, safety-gate it, and -- if safe -- "
+             "autonomously post the reply. Handles at most one "
+             "comment per run -- meant to be run repeatedly on a "
+             "schedule (e.g. every 2-5 minutes).",
+    )
+    check_comments_parser.add_argument(
+        "--min-claim-safety", type=int, default=5,
+        help="Minimum claim_safety score (0-5) required to post the "
+             "reply (default: 5).",
+    )
+
     return parser
 
 
@@ -2244,6 +2397,10 @@ def main():
 
     if args.command == "run-social-cycle":
         run_social_cycle(args)
+        return
+
+    if args.command == "check-comments":
+        run_check_comments(args)
         return
 
     run_reflection()

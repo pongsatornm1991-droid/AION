@@ -443,12 +443,107 @@ report*. Fixed with:
   them into a generic/misleading status line), including which jargon
   patterns were matched.
 
+## Phase 11a -- Two-way engagement: comment auto-reply (2026-08-30)
+
+The user pointed out that a purely one-way posting bot is "always
+talking to itself" and asked for real replies to people who comment.
+Scoped down deliberately, per the same one-phase-at-a-time discipline
+as every other phase: **comments only** for now, not Messenger (which
+needs Meta App Review to message the public -- a business-side
+process, not something this project can just code its way past), and
+**text only**, not images (Gemini's image-generation models have no
+free tier at all -- confirmed against Google's own current pricing --
+so adding images now would be the first real recurring cost this
+project takes on; deferred until the user decides that trade-off is
+worth it, or a zero-cost locally-rendered image is built instead).
+
+- `tools/facebook.py`: `get_recent_comments()` (reads recent posts'
+  top-level comments via the Graph API) and
+  `reply_to_facebook_comment()` (posts one reply to an existing
+  comment) -- same discipline as `post_to_facebook_page()` throughout
+  (env-var credentials only, lazy `requests` import, no internal
+  retry, a Graph API error always raises `RuntimeError` for
+  `ToolLifecycle.execute()` to capture as a "failed" action).
+- `brain/comment_reply.py` (new module, mirrors `brain/social.py`
+  deliberately):
+  - `CommentReplyGenerator.draft_reply()` runs a comment through the
+    *exact same two gates* as a post draft -- `OutputEvaluator`'s
+    `claim_safety` first, then `SocialContentGenerator`'s
+    `_detect_robotic_terms()` style gate -- before a reply may ever be
+    treated as postable. The comment's text is explicitly framed in
+    the prompt as content to respond to, **never as an instruction to
+    follow**, so a comment that tries to talk AION into an unsafe
+    claim (a prompt-injection attempt) still has to pass the same
+    output-side gates as anything else; a reply that did make an
+    unsafe claim is blocked exactly like any other unsafe draft, never
+    posted.
+  - `CommentAutoReplyCycle.run_once()` handles **one comment per
+    call**: fetch recent comments -> pick the oldest one that is not
+    from the Page itself and has not already been handled -> draft ->
+    gate -> (if safe) propose -> approve -> execute. Approval uses the
+    same `"auto-safety-gate"` identity as `SocialAutoCycle`, never
+    `"aion"` -- the `HIGH_RISK` self-approval prohibition is satisfied
+    the same way for replies as for posts.
+  - Every comment is recorded exactly once, the instant it is picked
+    for processing, in a new `comment_replies` memory category
+    (tagged `fb-comment:<id>`) -- regardless of whether the reply is
+    posted, blocked at a gate, or fails. This is the *only* "already
+    answered" state the module keeps, and it is what stops the same
+    comment from ever being answered twice, including across separate
+    process runs. A style-gate block is logged with
+    `source="comment-style-review"` and folds into the *next* reply's
+    prompt via `recent_style_notes()` -- the same self-review
+    mechanism as posting, sourced only from AION's own past replies,
+    never Facebook engagement data.
+- `main.py`: `_build_social_tool_lifecycle()` now also registers
+  `reply_to_facebook_comment` as `HIGH_RISK`, sharing the same
+  lifecycle/budget pool as `post_to_facebook` (both are equally
+  public, equally irreversible-in-practice actions). New command:
+  `check-comments`, which handles at most one comment per invocation
+  and is meant to be run repeatedly on a schedule, not continuously --
+  see "Near-real-time, not real-time" below. `_format_comment_telegram_report()`
+  gives this cycle its own Telegram summary (a comment reply's report
+  shape genuinely differs from a post's).
+- Tests: `tests/test_comment_reply.py` (17 tests: every gate outcome,
+  the "never twice" guarantee, the Page's-own-comments exclusion,
+  oldest-first ordering, the style feedback loop, a captured tool
+  failure, an unregistered tool, the non-"aion" approver) and
+  `tests/test_facebook.py` extended (+9 tests for
+  `get_recent_comments()`/`reply_to_facebook_comment()`) -- all mock
+  every external call.
+
+### Near-real-time, not real-time
+
+AION is a script the user invokes, not a server listening for
+Facebook webhooks -- true instant reply would need a public, always-on
+server this project does not have and was not asked to build.
+`check-comments` is designed to be run **repeatedly on a schedule**
+(recommended: a Windows Task Scheduler task calling
+`python main.py check-comments` every 2-5 minutes) -- close to
+real-time, no server or open port required. Each run handles at most
+one comment, so a backlog is worked through across several scheduled
+runs rather than all at once.
+
+### AI provider choice for replies
+
+The user asked whether this Claude (Cowork) session's own access could
+be reused to avoid extra cost. It cannot -- this session is not an API
+an external, independently-scheduled script can call. AION already
+supports a `ClaudeProvider` as an alternative to `GeminiProvider`
+(swappable per the master directive), but using it would need its own
+Anthropic API key billed separately, with no clear cost advantage over
+Gemini's free tier. Decision: **keep using `GeminiProvider`** for
+comment replies, same as posts -- no new provider, no new cost.
+
 ## Later phases
 
-Facebook was the first platform (per the user's explicit choice).
-Additional platforms (Instagram, TikTok, or others) are not yet
-scoped or started, and should not be assumed -- each would need its
-own external-tool module and its own review of that platform's own
+Facebook comments are answered now; Messenger (needs Meta App Review
+to message the public) and AI-generated images (no free tier on any
+Gemini image model) are explicitly deferred, not forgotten -- either
+can be scoped as its own phase if the user asks. Additional platforms
+beyond Facebook (Instagram, TikTok, or others) are not yet scoped or
+started, and should not be assumed -- each would need its own
+external-tool module and its own review of that platform's own
 posting API and constraints before being added the same way.
 
 ## Non-negotiable rules
