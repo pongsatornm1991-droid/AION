@@ -826,9 +826,28 @@ def _format_telegram_report(report):
         lines.append(f"ร่าง: {draft}")
 
     stage = report.get("stage")
+    reason_kind = report.get("reason_kind")
 
-    if stage == "safety-gate":
+    # Both run_once() (which always sets "stage") and a bare
+    # draft_post() report (no "stage" key at all -- e.g. the
+    # draft-post CLI command) can carry each of these outcomes, so
+    # each branch below matches on the stage name OR the reason_kind
+    # of a stage-less report.
+    if stage == "safety-gate" or (stage is None and reason_kind == "claim_safety"):
         lines.append(f"ถูกบล็อกที่ตัวกรองความปลอดภัย: {report.get('reason')}")
+    elif stage == "style-gate" or (stage is None and reason_kind == "robotic_style"):
+        lines.append(
+            f"ถูกบล็อกที่ตัวกรองน้ำเสียง (ฟังดูเป็นระบบ/รายงานเกินไป): "
+            f"{report.get('reason')}"
+        )
+        robotic_terms = report.get("robotic_terms") or []
+        if robotic_terms:
+            lines.append(f"คำที่ตรวจพบ: {', '.join(robotic_terms)}")
+        lines.append(
+            "บันทึกเป็นบทเรียนแล้ว ร่างครั้งถัดไปจะพยายามหลีกเลี่ยงคำแบบนี้"
+        )
+    elif stage == "no-seed" or (stage is None and reason_kind == "no_seed"):
+        lines.append("ยังไม่มีเนื้อหาในความจำให้ร่างโพสต์ตอนนี้")
     elif stage == "lifecycle":
         lines.append(f"ผิดพลาดในระบบ lifecycle: {report.get('error')}")
     elif stage is not None:
@@ -841,13 +860,8 @@ def _format_telegram_report(report):
             lines.append(f"สถานะ: {action.get('status', 'unknown')}")
             if action.get("error"):
                 lines.append(f"ข้อผิดพลาด: {action['error']}")
-    elif report.get("safe") is False:
-        # A draft-post report (no "stage" key at all) that failed the
-        # claim-safety gate -- draft-post never proposes/posts
-        # anything, so there is no lifecycle action to describe.
-        lines.append(f"ถูกบล็อกที่ตัวกรองความปลอดภัย: {report.get('reason')}")
     else:
-        # A draft-post report that passed the gate -- still just a
+        # A draft-post report that passed every gate -- still just a
         # preview, nothing was ever sent to Facebook.
         lines.append("สถานะ: ร่างไว้เท่านั้น ยังไม่ได้ส่งโพสต์ (draft-post)")
 

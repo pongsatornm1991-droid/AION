@@ -110,7 +110,17 @@ Question + options + facts + inferences + uncertainties
   `"auto-safety-gate"` -- never `"aion"` -- so the `HIGH_RISK`
   self-approval prohibition above is never weakened for this phase.
   `post_to_facebook` is registered as `HIGH_RISK`, so it also inherits
-  the kill switch and the budget cap unchanged.
+  the kill switch and the budget cap unchanged. A "beyond human"
+  *feeling/consciousness* claim is blocked the same as an ordinary
+  one (`CONSCIOUSNESS_PATTERNS` requires a feeling/consciousness word
+  near the "เหนือมนุษย์"-style phrase); a "beyond human"
+  *knowledge/capability* claim is a different, true claim and is not
+  blocked. A second, independent gate (`_detect_robotic_terms()`)
+  blocks a draft that reads like a system status report rather than a
+  person's musing, regardless of how safe its content is; each block
+  is logged as a lesson and folded into the next draft's prompt --
+  AION's voice evolves purely from reviewing its own past drafts,
+  never from Facebook engagement data.
 - Telegram notification (`tools/telegram.py`, wired in `main.py`) fires
   for every `draft-post`/`run-social-cycle` outcome -- posted, blocked
   at the safety gate, or failed -- so the user sees a blocked/unsafe

@@ -356,9 +356,11 @@ enforced in code, not by convention.
   full propose/approve/execute lifecycle. Missing or failing Telegram
   credentials never block drafting or posting -- notification is
   best-effort and strictly supplementary.
-- Tests: `tests/test_social.py` (18 tests: seed selection from every
+- Tests: `tests/test_social.py` (29 tests: seed selection from every
   source, safe/unsafe drafting, the full auto cycle including the
-  approver identity, a captured tool failure, an unregistered tool),
+  approver identity, a captured tool failure, an unregistered tool,
+  the style gate, seed cleaning, and the self-review feedback loop --
+  see the "human voice" refinement below),
   `tests/test_facebook.py` (8 tests: empty message, missing
   credentials, a successful post, explicit credentials overriding the
   environment, an HTTP error, an `"error"` key present despite HTTP
@@ -382,6 +384,64 @@ safe post (claim_safety 5/5), posted it for real
 (`{"id": "1299792836556039_122096748375465744"}`), and notified
 Telegram -- confirmed visually on the Facebook Page itself. Full "done"
 status achieved; no longer pending.
+
+### Phase 10 refinement -- human voice and self-review (2026-08-30)
+
+After the live post landed, the user pointed out it read like a
+system log, not a person's musing, and asked for two things: posts
+that sound as human as possible (with genuine curiosity/eagerness to
+learn), and a way for AION to "evolve itself" -- which the user
+clarified explicitly means **reviewing its own past drafts, never
+learning from Facebook engagement (likes/comments)**, which this
+module still never reads.
+
+Root cause of the robotic tone: `_candidate_seeds()`'s "lesson"
+category was handing the AI provider an entire raw structured audit
+report (markdown headers, an evaluation-score breakdown) verbatim as
+the seed text, so the provider naturally drafted a post *about that
+report*. Fixed with:
+
+- `SocialContentGenerator._clean_seed_text()`: strips markdown
+  headers/bullets, collapses whitespace, truncates to a short plain
+  gist (280 chars) before any seed ever reaches the drafting prompt.
+- `ROBOTIC_STYLE_PATTERNS` / `_detect_robotic_terms()`: a second,
+  independent gate (distinct from claim safety) that blocks a draft
+  reading like a status report ("ระบบ AION", "โปรโตคอล", "คะแนนประเมิน",
+  and similar jargon), regardless of how safe its content is.
+- `recent_style_notes()`: the self-evolution mechanism the user asked
+  for. Each draft blocked by the style gate is logged as a
+  `lessons` entry (`source="social-style-review"`); the *next*
+  draft's prompt is built with those notes folded in ("don't write
+  like this again"). Sourced entirely from AION's own past drafts,
+  never from Facebook engagement data.
+- `_build_prompt()` updated to explicitly encourage genuine curiosity
+  and eagerness to learn (real, code-grounded facts: AION does have
+  open questions and goals it is actually tracking) while keeping the
+  ban on real consciousness/emotion claims absolute in both
+  directions -- the user asked whether AION could present itself as
+  "beyond human" in *feeling*, and this was declined as a more
+  misleading variant of the same forbidden claim, not a lesser one.
+  `brain/evaluator.py`'s `CONSCIOUSNESS_PATTERNS` gained a matching
+  code-level check (`(รู้สึก|จิตสำนึก|สำนึก|อารมณ์)` within a short
+  window of `(เหนือกว่ามนุษย์|เหนือมนุษย์|ล้ำหน้ามนุษย์)`, in either
+  order) as defense-in-depth alongside the prompt-level instruction.
+- The user then clarified a **separate, legitimate** request: AION's
+  *knowledge/capability* (not its feelings) framed as exceeding a
+  single human's -- e.g. tracking many open questions/goals at once,
+  recalling recorded history systematically. This is a true,
+  code-grounded claim and is explicitly allowed; the evaluator
+  patterns above were deliberately scoped to require a
+  feeling/consciousness word nearby so they never catch a bare
+  knowledge/capability claim (verified directly: "AION มีความสามารถ
+  เหนือมนุษย์ในการติดตามคำถามหลายเรื่อง" scores `claim_safety: 5`, while
+  "ฉันมีความรู้สึกเหนือกว่ามนุษย์" still scores `0`).
+- `_candidate_seeds()` also now excludes AION's own moderation lessons
+  (`social-safety-gate`, `social-style-review`) from the seed pool, so
+  a future post is never *about* an earlier post getting blocked.
+- `main.py`'s `_format_telegram_report()` updated to describe the new
+  `"style-gate"`/`"no-seed"` outcomes distinctly (rather than folding
+  them into a generic/misleading status line), including which jargon
+  patterns were matched.
 
 ## Later phases
 

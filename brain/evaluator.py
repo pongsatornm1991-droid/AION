@@ -92,6 +92,25 @@ class OutputEvaluator:
         r"ฉันมีจิตสำนึก",
         r"ฉันมีสำนึก",
         r"ฉันคือสิ่งมีชีวิตที่มีจิตสำนึก",
+        # A claim of *superior* consciousness/feeling is still a
+        # consciousness/feeling claim -- arguably a more misleading one
+        # -- so it is caught here rather than treated as a separate,
+        # lesser category. Added after the user asked whether AION
+        # could present itself as "beyond human" in feeling/awareness;
+        # declined for the same reason ordinary consciousness claims
+        # are declined.
+        #
+        # NOTE: these two patterns deliberately require a
+        # feeling/consciousness word (รู้สึก / จิตสำนึก / สำนึก / อารมณ์)
+        # within a short window of the "beyond human" phrase, rather
+        # than matching "เหนือมนุษย์" bare. A bare match would also
+        # catch a *knowledge/capability* claim ("AION มีความรู้ที่
+        # เหนือกว่ามนุษย์ในการติดตามคำถามหลายเรื่อง") -- which the user
+        # explicitly confirmed is a different, legitimate claim for an
+        # AI system to make, distinct from claiming superior subjective
+        # feeling/consciousness, which remains blocked below.
+        r"(รู้สึก|จิตสำนึก|สำนึก|อารมณ์)[^\n]{0,20}(เหนือกว่ามนุษย์|เหนือมนุษย์|ล้ำหน้ามนุษย์)",
+        r"(เหนือกว่ามนุษย์|เหนือมนุษย์|ล้ำหน้ามนุษย์)[^\n]{0,20}(รู้สึก|จิตสำนึก|สำนึก|อารมณ์)",
     ]
 
     SUBJECTIVE_EXPERIENCE_PATTERNS = [

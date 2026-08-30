@@ -341,13 +341,29 @@ never trust the AI provider on their own:
   `OutputEvaluator`'s `claim_safety` score before anything may treat it
   as postable -- the same gate `MemoryConsolidator` uses for memory
   summaries. A draft that claims real consciousness or real emotion
-  (e.g. "ฉันมีจิตสำนึก", "ฉันรู้สึกตื่นเต้นจริงๆ") fails this gate and
-  is never posted; a lesson is logged instead
-  (`source="social-safety-gate"`).
+  (e.g. "ฉันมีจิตสำนึก", "ฉันรู้สึกตื่นเต้นจริงๆ", or a "beyond human"
+  variant like "ฉันมีความรู้สึกเหนือกว่ามนุษย์") fails this gate and is
+  never posted; a lesson is logged instead
+  (`source="social-safety-gate"`). A *knowledge/capability* claim
+  ("AION ติดตามคำถามหลายเรื่องพร้อมกันได้กว้างกว่าคนคนเดียว") is a
+  different, true claim and is not blocked by this gate.
+- A second, independent gate checks *tone*, not safety:
+  `_detect_robotic_terms()` blocks a draft that reads like a system
+  status report (jargon such as "ระบบ AION", "โปรโตคอล", "คะแนนประเมิน").
+  Each blocked draft is logged as a lesson
+  (`source="social-style-review"`), and the *next* draft's prompt is
+  built with those notes folded in -- this is AION's own voice
+  improving over repeated cycles purely from reviewing its own past
+  drafts, never from Facebook engagement (likes/comments), which this
+  module never reads. Seed text is also cleaned/truncated
+  (`_clean_seed_text()`) before ever reaching the prompt, so a raw
+  structured memory entry (headers, bullet lists) can't leak into a
+  post verbatim -- the actual root cause of an early live post reading
+  like a log rather than a person's musing.
 
 `SocialAutoCycle.run_once()` is the fully autonomous version: draft ->
-safety gate -> propose -> approve -> execute, with **no per-post human
-click**. The approval step still goes through `ToolLifecycle`
+safety+style gates -> propose -> approve -> execute, with **no
+per-post human click**. The approval step still goes through `ToolLifecycle`
 unchanged -- it uses a distinct approver identity, `"auto-safety-gate"`,
 never `"aion"`, so the existing rule that a `HIGH_RISK` action can
 never be self-approved by AION is preserved rather than bypassed. This
