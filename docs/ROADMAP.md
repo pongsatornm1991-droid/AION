@@ -289,7 +289,7 @@ rather than propagated, and only tools that actually, honestly exist
 are registered. Every path is covered by deterministic tests with no
 live API dependency. **Met.**
 
-## Phase 10 — External integration: Facebook (implemented and tested against mocks, 2026-08-30)
+## Phase 10 — External integration: Facebook (done, live-verified 2026-08-30)
 
 Goal: give AION its first real external-facing action -- posting to a
 Facebook Page -- fully autonomously (no per-post human approval click,
@@ -372,10 +372,16 @@ regardless of what the AI provider drafts; a `HIGH_RISK` action can
 never be self-approved by AION even in this fully-autonomous cycle;
 posting can run with zero per-post human involvement, as requested;
 every path is covered by deterministic tests with no live dependency.
-**Implemented and tested against mocks — full "done" status (a real
-post actually landing on a real Facebook Page) is pending the user
-supplying real `FACEBOOK_PAGE_ACCESS_TOKEN`/`FACEBOOK_PAGE_ID`
-credentials for a live verification run.**
+**Met, and live-verified**: the user ran `run-social-cycle` directly
+against real credentials on 2026-08-30. First attempt correctly failed
+closed on an expired Facebook token (`OAuthException` code 190,
+captured as a "failed" action, nothing posted, Telegram still
+notified of the failure) -- exactly the intended behavior. After the
+user obtained a long-lived Page Access Token, a second run drafted a
+safe post (claim_safety 5/5), posted it for real
+(`{"id": "1299792836556039_122096748375465744"}`), and notified
+Telegram -- confirmed visually on the Facebook Page itself. Full "done"
+status achieved; no longer pending.
 
 ## Later phases
 
