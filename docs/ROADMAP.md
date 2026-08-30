@@ -289,10 +289,101 @@ rather than propagated, and only tools that actually, honestly exist
 are registered. Every path is covered by deterministic tests with no
 live API dependency. **Met.**
 
+## Phase 10 — External integration: Facebook (implemented and tested against mocks, 2026-08-30)
+
+Goal: give AION its first real external-facing action -- posting to a
+Facebook Page -- fully autonomously (no per-post human approval click,
+per the user's explicit choice), while the master directive's
+prohibition on claiming real consciousness or real emotion stays
+enforced in code, not by convention.
+
+- `tools/facebook.py` (new top-level package, distinct from
+  `brain.tools`): `post_to_facebook_page(message, access_token=None,
+  page_id=None)` -- one function, one job. Credentials come only from
+  `FACEBOOK_PAGE_ACCESS_TOKEN`/`FACEBOOK_PAGE_ID` (env/`.env`), never
+  hardcoded. `requests` is imported lazily, so importing this module
+  never fails for anyone not using Facebook integration. Never retries
+  internally -- a failure is meant to be captured by
+  `ToolLifecycle.execute()` as a "failed" action for the audit trail.
+- `brain/evaluator.py`: `OutputEvaluator`'s claim-safety patterns
+  (`CONSCIOUSNESS_PATTERNS`, `SUBJECTIVE_EXPERIENCE_PATTERNS`,
+  `EMOTION_PATTERNS`, `PERSONAL_EXPERIENCE_PATTERNS`) extended with
+  verified-working Thai equivalents, since AION's social posts are in
+  Thai and the original patterns were English-only. Thai negation is
+  not recognized by `_is_negated()` (English-only), an intentional
+  bias: a safe post being blocked is preferable to a real consciousness
+  claim slipping through.
+- `brain/social.py` (new):
+  - `SocialContentGenerator.pick_seed()` -- pure code, no AI call --
+    picks one real, already-recorded memory entry (belief, open
+    question, goal, observed experiment, or lesson) as the seed for a
+    post; returns `None` if AION has nothing recorded yet, rather than
+    inventing a topic.
+  - `draft_post()` asks the AI provider to turn that seed into a short
+    Thai post, then always runs it through
+    `OutputEvaluator.evaluate()`'s `claim_safety` score. A draft is
+    only ever reported `safe: True` if it clears this gate -- exactly
+    the discipline `MemoryConsolidator` already uses for memory
+    summaries.
+  - `SocialAutoCycle.run_once()` ties the generator to a
+    `ToolLifecycle`: draft -> (if safe) propose -> approve -> execute;
+    (if unsafe) log a `lessons` entry (`source="social-safety-gate"`)
+    and stop -- nothing is ever proposed or posted from an unsafe
+    draft. Approval always uses the identity `"auto-safety-gate"`,
+    never `"aion"`, so `ToolLifecycle.approve()`'s existing rule that a
+    `HIGH_RISK` action can never be self-approved by AION is satisfied,
+    not bypassed. A tool failure (a real Graph API error, a network
+    error) is captured as a "failed" action, never raised past the
+    cycle.
+- `main.py`: `_build_social_tool_lifecycle()` registers
+  `post_to_facebook` as `HIGH_RISK` (inheriting the kill switch and
+  budget cap unchanged) alongside the existing read-only builtin
+  tools. New commands: `draft-post` (drafts and reports safety, never
+  posts) and `run-social-cycle` (the full autonomous draft -> gate ->
+  post cycle).
+- `tools/telegram.py` (new, added after the user asked for visibility
+  into what AION is drafting/deciding, not only what gets posted):
+  `send_telegram_message(text, bot_token=None, chat_id=None)`, same
+  shape and discipline as `post_to_facebook_page` (env-var
+  credentials, lazy `requests` import, no internal retry). Wired into
+  `main.py`'s `draft-post` and `run-social-cycle` via
+  `_notify_report()`, which fires for every outcome -- posted, blocked
+  at the safety gate, or failed -- not only successful posts, so the
+  user sees a blocked/unsafe draft exactly as readily as a real one.
+  Deliberately not routed through `ToolLifecycle`: it does not
+  represent a new action AION decided to take, only an automatic echo
+  of one that (when a real post is involved) already went through the
+  full propose/approve/execute lifecycle. Missing or failing Telegram
+  credentials never block drafting or posting -- notification is
+  best-effort and strictly supplementary.
+- Tests: `tests/test_social.py` (18 tests: seed selection from every
+  source, safe/unsafe drafting, the full auto cycle including the
+  approver identity, a captured tool failure, an unregistered tool),
+  `tests/test_facebook.py` (8 tests: empty message, missing
+  credentials, a successful post, explicit credentials overriding the
+  environment, an HTTP error, an `"error"` key present despite HTTP
+  200, no internal retry), and `tests/test_telegram.py` (8 tests: the
+  same shape of coverage for the Telegram Bot API call) -- all three
+  mock every external call, so `run_tests.py` covers this phase fully
+  with no live API key needed.
+
+Exit criteria: a claim-safety violation can never reach Facebook
+regardless of what the AI provider drafts; a `HIGH_RISK` action can
+never be self-approved by AION even in this fully-autonomous cycle;
+posting can run with zero per-post human involvement, as requested;
+every path is covered by deterministic tests with no live dependency.
+**Implemented and tested against mocks — full "done" status (a real
+post actually landing on a real Facebook Page) is pending the user
+supplying real `FACEBOOK_PAGE_ACCESS_TOKEN`/`FACEBOOK_PAGE_ID`
+credentials for a live verification run.**
+
 ## Later phases
 
-1. **External integration** — only after the prior controls are verified;
-   Facebook and messaging integrations should begin as drafts requiring review.
+Facebook was the first platform (per the user's explicit choice).
+Additional platforms (Instagram, TikTok, or others) are not yet
+scoped or started, and should not be assumed -- each would need its
+own external-tool module and its own review of that platform's own
+posting API and constraints before being added the same way.
 
 ## Non-negotiable rules
 

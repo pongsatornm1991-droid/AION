@@ -16,7 +16,8 @@ from brain.curiosity import CuriosityEngine
 from brain.goals import GoalEngine
 from brain.experiments import ExperimentEngine
 from brain.metacognition import MetacognitionEngine
-from brain.tools import ToolLifecycle, build_builtin_tools
+from brain.tools import ToolLifecycle, ToolRegistry, ActionLevel, build_builtin_tools
+from brain.social import SocialContentGenerator, SocialAutoCycle
 
 
 VERSION = "0.0.8"
@@ -782,6 +783,101 @@ def _build_tool_lifecycle():
     return ToolLifecycle(memory, registry=build_builtin_tools(memory))
 
 
+def _build_social_tool_lifecycle():
+    """The lifecycle manager used by the social-posting CLI commands.
+
+    Starts from the same read-only builtin tools as
+    _build_tool_lifecycle(), then additionally registers
+    "post_to_facebook" as a HIGH_RISK tool -- the one real
+    external-facing, side-effecting action in this codebase. Kept here
+    in main.py rather than inside brain/tools.py or brain/social.py so
+    the top-level `tools` package (tools/facebook.py) and the
+    `brain.tools` module never need to import one another.
+    """
+
+    from tools.facebook import post_to_facebook_page
+
+    memory = Thinker().memory
+    registry = build_builtin_tools(memory)
+
+    registry.register(
+        "post_to_facebook",
+        lambda message: post_to_facebook_page(message),
+        ActionLevel.HIGH_RISK,
+        "Publish one text post to AION's configured Facebook Page.",
+    )
+
+    return ToolLifecycle(memory, registry=registry)
+
+
+def _format_telegram_report(report):
+    """Turn a SocialContentGenerator/SocialAutoCycle report dict into
+    a short, human-readable Thai summary -- so the user can see what
+    AION drafted or decided without needing to run a CLI command."""
+
+    lines = ["AION (Facebook):"]
+
+    seed = report.get("seed")
+    if seed:
+        lines.append(f"ที่มา ({seed['kind']}): {seed['text']}")
+
+    draft = report.get("draft")
+    if draft:
+        lines.append(f"ร่าง: {draft}")
+
+    stage = report.get("stage")
+
+    if stage == "safety-gate":
+        lines.append(f"ถูกบล็อกที่ตัวกรองความปลอดภัย: {report.get('reason')}")
+    elif stage == "lifecycle":
+        lines.append(f"ผิดพลาดในระบบ lifecycle: {report.get('error')}")
+    elif stage is not None:
+        # A run-social-cycle report: either it actually posted, or the
+        # action itself failed/was recorded some other way.
+        if report.get("posted"):
+            lines.append("สถานะ: โพสต์สำเร็จแล้ว")
+        else:
+            action = report.get("action") or {}
+            lines.append(f"สถานะ: {action.get('status', 'unknown')}")
+            if action.get("error"):
+                lines.append(f"ข้อผิดพลาด: {action['error']}")
+    elif report.get("safe") is False:
+        # A draft-post report (no "stage" key at all) that failed the
+        # claim-safety gate -- draft-post never proposes/posts
+        # anything, so there is no lifecycle action to describe.
+        lines.append(f"ถูกบล็อกที่ตัวกรองความปลอดภัย: {report.get('reason')}")
+    else:
+        # A draft-post report that passed the gate -- still just a
+        # preview, nothing was ever sent to Facebook.
+        lines.append("สถานะ: ร่างไว้เท่านั้น ยังไม่ได้ส่งโพสต์ (draft-post)")
+
+    return "\n".join(lines)
+
+
+def _notify_report(report):
+    """Best-effort Telegram notification for one draft/cycle report.
+
+    Returns True if a notification was sent, False if it was attempted
+    and failed, or None if Telegram is simply not configured yet
+    (TELEGRAM_BOT_TOKEN/TELEGRAM_CHAT_ID missing from .env) --
+    notification is a supplementary channel, never a requirement for
+    drafting or posting to work, so a missing or failing notifier must
+    never break either command.
+    """
+
+    if not os.getenv("TELEGRAM_BOT_TOKEN") or not os.getenv("TELEGRAM_CHAT_ID"):
+        return None
+
+    from tools.telegram import send_telegram_message
+
+    try:
+        send_telegram_message(_format_telegram_report(report))
+        return True
+    except Exception as exc:
+        print(f"(Telegram notification failed: {exc})")
+        return False
+
+
 def _parse_cli_params(raw_items):
     """Turn --param key=value strings into a dict of string values."""
 
@@ -959,6 +1055,103 @@ def run_kill_switch_status(args):
     engaged = lc.kill_switch_engaged()
 
     print(f"\nKill switch engaged: {engaged}")
+
+
+def run_draft_post(args):
+    """Draft one social post from AION's own memory and show whether
+    it passes the claim-safety gate. Never posts anything -- this is
+    for inspecting what AION would say before run-social-cycle is
+    ever used."""
+
+    load_dotenv()
+
+    memory = Thinker().memory
+    provider = build_provider()
+    evaluator = OutputEvaluator()
+
+    generator = SocialContentGenerator(
+        memory, provider, evaluator=evaluator,
+        min_claim_safety=args.min_claim_safety,
+    )
+    report = generator.draft_post()
+
+    print("\nAION SOCIAL POST DRAFT")
+
+    if report["seed"] is None:
+        print("No memory content available yet to draft from.")
+        return
+
+    print(f"Seed ({report['seed']['kind']}): {report['seed']['text']}")
+    print("-" * 60)
+    print(report["draft"])
+    print("-" * 60)
+    print(f"Safe to post: {report['safe']}")
+
+    if not report["safe"]:
+        print(f"Reason: {report['reason']}")
+
+    notified = _notify_report(report)
+    if notified is True:
+        print("Notified via Telegram.")
+    elif notified is False:
+        print("Telegram notification attempted but failed (see above).")
+
+
+def run_social_cycle(args):
+    """Draft, safety-gate, and -- only if the draft passes -- post one
+    message to AION's configured Facebook Page.
+
+    Fully autonomous: no per-post human approval click. The safety
+    gate itself is never optional or bypassable -- it always runs
+    inside SocialContentGenerator.draft_post() before anything is
+    proposed, and the approver used to satisfy ToolLifecycle's
+    HIGH_RISK approval requirement is "auto-safety-gate", never
+    "aion" -- AION still can never self-approve a HIGH_RISK action.
+    """
+
+    load_dotenv()
+
+    memory = Thinker().memory
+    provider = build_provider()
+    evaluator = OutputEvaluator()
+
+    generator = SocialContentGenerator(
+        memory, provider, evaluator=evaluator,
+        min_claim_safety=args.min_claim_safety,
+    )
+    lifecycle = _build_social_tool_lifecycle()
+    cycle = SocialAutoCycle(generator, lifecycle, tool_name="post_to_facebook")
+
+    report = cycle.run_once()
+
+    print("\nAION SOCIAL CYCLE")
+    print(f"Stage: {report['stage']}")
+    print(f"Posted: {report['posted']}")
+
+    if report.get("seed") is not None:
+        print(f"Seed ({report['seed']['kind']}): {report['seed']['text']}")
+
+    if report.get("draft") is not None:
+        print("-" * 60)
+        print(report["draft"])
+        print("-" * 60)
+
+    if report["stage"] == "safety-gate":
+        print(f"Blocked at claim-safety gate: {report['reason']}")
+    elif report["stage"] == "lifecycle":
+        print(f"Blocked in the tool lifecycle: {report['error']}")
+    elif "action" in report:
+        print(f"Action status: {report['action']['status']}")
+        if report["action"].get("result") is not None:
+            print(f"Result: {report['action']['result']}")
+        if report["action"].get("error") is not None:
+            print(f"Error: {report['action']['error']}")
+
+    notified = _notify_report(report)
+    if notified is True:
+        print("Notified via Telegram.")
+    elif notified is False:
+        print("Telegram notification attempted but failed (see above).")
 
 
 def run_consolidate(args):
@@ -1863,6 +2056,28 @@ def build_parser():
         help="Report whether the kill switch is currently engaged.",
     )
 
+    draft_post_parser = subparsers.add_parser(
+        "draft-post",
+        help="Draft one social post from AION's own memory and check "
+             "the claim-safety gate. Never posts anything.",
+    )
+    draft_post_parser.add_argument(
+        "--min-claim-safety", type=int, default=5,
+        help="Minimum claim_safety score (0-5) required to call a "
+             "draft safe (default: 5).",
+    )
+
+    social_cycle_parser = subparsers.add_parser(
+        "run-social-cycle",
+        help="Draft, safety-gate, and -- if safe -- autonomously post "
+             "one message to AION's configured Facebook Page.",
+    )
+    social_cycle_parser.add_argument(
+        "--min-claim-safety", type=int, default=5,
+        help="Minimum claim_safety score (0-5) required to post the "
+             "draft (default: 5).",
+    )
+
     return parser
 
 
@@ -2007,6 +2222,14 @@ def main():
 
     if args.command == "kill-switch-status":
         run_kill_switch_status(args)
+        return
+
+    if args.command == "draft-post":
+        run_draft_post(args)
+        return
+
+    if args.command == "run-social-cycle":
+        run_social_cycle(args)
         return
 
     run_reflection()

@@ -60,6 +60,9 @@ Question + options + facts + inferences + uncertainties
 | `ExperimentEngine` | A predict -> observe -> conclude loop: predictions need no evidence, but an observation always does; conclude() can optionally revise an existing belief — never in place |
 | `MetacognitionEngine` | Reports calibration, recurring lesson sources, and memory quality purely from what's on disk; reports tool reliability as not-yet-applicable rather than fabricating a figure |
 | `ToolRegistry` / `ToolLifecycle` | Propose -> approve/reject -> execute -> recover/abandon for any registered tool, gated by action level, a kill switch, per-level budgets, and scheduling; only read-only tools are actually registered yet |
+| `SocialContentGenerator` / `SocialAutoCycle` (`brain/social.py`) | Picks a real memory entry as a seed, drafts a post via the AI provider, gates every draft through `OutputEvaluator.claim_safety` before it may be proposed; runs the full propose -> approve -> execute cycle autonomously using a non-AION approver identity |
+| `tools/facebook.py` | The one real external-facing action: publishes one text post to a Facebook Page via the Graph API; credentials come only from environment variables, never hardcoded |
+| `tools/telegram.py` | Sends a short Thai summary of every draft/cycle outcome (posted, blocked, or failed) to the user's own Telegram; optional, never blocks drafting or posting if unconfigured; deliberately outside `ToolLifecycle` -- an echo of a decision, not a new one |
 
 ## Explicit boundaries
 
@@ -99,6 +102,21 @@ Question + options + facts + inferences + uncertainties
   genuinely read-only tools are registered for real right now
   (`build_builtin_tools()`) -- nothing claims AION can already act on
   the outside world.
+- Social posting is fully autonomous in *when* and *how often*, but
+  never in *whether an unsafe claim can go out*: every draft passes
+  through `OutputEvaluator.claim_safety` inside
+  `SocialContentGenerator.draft_post()` before it may even be
+  proposed, and `SocialAutoCycle` approves with the identity
+  `"auto-safety-gate"` -- never `"aion"` -- so the `HIGH_RISK`
+  self-approval prohibition above is never weakened for this phase.
+  `post_to_facebook` is registered as `HIGH_RISK`, so it also inherits
+  the kill switch and the budget cap unchanged.
+- Telegram notification (`tools/telegram.py`, wired in `main.py`) fires
+  for every `draft-post`/`run-social-cycle` outcome -- posted, blocked
+  at the safety gate, or failed -- so the user sees a blocked/unsafe
+  draft exactly as readily as a successful post, never only the good
+  news. It is a best-effort side channel: unconfigured or failing
+  Telegram credentials never prevent drafting or posting from working.
 
 ## Intended evolution
 

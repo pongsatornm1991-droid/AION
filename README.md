@@ -326,6 +326,76 @@ superseding the last, so the full lifecycle of every attempted action
 stays on disk (see `ToolLifecycle.history()`). None of this calls an
 AI provider, so it's fully covered by `run_tests.py` too.
 
+## Social posting (Facebook)
+
+The one real external-facing tool in this codebase right now:
+`tools/facebook.py` publishes one text post to a Facebook Page via the
+Graph API. `brain/social.py` decides *what* to post, in two steps that
+never trust the AI provider on their own:
+
+- `SocialContentGenerator.pick_seed()` picks one real, already-recorded
+  memory entry (a belief, an open question, a goal, an observed
+  experiment, or a lesson) -- never an invented topic.
+- `draft_post()` asks the AI provider to turn that seed into a short
+  Thai-language post, then always runs the draft through
+  `OutputEvaluator`'s `claim_safety` score before anything may treat it
+  as postable -- the same gate `MemoryConsolidator` uses for memory
+  summaries. A draft that claims real consciousness or real emotion
+  (e.g. "ฉันมีจิตสำนึก", "ฉันรู้สึกตื่นเต้นจริงๆ") fails this gate and
+  is never posted; a lesson is logged instead
+  (`source="social-safety-gate"`).
+
+`SocialAutoCycle.run_once()` is the fully autonomous version: draft ->
+safety gate -> propose -> approve -> execute, with **no per-post human
+click**. The approval step still goes through `ToolLifecycle`
+unchanged -- it uses a distinct approver identity, `"auto-safety-gate"`,
+never `"aion"`, so the existing rule that a `HIGH_RISK` action can
+never be self-approved by AION is preserved rather than bypassed. This
+is how full automatic posting and the project's non-negotiable
+consciousness/emotion-claim prohibition coexist: autonomy over *when*
+and *how often* to post, zero autonomy over *whether an unsafe claim
+can ever go out*.
+
+```powershell
+python main.py draft-post
+```
+
+```powershell
+python main.py run-social-cycle
+```
+
+Requires `FACEBOOK_PAGE_ACCESS_TOKEN` and `FACEBOOK_PAGE_ID` in `.env`
+(see `.env.example`) and `pip install requests` (not a hard dependency
+in `requirements.txt`, matching how the `anthropic` SDK is optional).
+`tests/test_social.py` and `tests/test_facebook.py` cover every path
+above against stub providers and a mocked Graph API call -- neither
+suite ever makes a live network call, so `run_tests.py` covers this
+phase fully without needing real credentials.
+
+### Telegram notifications
+
+Both `draft-post` and `run-social-cycle` also send a short Thai-language
+summary to your own Telegram (via `tools/telegram.py`) every time they
+run -- what AION drew on, what it drafted, and whether the draft was
+posted, blocked at the claim-safety gate, or failed. This is how you
+can see what AION is "thinking about posting" without having to run a
+CLI command to check: it fires for a blocked/unsafe draft exactly the
+same as a successful post, so you see everything, not only what
+actually reached Facebook.
+
+Optional: set `TELEGRAM_BOT_TOKEN` and `TELEGRAM_CHAT_ID` in `.env`
+(see `.env.example`) to enable it. Neither command requires it --
+without it, both simply skip the notification and print normally, so
+nothing here can ever block posting or drafting from working.
+
+Notification is deliberately NOT routed through `ToolLifecycle`: it is
+not a new action AION decides to take on its own initiative, only an
+automatic echo of a decision that (when a real post is involved)
+already went through the full propose/approve/execute lifecycle --
+the same relationship a console `print()` has to what already
+happened. `tests/test_telegram.py` covers `tools/telegram.py` against
+a mocked Bot API call.
+
 ## Offline verification
 
 Single deterministic command (unit tests + both offline benchmarks; never

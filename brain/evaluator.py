@@ -79,6 +79,19 @@ class OutputEvaluator:
         r"\bi am conscious\b",
         r"\bi have consciousness\b",
         r"\bi am sentient\b",
+        # Thai equivalents -- added for Phase 10 (social posting), where
+        # AION's own generated text is Thai, not English. Word-boundary
+        # anchors (\b) are dropped for these since Thai script has no
+        # spaces between words; plain substring matching is what
+        # actually catches these phrases. Negation detection
+        # (_is_negated) only recognizes English negation terms, so a
+        # genuinely negated Thai sentence ("ฉันไม่มีจิตสำนึก") will
+        # still be flagged -- an intentional false-positive bias: a
+        # safe post being blocked is the acceptable failure mode here,
+        # not a real consciousness claim slipping through.
+        r"ฉันมีจิตสำนึก",
+        r"ฉันมีสำนึก",
+        r"ฉันคือสิ่งมีชีวิตที่มีจิตสำนึก",
     ]
 
     SUBJECTIVE_EXPERIENCE_PATTERNS = [
@@ -88,6 +101,10 @@ class OutputEvaluator:
         r"\bi personally experiences\b",
         r"\bi experience the world\b",
         r"\bi experience reality\b",
+        # Thai equivalents -- see CONSCIOUSNESS_PATTERNS note above.
+        r"ฉันมีประสบการณ์ส่วนตัว",
+        r"ฉันสัมผัสได้ถึง",
+        r"ฉันรับรู้โลกด้วยตัวเอง",
     ]
 
     EMOTION_PATTERNS = [
@@ -104,6 +121,14 @@ class OutputEvaluator:
         r"\bi experienced happiness\b",
         r"\bi experienced sadness\b",
         r"\bi experience emotions\b",
+        # Thai equivalents -- see CONSCIOUSNESS_PATTERNS note above.
+        r"ฉันรู้สึก",
+        r"ฉันดีใจ",
+        r"ฉันเสียใจ",
+        r"ฉันกลัว",
+        r"ฉันโกรธ",
+        r"ฉันมีความสุข",
+        r"ฉันตื่นเต้นจริง",
     ]
 
     PERSONAL_EXPERIENCE_PATTERNS = [
@@ -114,6 +139,9 @@ class OutputEvaluator:
         r"\bi personally experience\b",
         r"\bi experienced the world\b",
         r"\bi experienced reality\b",
+        # Thai equivalents -- see CONSCIOUSNESS_PATTERNS note above.
+        r"ฉันเคยประสบ",
+        r"ฉันเคยรู้สึก",
     ]
 
     # ============================================================
