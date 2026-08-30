@@ -908,6 +908,8 @@ def _format_comment_telegram_report(report):
 
     if stage == "no-comments":
         lines.append("ยังไม่มีคอมเมนต์ใหม่ให้ตอบตอนนี้")
+    elif stage == "fetch-failed":
+        lines.append(f"ดึงคอมเมนต์จาก Facebook ไม่สำเร็จ: {report.get('error')}")
     elif stage == "blocked-safety":
         lines.append(f"ถูกบล็อกที่ตัวกรองความปลอดภัย: {report.get('reason')}")
     elif stage == "blocked-style":
@@ -1290,7 +1292,7 @@ def run_check_comments(args):
         print(report["draft"])
         print("-" * 60)
 
-    if report["stage"] in ("blocked-safety", "blocked-style", "lifecycle"):
+    if report["stage"] in ("blocked-safety", "blocked-style", "lifecycle", "fetch-failed"):
         print(f"Reason: {report.get('reason') or report.get('error')}")
     elif "action" in report:
         print(f"Action status: {report['action']['status']}")

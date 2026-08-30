@@ -175,6 +175,42 @@ class CommentAutoReplyCycleTests(BaseCommentReplyTest):
         self.assertEqual(report["stage"], "no-comments")
         self.assertEqual(self.memory.all("comment_replies"), [])
 
+    def test_a_live_fetch_failure_is_captured_not_raised(self):
+        """A Graph API error while fetching comments (bad/expired
+        token, network error, etc.) must come back as a graceful
+        "fetch-failed" report -- never propagate and crash the whole
+        scheduled run. Regression test for a real bug: an earlier
+        version left tools.facebook.get_recent_comments() unguarded
+        inside run_once(), so a live OAuthException took down the
+        entire GitHub Actions job with an unhandled traceback."""
+
+        generator = CommentReplyGenerator(SafeProvider())
+        cycle = CommentAutoReplyCycle(
+            self.memory, generator, self._lifecycle(),
+            "reply_to_facebook_comment",
+        )
+
+        def failing_fetch(*args, **kwargs):
+            raise RuntimeError(
+                "Facebook Graph API error (OAuthException, code 190): "
+                "Invalid OAuth access token data."
+            )
+
+        import tools.facebook
+
+        original = tools.facebook.get_recent_comments
+        tools.facebook.get_recent_comments = failing_fetch
+        try:
+            report = cycle.run_once()
+        finally:
+            tools.facebook.get_recent_comments = original
+
+        self.assertFalse(report["handled"])
+        self.assertEqual(report["stage"], "fetch-failed")
+        self.assertIsNone(report["comment"])
+        self.assertIn("Invalid OAuth access token data", report["error"])
+        self.assertEqual(self.memory.all("comment_replies"), [])
+
     def test_safe_comment_is_replied_to_via_the_auto_safety_gate_approver(self):
         provider = SafeProvider()
         generator = CommentReplyGenerator(provider)

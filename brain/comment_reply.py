@@ -270,7 +270,21 @@ class CommentAutoReplyCycle:
 
         if comments is None:
             from tools.facebook import get_recent_comments
-            comments = get_recent_comments()
+            try:
+                comments = get_recent_comments()
+            except Exception as exc:
+                # A live Graph API failure (bad/expired token, network
+                # error, etc.) while fetching comments must not crash
+                # the whole scheduled run -- report it gracefully so
+                # the caller (e.g. a GitHub Actions job) exits cleanly
+                # and the failure is visible via Telegram/console
+                # instead of an unhandled traceback.
+                return {
+                    "handled": False,
+                    "stage": "fetch-failed",
+                    "comment": None,
+                    "error": str(exc),
+                }
 
         comment = self.pick_next_comment(comments)
 
