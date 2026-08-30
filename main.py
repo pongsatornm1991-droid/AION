@@ -1697,10 +1697,19 @@ def run_reflection_cycle(args):
     print(f"Stage: {report['stage']}")
     print(f"Raised: {report['raised']}")
 
+    if report.get("material_count") is not None:
+        print(f"Material considered: {report['material_count']} item(s)")
     if report.get("question"):
         print(f"Question: {report['question']}")
     if report.get("criteria"):
         print(f"Completion criteria: {report['criteria']}")
+    if report.get("reply") is not None:
+        # Only present on "nothing-new" -- the provider's raw reply,
+        # printed so a human reviewing the Actions log can tell a
+        # genuine "nothing stood out" from a malformed-format reply
+        # that should have been the two-line "คำถาม:/เกณฑ์ตอบสำเร็จ:"
+        # shape instead.
+        print(f"Provider reply: {report['reply']!r}")
     if report.get("error"):
         print(f"Error: {report['error']}")
 
