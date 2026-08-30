@@ -221,27 +221,15 @@ class WebLearningCycle:
         self.fetch_fn = fetch_fn
 
     def recent_style_notes(self, limit=5):
-        """Mirrors SocialContentGenerator.recent_style_notes(): the
-        most recent learning-answer style-review lessons AION logged
-        about its own past drafts."""
+        """The most recent style-review lessons AION has logged about
+        its own past drafts, across EVERY drafting context (posts,
+        replies, profile bios, learning answers), not just learning
+        answers -- see SocialContentGenerator.unified_style_notes()
+        (2026-08-30) for why this is shared rather than per-context.
+        Most recent first."""
 
-        notes = []
-
-        try:
-            entries = self.memory.all(self.LESSON_CATEGORY)
-        except Exception:
-            entries = []
-
-        for entry in reversed(entries):
-            if entry.get("source") != "learning-style-review":
-                continue
-            content = entry.get("content", "")
-            if content:
-                notes.append(content)
-            if len(notes) >= limit:
-                break
-
-        return notes
+        from brain.social import SocialContentGenerator
+        return SocialContentGenerator.unified_style_notes(self.memory, limit=limit)
 
     def _log_lesson(self, reason_kind, reason):
         source = (

@@ -224,27 +224,15 @@ class ProfileChangeCycle:
         return None
 
     def recent_style_notes(self, limit=5):
-        """Mirrors SocialContentGenerator.recent_style_notes(): the
-        most recent bio-style-review lessons AION logged about its own
-        past drafts, fed into the next draft's prompt."""
+        """The most recent style-review lessons AION has logged about
+        its own past drafts, across EVERY drafting context (posts,
+        replies, profile bios, learning answers), not just profile
+        bios -- see SocialContentGenerator.unified_style_notes()
+        (2026-08-30) for why this is shared rather than per-context.
+        Most recent first."""
 
-        notes = []
-
-        try:
-            entries = self.memory.all("lessons")
-        except Exception:
-            entries = []
-
-        for entry in reversed(entries):
-            if entry.get("source") != "profile-style-review":
-                continue
-            content = entry.get("content", "")
-            if content:
-                notes.append(content)
-            if len(notes) >= limit:
-                break
-
-        return notes
+        from brain.social import SocialContentGenerator
+        return SocialContentGenerator.unified_style_notes(self.memory, limit=limit)
 
     def propose_once(self, current_bio=None):
         """Attempt to draft and propose exactly one bio change. Never

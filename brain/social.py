@@ -221,24 +221,49 @@ class SocialContentGenerator:
                 matched.append(pattern)
         return matched
 
-    def recent_style_notes(self, limit=5):
-        """The most recent style-review lessons AION has logged about
-        its own past drafts, most recent first -- fed into the next
-        draft's prompt so its voice actually improves over repeated
-        cycles. Sourced entirely from AION's own prior drafts, never
-        from Facebook engagement (likes/comments), which this module
-        never reads."""
+    # Every drafting context in this codebase (posts, comment
+    # replies, profile bios, web-learning answers) used to track its
+    # own robotic-style-review lessons in total isolation -- a lesson
+    # learned from a blocked *post* never reached the *reply*
+    # generator, and vice versa. That let AION drift into sounding
+    # like several disconnected personas instead of one voice.
+    # unified_style_notes() (2026-08-30) fixes that: every context now
+    # calls this same method, so a style correction learned anywhere
+    # feeds every future draft everywhere.
+    STYLE_REVIEW_SOURCES = (
+        "social-style-review",
+        "comment-style-review",
+        "profile-style-review",
+        "learning-style-review",
+    )
+    STYLE_REVIEW_CATEGORIES = ("lessons", "comment_replies")
+
+    @classmethod
+    def unified_style_notes(cls, memory, limit=5):
+        """The most recent robotic-style-review lessons AION has
+        logged about ANY of its own past drafts -- posts, comment
+        replies, profile bios, or web-learning answers -- most recent
+        first, regardless of which context originally logged them.
+        Sourced entirely from AION's own prior drafts, never from
+        Facebook engagement (likes/comments)."""
+
+        candidates = []
+        for category in cls.STYLE_REVIEW_CATEGORIES:
+            try:
+                entries = memory.all(category)
+            except Exception:
+                entries = []
+            for entry in entries:
+                if entry.get("source") in cls.STYLE_REVIEW_SOURCES:
+                    candidates.append(entry)
+
+        # most recent first, across every category/source combined --
+        # timestamps are "%Y-%m-%d %H:%M:%S" strings, which sort
+        # correctly as plain text.
+        candidates.sort(key=lambda e: e.get("timestamp", ""), reverse=True)
 
         notes = []
-
-        try:
-            entries = self.memory.all("lessons")
-        except Exception:
-            entries = []
-
-        for entry in reversed(entries):
-            if entry.get("source") != "social-style-review":
-                continue
+        for entry in candidates:
             content = entry.get("content", "")
             if content:
                 notes.append(content)
@@ -246,6 +271,16 @@ class SocialContentGenerator:
                 break
 
         return notes
+
+    def recent_style_notes(self, limit=5):
+        """The most recent style-review lessons AION has logged about
+        its own past drafts, across EVERY drafting context (posts,
+        replies, profile bios, learning answers) -- see
+        unified_style_notes() above -- most recent first, fed into
+        the next draft's prompt so its voice actually improves over
+        repeated cycles."""
+
+        return self.unified_style_notes(self.memory, limit=limit)
 
     # ---------------------------------------------------------
     # DRAFTING (the only AI-touching step)

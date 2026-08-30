@@ -203,29 +203,15 @@ class CommentAutoReplyCycle:
         return handled
 
     def recent_style_notes(self, limit=5):
-        """Mirrors SocialContentGenerator.recent_style_notes(): the
-        most recent reply-style lessons AION logged about its own
-        past replies, fed into the next reply's prompt. Sourced
-        entirely from AION's own past replies, never from Facebook
-        engagement data."""
+        """The most recent style-review lessons AION has logged about
+        its own past drafts, across EVERY drafting context (posts,
+        replies, profile bios, learning answers), not just comment
+        replies -- see SocialContentGenerator.unified_style_notes()
+        (2026-08-30) for why this is shared rather than per-context.
+        Most recent first."""
 
-        notes = []
-
-        try:
-            entries = self.memory.all(self.HANDLED_CATEGORY)
-        except Exception:
-            entries = []
-
-        for entry in reversed(entries):
-            if entry.get("source") != "comment-style-review":
-                continue
-            content = entry.get("content", "")
-            if content:
-                notes.append(content)
-            if len(notes) >= limit:
-                break
-
-        return notes
+        from brain.social import SocialContentGenerator
+        return SocialContentGenerator.unified_style_notes(self.memory, limit=limit)
 
     def _record_handled(self, comment, outcome, detail, source):
         comment_id = comment.get("id", "")
