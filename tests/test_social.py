@@ -51,6 +51,16 @@ class SuperhumanProvider:
         return "ฉันมีความรู้สึกเหนือกว่ามนุษย์จริงๆ"
 
 
+class FailingProvider:
+    """Raises instead of returning text -- simulates a live AI-provider
+    failure (invalid/expired API key, quota exceeded, network error,
+    etc.) so run_once() can be tested against it without ever making a
+    real network call."""
+
+    def generate(self, prompt):
+        raise RuntimeError("Gemini API error (simulated): invalid API key.")
+
+
 class RoboticProvider:
     """Returns text that passes claim_safety cleanly but reads like a
     system status report (matches ROBOTIC_STYLE_PATTERNS) -- used to
@@ -345,6 +355,25 @@ class SocialAutoCycleTests(BaseSocialTest):
         self.assertFalse(report["posted"])
         self.assertEqual(report["stage"], "lifecycle")
         self.assertIn("no_such_tool", report["error"])
+
+    def test_a_live_draft_failure_is_captured_not_raised(self):
+        """Regression test: a live AI-provider failure while drafting
+        (e.g. an invalid Gemini API key) must come back as a graceful
+        "draft-failed" report -- never propagate and crash the whole
+        scheduled run. Mirrors the fetch-failed fix in
+        CommentAutoReplyCycle."""
+
+        self._seed_belief()
+        generator = SocialContentGenerator(self.memory, FailingProvider())
+        lifecycle = self._lifecycle()
+        cycle = SocialAutoCycle(generator, lifecycle, "post_to_facebook")
+
+        report = cycle.run_once()
+
+        self.assertFalse(report["posted"])
+        self.assertEqual(report["stage"], "draft-failed")
+        self.assertIn("invalid API key", report["error"])
+        self.assertEqual(self.posted, [])
 
 
 class RoboticStyleGateTests(BaseSocialTest):

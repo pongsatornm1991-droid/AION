@@ -862,6 +862,8 @@ def _format_telegram_report(report):
         )
     elif stage == "no-seed" or (stage is None and reason_kind == "no_seed"):
         lines.append("ยังไม่มีเนื้อหาในความจำให้ร่างโพสต์ตอนนี้")
+    elif stage == "draft-failed":
+        lines.append(f"ร่างโพสต์ไม่สำเร็จ (ปัญหาที่ตัว AI provider): {report.get('error')}")
     elif stage == "lifecycle":
         lines.append(f"ผิดพลาดในระบบ lifecycle: {report.get('error')}")
     elif stage is not None:
@@ -910,6 +912,8 @@ def _format_comment_telegram_report(report):
         lines.append("ยังไม่มีคอมเมนต์ใหม่ให้ตอบตอนนี้")
     elif stage == "fetch-failed":
         lines.append(f"ดึงคอมเมนต์จาก Facebook ไม่สำเร็จ: {report.get('error')}")
+    elif stage == "draft-failed":
+        lines.append(f"ร่างคำตอบไม่สำเร็จ (ปัญหาที่ตัว AI provider): {report.get('error')}")
     elif stage == "blocked-safety":
         lines.append(f"ถูกบล็อกที่ตัวกรองความปลอดภัย: {report.get('reason')}")
     elif stage == "blocked-style":
@@ -1226,7 +1230,9 @@ def run_social_cycle(args):
         print(report["draft"])
         print("-" * 60)
 
-    if report["stage"] == "safety-gate":
+    if report["stage"] == "draft-failed":
+        print(f"Draft failed: {report['error']}")
+    elif report["stage"] == "safety-gate":
         print(f"Blocked at claim-safety gate: {report['reason']}")
     elif report["stage"] == "lifecycle":
         print(f"Blocked in the tool lifecycle: {report['error']}")
@@ -1292,7 +1298,9 @@ def run_check_comments(args):
         print(report["draft"])
         print("-" * 60)
 
-    if report["stage"] in ("blocked-safety", "blocked-style", "lifecycle", "fetch-failed"):
+    if report["stage"] in (
+        "blocked-safety", "blocked-style", "lifecycle", "fetch-failed", "draft-failed",
+    ):
         print(f"Reason: {report.get('reason') or report.get('error')}")
     elif "action" in report:
         print(f"Action status: {report['action']['status']}")

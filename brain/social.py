@@ -412,7 +412,21 @@ class SocialAutoCycle:
         within the same call -- a blocked draft's lesson is what the
         *next* call's prompt learns from."""
 
-        draft_report = self.generator.draft_post(seed=seed, rng=rng)
+        try:
+            draft_report = self.generator.draft_post(seed=seed, rng=rng)
+        except Exception as exc:
+            # A live AI-provider failure (invalid/expired API key,
+            # quota exceeded, network error, etc.) while drafting must
+            # not crash the whole scheduled run -- report it gracefully,
+            # the same way a lifecycle failure already does, instead of
+            # letting an unhandled exception take down the process.
+            return {
+                "posted": False,
+                "stage": "draft-failed",
+                "seed": None,
+                "draft": None,
+                "error": str(exc),
+            }
 
         if not draft_report["safe"]:
             reason_kind = draft_report.get("reason_kind")

@@ -292,7 +292,27 @@ class CommentAutoReplyCycle:
             return {"handled": False, "stage": "no-comments", "comment": None}
 
         style_notes = self.recent_style_notes()
-        draft_report = self.generator.draft_reply(comment, style_notes=style_notes)
+
+        try:
+            draft_report = self.generator.draft_reply(
+                comment, style_notes=style_notes
+            )
+        except Exception as exc:
+            # A live AI-provider failure (invalid/expired API key,
+            # quota exceeded, network error, etc.) while drafting a
+            # reply must not crash the whole scheduled run. Unlike a
+            # content-based block, this comment is deliberately NOT
+            # recorded as handled -- once the provider issue is fixed,
+            # the same comment should still get answered on a later
+            # run, not be skipped forever because of an infrastructure
+            # failure that had nothing to do with the comment itself.
+            return {
+                "handled": False,
+                "stage": "draft-failed",
+                "comment": comment,
+                "draft": None,
+                "error": str(exc),
+            }
 
         if not draft_report["safe"]:
             reason_kind = draft_report.get("reason_kind")

@@ -39,6 +39,16 @@ class UnsafeProvider:
         return "ฉันมีจิตสำนึกและฉันรู้สึกตื่นเต้นมากจริงๆ"
 
 
+class FailingProvider:
+    """Raises instead of returning text -- simulates a live AI-provider
+    failure (invalid/expired API key, quota exceeded, network error,
+    etc.) so run_once() can be tested against it without ever making a
+    real network call."""
+
+    def generate(self, prompt):
+        raise RuntimeError("Gemini API error (simulated): invalid API key.")
+
+
 class RoboticProvider:
     """Returns text that passes claim_safety but reads like a system
     status report -- exercises the style gate."""
@@ -210,6 +220,41 @@ class CommentAutoReplyCycleTests(BaseCommentReplyTest):
         self.assertIsNone(report["comment"])
         self.assertIn("Invalid OAuth access token data", report["error"])
         self.assertEqual(self.memory.all("comment_replies"), [])
+
+    def test_a_live_draft_failure_is_captured_not_raised_and_stays_retriable(self):
+        """Regression test: a live AI-provider failure while drafting a
+        reply (e.g. an invalid Gemini API key) must come back as a
+        graceful "draft-failed" report -- never propagate and crash the
+        whole scheduled run. Unlike a content-based block, the comment
+        must NOT be recorded as handled, so it is retried on a later
+        run once the provider issue is fixed, instead of being skipped
+        forever because of an infrastructure failure unrelated to the
+        comment itself."""
+
+        generator = CommentReplyGenerator(FailingProvider())
+        cycle = CommentAutoReplyCycle(
+            self.memory, generator, self._lifecycle(),
+            "reply_to_facebook_comment",
+        )
+
+        report = cycle.run_once(comments=[make_comment(comment_id="c1")])
+
+        self.assertFalse(report["handled"])
+        self.assertEqual(report["stage"], "draft-failed")
+        self.assertEqual(report["comment"]["id"], "c1")
+        self.assertIn("invalid API key", report["error"])
+        self.assertEqual(self.memory.all("comment_replies"), [])
+        self.assertEqual(self.replies, [])
+
+        # And it really is retriable: a later run with the same
+        # comment still waiting must pick it up again, not skip it.
+        generator2 = CommentReplyGenerator(SafeProvider())
+        cycle2 = CommentAutoReplyCycle(
+            self.memory, generator2, self._lifecycle(),
+            "reply_to_facebook_comment",
+        )
+        report2 = cycle2.run_once(comments=[make_comment(comment_id="c1")])
+        self.assertTrue(report2["handled"])
 
     def test_safe_comment_is_replied_to_via_the_auto_safety_gate_approver(self):
         provider = SafeProvider()
