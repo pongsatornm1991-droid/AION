@@ -1,0 +1,72 @@
+name: AION - external learning cycle
+
+# Runs run-learning-cycle a few times a day so AION picks one of its
+# own open curiosity questions, searches Wikipedia's free public API
+# for a matching article, and (if the drafted answer passes the
+# claim-safety and robotic-style gates) records it as new semantic
+# knowledge and resolves the question with a cited source.
+#
+# Wikipedia was chosen over Gemini's built-in "grounding with Google
+# Search" because grounding has no free tier for the gemini-3.x
+# models this project uses (only Gemini 2.5 Flash/Flash-Lite get a
+# free RPD quota) -- Wikipedia's API is genuinely free and keyless,
+# consistent with this project's free-tier-first philosophy. It is
+# also curated encyclopedic content, which is lower injection risk
+# than arbitrary web search results, and is explicitly framed as
+# data (not instructions) in the prompt AION drafts from.
+#
+# Every four hours was chosen so questions get picked up reasonably
+# promptly without hammering Wikipedia or generating knowledge faster
+# than a human could sanity-check it. Change the cron below to adjust.
+#
+# Shares the same private memory_data repo as check-comments.yml (see
+# that file's header comment for why memory/ is not tracked in this
+# public repo).
+
+on:
+  schedule:
+    - cron: "0 */4 * * *"
+  workflow_dispatch: {}
+
+jobs:
+  learning-cycle:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout AION code
+        uses: actions/checkout@v4
+
+      - name: Checkout AION memory (private repo)
+        uses: actions/checkout@v4
+        with:
+          repository: pongsatornm1991-droid/aion-memory-data
+          token: ${{ secrets.MEMORY_REPO_PAT }}
+          path: memory_data
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: Run run-learning-cycle
+        env:
+          AION_MEMORY_ROOT: memory_data
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+        run: python main.py run-learning-cycle
+
+      - name: Persist memory changes back to the private repo
+        working-directory: memory_data
+        run: |
+          git config user.name "aion-bot"
+          git config user.email "aion-bot@users.noreply.github.com"
+          git add -A
+          if git diff --cached --quiet; then
+            echo "No memory changes this run -- nothing to commit."
+          else
+            git commit -m "AION memory update ($(date -u +%Y-%m-%dT%H:%M:%SZ))"
+            git push
+          fi

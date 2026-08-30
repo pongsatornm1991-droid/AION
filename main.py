@@ -20,6 +20,7 @@ from brain.tools import ToolLifecycle, ToolRegistry, ActionLevel, build_builtin_
 from brain.social import SocialContentGenerator, SocialAutoCycle
 from brain.comment_reply import CommentReplyGenerator, CommentAutoReplyCycle
 from brain.profile_change import ProfileChangeGenerator, ProfileChangeCycle
+from brain.learning import WebLearningGenerator, WebLearningCycle
 
 
 VERSION = "0.0.8"
@@ -1536,6 +1537,106 @@ def run_check_profile_approvals(args):
             print("Telegram notification attempted but failed (see above).")
 
 
+def _format_learning_telegram_report(report):
+    """Turn a WebLearningCycle.research_once() report dict into a
+    short Thai summary -- the Telegram notification body, and also
+    what is printed for stages that never reach an answer."""
+
+    lines = ["AION (เรียนรู้จากภายนอก):"]
+
+    question = report.get("question") or {}
+    if question.get("statement"):
+        lines.append(f"คำถาม: {question['statement']}")
+
+    source = report.get("source") or {}
+    if source.get("title"):
+        lines.append(f"แหล่งที่ค้นเจอ: {source['title']}")
+
+    draft = report.get("draft")
+    if draft:
+        lines.append(f"คำตอบที่ร่างไว้: {draft}")
+
+    stage = report.get("stage")
+
+    if stage == "no-open-questions":
+        lines.append("ไม่มีคำถามที่ยังเปิดอยู่ให้ค้นคว้าตอนนี้")
+    elif stage == "search-failed":
+        lines.append(f"ค้นหาใน Wikipedia ไม่สำเร็จ: {report.get('error')}")
+    elif stage == "no-search-results":
+        lines.append("ค้นหาใน Wikipedia แล้วไม่พบผลลัพธ์ที่เกี่ยวข้อง")
+    elif stage == "fetch-failed":
+        lines.append(f"ดึงเนื้อหาจาก Wikipedia ไม่สำเร็จ: {report.get('error')}")
+    elif stage == "empty-source":
+        lines.append("หน้า Wikipedia ที่เจอไม่มีเนื้อหาให้สรุป")
+    elif stage == "draft-failed":
+        lines.append(f"สรุปคำตอบไม่สำเร็จ (ปัญหาที่ตัว AI provider): {report.get('error')}")
+    elif stage == "blocked-safety":
+        lines.append(f"ถูกบล็อกที่ตัวกรองความปลอดภัย: {report.get('reason')}")
+    elif stage == "blocked-style":
+        lines.append(f"ถูกบล็อกที่ตัวกรองน้ำเสียง: {report.get('reason')}")
+    elif stage == "answered":
+        lines.append("บันทึกเป็นความรู้ใหม่และตอบคำถามนี้แล้ว")
+
+    return "\n".join(lines)
+
+
+def run_learning_cycle(args):
+    """Pick one open curiosity question, search Wikipedia, draft a
+    grounded answer, safety-gate it, and -- if safe -- record it as
+    new knowledge and resolve the question with that source as
+    evidence.
+
+    Never touches Facebook/Telegram tools directly and needs no
+    ToolLifecycle -- researching and updating AION's own memory has no
+    external side effect to gate, unlike posting/replying/bio changes.
+    Meant to be run repeatedly on a schedule, same discipline as
+    run_check_comments()/run_social_cycle().
+    """
+
+    load_dotenv()
+
+    memory = Thinker().memory
+    provider = build_provider()
+    evaluator = OutputEvaluator()
+
+    curiosity = CuriosityEngine(memory)
+    generator = WebLearningGenerator(
+        provider, evaluator=evaluator, min_claim_safety=args.min_claim_safety,
+    )
+    cycle = WebLearningCycle(memory, curiosity, generator)
+
+    report = cycle.research_once()
+
+    print("\nAION LEARNING CYCLE")
+    print(f"Stage: {report['stage']}")
+
+    question = report.get("question")
+    if question is not None:
+        print(f"Question: {question.get('statement', '')}")
+
+    source = report.get("source")
+    if source and source.get("title"):
+        print(f"Source: {source['title']} ({source.get('url', '')})")
+
+    if report.get("draft") is not None:
+        print("-" * 60)
+        print(report["draft"])
+        print("-" * 60)
+
+    if report["stage"] in (
+        "search-failed", "fetch-failed", "draft-failed",
+        "blocked-safety", "blocked-style",
+    ):
+        print(f"Reason: {report.get('reason') or report.get('error')}")
+
+    if report["stage"] not in ("no-open-questions",):
+        notified = _notify_report(report, formatter=_format_learning_telegram_report)
+        if notified is True:
+            print("Notified via Telegram.")
+        elif notified is False:
+            print("Telegram notification attempted but failed (see above).")
+
+
 def run_consolidate(args):
     """Summarize old, low-importance memories into semantic knowledge."""
 
@@ -2495,6 +2596,19 @@ def build_parser():
              "to be run repeatedly on a schedule.",
     )
 
+    learning_cycle_parser = subparsers.add_parser(
+        "run-learning-cycle",
+        help="Pick one open curiosity question, search Wikipedia, "
+             "draft a grounded answer, safety-gate it, and -- if "
+             "safe -- record it as new knowledge and resolve the "
+             "question. Meant to be run repeatedly on a schedule.",
+    )
+    learning_cycle_parser.add_argument(
+        "--min-claim-safety", type=int, default=5,
+        help="Minimum claim_safety score (0-5) required to accept "
+             "the drafted answer (default: 5).",
+    )
+
     return parser
 
 
@@ -2659,6 +2773,10 @@ def main():
 
     if args.command == "check-profile-approvals":
         run_check_profile_approvals(args)
+        return
+
+    if args.command == "run-learning-cycle":
+        run_learning_cycle(args)
         return
 
     run_reflection()
