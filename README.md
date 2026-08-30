@@ -434,8 +434,19 @@ anything else, and is blocked the same way.
 
 AION is a script you run, not a server listening for Facebook
 webhooks, so this is **near-real-time, not real-time**: set it up as
-a recurring scheduled task rather than running it once. On Windows,
-Task Scheduler:
+a recurring scheduled task rather than running it once.
+
+**Recommended: GitHub Actions** (see
+`docs/GITHUB_ACTIONS_SETUP.md` for the full one-time setup) -- runs on
+GitHub's own servers, so it works around the clock with your computer
+off. `.github/workflows/check-comments.yml` and
+`.github/workflows/social-cycle.yml` are already written; they just
+need a handful of one-time secrets configured on github.com (steps
+that genuinely require your own GitHub login, so they can't be done
+for you).
+
+**Alternative: Windows Task Scheduler**, if you'd rather keep this on
+your own machine (your computer must then stay on and connected):
 
 1. Open Task Scheduler -> Create Basic Task.
 2. Trigger: Daily, recurring every few minutes (set "Repeat task

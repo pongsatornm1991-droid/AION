@@ -535,6 +535,76 @@ Anthropic API key billed separately, with no clear cost advantage over
 Gemini's free tier. Decision: **keep using `GeminiProvider`** for
 comment replies, same as posts -- no new provider, no new cost.
 
+## Phase 11b -- Always-on hosting via GitHub Actions (2026-08-30)
+
+The user pointed out that having to invoke `check-comments`/
+`run-social-cycle` themselves, or keep their own PC on for a local
+Task Scheduler job, doesn't feel like real autonomy. Asked to just do
+it, no manual steps -- two real blockers surfaced during the attempt,
+both disclosed rather than papered over:
+
+1. **This Claude session cannot push to GitHub itself.** The
+   device-bridge shell has no GitHub credentials configured (`git
+   push` fails with no username/password available non-interactively)
+   -- confirmed by trying it directly, not assumed. Pushing requires
+   the user's own already-authenticated local git, so it stays a
+   one-time manual step (a single `git push origin main`), same
+   category as why live Facebook/Telegram verification always had to
+   be done by the user directly.
+2. **AION's memory would not survive a GitHub Actions run.** `memory/`
+   is deliberately gitignored (a prior, already-made decision --
+   tracking it would commit a machine-specific OneDrive symlink path).
+   A fresh GitHub Actions checkout has no `memory/` at all, so without
+   a fix: `comment_replies` (the "never reply twice" dedup state)
+   would reset every run -- the same comment could be answered over
+   and over forever -- and `pick_seed()` would have no beliefs/
+   goals/questions/experiments to draw from, ever. This is a real
+   functional regression, not a cosmetic one, so it was surfaced and a
+   decision requested rather than silently building something broken.
+
+Given three options (accept the local-PC-only limitation; a
+GitHub-Actions-cache-based fix, which is not durable -- caches can be
+evicted after ~7 days unused; or a separate private repo dedicated to
+memory persistence), the user chose to let Claude decide and the
+**separate private repo** was picked: it is the only option that is
+both durable (a real git history, not a cache that can silently
+vanish) and keeps AION's actual memory content out of the public code
+repo (`memory/`'s content -- beliefs, goals, past comment text -- is
+arguably more personal than the code itself).
+
+**What was built:**
+
+- `.github/workflows/check-comments.yml`: runs `check-comments` on a
+  5-minute cron (GitHub's practical minimum) -- checks out this repo
+  AND a separate private `aion-memory-data` repo (into `memory_data/`,
+  via a PAT stored as a secret), runs with `AION_MEMORY_ROOT=memory_data`,
+  then commits+pushes any memory changes back to the private repo
+  (skipped if nothing changed, to avoid commit noise on quiet runs).
+- `.github/workflows/social-cycle.yml`: same shape, but runs
+  `run-social-cycle` only every 6 hours (4x/day) -- deliberately much
+  less frequent than comment-checking, since this one creates new,
+  publicly visible posts rather than replies; posting every few
+  minutes would flood the Page.
+- `requirements.txt`: added `requests` (previously installed manually
+  by the user locally, never actually declared -- needed now since a
+  fresh Actions runner has nothing preinstalled).
+- `docs/GITHUB_ACTIONS_SETUP.md` (Thai, written directly for the
+  user to follow): the one-time setup this Claude session genuinely
+  cannot do on the user's behalf -- pushing locally once, creating the
+  private `aion-memory-data` repo, generating a fine-grained GitHub
+  PAT scoped to just that repo, and adding six repository secrets.
+  Entering real credentials into any system (even GitHub's own secret
+  store) is something this assistant does not do directly regardless
+  of being asked -- consistent with how Facebook/Telegram credentials
+  were always entered by the user into `.env` themselves, never
+  echoed or handled by Claude.
+
+**Status: code and docs complete, not yet live-verified.** The
+workflow files are syntax-checked (YAML parses) but have not run on
+real GitHub Actions yet -- that happens only after the user completes
+the one-time setup in `docs/GITHUB_ACTIONS_SETUP.md`, including the
+`git push` this session could not perform itself.
+
 ## Later phases
 
 Facebook comments are answered now; Messenger (needs Meta App Review
