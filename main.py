@@ -22,6 +22,7 @@ from brain.comment_reply import CommentReplyGenerator, CommentAutoReplyCycle
 from brain.profile_change import ProfileChangeGenerator, ProfileChangeCycle
 from brain.learning import WebLearningGenerator, WebLearningCycle
 from brain.self_narrative import SelfNarrativeGenerator, SelfNarrativeCycle
+from brain.reflection import ReflectionEngine, ReflectionCycle
 
 
 VERSION = "0.0.8"
@@ -1346,11 +1347,12 @@ def run_social_cycle(args):
         if report["action"].get("error") is not None:
             print(f"Error: {report['action']['error']}")
 
-    notified = _notify_report(report)
-    if notified is True:
-        print("Notified via Telegram.")
-    elif notified is False:
-        print("Telegram notification attempted but failed (see above).")
+    if report["stage"] != "no-seed":
+        notified = _notify_report(report)
+        if notified is True:
+            print("Notified via Telegram.")
+        elif notified is False:
+            print("Telegram notification attempted but failed (see above).")
 
 
 def run_check_comments(args):
@@ -1632,6 +1634,84 @@ def run_learning_cycle(args):
 
     if report["stage"] not in ("no-open-questions",):
         notified = _notify_report(report, formatter=_format_learning_telegram_report)
+        if notified is True:
+            print("Notified via Telegram.")
+        elif notified is False:
+            print("Telegram notification attempted but failed (see above).")
+
+
+def _format_reflection_telegram_report(report):
+    """Turn a ReflectionCycle.run_once() report dict into a short Thai
+    summary. Only called for stages worth telling a human about (see
+    run_reflection_cycle's notify guard) -- the routine "nothing
+    happened" stages never reach here."""
+
+    lines = ["AION (ทบทวนตัวเอง):"]
+
+    stage = report.get("stage")
+
+    if stage == "raised":
+        lines.append(f"ตั้งคำถามใหม่ให้ตัวเอง: {report.get('question')}")
+        lines.append(f"เกณฑ์ตอบสำเร็จ: {report.get('criteria')}")
+    elif stage == "safety-gate":
+        lines.append(
+            f"ร่างคำถามขึ้นมาแล้วแต่ถูกบล็อกที่ตัวกรองความปลอดภัย: "
+            f"{report.get('question')}"
+        )
+    elif stage == "draft-failed":
+        lines.append(f"ทบทวนไม่สำเร็จ (ปัญหาที่ตัว AI provider): {report.get('error')}")
+
+    return "\n".join(lines)
+
+
+def run_reflection_cycle(args):
+    """Look at real material recorded since the last reflection
+    (Facebook comments already replied to, external knowledge learned
+    via Wikipedia, non-review lessons) and -- only if the provider
+    points to something genuinely new -- raise one new CuriosityEngine
+    question.
+
+    This is the piece that actually originates new curiosity for
+    run-learning-cycle to research and run-social-cycle to draft from;
+    see brain/reflection.py's module docstring for why this was
+    missing and what broke without it. Meant to be run repeatedly on
+    a slower schedule than the reactive cycles (see
+    reflection-cycle.yml).
+    """
+
+    load_dotenv()
+
+    memory = Thinker().memory
+    provider = build_provider()
+    evaluator = OutputEvaluator()
+
+    engine = ReflectionEngine(
+        memory, provider, evaluator=evaluator,
+        min_claim_safety=args.min_claim_safety,
+    )
+    cycle = ReflectionCycle(engine)
+
+    report = cycle.run_once()
+
+    print("\nAION REFLECTION CYCLE")
+    print(f"Stage: {report['stage']}")
+    print(f"Raised: {report['raised']}")
+
+    if report.get("question"):
+        print(f"Question: {report['question']}")
+    if report.get("criteria"):
+        print(f"Completion criteria: {report['criteria']}")
+    if report.get("error"):
+        print(f"Error: {report['error']}")
+
+    # Only stages a human would actually want to see -- the routine
+    # no-op stages (questions-at-capacity, no-new-material,
+    # nothing-new) are deliberately silent, same reasoning as
+    # run_learning_cycle's own "no-open-questions" guard: an hourly-ish
+    # schedule reporting "nothing happened" every single run is noise,
+    # not signal.
+    if report["stage"] in ("raised", "safety-gate", "draft-failed"):
+        notified = _notify_report(report, formatter=_format_reflection_telegram_report)
         if notified is True:
             print("Notified via Telegram.")
         elif notified is False:
@@ -2707,6 +2787,21 @@ def build_parser():
              "since the last entry (for manual/testing use).",
     )
 
+    reflection_cycle_parser = subparsers.add_parser(
+        "run-reflection-cycle",
+        help="If real material has been recorded since the last "
+             "reflection (comment replies, external knowledge, "
+             "lessons) and the provider points to something genuinely "
+             "new, raise one new curiosity question. Meant to be run "
+             "repeatedly on a slower schedule than the reactive "
+             "cycles.",
+    )
+    reflection_cycle_parser.add_argument(
+        "--min-claim-safety", type=int, default=5,
+        help="Minimum claim_safety score (0-5) required to accept "
+             "a raised question (default: 5).",
+    )
+
     return parser
 
 
@@ -2879,6 +2974,10 @@ def main():
 
     if args.command == "run-self-narrative":
         run_self_narrative(args)
+        return
+
+    if args.command == "run-reflection-cycle":
+        run_reflection_cycle(args)
         return
 
     run_reflection()

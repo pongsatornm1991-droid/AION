@@ -1,0 +1,70 @@
+name: AION - reflection cycle
+
+# Runs run-reflection-cycle -- the piece that actually originates a
+# NEW curiosity question from AION's own real, recorded experience
+# (comment replies, external knowledge, lessons), rather than only
+# ever consuming a question that already exists (which is all
+# social-cycle.yml and learning-cycle.yml ever did before this
+# workflow existed). Added 2026-08-31 after the user noticed both of
+# those repeatedly reporting "nothing to draft from" / "nothing to
+# research" every single hourly run -- see brain/reflection.py's
+# module docstring for the full root-cause explanation.
+#
+# Deliberately every 3 hours, not hourly like the reactive cycles:
+# deciding what to be curious about is not something that should
+# happen as often as reacting to an incoming comment, and the engine
+# is self-limiting anyway (a checkpoint means the same old material is
+# never re-considered, and CuriosityEngine's own max_open cap means
+# this simply does nothing once 10 questions are already open).
+#
+# Shares the same private memory_data repo as the other cycles (see
+# social-cycle.yml's header comment for why memory/ is not tracked in
+# this public repo).
+
+on:
+  schedule:
+    - cron: "0 */3 * * *"
+  workflow_dispatch: {}
+
+jobs:
+  reflection-cycle:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout AION code
+        uses: actions/checkout@v4
+
+      - name: Checkout AION memory (private repo)
+        uses: actions/checkout@v4
+        with:
+          repository: pongsatornm1991-droid/aion-memory-data
+          token: ${{ secrets.MEMORY_REPO_PAT }}
+          path: memory_data
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: Run run-reflection-cycle
+        env:
+          AION_MEMORY_ROOT: memory_data
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+        run: python main.py run-reflection-cycle
+
+      - name: Persist memory changes back to the private repo
+        working-directory: memory_data
+        run: |
+          git config user.name "aion-bot"
+          git config user.email "aion-bot@users.noreply.github.com"
+          git add -A
+          if git diff --cached --quiet; then
+            echo "No memory changes this run -- nothing to commit."
+          else
+            git commit -m "AION memory update ($(date -u +%Y-%m-%dT%H:%M:%SZ))"
+            git push
+          fi
