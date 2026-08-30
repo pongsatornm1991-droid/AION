@@ -15,9 +15,12 @@ name: AION - external learning cycle
 # than arbitrary web search results, and is explicitly framed as
 # data (not instructions) in the prompt AION drafts from.
 #
-# Every four hours was chosen so questions get picked up reasonably
-# promptly without hammering Wikipedia or generating knowledge faster
-# than a human could sanity-check it. Change the cron below to adjust.
+# Raised from every 4 hours to hourly (2026-08-30, at the user's
+# request for AION to act on its own initiative more often) -- still
+# safe this often since a run with no open curiosity question, or
+# with a question already answered, simply does nothing; Wikipedia's
+# API has no meaningful rate limit at this volume. Change the cron
+# below to adjust further.
 #
 # Shares the same private memory_data repo as check-comments.yml (see
 # that file's header comment for why memory/ is not tracked in this
@@ -25,7 +28,7 @@ name: AION - external learning cycle
 
 on:
   schedule:
-    - cron: "0 */4 * * *"
+    - cron: "0 * * * *"
   workflow_dispatch: {}
 
 jobs:
