@@ -160,8 +160,12 @@ class CommentAutoReplyCycle:
     -> safety+style gate -> propose -> approve -> execute loop,
     mirroring SocialAutoCycle exactly (same "auto-safety-gate"
     approver identity -- ToolLifecycle.approve()'s rule that a
-    HIGH_RISK action can never be self-approved by AION is satisfied
-    here the same way it is for posting, never bypassed).
+    HIGH_RISK/COMMENT_REPLY action can never be self-approved by AION
+    is satisfied here the same way it is for posting, never bypassed;
+    reply_to_facebook_comment itself is registered under the separate
+    ActionLevel.COMMENT_REPLY, not HIGH_RISK, as of 2026-08-30 -- see
+    that level's own docstring in brain/tools.py -- but this class
+    doesn't hardcode either name, so it needed no code change).
 
     Processes exactly one comment per call, oldest unhandled first --
     same one-thing-at-a-time discipline as SocialAutoCycle.run_once(),

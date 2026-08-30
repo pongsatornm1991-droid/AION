@@ -787,17 +787,25 @@ def _build_tool_lifecycle():
 
 def _build_social_tool_lifecycle():
     """The lifecycle manager used by every social/identity CLI command
-    (posts, comment replies, AND profile-bio changes).
+    (posts, comment replies, AND profile-bio changes) -- one shared
+    lifecycle instance (same underlying memory/kill switch) with three
+    separately-budgeted action levels:
 
-    Posts and comment replies are both HIGH_RISK, publicly visible,
-    irreversible-in-practice actions, so they deliberately share one
-    lifecycle/budget pool rather than each getting its own.
-    Profile-bio changes are registered under the separate
-    ActionLevel.IDENTITY_CHANGE instead -- same lifecycle instance
-    (so all three still share the exact same underlying memory/kill
-    switch), but its own small budget that loosening HIGH_RISK's never
-    touches, and the same never-self-approved-by-AION guarantee (see
-    brain/tools.py's _NEVER_SELF_APPROVE).
+    - post_to_facebook: ActionLevel.HIGH_RISK. Unprompted,
+      AION-initiated public content, budgeted to guard against
+      flooding the Page if something goes wrong upstream.
+    - reply_to_facebook_comment: ActionLevel.COMMENT_REPLY (split out
+      from HIGH_RISK 2026-08-30, at the user's explicit request --
+      see that level's own docstring in brain/tools.py for why an
+      unbounded daily budget is safe here specifically: replies are
+      bounded by real incoming comments and by check-comments.yml's
+      own 5-minute cron cadence, unlike an original post).
+    - update_page_bio: ActionLevel.IDENTITY_CHANGE, its own small
+      budget that neither of the above ever touches.
+
+    All three share the exact same never-self-approved-by-AION
+    guarantee (see brain/tools.py's _NEVER_SELF_APPROVE) regardless of
+    budget -- loosening a budget never loosens who may approve.
 
     Starts from the same read-only builtin tools as
     _build_tool_lifecycle(), then additionally registers
@@ -830,7 +838,7 @@ def _build_social_tool_lifecycle():
         lambda comment_id, message: reply_to_facebook_comment(
             comment_id, message,
         ),
-        ActionLevel.HIGH_RISK,
+        ActionLevel.COMMENT_REPLY,
         "Reply to one existing comment on AION's configured Facebook Page.",
     )
 

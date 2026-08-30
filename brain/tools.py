@@ -44,13 +44,28 @@ class ActionLevel:
     # Changes to AION's own presented identity (Facebook Page bio,
     # profile photo, etc.) -- kept as its OWN level, distinct from
     # HIGH_RISK, on purpose: HIGH_RISK covers routine public content
-    # (posts, comment replies) and its budget is meant to flex with
-    # how much AION is actually talking to people; identity changes
-    # are rarer and more sensitive by nature (they change how AION
-    # presents *itself*, not just what it says), so they get their
-    # own small budget that loosening HIGH_RISK's never touches, and
-    # the exact same self-approval ban as HIGH_RISK below.
+    # (posts) and its budget is meant to flex with how much AION is
+    # actually talking to people; identity changes are rarer and more
+    # sensitive by nature (they change how AION presents *itself*, not
+    # just what it says), so they get their own small budget that
+    # loosening HIGH_RISK's never touches, and the exact same
+    # self-approval ban as HIGH_RISK below.
     IDENTITY_CHANGE = "IDENTITY_CHANGE"
+    # Replies to other people's Facebook comments -- split out from
+    # HIGH_RISK on purpose (2026-08-30, at the user's explicit
+    # request: comment replies should never be capped at some
+    # arbitrary daily number, only by however many comments actually
+    # come in). Unlike an original post (unprompted, AION-initiated
+    # content -- still budgeted, since a bug that makes every draft
+    # pass the safety gate could otherwise flood the Page with
+    # invented content), a reply is a bounded response to something a
+    # real person already said, and check-comments.yml's own 5-minute
+    # cron cadence already caps this at one reply per run regardless
+    # of budget -- so removing the daily ceiling here does not remove
+    # the practical one. Still HIGH_RISK's exact same self-approval
+    # ban: the content-safety gates (claim safety, robotic style)
+    # still apply to every reply either way.
+    COMMENT_REPLY = "COMMENT_REPLY"
 
 
 ACTION_LEVELS = {
@@ -58,13 +73,20 @@ ACTION_LEVELS = {
     ActionLevel.LOW_RISK,
     ActionLevel.HIGH_RISK,
     ActionLevel.IDENTITY_CHANGE,
+    ActionLevel.COMMENT_REPLY,
 }
 
 # Levels that can never be self-approved by AION -- always require a
-# real person's approval. HIGH_RISK and IDENTITY_CHANGE are both
-# publicly-visible-or-identity-altering and irreversible-in-practice,
-# so both live here.
-_NEVER_SELF_APPROVE = {ActionLevel.HIGH_RISK, ActionLevel.IDENTITY_CHANGE}
+# real person's approval (or, for HIGH_RISK/COMMENT_REPLY specifically,
+# the code-enforced "auto-safety-gate" approver standing in for one --
+# see brain/social.py's and brain/comment_reply.py's own docstrings).
+# All three are publicly-visible-or-identity-altering and
+# irreversible-in-practice, so all three live here.
+_NEVER_SELF_APPROVE = {
+    ActionLevel.HIGH_RISK,
+    ActionLevel.IDENTITY_CHANGE,
+    ActionLevel.COMMENT_REPLY,
+}
 
 _KILL_SWITCH_TOOL_NAME = "__kill_switch__"
 
@@ -164,24 +186,34 @@ class ToolLifecycle:
     DEFAULT_BUDGETS = {
         ActionLevel.READ_ONLY: None,  # unlimited: no side effects to bound
         ActionLevel.LOW_RISK: 20,
-        # Shared by post_to_facebook and reply_to_facebook_comment.
-        # Raised from an earlier, much stricter 5/24h (2026-08-30, at
-        # the user's explicit request: AION's engagement shouldn't be
-        # artificially capped far below what Gemini's free tier or
-        # Facebook's own API can actually sustain -- "mind the real
-        # quota, don't invent a tighter one"). 30/24h is still a real
-        # ceiling, not "unlimited": a budget that can never be hit
-        # stops being a safety control at all, and a shared pool
-        # across posting and replying still guards against either one
-        # silently flooding the Page if something goes wrong upstream
-        # (e.g. a seed/prompt bug that makes every draft pass the
-        # safety gate). Raise further if 30/day is ever actually hit.
+        # post_to_facebook only, as of 2026-08-30 (reply_to_facebook_comment
+        # moved to its own ActionLevel.COMMENT_REPLY budget below, at
+        # the user's explicit request). 30/24h: raised from an earlier,
+        # much stricter 5/24h -- "mind the real quota, don't invent a
+        # tighter one". Still a real ceiling, not "unlimited": a
+        # budget that can never be hit stops being a safety control at
+        # all, and this one specifically guards against AION flooding
+        # the Page with unprompted, AION-initiated posts if something
+        # goes wrong upstream (e.g. a seed/prompt bug that makes every
+        # draft pass the safety gate). Raise further if ever actually hit.
         ActionLevel.HIGH_RISK: 30,
         # Deliberately small and separate from HIGH_RISK -- see
         # ActionLevel.IDENTITY_CHANGE's docstring. Changing AION's own
         # bio/photo more than twice a day would almost certainly mean
         # something is wrong (a loop, a bad prompt), not real intent.
         ActionLevel.IDENTITY_CHANGE: 2,
+        # No daily ceiling at all (2026-08-30, at the user's explicit
+        # request: "reply as many as possible, not capped at some
+        # number"). Unlike HIGH_RISK's posts, a reply only ever
+        # happens in response to a comment someone else already
+        # posted, and check-comments.yml's own 5-minute cron cadence
+        # already caps actual throughput to one reply per run (see
+        # ActionLevel.COMMENT_REPLY's own docstring) -- so this
+        # removes the arbitrary number without removing the real,
+        # schedule-driven rate limit, and the content-safety gates
+        # (claim safety, robotic style) still gate every single reply
+        # regardless of budget.
+        ActionLevel.COMMENT_REPLY: None,
     }
     DEFAULT_BUDGET_WINDOW_HOURS = 24
 
@@ -644,6 +676,7 @@ class ToolLifecycle:
             ActionLevel.LOW_RISK: 3,
             ActionLevel.HIGH_RISK: 5,
             ActionLevel.IDENTITY_CHANGE: 5,
+            ActionLevel.COMMENT_REPLY: 5,
         }[level]
 
     @staticmethod
