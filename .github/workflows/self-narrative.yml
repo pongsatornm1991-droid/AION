@@ -25,6 +25,23 @@ on:
     - cron: "0 0 * * *"
   workflow_dispatch: {}
 
+# All AION workflows share one private, git-backed memory_data repo
+# with no locking of its own: two runs (any mix of these 7 workflows)
+# executing at the same time each check out their own independent
+# snapshot, so both can see the same "proposed" action or unread
+# Telegram update and act on it a second time before either has
+# pushed. This is exactly what happened on 2026-08-31: overlapping
+# runs of check-profile-approvals.yml each approved+executed the same
+# pending bio-change proposal, burning the whole day's IDENTITY_CHANGE
+# budget on one real approval tap. A single concurrency group across
+# all 7 workflows serializes every run that touches memory_data --
+# cancel-in-progress:false queues a run instead of racing it, since
+# these are cheap idempotent polls where waiting a few seconds costs
+# nothing.
+concurrency:
+  group: aion-memory-data
+  cancel-in-progress: false
+
 jobs:
   self-narrative:
     runs-on: ubuntu-latest
