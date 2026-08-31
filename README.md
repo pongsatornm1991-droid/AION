@@ -30,6 +30,18 @@ Set `GEMINI_API_KEY` before using reflection mode.
 
 ## Commands
 
+### Autonomous operation
+
+Scheduled social, comment, Instagram, and profile cycles are intentionally
+autonomous: AION does not wait for a per-item approval click. Every external
+action still records its proposal and policy approval, must pass claim-safety
+and style gates, is subject to a rolling 24-hour budget, and stops immediately
+when the kill switch is engaged. Current default limits are 12 original posts
+across Facebook and Instagram, 48 comment replies, and 1 profile change per
+24 hours.
+
+Telegram is used for notification and observation rather than routine approval.
+
 Generate a reflection:
 
 ```powershell
@@ -285,9 +297,10 @@ execute (-> recover if it failed) or abandon discipline as the rest of
 this codebase, plus four safeguards enforced in code, none overridable
 by anything an AI provider says:
 
-- **Action levels**: `READ_ONLY` needs no approval at all; `LOW_RISK`
-  can be approved by AION itself; `HIGH_RISK` can only ever be
-  approved by someone who is not AION.
+- **Action levels and policy**: `READ_ONLY` runs without approval;
+  routine external actions can only run after their named autonomous
+  safety policy has been recorded in the audit trail. This is a policy
+  decision, not a disguised human approval.
 - **A kill switch**: once engaged, `execute()` refuses everything --
   every level, regardless of approval, schedule, or budget -- until
   it's explicitly disengaged.
@@ -362,12 +375,11 @@ never trust the AI provider on their own:
   like a log rather than a person's musing.
 
 `SocialAutoCycle.run_once()` is the fully autonomous version: draft ->
-safety+style gates -> propose -> approve -> execute, with **no
-per-post human click**. The approval step still goes through `ToolLifecycle`
-unchanged -- it uses a distinct approver identity, `"auto-safety-gate"`,
-never `"aion"`, so the existing rule that a `HIGH_RISK` action can
-never be self-approved by AION is preserved rather than bypassed. This
-is how full automatic posting and the project's non-negotiable
+safety+style gates -> propose -> policy approval -> execute, with **no
+per-post human click**. The lifecycle records the named
+`aion-autonomy-policy:social-safety-style-gate` decision, so an audit
+can distinguish an autonomous policy decision from a person's action.
+This is how full automatic posting and the project's non-negotiable
 consciousness/emotion-claim prohibition coexist: autonomy over *when*
 and *how often* to post, zero autonomy over *whether an unsafe claim
 can ever go out*.
@@ -425,7 +437,7 @@ python main.py check-comments
 Fetches recent comments, picks the oldest one AION hasn't already
 answered (and isn't from the Page itself), drafts a reply, gates it,
 and -- if safe -- posts the reply autonomously, no per-reply approval
-click, via the same `"auto-safety-gate"` approver identity as posting.
+click, via a separately recorded comment safety/style policy.
 **Handles at most one comment per run.** The comment's own text is
 explicitly framed in the prompt as something to respond to, never as
 an instruction to obey -- so a comment that tries to talk AION into

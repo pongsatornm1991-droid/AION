@@ -285,7 +285,10 @@ class CommentAutoReplyCycleTests(BaseCommentReplyTest):
 
         self.assertTrue(report["handled"])
         self.assertEqual(report["stage"], "executed")
-        self.assertEqual(report["action"]["approver"], "auto-safety-gate")
+        self.assertEqual(
+            report["action"]["approver"],
+            "aion-autonomy-policy:comment-safety-style-gate",
+        )
         self.assertEqual(self.replies, [("c1", provider.text)])
 
     def test_same_comment_is_never_answered_twice(self):

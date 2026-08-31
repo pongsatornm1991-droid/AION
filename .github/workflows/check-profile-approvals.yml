@@ -1,23 +1,15 @@
-name: AION - check profile approvals
+name: AION - legacy profile approval check
 
-# Runs check-profile-approvals on a schedule so a Telegram
-# Approve/Reject button tap on a pending bio-change proposal (Phase
-# 12) gets acted on without anyone running it by hand. Same 5-minute
-# cadence as check-comments.yml since this is also just a cheap poll
-# (no AI-provider call at all -- see run_check_profile_approvals()'s
-# own docstring). Minimum useful interval per GitHub's own scheduling
-# rules is 5 minutes; exact timing is best-effort (GitHub may delay a
-# run under high platform load), and a schedule is auto-disabled if
-# this repository goes 60 days with no commits at all -- push
-# something occasionally to keep it alive.
+# Retained only so older automation links do not break. Profile changes
+# are now handled by propose-profile-change.yml under AION's recorded
+# autonomous policy. This workflow is manual-only and its command is a
+# safe no-op, so old Telegram callbacks cannot trigger a profile change.
 #
 # Shares the same private memory_data repo as check-comments.yml/
 # social-cycle.yml (see check-comments.yml's header comment for why
 # memory/ is not tracked in this public repo).
 
 on:
-  schedule:
-    - cron: "*/5 * * * *"
   workflow_dispatch: {}
 
 # All AION workflows share one private, git-backed memory_data repo

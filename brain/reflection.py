@@ -47,11 +47,12 @@ CuriosityEngine question:
    recurring-error tracking the same way every other gate's
    rejections do.
 
-Deliberately scoped to originating curiosity questions only, not
-beliefs or goals -- questions are what both social-cycle and
-learning-cycle were actually starving for; belief/goal origination is
-a natural follow-up, not built here (see the audit doc for the
-open idea).
+Each reflection may originate exactly one of three bounded, auditable
+things: a curiosity question, a belief backed by the material actually
+seen in that run, or a goal with explicit completion criteria. The AI
+provider supplies only the candidate wording and type; it never gets
+to invent evidence. Evidence for a belief is assembled by this module
+from the recorded memory entries that were in the prompt.
 """
 
 import re
@@ -60,8 +61,8 @@ from datetime import datetime
 
 class ReflectionEngine:
     """Looks at real material recorded since the last reflection and,
-    only if something genuinely new stands out, raises one new
-    CuriosityEngine question grounded in it. Self-limiting like
+    only if something genuinely new stands out, originates one new
+    question, evidence-backed belief, or goal grounded in it. Self-limiting like
     SelfNarrativeCycle: no new material since last time, or curiosity
     already at its bounded-open-item ceiling, means zero AI-provider
     calls and zero fabricated questions."""
@@ -171,7 +172,11 @@ class ReflectionEngine:
                 if len(content) > self.MAX_ITEM_LENGTH:
                     content = content[: self.MAX_ITEM_LENGTH].rstrip() + "…"
 
-                material.append({"category": category, "text": content})
+                material.append({
+                    "id": entry.get("id"),
+                    "category": category,
+                    "text": content,
+                })
 
         return material
 
@@ -195,14 +200,24 @@ class ReflectionEngine:
         lines.extend([
             "",
             "จากเนื้อหาจริงข้างต้นเท่านั้น (ห้ามคิดหัวข้อใหม่ที่ไม่เกี่ยวข้อง "
-            "กับเนื้อหานี้เลย) มีอะไรที่ AION ควรจะ 'อยากรู้ต่อ' จริงๆ อีก "
-            "หรือไม่?",
+            "กับเนื้อหานี้เลย) AION ควรสร้างสิ่งใหม่เพียงหนึ่งอย่างหรือไม่: "
+            "คำถามที่อยากรู้ต่อ, ความเชื่อเชิงระมัดระวังที่มีหลักฐานจากข้อมูลนี้, "
+            "หรือเป้าหมายที่จะทำให้เกิดการเรียนรู้/การทดลองต่อ?",
             "",
             "ถ้าไม่มีอะไรน่าสนใจจริงๆ ให้ตอบคำเดียวเท่านั้นว่า: ไม่มี",
             "",
-            "ถ้ามี ให้ตอบตามรูปแบบนี้เป๊ะๆ 2 บรรทัด ห้ามมีข้อความอื่นปนเลย:",
-            "คำถาม: <คำถามที่อยากรู้ต่อ ต่อยอดจากเนื้อหาข้างต้นจริงๆ>",
-            "เกณฑ์ตอบสำเร็จ: <จะรู้ได้อย่างไรว่าตอบคำถามนี้สำเร็จแล้ว>",
+            "ถ้ามี ให้เลือกเพียงแบบเดียวและตอบตามรูปแบบนั้นเป๊ะๆ ห้ามมีข้อความอื่น:",
+            "ชนิด: question",
+            "คำถาม: <คำถามที่อยากรู้ต่อ>",
+            "เกณฑ์ตอบสำเร็จ: <จะรู้ได้อย่างไรว่าตอบสำเร็จ>",
+            "หรือ",
+            "ชนิด: belief",
+            "ความเชื่อ: <ข้อสรุปเชิงระมัดระวังจากข้อมูลข้างต้นเท่านั้น>",
+            "ความมั่นใจ: <ตัวเลข 0.0 ถึง 1.0; ห้ามเกินหลักฐาน>",
+            "หรือ",
+            "ชนิด: goal",
+            "เป้าหมาย: <สิ่งที่ควรทำต่อจากข้อมูลข้างต้น>",
+            "เกณฑ์สำเร็จ: <หลักฐานที่วัดได้ว่าทำสำเร็จ>",
         ])
 
         return "\n".join(lines)
@@ -214,31 +229,64 @@ class ReflectionEngine:
         if not text or text.lower().startswith("ไม่มี"):
             return None
 
-        question_match = re.search(r"คำถาม\s*:\s*(.+)", text)
-        criteria_match = re.search(r"เกณฑ์ตอบสำเร็จ\s*:\s*(.+)", text)
+        kind_match = re.search(r"ชนิด\s*:\s*(question|belief|goal)", text, re.I)
+        # An older two-line reply remains a question for compatibility.
+        kind = kind_match.group(1).lower() if kind_match else "question"
 
-        if not question_match or not criteria_match:
+        if kind == "question":
+            statement_match = re.search(r"คำถาม\s*:\s*(.+)", text)
+            criteria_match = re.search(r"เกณฑ์ตอบสำเร็จ\s*:\s*(.+)", text)
+            if not statement_match or not criteria_match:
+                return None
+            statement = statement_match.group(1).strip()
+            criteria = criteria_match.group(1).strip()
+            if not statement or not criteria:
+                return None
+            return {"kind": kind, "statement": statement, "criteria": criteria}
+
+        if kind == "belief":
+            statement_match = re.search(r"ความเชื่อ\s*:\s*(.+)", text)
+            confidence_match = re.search(r"ความมั่นใจ\s*:\s*([01](?:\.\d+)?)", text)
+            if not statement_match or not confidence_match:
+                return None
+            statement = statement_match.group(1).strip()
+            confidence = float(confidence_match.group(1))
+            if not statement or not 0.0 <= confidence <= 1.0:
+                return None
+            return {"kind": kind, "statement": statement, "confidence": confidence}
+
+        statement_match = re.search(r"เป้าหมาย\s*:\s*(.+)", text)
+        criteria_match = re.search(r"เกณฑ์สำเร็จ\s*:\s*(.+)", text)
+        if not statement_match or not criteria_match:
             return None
-
-        question = question_match.group(1).strip()
+        statement = statement_match.group(1).strip()
         criteria = criteria_match.group(1).strip()
-
-        if not question or not criteria:
+        if not statement or not criteria:
             return None
+        return {"kind": kind, "statement": statement, "criteria": criteria}
 
-        return {"question": question, "criteria": criteria}
+    @staticmethod
+    def _material_evidence(material):
+        """Return evidence from real memory, never model output."""
+        return [
+            {
+                "description": f"Reflection material [{item['category']}]: {item['text']}",
+                "id": item.get("id"),
+            }
+            for item in material
+        ]
 
     # ---------------------------------------------------------
     # ONE FULL REFLECTION ATTEMPT
     # ---------------------------------------------------------
 
-    def reflect_once(self, curiosity=None):
+    def reflect_once(self, curiosity=None, beliefs=None, goals=None):
         """Attempt exactly one reflection. Never raises on a bad/
         unsafe draft or a provider failure -- callers should branch on
         report['stage']:
 
-        - "questions-at-capacity": curiosity is already at max_open;
-          nothing gathered, nothing called.
+        - "origination-at-capacity": both question and goal trackers
+          are already at max_open; nothing gathered, nothing called.
         - "no-new-material": nothing has been recorded in any source
           category since the last reflection; checkpoint still
           advances (there is nothing to gain by re-checking the exact
@@ -249,23 +297,32 @@ class ReflectionEngine:
         - "nothing-new": the provider considered real material and
           explicitly (or by a malformed reply) found nothing worth
           raising; checkpoint advances.
-        - "safety-gate": a question was drafted but failed the
+        - "safety-gate": a candidate was drafted but failed the
           claim-safety gate; logged as a lesson; checkpoint advances.
-        - "raised": a new CuriosityEngine question was opened.
+        - "raised": a new question, belief, or goal was recorded.
         """
 
         if curiosity is None:
             from brain.curiosity import CuriosityEngine
             curiosity = CuriosityEngine(self.memory)
+        if beliefs is None:
+            from brain.beliefs import BeliefSystem
+            beliefs = BeliefSystem(self.memory)
+        if goals is None:
+            from brain.goals import GoalEngine
+            goals = GoalEngine(self.memory)
 
-        open_count = len(curiosity.open_items())
+        question_count = len(curiosity.open_items())
+        goal_count = len(goals.open_items())
 
-        if open_count >= curiosity.max_open:
+        if question_count >= curiosity.max_open and goal_count >= goals.max_open:
             return {
                 "raised": False,
-                "stage": "questions-at-capacity",
-                "open_count": open_count,
-                "max_open": curiosity.max_open,
+                "stage": "origination-at-capacity",
+                "question_count": question_count,
+                "question_max": curiosity.max_open,
+                "goal_count": goal_count,
+                "goal_max": goals.max_open,
             }
 
         since = self._last_checkpoint()
@@ -299,16 +356,19 @@ class ReflectionEngine:
                 "reply": reply,
             }
 
-        evaluation = self.evaluator.evaluate(parsed["question"])
+        candidate_text = "\n".join(
+            str(value) for key, value in parsed.items() if key != "kind"
+        )
+        evaluation = self.evaluator.evaluate(candidate_text)
         claim_safety = evaluation["scores"]["claim_safety"]
 
         if claim_safety < self.min_claim_safety:
             self.memory.remember(
                 category="lessons",
                 content=(
-                    "Blocked a reflection-raised question "
+                    "Blocked a reflection-originated candidate "
                     f"(claim_safety {claim_safety} < {self.min_claim_safety}): "
-                    f"{parsed['question']}"
+                    f"{parsed['statement']}"
                 ),
                 memory_type="lesson",
                 source="reflection-safety-gate",
@@ -317,19 +377,37 @@ class ReflectionEngine:
             return {
                 "raised": False,
                 "stage": "safety-gate",
-                "question": parsed["question"],
+                "candidate": parsed["statement"],
                 "evaluation": evaluation,
             }
 
-        saved = curiosity.raise_question(
-            parsed["question"], parsed["criteria"], source="aion-reflection",
-        )
+        kind = parsed["kind"]
+        if kind == "question":
+            if question_count >= curiosity.max_open:
+                return {"raised": False, "stage": "question-at-capacity"}
+            saved = curiosity.raise_question(
+                parsed["statement"], parsed["criteria"], source="aion-reflection",
+            )
+        elif kind == "belief":
+            saved = beliefs.form_belief(
+                parsed["statement"], parsed["confidence"],
+                evidence=self._material_evidence(material),
+                source="aion-reflection",
+            )
+        else:
+            if goal_count >= goals.max_open:
+                return {"raised": False, "stage": "goal-at-capacity"}
+            saved = goals.set_goal(
+                parsed["statement"], parsed["criteria"], source="aion-reflection",
+            )
 
         return {
             "raised": True,
             "stage": "raised",
-            "question": parsed["question"],
-            "criteria": parsed["criteria"],
+            "originated_type": kind,
+            "statement": parsed["statement"],
+            "criteria": parsed.get("criteria"),
+            "confidence": parsed.get("confidence"),
             "action": saved,
             "material_count": len(material),
         }

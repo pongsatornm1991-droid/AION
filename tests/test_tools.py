@@ -107,10 +107,8 @@ class ToolLifecycleTests(unittest.TestCase):
                 ActionLevel.LOW_RISK: 2,
                 ActionLevel.HIGH_RISK: 1,
                 ActionLevel.IDENTITY_CHANGE: 1,
-                # COMMENT_REPLY deliberately left unset here, so it
-                # falls through to DEFAULT_BUDGETS' None (unlimited) --
-                # exactly the production config, see
-                # test_comment_reply_has_no_daily_budget_by_default.
+                # COMMENT_REPLY uses its production default unless a
+                # test deliberately overrides it.
             },
         )
 
@@ -274,9 +272,8 @@ class ToolLifecycleTests(unittest.TestCase):
             self.lc.execute(approved3["id"])  # IDENTITY_CHANGE's own budget (1) now hit
 
     # -----------------------------------------------------
-    # COMMENT_REPLY: same self-approval ban as HIGH_RISK, but no
-    # daily budget by default (2026-08-30, at the user's explicit
-    # request -- see ActionLevel.COMMENT_REPLY's own docstring).
+    # COMMENT_REPLY: separate from HIGH_RISK and rate-limited by its
+    # own daily budget.
     # -----------------------------------------------------
 
     def test_comment_reply_self_approval_by_aion_is_rejected(self):
@@ -298,18 +295,42 @@ class ToolLifecycleTests(unittest.TestCase):
         result = self.lc.execute(approved["id"])
         self.assertEqual(result["status"], "executed")
 
-    def test_comment_reply_has_no_daily_budget_by_default(self):
-        # Deliberately exercise many more executions than HIGH_RISK's
-        # own budget (1, in this test's setUp) or IDENTITY_CHANGE's
-        # (1) would ever allow -- none of them must ever be rejected
-        # for budget reasons, since ToolLifecycle.DEFAULT_BUDGETS maps
-        # ActionLevel.COMMENT_REPLY to None (unlimited) and this
-        # test's own lc leaves that entry unoverridden.
-        for _ in range(25):
-            saved = self.lc.propose("reply_comment")
-            approved = self.lc.approve(saved["id"], approver="auto-safety-gate")
-            result = self.lc.execute(approved["id"])
+    def test_comment_reply_has_an_independent_daily_budget(self):
+        lifecycle = ToolLifecycle(
+            self.memory,
+            registry=self.registry,
+            budgets={ActionLevel.COMMENT_REPLY: 2},
+        )
+        for _ in range(2):
+            saved = lifecycle.propose("reply_comment")
+            approved = lifecycle.auto_approve(saved["id"], "test-policy")
+            result = lifecycle.execute(approved["id"])
             self.assertEqual(result["status"], "executed")
+
+        saved = lifecycle.propose("reply_comment")
+        approved = lifecycle.auto_approve(saved["id"], "test-policy")
+        with self.assertRaises(ValueError):
+            lifecycle.execute(approved["id"])
+
+    def test_auto_approval_is_explicitly_marked_in_the_audit_record(self):
+        saved = self.lc.propose("boom")
+        approved = self.lc.auto_approve(saved["id"], "social-safety-style-gate")
+
+        self.assertEqual(
+            approved["approver"],
+            "aion-autonomy-policy:social-safety-style-gate",
+        )
+
+    def test_identity_change_can_use_the_recorded_autonomous_policy(self):
+        saved = self.lc.propose("change_bio", params={"text": "AION"})
+        approved = self.lc.auto_approve(saved["id"], "profile-safety-style-gate")
+        result = self.lc.execute(approved["id"])
+
+        self.assertEqual(result["status"], "executed")
+        self.assertEqual(
+            approved["approver"],
+            "aion-autonomy-policy:profile-safety-style-gate",
+        )
 
     def test_comment_reply_budget_independent_of_high_risk(self):
         # Use up the HIGH_RISK budget (1) -- COMMENT_REPLY must be

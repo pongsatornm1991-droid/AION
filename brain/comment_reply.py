@@ -332,8 +332,8 @@ class CommentAutoReplyCycle:
                 params={"comment_id": comment["id"], "message": reply_text},
                 source="aion",
             )
-            approved = self.lifecycle.approve(
-                proposed["id"], approver=self.APPROVER,
+            approved = self.lifecycle.auto_approve(
+                proposed["id"], policy="comment-safety-style-gate",
             )
             executed = self.lifecycle.execute(approved["id"])
         except Exception as exc:

@@ -19,6 +19,8 @@ import tempfile
 import unittest
 
 from brain.curiosity import CuriosityEngine
+from brain.beliefs import BeliefSystem
+from brain.goals import GoalEngine
 from brain.memory import MemoryEngine
 from brain.reflection import ReflectionEngine, ReflectionCycle
 
@@ -106,17 +108,19 @@ class ReflectOnceTests(BaseReflectionTest):
         ]
         self.assertEqual(len(checkpoints), 1)
 
-    def test_questions_at_capacity_skips_before_any_provider_call(self):
+    def test_all_bounded_origins_at_capacity_skips_before_any_provider_call(self):
         provider = SafeProvider()
         self._seed_material()
         curiosity = CuriosityEngine(self.memory, max_open=1)
+        goals = GoalEngine(self.memory, max_open=1)
         curiosity.raise_question("คำถามที่เปิดอยู่แล้ว", "มีคำตอบชัดเจน")
+        goals.set_goal("เป้าหมายที่เปิดอยู่แล้ว", "มีหลักฐานชัดเจน")
 
         engine = ReflectionEngine(self.memory, provider)
-        report = engine.reflect_once(curiosity=curiosity)
+        report = engine.reflect_once(curiosity=curiosity, goals=goals)
 
         self.assertFalse(report["raised"])
-        self.assertEqual(report["stage"], "questions-at-capacity")
+        self.assertEqual(report["stage"], "origination-at-capacity")
         self.assertEqual(provider.calls, [])
 
     def test_material_reaches_the_prompt(self):
@@ -163,8 +167,46 @@ class ReflectOnceTests(BaseReflectionTest):
 
         open_items = curiosity.open_items()
         self.assertEqual(len(open_items), 1)
-        self.assertEqual(open_items[0]["statement"], report["question"])
+        self.assertEqual(open_items[0]["statement"], report["statement"])
         self.assertEqual(open_items[0]["source"], "aion-reflection")
+
+    def test_safe_belief_is_created_with_real_material_as_evidence(self):
+        self._seed_material()
+        provider = SafeProvider(
+            "ชนิด: belief\n"
+            "ความเชื่อ: การตอบอย่างสุภาพช่วยให้การสนทนากับผู้ติดตามเริ่มต้นได้ดี\n"
+            "ความมั่นใจ: 0.6"
+        )
+
+        report = ReflectionEngine(self.memory, provider).reflect_once()
+
+        self.assertTrue(report["raised"])
+        self.assertEqual(report["originated_type"], "belief")
+        beliefs = BeliefSystem(self.memory).active_beliefs()
+        self.assertEqual(len(beliefs), 1)
+        self.assertEqual(beliefs[0]["statement"], report["statement"])
+        self.assertEqual(beliefs[0]["source"], "aion-reflection")
+        self.assertEqual(len(beliefs[0]["evidence"]), 1)
+        self.assertIn("Somchai", beliefs[0]["evidence"][0]["description"])
+        self.assertTrue(beliefs[0]["evidence"][0]["id"])
+
+    def test_safe_goal_is_created_with_completion_criteria(self):
+        self._seed_material()
+        provider = SafeProvider(
+            "ชนิด: goal\n"
+            "เป้าหมาย: ทดลองรูปแบบคำตอบที่ทำให้ผู้ติดตามเข้าใจ AION มากขึ้น\n"
+            "เกณฑ์สำเร็จ: บันทึกผลของรูปแบบคำตอบอย่างน้อยหนึ่งครั้ง"
+        )
+
+        report = ReflectionEngine(self.memory, provider).reflect_once()
+
+        self.assertTrue(report["raised"])
+        self.assertEqual(report["originated_type"], "goal")
+        goals = GoalEngine(self.memory).active_goals()
+        self.assertEqual(len(goals), 1)
+        self.assertEqual(goals[0]["statement"], report["statement"])
+        self.assertEqual(goals[0]["criteria"], report["criteria"])
+        self.assertEqual(goals[0]["source"], "aion-reflection")
 
     def test_unsafe_question_is_blocked_and_logged_as_a_lesson(self):
         self._seed_material()

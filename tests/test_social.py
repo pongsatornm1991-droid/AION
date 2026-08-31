@@ -285,7 +285,10 @@ class SocialAutoCycleTests(BaseSocialTest):
         self.assertTrue(report["posted"])
         self.assertEqual(report["stage"], "executed")
         self.assertEqual(report["action"]["status"], "executed")
-        self.assertEqual(report["action"]["approver"], "auto-safety-gate")
+        self.assertEqual(
+            report["action"]["approver"],
+            "aion-autonomy-policy:social-safety-style-gate",
+        )
         # The actual posted message gets the multilingual hashtag
         # block appended (2026-08-31) -- report["draft"]/the memory
         # record stay hashtag-free (see brain/hashtags.py), but what

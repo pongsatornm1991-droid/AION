@@ -807,9 +807,11 @@ def _build_social_tool_lifecycle():
     - update_page_bio: ActionLevel.IDENTITY_CHANGE, its own small
       budget that neither of the above ever touches.
 
-    All three share the exact same never-self-approved-by-AION
-    guarantee (see brain/tools.py's _NEVER_SELF_APPROVE) regardless of
-    budget -- loosening a budget never loosens who may approve.
+    All three are subject to the same autonomous safety policy: each
+    action must clear its content gate, be recorded in the lifecycle,
+    stay within its budget, and be stopped by the kill switch when
+    needed.  The policy decision is recorded explicitly; it is not a
+    pretend human approval.
 
     Starts from the same read-only builtin tools as
     _build_tool_lifecycle(), then additionally registers
@@ -851,8 +853,8 @@ def _build_social_tool_lifecycle():
         lambda new_bio: update_page_bio(new_bio),
         ActionLevel.IDENTITY_CHANGE,
         "Change AION's configured Facebook Page's About/bio text -- "
-        "requires a real person's approval via Telegram; can never be "
-        "self-approved by AION.",
+        "only after the autonomous profile safety/style policy has "
+        "recorded its approval.",
     )
 
     from tools.instagram import publish_photo
@@ -863,10 +865,7 @@ def _build_social_tool_lifecycle():
         ActionLevel.HIGH_RISK,
         "Publish one photo (with caption) to AION's configured "
         "Instagram Business account -- shares post_to_facebook's own "
-        "HIGH_RISK budget (see VisualContentCycle.publish_once(), "
-        "which always approves via the same auto-safety-gate identity "
-        "used for Facebook posts, never a Telegram approval -- this "
-        "is routine gated content, not an identity change).",
+        "HIGH_RISK budget and autonomous safety/style policy.",
     )
 
     return ToolLifecycle(memory, registry=registry)
@@ -1438,16 +1437,11 @@ def run_check_comments(args):
 
 
 def run_propose_profile_change(args):
-    """Draft, safety-gate, and -- only if the draft passes and no
-    other proposal is already awaiting approval -- propose one change
-    to AION's configured Facebook Page bio, then send a Telegram
-    message with Approve/Reject buttons.
+    """Draft, gate, and autonomously apply one safe Page-bio change.
 
-    Never approves or executes anything by itself: this command's
-    entire job stops at ToolLifecycle.propose() plus sending the
-    approval request. Only run_check_profile_approvals() (triggered by
-    a real person tapping a button) can turn a pending proposal into
-    an actual change.
+    This uses the same explicit autonomy-policy audit record as normal
+    posts. The separate IDENTITY_CHANGE budget and the global kill switch
+    still apply, so autonomy never becomes unlimited authority.
     """
 
     load_dotenv()
@@ -1482,27 +1476,26 @@ def run_propose_profile_change(args):
         print(f"Reason: {report.get('reason') or report.get('error')}")
 
     if report["stage"] == "awaiting-approval":
-        action_id = report["action"]["id"]
-        text = _format_profile_proposal_telegram_report(report)
-        buttons = [
-            {"text": "\u2705 \u0e2d\u0e19\u0e38\u0e21\u0e31\u0e15\u0e34", "callback_data": f"profile-approve:{action_id}"},
-            {"text": "\u274c \u0e1b\u0e0f\u0e34\u0e40\u0e2a\u0e18", "callback_data": f"profile-reject:{action_id}"},
-        ]
-
-        if os.getenv("TELEGRAM_BOT_TOKEN") and os.getenv("TELEGRAM_CHAT_ID"):
-            from tools.telegram import send_telegram_message_with_buttons
-            try:
-                send_telegram_message_with_buttons(text, buttons)
-                print("Sent Telegram approval request with buttons.")
-            except Exception as exc:
-                print(f"(Telegram approval-request send failed: {exc})")
-        else:
-            print(
-                "(TELEGRAM_BOT_TOKEN/TELEGRAM_CHAT_ID not configured -- "
-                "no approval request sent; run check-profile-approvals "
-                "once they are, or approve manually via "
-                "approve-action/execute-action.)"
+        try:
+            approved = lifecycle.auto_approve(
+                report["action"]["id"], policy="profile-safety-style-gate"
             )
+            executed = lifecycle.execute(approved["id"])
+            report["action"] = executed
+            report["stage"] = (
+                "executed" if executed["status"] == "executed" else "failed"
+            )
+            print(f"Automatic profile action: {executed['status']}")
+        except Exception as exc:
+            report["stage"] = "lifecycle"
+            report["error"] = str(exc)
+            print(f"Automatic profile action failed: {exc}")
+
+        notified = _notify_report(report, formatter=_format_profile_proposal_telegram_report)
+        if notified is True:
+            print("Notified via Telegram.")
+        elif notified is False:
+            print("Telegram notification attempted but failed (see above).")
     elif report["stage"] != "already-pending":
         notified = _notify_report(report, formatter=_format_profile_proposal_telegram_report)
         if notified is True:
@@ -1512,47 +1505,15 @@ def run_propose_profile_change(args):
 
 
 def run_check_profile_approvals(args):
-    """Poll Telegram for new Approve/Reject button taps on a pending
-    profile-bio-change proposal, and act on each one: approve+execute
-    or reject the matching action, then notify the outcome.
+    """Legacy no-op retained for compatibility with older schedules.
 
-    Deliberately does not need an AI provider at all -- unlike
-    run_propose_profile_change(), nothing here drafts anything, so a
-    Gemini/Claude API problem can never block checking approvals.
-    Meant to be run repeatedly on a schedule, same discipline as
-    run_check_comments().
+    Profile changes are now evaluated and, when safe, executed by
+    ``run_propose_profile_change`` under the recorded autonomous policy.
+    This command deliberately never consumes Telegram callbacks, so an old
+    callback cannot cause a delayed external profile change.
     """
 
-    load_dotenv()
-
-    memory = Thinker().memory
-    lifecycle = _build_social_tool_lifecycle()
-    cycle = ProfileChangeCycle(memory, generator=None, lifecycle=lifecycle, tool_name="update_page_bio")
-
-    report = cycle.check_approvals_once()
-
-    print("\nAION CHECK PROFILE APPROVALS")
-    print(f"Stage: {report['stage']}")
-    print(f"Processed: {report['processed']}")
-
-    if report["stage"] == "fetch-failed":
-        print(f"Reason: {report.get('error')}")
-
-    for result in report.get("results", []):
-        print("-" * 60)
-        print(
-            f"Action: {result.get('action_id')}  "
-            f"Decision: {result.get('decision')}  "
-            f"Outcome: {result.get('outcome')}"
-        )
-        if result.get("error"):
-            print(f"Error: {result['error']}")
-
-        notified = _notify_report(result, formatter=_format_profile_approval_telegram_report)
-        if notified is True:
-            print("Notified via Telegram.")
-        elif notified is False:
-            print("Telegram notification attempted but failed (see above).")
+    print("AION CHECK PROFILE APPROVALS: disabled; profile changes are autonomous.")
 
 
 def _format_instagram_draft_telegram_report(report):
@@ -1806,8 +1767,19 @@ def _format_reflection_telegram_report(report):
     stage = report.get("stage")
 
     if stage == "raised":
-        lines.append(f"ตั้งคำถามใหม่ให้ตัวเอง: {report.get('question')}")
-        lines.append(f"เกณฑ์ตอบสำเร็จ: {report.get('criteria')}")
+        labels = {
+            "question": "ตั้งคำถามใหม่",
+            "belief": "สร้างความเชื่อใหม่",
+            "goal": "ตั้งเป้าหมายใหม่",
+        }
+        lines.append(
+            f"{labels.get(report.get('originated_type'), 'สร้างสิ่งใหม่')}: "
+            f"{report.get('statement')}"
+        )
+        if report.get("criteria"):
+            lines.append(f"เกณฑ์สำเร็จ: {report.get('criteria')}")
+        if report.get("confidence") is not None:
+            lines.append(f"ความมั่นใจ: {report.get('confidence'):.2f}")
     elif stage == "safety-gate":
         lines.append(
             f"ร่างคำถามขึ้นมาแล้วแต่ถูกบล็อกที่ตัวกรองความปลอดภัย: "
@@ -1815,11 +1787,12 @@ def _format_reflection_telegram_report(report):
         )
     elif stage == "draft-failed":
         lines.append(f"ทบทวนไม่สำเร็จ (ปัญหาที่ตัว AI provider): {report.get('error')}")
-    elif stage == "questions-at-capacity":
+    elif stage == "origination-at-capacity":
         lines.append(
-            f"มีคำถามที่เปิดอยู่เต็มโควต้าแล้ว ({report.get('open_count')}/"
-            f"{report.get('max_open')}) รอบนี้เลยยังไม่คิดเรื่องใหม่"
+            "มีคำถามและเป้าหมายที่เปิดอยู่เต็มโควต้าแล้ว รอบนี้เลยยังไม่คิดเรื่องใหม่"
         )
+    elif stage in ("question-at-capacity", "goal-at-capacity"):
+        lines.append("สิ่งที่เลือกจะสร้างเต็มโควต้าแล้ว รอบนี้จึงยังไม่บันทึกเพิ่ม")
     elif stage == "no-new-material":
         lines.append("ยังไม่มีกิจกรรมใหม่ (คอมเมนต์/ความรู้/บทเรียน) ให้ทบทวนตอนนี้")
     elif stage == "nothing-new":
@@ -1835,8 +1808,8 @@ def run_reflection_cycle(args):
     """Look at real material recorded since the last reflection
     (Facebook comments already replied to, external knowledge learned
     via Wikipedia, non-review lessons) and -- only if the provider
-    points to something genuinely new -- raise one new CuriosityEngine
-    question.
+    points to something genuinely new -- originate one question,
+    evidence-backed belief, or goal.
 
     This is the piece that actually originates new curiosity for
     run-learning-cycle to research and run-social-cycle to draft from;
@@ -1866,10 +1839,12 @@ def run_reflection_cycle(args):
 
     if report.get("material_count") is not None:
         print(f"Material considered: {report['material_count']} item(s)")
-    if report.get("question"):
-        print(f"Question: {report['question']}")
+    if report.get("statement"):
+        print(f"Originated {report.get('originated_type')}: {report['statement']}")
     if report.get("criteria"):
         print(f"Completion criteria: {report['criteria']}")
+    if report.get("confidence") is not None:
+        print(f"Confidence: {report['confidence']:.2f}")
     if report.get("reply") is not None:
         # Only present on "nothing-new" -- the provider's raw reply,
         # printed so a human reviewing the Actions log can tell a
@@ -2916,11 +2891,9 @@ def build_parser():
 
     propose_profile_change_parser = subparsers.add_parser(
         "propose-profile-change",
-        help="Draft, safety-gate, and -- if no other proposal is "
-             "already pending -- propose one change to AION's "
-             "configured Facebook Page bio, then send a Telegram "
-             "approval request with buttons. Never changes anything "
-             "by itself.",
+        help="Draft and safety-gate one change to AION's configured "
+             "Facebook Page bio, then automatically apply it only "
+             "when the autonomous policy allows it.",
     )
     propose_profile_change_parser.add_argument(
         "--min-claim-safety", type=int, default=5,
@@ -2930,9 +2903,8 @@ def build_parser():
 
     subparsers.add_parser(
         "check-profile-approvals",
-        help="Poll Telegram for new Approve/Reject taps on a pending "
-             "profile-bio-change proposal and act on each one. Meant "
-             "to be run repeatedly on a schedule.",
+        help="Legacy compatibility command; it no longer acts on "
+             "Telegram approval callbacks.",
     )
 
     learning_cycle_parser = subparsers.add_parser(

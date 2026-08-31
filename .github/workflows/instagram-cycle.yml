@@ -74,6 +74,9 @@ jobs:
       - name: Install dependencies
         run: pip install -r requirements.txt
 
+      - name: Verify deterministic safeguards
+        run: python run_tests.py
+
       - name: Draft caption + render image
         env:
           AION_MEMORY_ROOT: memory_data

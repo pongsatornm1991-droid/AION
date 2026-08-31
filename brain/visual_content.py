@@ -260,7 +260,9 @@ class VisualContentCycle:
                 params={"image_url": image_url, "caption": publish_caption},
                 source="aion",
             )
-            approved = self.lifecycle.approve(proposed["id"], approver="auto-safety-gate")
+            approved = self.lifecycle.auto_approve(
+                proposed["id"], policy="visual-safety-style-gate"
+            )
             executed = self.lifecycle.execute(approved["id"])
         except Exception as exc:
             return {

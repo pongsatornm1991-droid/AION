@@ -88,6 +88,17 @@ _NEVER_SELF_APPROVE = {
     ActionLevel.COMMENT_REPLY,
 }
 
+# Autonomous publishing is an explicit user-authorized operating mode.
+# It never skips proposal, logging, kill-switch, scheduling, budget, or
+# the content gates implemented by each cycle.  It only removes a
+# per-item human click after those checks have passed.
+AUTONOMOUS_APPROVER = "aion-autonomy-policy"
+_AUTO_APPROVABLE_LEVELS = {
+    ActionLevel.HIGH_RISK,
+    ActionLevel.IDENTITY_CHANGE,
+    ActionLevel.COMMENT_REPLY,
+}
+
 _KILL_SWITCH_TOOL_NAME = "__kill_switch__"
 
 
@@ -197,12 +208,12 @@ class ToolLifecycle:
         # the Page with unprompted, AION-initiated posts if something
         # goes wrong upstream (e.g. a seed/prompt bug that makes every
         # draft pass the safety gate). Raise further if ever actually hit.
-        ActionLevel.HIGH_RISK: 30,
+        ActionLevel.HIGH_RISK: 12,
         # Deliberately small and separate from HIGH_RISK -- see
         # ActionLevel.IDENTITY_CHANGE's docstring. Changing AION's own
         # bio/photo more than twice a day would almost certainly mean
         # something is wrong (a loop, a bad prompt), not real intent.
-        ActionLevel.IDENTITY_CHANGE: 2,
+        ActionLevel.IDENTITY_CHANGE: 1,
         # No daily ceiling at all (2026-08-30, at the user's explicit
         # request: "reply as many as possible, not capped at some
         # number"). Unlike HIGH_RISK's posts, a reply only ever
@@ -214,7 +225,7 @@ class ToolLifecycle:
         # schedule-driven rate limit, and the content-safety gates
         # (claim safety, robotic style) still gate every single reply
         # regardless of budget.
-        ActionLevel.COMMENT_REPLY: None,
+        ActionLevel.COMMENT_REPLY: 48,
     }
     DEFAULT_BUDGET_WINDOW_HOURS = 24
 
@@ -353,6 +364,36 @@ class ToolLifecycle:
 
         return self._supersede(
             entry_id, current, parsed, status="approved", approver=approver
+        )
+
+    def auto_approve(self, entry_id, policy):
+        """Approve a gated external action under the recorded autonomy policy.
+
+        Callers must run their own content/safety checks before this method.
+        The resulting audit record is deliberately distinguishable from a
+        human approval; it is not a disguised person name.
+        """
+
+        policy = str(policy).strip()
+        if not policy:
+            raise ValueError("An autonomy policy name is required.")
+
+        current, parsed = self._get_parsed(entry_id)
+        if parsed["status"] != "proposed":
+            raise ValueError(
+                f"Cannot auto-approve an action that is {parsed['status']}."
+            )
+        if parsed["level"] not in _AUTO_APPROVABLE_LEVELS:
+            raise ValueError(
+                f"{parsed['level']} is not an autonomous external-action level."
+            )
+
+        return self._supersede(
+            entry_id,
+            current,
+            parsed,
+            status="approved",
+            approver=f"{AUTONOMOUS_APPROVER}:{policy}",
         )
 
     def reject(self, entry_id, reason, rejector):
