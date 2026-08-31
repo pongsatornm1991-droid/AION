@@ -67,6 +67,13 @@ like, and comment counts every six hours; only changed values enter memory, so
 reflection can learn from real audience response without filling memory with
 duplicate snapshots.
 
+AION's public voice and five content pillars are defined in
+`core/manifesto.md`; its reusable visual rules live in
+`core/visual_identity.md`. After at least three distinct Instagram posts have
+real feedback, the Growth Engine stores one cautious, evidence-bound insight
+for future drafting. It never changes safety rules or optimizes for engagement
+alone.
+
 Generate a reflection:
 
 ```powershell

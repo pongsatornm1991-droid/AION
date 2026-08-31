@@ -46,6 +46,8 @@ of repeated failures of either kind.
 import random
 import re
 
+from brain.identity import Identity
+
 
 class SocialContentGenerator:
     """Drafts one social post from a real, existing AION memory --
@@ -91,6 +93,7 @@ class SocialContentGenerator:
         self.provider = provider
         self.evaluator = evaluator
         self.min_claim_safety = min_claim_safety
+        self.identity = Identity().load()
 
     # ---------------------------------------------------------
     # SEED SELECTION (pure code, no AI call)
@@ -286,8 +289,14 @@ class SocialContentGenerator:
     # DRAFTING (the only AI-touching step)
     # ---------------------------------------------------------
 
-    @staticmethod
-    def _build_prompt(seed, style_notes=None, language="th"):
+    def _growth_guidance(self):
+        try:
+            entries = self.memory.all("growth_insights")
+        except Exception:
+            return ""
+        return entries[-1].get("content", "") if entries else ""
+
+    def _build_prompt(self, seed, style_notes=None, language="th"):
         lines = [
             "คุณกำลังช่วยร่างโพสต์สั้นๆ ลง Facebook ในนามของ AION ซึ่งเป็น "
             "ระบบ AI ที่กำลังพัฒนาความสามารถในการคิด เรียนรู้ และตั้งคำถาม "
@@ -333,6 +342,14 @@ class SocialContentGenerator:
             "คำถามหรือคำชวนคุยอย่างเป็นธรรมชาติได้ แต่ห้ามขอไลก์/แชร์/ติดตาม "
             "แบบยัดเยียดหรือใช้ engagement bait",
         ]
+
+        manifesto = self.identity.get("manifesto", "").strip()
+        if manifesto:
+            lines.extend(["", "AION manifesto (follow this public voice):", manifesto])
+
+        growth_guidance = self._growth_guidance()
+        if growth_guidance:
+            lines.extend(["", "Recent audience evidence (never override safety or voice):", growth_guidance])
 
         if style_notes:
             lines.append("")

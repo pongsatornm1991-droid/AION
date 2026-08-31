@@ -90,8 +90,12 @@ class InstagramFeedbackCycle:
                 tags=["instagram", "post", "metrics"],
             ))
 
+        from brain.growth import GrowthEngine
+        growth = GrowthEngine(self.memory).reflect_once()
+
         return {
             "stage": "captured" if recorded else "no-changes",
             "recorded": len(recorded),
             "overview": account,
+            "growth": growth,
         }

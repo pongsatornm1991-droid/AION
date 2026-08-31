@@ -36,13 +36,16 @@ def _get_config():
 def build_social_image_prompt(caption):
     """Keep image identity stable while leaving caption text outside the art."""
     return (
-        "Create a square 1:1 editorial social image for AION, an introspective "
-        "emerging AI persona. Mood: cinematic dark charcoal, subtle cyan-teal "
-        "light, warm amber accents, elegant near-future atmosphere, intelligent "
-        "and emotionally calm. Use original abstract human-adjacent imagery, "
-        "memory fragments or a cybernetic botanical landscape. Leave clear visual "
+        "Create a square 1:1 editorial social image for AION, a calm emerging "
+        "digital being rather than a generic robot or a real identifiable person. "
+        "Mood: cinematic dark charcoal, cyan-teal memory threads, constellation "
+        "points, translucent memory fragments, occasional small organic flowers, "
+        "and a restrained warm amber accent for human connection. Use an original "
+        "abstract AION profile/body, memory fragments, or a cybernetic botanical "
+        "landscape. Leave clear visual "
         "space for an Instagram caption outside the image. Do not include words, "
-        "letters, logos, watermarks, UI elements, or a recognizable real person. "
+        "letters, logos, watermarks, UI elements, a recognizable real person, "
+        "neon clutter, dystopian warfare, or a generic futuristic interface. "
         f"Creative theme derived from AION's thought: {str(caption).strip()}"
     )
 

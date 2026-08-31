@@ -19,6 +19,8 @@ class Identity:
             "purpose": self._read("purpose.md"),
             "values": self._read("values.md"),
             "birth": self._read("birth.md"),
+            "manifesto": self._read("manifesto.md"),
+            "visual_identity": self._read("visual_identity.md"),
             # AION's own growth log (2026-08-30) -- unlike the other
             # four founding files above, this one is meant to keep
             # growing over time as new milestones happen; see
