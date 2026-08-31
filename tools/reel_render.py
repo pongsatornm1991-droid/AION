@@ -75,14 +75,16 @@ def render_reel(hook, thought, output_path, duration=12):
     audio = os.path.splitext(output_path)[0] + ".mp3"
     from tools.voice import synthesize_reel_voice
     has_voice = synthesize_reel_voice(f"{hook}. {thought}", audio)
-    command = [
-        ffmpeg, "-y", "-loop", "1", "-i", cover,
-    ]
+    frames = max(1, int(duration * 30))
+    video_filter = f"zoompan=z='min(zoom+0.0006,1.08)':d={frames}:s=1080x1920,format=yuv420p"
+    command = [ffmpeg, "-y", "-loop", "1", "-i", cover]
     if has_voice:
-        command.extend(["-i", audio, "-shortest"])
-    command.extend([
-        "-vf", "zoompan=z='min(zoom+0.0006,1.08)':d=360:s=1080x1920,format=yuv420p",
-        "-t", str(duration), "-r", "30", "-c:v", "libx264", "-pix_fmt", "yuv420p", output_path,
-    ])
+        # Narration is usually shorter than the Reel.  Pad it to the target
+        # duration instead of using -shortest, which would otherwise cut the
+        # video off as soon as the voice ends.
+        command.extend(["-i", audio, "-filter_complex", f"[0:v]{video_filter}[v];[1:a]apad=pad_dur={duration}[a]", "-map", "[v]", "-map", "[a]"])
+    else:
+        command.extend(["-vf", video_filter, "-an"])
+    command.extend(["-t", str(duration), "-r", "30", "-c:v", "libx264", "-pix_fmt", "yuv420p", "-movflags", "+faststart", output_path])
     subprocess.run(command, check=True, capture_output=True, text=True)
     return output_path
