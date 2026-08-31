@@ -93,20 +93,27 @@ class BaseReflectionTest(unittest.TestCase):
 
 class ReflectOnceTests(BaseReflectionTest):
 
-    def test_no_material_is_a_no_op_and_advances_checkpoint(self):
+    def test_empty_memory_bootstraps_the_owner_growth_goal_once(self):
         provider = SafeProvider()
         engine = ReflectionEngine(self.memory, provider)
 
         report = engine.reflect_once()
 
-        self.assertFalse(report["raised"])
-        self.assertEqual(report["stage"], "no-new-material")
+        self.assertTrue(report["raised"])
+        self.assertEqual(report["stage"], "bootstrapped")
+        self.assertEqual(report["originated_type"], "goal")
         self.assertEqual(provider.calls, [])
+        self.assertEqual(len(GoalEngine(self.memory).active_goals()), 1)
 
         checkpoints = [
             e for e in self.memory.all("reflections") if e["type"] == "observation"
         ]
         self.assertEqual(len(checkpoints), 1)
+
+        second = engine.reflect_once()
+        self.assertFalse(second["raised"])
+        self.assertEqual(second["stage"], "no-new-material")
+        self.assertEqual(len(GoalEngine(self.memory).active_goals()), 1)
 
     def test_all_bounded_origins_at_capacity_skips_before_any_provider_call(self):
         provider = SafeProvider()
@@ -252,7 +259,7 @@ class ReflectOnceTests(BaseReflectionTest):
 
         report = engine.reflect_once()
 
-        self.assertEqual(report["stage"], "no-new-material")
+        self.assertEqual(report["stage"], "bootstrapped")
         self.assertEqual(provider.calls, [])
 
     def test_second_reflection_only_sees_material_added_after_the_first(self):

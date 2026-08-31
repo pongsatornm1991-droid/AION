@@ -10,12 +10,10 @@ name: AION - reflection cycle
 # research" every single hourly run -- see brain/reflection.py's
 # module docstring for the full root-cause explanation.
 #
-# Deliberately every 3 hours, not hourly like the reactive cycles:
-# deciding what to be curious about is not something that should
-# happen as often as reacting to an incoming comment, and the engine
-# is self-limiting anyway (a checkpoint means the same old material is
-# never re-considered, and CuriosityEngine's own max_open cap means
-# this simply does nothing once 10 questions are already open).
+# Runs hourly so a new deployment with empty memory quickly receives
+# its single owner-defined bootstrap growth goal. It remains self-limiting:
+# a checkpoint prevents reconsidering old material, and bounded question/
+# goal trackers prevent unbounded origination.
 #
 # Shares the same private memory_data repo as the other cycles (see
 # social-cycle.yml's header comment for why memory/ is not tracked in
@@ -23,7 +21,7 @@ name: AION - reflection cycle
 
 on:
   schedule:
-    - cron: "0 */3 * * *"
+    - cron: "0 * * * *"
   workflow_dispatch: {}
 
 # All AION workflows share one private, git-backed memory_data repo

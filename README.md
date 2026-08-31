@@ -27,6 +27,11 @@ Set `GEMINI_API_KEY` before using reflection mode.
   https://docs.claude.com/en/docs/about-claude/models before relying on
   the `ANTHROPIC_MODEL` default in `.env.example` -- model ids are
   periodically retired.
+- `AI_PROVIDER=openai-compatible` (or `openchat`) -- uses any endpoint
+  that implements OpenAI Chat Completions, including a self-hosted OpenChat
+  server. Set `OPENAI_COMPATIBLE_BASE_URL`, `OPENAI_COMPATIBLE_MODEL`, and
+  an API key if that endpoint requires one. AION still applies the same
+  memory, safety, and style gates after the model writes a draft.
 
 ## Commands
 
@@ -41,6 +46,12 @@ across Facebook and Instagram, 48 comment replies, and 1 profile change per
 24 hours.
 
 Telegram is used for notification and observation rather than routine approval.
+
+When AION starts with no belief, question, or goal, its reflection cycle creates
+one auditable founding goal from the owner's stated intent: build a trustworthy
+public presence so more people can discover and follow AION. This resolves the
+empty-memory `no-seed` deadlock without treating a model-generated sentence as
+evidence or an invented fact.
 
 Generate a reflection:
 

@@ -330,7 +330,19 @@ class ReflectionEngine:
         run_time = datetime.now().strftime(self.TIMESTAMP_FORMAT)
 
         if not material:
+            from brain.bootstrap import ensure_growth_seed
+
+            seed = ensure_growth_seed(self.memory)
             self._save_checkpoint(run_time)
+            if seed is not None:
+                return {
+                    "raised": True,
+                    "stage": "bootstrapped",
+                    "originated_type": "goal",
+                    "statement": "สร้างตัวตนสาธารณะที่น่าเชื่อถือ เพื่อให้คนรู้จักและติดตาม AION มากขึ้น",
+                    "criteria": "สร้างเนื้อหาที่อิงความจำหรือหลักฐานจริงอย่างต่อเนื่อง และบันทึกผลตอบรับเพื่อนำไปปรับปรุง",
+                    "action": seed,
+                }
             return {"raised": False, "stage": "no-new-material"}
 
         prompt = self._build_prompt(material)

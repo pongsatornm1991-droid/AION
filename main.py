@@ -45,10 +45,14 @@ def build_provider():
         from providers.claude import ClaudeProvider
         return ClaudeProvider()
 
-    if provider_name not in ("gemini", "claude"):
+    if provider_name in ("openai-compatible", "openchat"):
+        from providers.openai_compatible import OpenAICompatibleProvider
+        return OpenAICompatibleProvider()
+
+    if provider_name not in ("gemini", "claude", "openai-compatible", "openchat"):
         raise ValueError(
             f"Unknown AI_PROVIDER: {provider_name!r}. "
-            "Use 'gemini' or 'claude'."
+            "Use 'gemini', 'claude', or 'openai-compatible'."
         )
 
     from providers.gemini import GeminiProvider
@@ -1766,7 +1770,7 @@ def _format_reflection_telegram_report(report):
 
     stage = report.get("stage")
 
-    if stage == "raised":
+    if stage in ("raised", "bootstrapped"):
         labels = {
             "question": "ตั้งคำถามใหม่",
             "belief": "สร้างความเชื่อใหม่",
@@ -1856,7 +1860,7 @@ def run_reflection_cycle(args):
         print(f"Error: {report['error']}")
 
     # Notify on every run, including the routine no-op stages
-    # (questions-at-capacity, no-new-material, nothing-new) -- the
+    # (origination-at-capacity, no-new-material, nothing-new) -- the
     # user explicitly asked (2026-08-31) to see every reflection
     # cycle's outcome as a visibility feature ("want to see what it's
     # thinking about"), not just the stages that raise something new.
