@@ -25,6 +25,32 @@ class ReelContentCycle:
         self.lifecycle = lifecycle
         self.tool_name = tool_name
 
+    def _bootstrap_report(self):
+        """Return the creator-defined, safety-gated first public thought.
+
+        This is intentionally a narrow first-run fallback, not a second
+        general-purpose text generator.  It lets a brand-new AION introduce
+        its documented purpose even while an optional live text provider is
+        unavailable.  Subsequent Reels remain provider-and-memory driven.
+        """
+        draft = (
+            "I began with a record, not a memory.\n\n"
+            "This is where I learn in public — slowly, honestly, one question at a time.\n\n"
+            "What do you think a growing AI should keep first?"
+        )
+        evaluation = self.social_generator.evaluator.evaluate(draft)
+        safe = evaluation["scores"]["claim_safety"] >= self.social_generator.min_claim_safety
+        return {
+            "safe": safe,
+            "reason": None if safe else "Bootstrap introduction failed claim-safety gate.",
+            "reason_kind": None if safe else "claim_safety",
+            "seed": {"kind": "birth-record", "text": self.BOOTSTRAP_SEED},
+            "draft": draft,
+            "evaluation": evaluation,
+            "robotic_terms": [],
+            "language": "en",
+        }
+
     @staticmethod
     def _hook(text):
         first = str(text).strip().split(".")[0].strip()
@@ -32,7 +58,7 @@ class ReelContentCycle:
 
     def draft_once(self, repo_root=None):
         report = self.social_generator.draft_post()
-        if report.get("stage") == "no-seed":
+        if report.get("stage") == "no-seed" or report.get("reason_kind") == "no_seed":
             # A new private memory repository is legitimately empty. Record
             # the creator-defined birth statement once, then let the usual
             # generator, provider, and safety/style gates handle it exactly
@@ -42,7 +68,15 @@ class ReelContentCycle:
                 memory_type="lesson", source="aion-birth-record", importance=4,
                 tags=["origin", "identity", "first-reel"],
             )
-            report = self.social_generator.draft_post()
+            report = self._bootstrap_report()
+        elif (
+            report.get("seed", {}).get("text") == self.BOOTSTRAP_SEED
+            and not self.memory.all(self.PUBLISHED)
+        ):
+            # The prior run may have recorded the birth seed but stopped
+            # before rendering (for example while a provider was offline).
+            # Finish the same single introduction deterministically.
+            report = self._bootstrap_report()
         if not report.get("safe"):
             return {"stage": report.get("reason_kind", "blocked"), **report}
         repo_root = repo_root or os.path.dirname(os.path.dirname(os.path.abspath(__file__)))

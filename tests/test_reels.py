@@ -6,6 +6,7 @@ from unittest import mock
 
 from brain.memory import MemoryEngine
 from brain.reels import ReelContentCycle
+from brain.evaluator import OutputEvaluator
 from tools.reel_render import render_reel
 
 
@@ -29,12 +30,12 @@ class ReelCycleTests(unittest.TestCase):
         class Generator:
             def __init__(self):
                 self.calls = 0
+                self.evaluator = OutputEvaluator()
+                self.min_claim_safety = 5
 
             def draft_post(self):
                 self.calls += 1
-                if self.calls == 1:
-                    return {"stage": "no-seed", "safe": False}
-                return {"stage": "drafted", "safe": True, "draft": "AION begins here.", "language": "en"}
+                return {"stage": "no-seed", "safe": False}
 
         with tempfile.TemporaryDirectory() as root:
             memory = MemoryEngine(root)
@@ -43,7 +44,7 @@ class ReelCycleTests(unittest.TestCase):
                 report = ReelContentCycle(memory, generator, _Lifecycle()).draft_once(repo_root=root)
 
             self.assertEqual(report["stage"], "drafted")
-            self.assertEqual(generator.calls, 2)
+            self.assertEqual(generator.calls, 1)
             birth = memory.all("lessons")
             self.assertEqual(len(birth), 1)
             self.assertEqual(birth[0]["source"], "aion-birth-record")
