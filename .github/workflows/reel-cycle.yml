@@ -26,6 +26,10 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: "3.11"
+      - name: Install video renderer
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y ffmpeg
       - run: pip install -r requirements.txt
       - name: Draft a vertical Reel
         env:
@@ -37,7 +41,9 @@ jobs:
           OPENAI_COMPATIBLE_API_KEY: ${{ secrets.OPENAI_COMPATIBLE_API_KEY }}
           REEL_VOICE_PROVIDER: ${{ vars.REEL_VOICE_PROVIDER || 'edge-tts' }}
           REEL_VOICE: ${{ vars.REEL_VOICE || 'en-US-AvaMultilingualNeural' }}
-        run: python main.py run-reel-draft
+        run: |
+          python main.py run-reel-draft | tee reel-draft-report.txt
+          cat reel-draft-report.txt >> "$GITHUB_STEP_SUMMARY"
       - name: Commit public Reel file
         run: |
           git config user.name "aion-bot"

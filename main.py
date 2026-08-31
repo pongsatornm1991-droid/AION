@@ -1669,6 +1669,8 @@ def run_reel_draft(args):
     print(f"Stage: {report['stage']}")
     if report.get("video_path"):
         print(f"Video: {report['video_path']}")
+    if report.get("reason") or report.get("error"):
+        print(f"Reason: {report.get('reason') or report.get('error')}")
 
 
 def run_reel_publish(args):
@@ -1676,6 +1678,8 @@ def run_reel_publish(args):
     report = ReelContentCycle(Thinker().memory, None, _build_social_tool_lifecycle()).publish_once()
     print("\nAION REEL PUBLISH")
     print(f"Stage: {report['stage']}")
+    if report.get("error"):
+        print(f"Reason: {report['error']}")
 
 
 def _format_learning_telegram_report(report):
