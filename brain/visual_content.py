@@ -156,6 +156,7 @@ class VisualContentCycle:
                     "caption": caption,
                     "ig_caption": ig_caption,
                     "seed": draft_report.get("seed"),
+                    "language": draft_report.get("language", "th"),
                 },
                 ensure_ascii=False,
             ),
@@ -276,6 +277,24 @@ class VisualContentCycle:
 
         if published:
             self.memory.move(PENDING_CATEGORY, PUBLISHED_CATEGORY, pending["id"])
+            language = payload.get("language", "th")
+            if self.social_generator is not None:
+                self.social_generator.record_published_language(
+                    language, "instagram", executed.get("id"),
+                )
+            else:
+                # publish_once is independently testable and can be invoked
+                # later with no generator object; keep language accounting
+                # intact in that valid split-stage configuration.
+                self.memory.remember(
+                    category="social_language_log",
+                    content=(f"platform=instagram; language={language}; "
+                             f"action={executed.get('id', 'unknown')}"),
+                    memory_type="action",
+                    source="social-language-strategy",
+                    importance=1,
+                    tags=[language, "instagram"],
+                )
 
         return {
             "stage": "published" if published else "failed",

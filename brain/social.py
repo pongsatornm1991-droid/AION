@@ -287,7 +287,7 @@ class SocialContentGenerator:
     # ---------------------------------------------------------
 
     @staticmethod
-    def _build_prompt(seed, style_notes=None):
+    def _build_prompt(seed, style_notes=None, language="th"):
         lines = [
             "คุณกำลังช่วยร่างโพสต์สั้นๆ ลง Facebook ในนามของ AION ซึ่งเป็น "
             "ระบบ AI ที่กำลังพัฒนาความสามารถในการคิด เรียนรู้ และตั้งคำถาม "
@@ -345,11 +345,39 @@ class SocialContentGenerator:
                 lines.append(f"- {note}")
 
         lines.append("")
+        if language == "en":
+            lines.append(
+                "Write the final post in natural English only. Keep it short, "
+                "clear, and globally understandable; do not translate the Thai "
+                "source text verbatim if that would sound unnatural."
+            )
+        else:
+            lines.append("เขียนโพสต์สุดท้ายเป็นภาษาไทยธรรมชาติเท่านั้น")
+        lines.append("")
         lines.append(f"เนื้อหาที่ AION บันทึกไว้จริง ({seed['kind']}): {seed['text']}")
 
         return "\n".join(lines)
 
-    def draft_post(self, seed=None, rng=None):
+    def _next_language(self):
+        """Use seven English posts then three Thai posts, repeating."""
+        try:
+            published = self.memory.all("social_language_log")
+        except Exception:
+            published = []
+        return "en" if len(published) % 10 < 7 else "th"
+
+    def record_published_language(self, language, platform, action_id=None):
+        self.memory.remember(
+            category="social_language_log",
+            content=(f"platform={platform}; language={language}; "
+                     f"action={action_id or 'unknown'}"),
+            memory_type="action",
+            source="social-language-strategy",
+            importance=1,
+            tags=[language, platform],
+        )
+
+    def draft_post(self, seed=None, rng=None, language=None):
         """Draft one post. Never raises on an unsafe/robotic draft --
         callers must check report['safe'] before treating anything
         here as postable. report['reason_kind'] distinguishes *why*
@@ -371,8 +399,9 @@ class SocialContentGenerator:
                 "robotic_terms": [],
             }
 
+        language = language or self._next_language()
         style_notes = self.recent_style_notes()
-        prompt = self._build_prompt(seed, style_notes=style_notes)
+        prompt = self._build_prompt(seed, style_notes=style_notes, language=language)
         draft = self.provider.generate(prompt).strip()
         evaluation = self.evaluator.evaluate(draft)
         claim_safety = evaluation["scores"]["claim_safety"]
@@ -390,6 +419,7 @@ class SocialContentGenerator:
                 "draft": draft,
                 "evaluation": evaluation,
                 "robotic_terms": [],
+                "language": language,
             }
 
         robotic_terms = self._detect_robotic_terms(draft)
@@ -407,6 +437,7 @@ class SocialContentGenerator:
                 "draft": draft,
                 "evaluation": evaluation,
                 "robotic_terms": robotic_terms,
+                "language": language,
             }
 
         return {
@@ -417,6 +448,7 @@ class SocialContentGenerator:
             "draft": draft,
             "evaluation": evaluation,
             "robotic_terms": [],
+            "language": language,
         }
 
 
@@ -519,6 +551,10 @@ class SocialAutoCycle:
             }
 
         posted = executed["status"] == "executed"
+        if posted:
+            self.generator.record_published_language(
+                draft_report.get("language", "th"), "facebook", executed.get("id"),
+            )
 
         return {
             "posted": posted,
