@@ -72,9 +72,17 @@ def render_reel(hook, thought, output_path, duration=12):
         raise RuntimeError("ffmpeg is required to render MP4 Reels; GitHub Actions runners include it.")
     cover = os.path.splitext(output_path)[0] + "-cover.png"
     render_reel_cover(hook, thought, cover)
-    subprocess.run([
+    audio = os.path.splitext(output_path)[0] + ".mp3"
+    from tools.voice import synthesize_reel_voice
+    has_voice = synthesize_reel_voice(f"{hook}. {thought}", audio)
+    command = [
         ffmpeg, "-y", "-loop", "1", "-i", cover,
+    ]
+    if has_voice:
+        command.extend(["-i", audio, "-shortest"])
+    command.extend([
         "-vf", "zoompan=z='min(zoom+0.0006,1.08)':d=360:s=1080x1920,format=yuv420p",
         "-t", str(duration), "-r", "30", "-c:v", "libx264", "-pix_fmt", "yuv420p", output_path,
-    ], check=True, capture_output=True, text=True)
+    ])
+    subprocess.run(command, check=True, capture_output=True, text=True)
     return output_path
