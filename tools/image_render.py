@@ -23,6 +23,7 @@ free fallback: an unavailable future image-generation provider can
 never stop the Instagram cycle from publishing.
 """
 
+import hashlib
 import os
 
 from PIL import Image, ImageDraw, ImageFont, ImageOps
@@ -38,6 +39,9 @@ DEFAULT_FONT_PATH = os.path.join(
 )
 BACKGROUND_ART_PATH = os.path.join(
     _REPO_ROOT, "assets", "visual-references", "aion-learning-v1.png"
+)
+CONTENT_LIBRARY_DIR = os.path.join(
+    _REPO_ROOT, "assets", "content-library", "aion-core"
 )
 
 CARD_SIZE = (1080, 1080)
@@ -100,16 +104,37 @@ def _wrap_text(draw, text, font, max_width):
     return lines
 
 
-def _create_background(size):
-    """Build a readable branded background, even if the art asset is absent."""
+def _background_paths():
+    """Return the bundled library in a stable order, with the legacy art first."""
+    paths = [BACKGROUND_ART_PATH]
+    try:
+        paths.extend(
+            os.path.join(CONTENT_LIBRARY_DIR, filename)
+            for filename in sorted(os.listdir(CONTENT_LIBRARY_DIR))
+            if filename.lower().endswith((".png", ".jpg", ".jpeg", ".webp"))
+        )
+    except OSError:
+        pass
+    return [path for path in paths if os.path.isfile(path)]
+
+
+def _create_background(size, seed=""):
+    """Build a readable branded background, selecting a stable library visual."""
     width, height = size
     image = Image.new("RGB", (width, height), BACKGROUND_COLOR)
 
-    try:
-        with Image.open(BACKGROUND_ART_PATH) as source:
-            image = ImageOps.fit(source.convert("RGB"), (width, height))
-    except OSError:
-        pass
+    paths = _background_paths()
+    if paths:
+        # A caption always maps to the same artwork.  This avoids a random
+        # retry changing a post's visual identity while still rotating the
+        # pre-generated library naturally across different thoughts.
+        digest = hashlib.sha256(str(seed).encode("utf-8")).digest()
+        selected = paths[int.from_bytes(digest[:4], "big") % len(paths)]
+        try:
+            with Image.open(selected) as source:
+                image = ImageOps.fit(source.convert("RGB"), (width, height))
+        except OSError:
+            pass
 
     # Preserve the artwork's atmosphere but reserve enough contrast for Thai
     # caption text on every generated card.
@@ -140,7 +165,7 @@ def render_content_card(
     os.makedirs(os.path.dirname(os.path.abspath(out_path)) or ".", exist_ok=True)
 
     width, height = size
-    image = _create_background((width, height))
+    image = _create_background((width, height), seed=caption)
     draw = ImageDraw.Draw(image)
 
     # A soft horizontal glow band across the middle third, evoking the
