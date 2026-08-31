@@ -23,6 +23,7 @@ from brain.profile_change import ProfileChangeGenerator, ProfileChangeCycle
 from brain.learning import WebLearningGenerator, WebLearningCycle
 from brain.self_narrative import SelfNarrativeGenerator, SelfNarrativeCycle
 from brain.reflection import ReflectionEngine, ReflectionCycle
+from brain.visual_content import VisualContentCycle
 
 
 VERSION = "0.0.8"
@@ -854,6 +855,20 @@ def _build_social_tool_lifecycle():
         "self-approved by AION.",
     )
 
+    from tools.instagram import publish_photo
+
+    registry.register(
+        "post_to_instagram",
+        lambda image_url, caption="": publish_photo(image_url, caption=caption),
+        ActionLevel.HIGH_RISK,
+        "Publish one photo (with caption) to AION's configured "
+        "Instagram Business account -- shares post_to_facebook's own "
+        "HIGH_RISK budget (see VisualContentCycle.publish_once(), "
+        "which always approves via the same auto-safety-gate identity "
+        "used for Facebook posts, never a Telegram approval -- this "
+        "is routine gated content, not an identity change).",
+    )
+
     return ToolLifecycle(memory, registry=registry)
 
 
@@ -1534,6 +1549,138 @@ def run_check_profile_approvals(args):
             print(f"Error: {result['error']}")
 
         notified = _notify_report(result, formatter=_format_profile_approval_telegram_report)
+        if notified is True:
+            print("Notified via Telegram.")
+        elif notified is False:
+            print("Telegram notification attempted but failed (see above).")
+
+
+def _format_instagram_draft_telegram_report(report):
+    """Turn a VisualContentCycle.draft_once() report dict into a
+    short Thai summary -- printed/notified for every stage, same
+    convention as _format_telegram_report (the Facebook-post
+    equivalent)."""
+
+    lines = ["AION (ร่างภาพ Instagram):"]
+
+    stage = report.get("stage")
+    caption = report.get("caption")
+
+    if caption:
+        lines.append(f"แคปชั่น: {caption}")
+
+    if stage == "no-seed":
+        lines.append("ยังไม่มีเนื้อหาที่บันทึกไว้มากพอจะร่างภาพได้ตอนนี้")
+    elif stage == "safety-gate":
+        lines.append(f"ถูกบล็อกที่ตัวกรองความปลอดภัย: {report.get('reason')}")
+    elif stage == "style-gate":
+        lines.append(
+            f"ถูกบล็อกที่ตัวกรองน้ำเสียง (ฟังดูเป็นระบบ/รายงานเกินไป): "
+            f"{report.get('reason')}"
+        )
+    elif stage == "draft-failed":
+        lines.append(f"ร่างแคปชั่นไม่สำเร็จ (ปัญหาที่ตัว AI provider): {report.get('error')}")
+    elif stage == "drafted":
+        lines.append(f"เรนเดอร์ภาพแล้ว: {report.get('image_path')}")
+        lines.append("รอ commit/push ภาพนี้เข้า repo แล้วเผยแพร่ผ่านขั้นตอนถัดไป")
+
+    return "\n".join(lines)
+
+
+def _format_instagram_publish_telegram_report(report):
+    """Turn a VisualContentCycle.publish_once() report dict into a
+    short Thai summary."""
+
+    lines = ["AION (เผยแพร่ภาพ Instagram):"]
+
+    stage = report.get("stage")
+    caption = report.get("caption")
+
+    if caption:
+        lines.append(f"แคปชั่น: {caption}")
+
+    if stage == "no-pending":
+        lines.append("ไม่มีภาพที่ร่างไว้รอเผยแพร่ตอนนี้")
+    elif stage == "lifecycle":
+        lines.append(f"ผิดพลาดในระบบ lifecycle: {report.get('error')}")
+    elif stage == "published":
+        lines.append(f"เผยแพร่ขึ้น Instagram สำเร็จแล้ว ✅ ({report.get('image_url')})")
+    elif stage == "failed":
+        action = report.get("action") or {}
+        lines.append(f"เผยแพร่ไม่สำเร็จ: {action.get('error')} (จะลองใหม่รอบหน้าด้วยภาพเดิม)")
+
+    return "\n".join(lines)
+
+
+def run_instagram_draft(args):
+    """Draft one Instagram caption (same gates as a Facebook post) and,
+    if it passes, render it into a PNG card under content/images/ in
+    this repo. Never calls the Instagram Graph API -- that only ever
+    happens in run_instagram_publish(), after the rendered image has
+    actually been committed and pushed (see
+    .github/workflows/instagram-cycle.yml)."""
+
+    load_dotenv()
+
+    memory = Thinker().memory
+    provider = build_provider()
+    evaluator = OutputEvaluator()
+
+    social_generator = SocialContentGenerator(
+        memory, provider, evaluator=evaluator,
+        min_claim_safety=args.min_claim_safety,
+    )
+
+    lifecycle = _build_social_tool_lifecycle()
+    cycle = VisualContentCycle(memory, social_generator, lifecycle, tool_name="post_to_instagram")
+
+    report = cycle.draft_once()
+
+    print("\nAION INSTAGRAM DRAFT")
+    print(f"Stage: {report['stage']}")
+
+    if report.get("caption"):
+        print("-" * 60)
+        print(report["caption"])
+        print("-" * 60)
+
+    if report.get("image_path"):
+        print(f"Image: {report['image_path']}")
+
+    if report["stage"] not in ("drafted",):
+        reason = report.get("reason") or report.get("error")
+        if reason:
+            print(f"Reason: {reason}")
+
+    if report["stage"] not in ("no-seed",):
+        notified = _notify_report(report, formatter=_format_instagram_draft_telegram_report)
+        if notified is True:
+            print("Notified via Telegram.")
+        elif notified is False:
+            print("Telegram notification attempted but failed (see above).")
+
+
+def run_instagram_publish(args):
+    """Publish the oldest already-drafted-and-committed pending image
+    to Instagram. Deliberately does not need an AI provider at all --
+    nothing here drafts anything."""
+
+    load_dotenv()
+
+    memory = Thinker().memory
+    lifecycle = _build_social_tool_lifecycle()
+    cycle = VisualContentCycle(memory, social_generator=None, lifecycle=lifecycle, tool_name="post_to_instagram")
+
+    report = cycle.publish_once()
+
+    print("\nAION INSTAGRAM PUBLISH")
+    print(f"Stage: {report['stage']}")
+
+    if report.get("error"):
+        print(f"Reason: {report['error']}")
+
+    if report["stage"] != "no-pending":
+        notified = _notify_report(report, formatter=_format_instagram_publish_telegram_report)
         if notified is True:
             print("Notified via Telegram.")
         elif notified is False:
@@ -2811,6 +2958,28 @@ def build_parser():
              "a raised question (default: 5).",
     )
 
+    instagram_draft_parser = subparsers.add_parser(
+        "run-instagram-draft",
+        help="Draft one Instagram caption (same gates as a Facebook "
+             "post) and, if it passes, render it into a PNG card "
+             "under content/images/ in this repo. Never calls the "
+             "Instagram API -- that is run-instagram-publish's job, "
+             "after the image has been committed and pushed.",
+    )
+    instagram_draft_parser.add_argument(
+        "--min-claim-safety", type=int, default=5,
+        help="Minimum claim_safety score (0-5) required to accept "
+             "the drafted caption (default: 5).",
+    )
+
+    subparsers.add_parser(
+        "run-instagram-publish",
+        help="Publish the oldest already-drafted-and-committed "
+             "pending image to Instagram via the Graph API. Meant to "
+             "run after run-instagram-draft's image has been pushed "
+             "and had a moment to propagate on raw.githubusercontent.com.",
+    )
+
     return parser
 
 
@@ -2987,6 +3156,14 @@ def main():
 
     if args.command == "run-reflection-cycle":
         run_reflection_cycle(args)
+        return
+
+    if args.command == "run-instagram-draft":
+        run_instagram_draft(args)
+        return
+
+    if args.command == "run-instagram-publish":
+        run_instagram_publish(args)
         return
 
     run_reflection()

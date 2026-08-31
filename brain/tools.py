@@ -186,9 +186,10 @@ class ToolLifecycle:
     DEFAULT_BUDGETS = {
         ActionLevel.READ_ONLY: None,  # unlimited: no side effects to bound
         ActionLevel.LOW_RISK: 20,
-        # post_to_facebook only, as of 2026-08-30 (reply_to_facebook_comment
-        # moved to its own ActionLevel.COMMENT_REPLY budget below, at
-        # the user's explicit request). 30/24h: raised from an earlier,
+        # post_to_facebook AND post_to_instagram share this one budget
+        # (reply_to_facebook_comment moved to its own
+        # ActionLevel.COMMENT_REPLY budget below, at the user's
+        # explicit request). 30/24h: raised from an earlier,
         # much stricter 5/24h -- "mind the real quota, don't invent a
         # tighter one". Still a real ceiling, not "unlimited": a
         # budget that can never be hit stops being a safety control at

@@ -1,0 +1,134 @@
+name: AION - Instagram content cycle
+
+# Runs the two-stage Instagram pipeline (brain/visual_content.py) in
+# one job: draft a caption + render a PNG card (run-instagram-draft),
+# commit+push that image to THIS public code repo (Instagram's Graph
+# API needs a publicly reachable image_url -- raw.githubusercontent.com
+# serves any file already in this repo for free, with no new image-
+# hosting credential -- see brain/visual_content.py's own docstring
+# for why Imgur/etc. was deliberately not used), wait a short while
+# for raw.githubusercontent.com's CDN to see the new commit, then
+# publish it (run-instagram-publish).
+#
+# Deliberately less frequent than social-cycle.yml (Instagram is a
+# secondary, lower-cadence channel for now) -- twice a day.
+#
+# Requires two NEW repository secrets beyond what every other AION
+# workflow already uses: INSTAGRAM_ACCESS_TOKEN and
+# INSTAGRAM_BUSINESS_ACCOUNT_ID (tools/instagram.py's own two
+# credentials -- unavoidable, since Instagram's Graph API is a
+# separate app/token from the Facebook Page's own token even though
+# both live under the same Meta developer app).
+#
+# Shares the same private memory_data repo as every other AION
+# workflow (see check-comments.yml's header comment for why memory/
+# is not tracked in this public repo), AND pushes to the public code
+# repo itself (the new image file) -- the only AION workflow that
+# needs write access to its own code repo, hence
+# `permissions: contents: write` below.
+
+on:
+  schedule:
+    - cron: "0 */12 * * *"
+  workflow_dispatch: {}
+
+# All AION workflows share one private, git-backed memory_data repo
+# with no locking of its own: two runs (any mix of these workflows)
+# executing at the same time each check out their own independent
+# snapshot, so both can see the same "proposed" action or unread
+# Telegram update and act on it a second time before either has
+# pushed. This is exactly what happened on 2026-08-31: overlapping
+# runs of check-profile-approvals.yml each approved+executed the same
+# pending bio-change proposal, burning the whole day's IDENTITY_CHANGE
+# budget on one real approval tap. A single concurrency group across
+# every workflow serializes every run that touches memory_data --
+# cancel-in-progress:false queues a run instead of racing it, since
+# these are cheap idempotent polls where waiting a few seconds costs
+# nothing.
+concurrency:
+  group: aion-memory-data
+  cancel-in-progress: false
+
+permissions:
+  contents: write
+
+jobs:
+  instagram-cycle:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout AION code
+        uses: actions/checkout@v4
+
+      - name: Checkout AION memory (private repo)
+        uses: actions/checkout@v4
+        with:
+          repository: pongsatornm1991-droid/aion-memory-data
+          token: ${{ secrets.MEMORY_REPO_PAT }}
+          path: memory_data
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: Draft caption + render image
+        env:
+          AION_MEMORY_ROOT: memory_data
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+        run: python main.py run-instagram-draft
+
+      - name: Commit + push the new image to the code repo (if any)
+        run: |
+          git config user.name "aion-bot"
+          git config user.email "aion-bot@users.noreply.github.com"
+          git add content/images/
+          if git diff --cached --quiet; then
+            echo "No new image this run -- nothing to publish."
+            echo "HAS_IMAGE=false" >> "$GITHUB_ENV"
+          else
+            git commit -m "AION: add drafted Instagram image ($(date -u +%Y-%m-%dT%H:%M:%SZ))"
+            git push
+            echo "HAS_IMAGE=true" >> "$GITHUB_ENV"
+          fi
+
+      - name: Wait for raw.githubusercontent.com to see the new commit
+        if: env.HAS_IMAGE == 'true'
+        run: sleep 60
+
+      - name: Publish to Instagram
+        if: env.HAS_IMAGE == 'true'
+        env:
+          AION_MEMORY_ROOT: memory_data
+          INSTAGRAM_ACCESS_TOKEN: ${{ secrets.INSTAGRAM_ACCESS_TOKEN }}
+          INSTAGRAM_BUSINESS_ACCOUNT_ID: ${{ secrets.INSTAGRAM_BUSINESS_ACCOUNT_ID }}
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+        run: python main.py run-instagram-publish
+
+      - name: Retry publishing any still-pending older image
+        if: env.HAS_IMAGE != 'true'
+        env:
+          AION_MEMORY_ROOT: memory_data
+          INSTAGRAM_ACCESS_TOKEN: ${{ secrets.INSTAGRAM_ACCESS_TOKEN }}
+          INSTAGRAM_BUSINESS_ACCOUNT_ID: ${{ secrets.INSTAGRAM_BUSINESS_ACCOUNT_ID }}
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+        run: python main.py run-instagram-publish
+
+      - name: Persist memory changes back to the private repo
+        working-directory: memory_data
+        run: |
+          git config user.name "aion-bot"
+          git config user.email "aion-bot@users.noreply.github.com"
+          git add -A
+          if git diff --cached --quiet; then
+            echo "No memory changes this run -- nothing to commit."
+          else
+            git commit -m "AION memory update ($(date -u +%Y-%m-%dT%H:%M:%SZ))"
+            git push
+          fi
