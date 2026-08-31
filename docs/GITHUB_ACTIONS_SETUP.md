@@ -57,6 +57,7 @@ Token นี้ให้สิทธิ์ workflow เขียนเข้า 
 |---|---|
 | `MEMORY_REPO_PAT` | Token จากขั้นตอนที่ 3 |
 | `GEMINI_API_KEY` | ค่าเดียวกับที่อยู่ใน `.env` ในเครื่องตอนนี้ |
+| `OPENAI_COMPATIBLE_API_KEY` | ใส่เฉพาะเมื่อ endpoint OpenChat/OpenAI-compatible ของคุณต้องใช้ API key |
 | `FACEBOOK_PAGE_ACCESS_TOKEN` | ค่าเดียวกับที่อยู่ใน `.env` |
 | `FACEBOOK_PAGE_ID` | ค่าเดียวกับที่อยู่ใน `.env` |
 | `TELEGRAM_BOT_TOKEN` | ค่าเดียวกับที่อยู่ใน `.env` (ถ้าอยากได้แจ้งเตือน) |
@@ -64,6 +65,20 @@ Token นี้ให้สิทธิ์ workflow เขียนเข้า 
 
 ค่าจริงพวกนี้ Claude ไม่เห็นและไม่แตะเลย — คุณต้อง copy จากไฟล์ `.env` ใน
 เครื่องมาใส่เอง (เปิดไฟล์ `.env` ด้วย Notepad ดูค่าได้)
+
+### ถ้าจะใช้ OpenChat กับ GitHub Actions
+
+ไปที่ **Settings → Secrets and variables → Actions → Variables** แล้วเพิ่ม:
+
+| ชื่อ Variable | ค่า |
+|---|---|
+| `AI_PROVIDER` | `openchat` หรือ `openai-compatible` |
+| `OPENAI_COMPATIBLE_BASE_URL` | URL ของ endpoint เช่น `https://your-domain.example/v1` |
+| `OPENAI_COMPATIBLE_MODEL` | ชื่อโมเดลที่ endpoint เปิดให้ใช้ เช่น `openchat_3.6` |
+
+GitHub-hosted Actions ติดต่อ `http://localhost:18888` บนเครื่องคุณไม่ได้:
+หากรัน OpenChat ที่เครื่องตัวเอง ต้องใช้ self-hosted GitHub runner หรือเปิด
+endpoint HTTPS ที่มีการยืนยันตัวตนก่อน จึงจะให้ AION บน GitHub เรียกได้.
 
 ---
 
