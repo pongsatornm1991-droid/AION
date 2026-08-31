@@ -41,6 +41,8 @@ jobs:
           OPENAI_COMPATIBLE_API_KEY: ${{ secrets.OPENAI_COMPATIBLE_API_KEY }}
           REEL_VOICE_PROVIDER: ${{ vars.REEL_VOICE_PROVIDER || 'edge-tts' }}
           REEL_VOICE: ${{ vars.REEL_VOICE || 'en-US-AvaMultilingualNeural' }}
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
         run: |
           python main.py run-reel-draft | tee reel-draft-report.txt
           cat reel-draft-report.txt >> "$GITHUB_STEP_SUMMARY"
@@ -60,6 +62,8 @@ jobs:
           AION_MEMORY_ROOT: memory_data
           INSTAGRAM_ACCESS_TOKEN: ${{ secrets.INSTAGRAM_ACCESS_TOKEN }}
           INSTAGRAM_BUSINESS_ACCOUNT_ID: ${{ secrets.INSTAGRAM_BUSINESS_ACCOUNT_ID }}
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
         run: python main.py run-reel-publish
       - name: Persist private memory
         working-directory: memory_data

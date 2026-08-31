@@ -1671,6 +1671,7 @@ def run_reel_draft(args):
         print(f"Video: {report['video_path']}")
     if report.get("reason") or report.get("error"):
         print(f"Reason: {report.get('reason') or report.get('error')}")
+    _notify_report(report, formatter=_format_reel_telegram_report)
 
 
 def run_reel_publish(args):
@@ -1680,6 +1681,26 @@ def run_reel_publish(args):
     print(f"Stage: {report['stage']}")
     if report.get("error"):
         print(f"Reason: {report['error']}")
+    _notify_report(report, formatter=_format_reel_telegram_report)
+
+
+def _format_reel_telegram_report(report):
+    """Brief, human-readable trace of AION's Reel activity."""
+    lines = ["AION (Instagram Reel):"]
+    stage = report.get("stage")
+    if report.get("caption"):
+        lines.append(f"ความคิด: {report['caption']}")
+    if stage == "drafted":
+        lines.append(f"สร้างวิดีโอแล้ว: {report.get('video_path')}")
+    elif stage == "published":
+        lines.append("เผยแพร่ Reel ขึ้น Instagram สำเร็จแล้ว ✅")
+    elif stage == "no-pending":
+        lines.append("ไม่มี Reel ที่รอเผยแพร่")
+    elif stage in ("failed", "lifecycle", "render-failed"):
+        lines.append(f"รอบนี้ยังไม่สำเร็จ: {report.get('error') or report.get('reason')}")
+    else:
+        lines.append(f"สถานะ: {stage}")
+    return "\n".join(lines)
 
 
 def _format_learning_telegram_report(report):
