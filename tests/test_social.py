@@ -286,7 +286,14 @@ class SocialAutoCycleTests(BaseSocialTest):
         self.assertEqual(report["stage"], "executed")
         self.assertEqual(report["action"]["status"], "executed")
         self.assertEqual(report["action"]["approver"], "auto-safety-gate")
-        self.assertEqual(self.posted, [provider.text])
+        # The actual posted message gets the multilingual hashtag
+        # block appended (2026-08-31) -- report["draft"]/the memory
+        # record stay hashtag-free (see brain/hashtags.py), but what
+        # actually reaches Facebook does not.
+        self.assertEqual(len(self.posted), 1)
+        self.assertTrue(self.posted[0].startswith(provider.text))
+        self.assertIn("#AI", self.posted[0])
+        self.assertEqual(report["draft"], provider.text)
 
     def test_unsafe_draft_is_never_proposed_or_posted(self):
         self._seed_belief()

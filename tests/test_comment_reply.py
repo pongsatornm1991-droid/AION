@@ -153,6 +153,23 @@ class DraftReplyTests(BaseCommentReplyTest):
         )
         self.assertIn("อย่าใช้คำว่า 'ระบบ AION' อีก", provider.calls[0])
 
+    def test_prompt_instructs_matching_the_comments_own_language(self):
+        # 2026-08-31: OutputEvaluator.CONSCIOUSNESS_PATTERNS/etc. only
+        # cover Thai and English, so a reply drafted in any other
+        # language would have zero claim-safety coverage -- the
+        # prompt itself must constrain the model to Thai/English (or
+        # English as the fallback for anything else) rather than
+        # mirroring an unsupported language verbatim.
+        provider = SafeProvider()
+        generator = CommentReplyGenerator(provider)
+
+        generator.draft_reply(make_comment())
+
+        prompt = provider.calls[0]
+        self.assertIn("ตอบเป็นภาษาเดียวกับคอมเมนต์นี้", prompt)
+        self.assertIn("ถ้าคอมเมนต์เขียนเป็นภาษาอื่นที่ไม่ใช่ไทยหรืออังกฤษ", prompt)
+        self.assertIn("ให้ตอบเป็นภาษาอังกฤษแทนเสมอ", prompt)
+
 
 class CommentAutoReplyCycleTests(BaseCommentReplyTest):
 

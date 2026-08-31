@@ -235,7 +235,16 @@ class PublishOnceTests(BaseVisualContentTest):
             f"main/{drafted['image_path']}",
         )
         self.assertEqual(len(self.published), 1)
-        self.assertEqual(self.published[0], (report["image_url"], drafted["caption"]))
+        # The real Instagram API caption gets the multilingual hashtag
+        # block appended (2026-08-31) -- the on-image rendered caption
+        # and report["caption"] stay hashtag-free (see
+        # brain/hashtags.py); only the text actually sent to Instagram
+        # carries it.
+        published_url, published_caption = self.published[0]
+        self.assertEqual(published_url, report["image_url"])
+        self.assertTrue(published_caption.startswith(drafted["caption"]))
+        self.assertIn("#AI", published_caption)
+        self.assertNotEqual(published_caption, drafted["caption"])
 
         # moved out of pending so a later run never reposts it
         self.assertEqual(self.memory.all(PENDING_CATEGORY), [])

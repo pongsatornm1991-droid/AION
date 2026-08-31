@@ -487,7 +487,14 @@ class SocialAutoCycle:
 
             return {"posted": False, "stage": stage, **draft_report}
 
-        message = draft_report["draft"]
+        from brain.hashtags import append_hashtags
+
+        # draft_report["draft"] (the gated text) is kept as-is in the
+        # returned report/memory record -- style-review lessons and
+        # Telegram notifications should reflect what was actually
+        # drafted and gated, not the mechanically-appended tag block.
+        # Only the message actually sent to Facebook gets hashtags.
+        message = append_hashtags(draft_report["draft"])
 
         try:
             proposed = self.lifecycle.propose(

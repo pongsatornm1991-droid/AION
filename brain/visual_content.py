@@ -138,12 +138,23 @@ class VisualContentCycle:
         from tools.image_render import render_content_card
         render_content_card(caption, absolute_path)
 
+        from brain.hashtags import append_hashtags
+
+        # "caption" (rendered onto the image card, and shown in
+        # reports/Telegram notifications) is kept hashtag-free on
+        # purpose -- a hashtag block drawn onto the card itself would
+        # clutter the visual design. "ig_caption" is the separate,
+        # hashtag-appended text actually sent to the Instagram Graph
+        # API as the post's real caption (see publish_once() below).
+        ig_caption = append_hashtags(caption)
+
         record = self.memory.remember(
             category=PENDING_CATEGORY,
             content=json.dumps(
                 {
                     "image_path": relative_path,
                     "caption": caption,
+                    "ig_caption": ig_caption,
                     "seed": draft_report.get("seed"),
                 },
                 ensure_ascii=False,
@@ -228,6 +239,10 @@ class VisualContentCycle:
 
         image_path = payload.get("image_path")
         caption = payload.get("caption", "")
+        # Falls back to the plain caption for any pending record saved
+        # before ig_caption existed -- never crashes on an older
+        # record, just publishes without the hashtag block that time.
+        publish_caption = payload.get("ig_caption") or caption
 
         try:
             image_url = self._build_image_url(image_path, repo=repo, branch=branch)
@@ -242,7 +257,7 @@ class VisualContentCycle:
         try:
             proposed = self.lifecycle.propose(
                 self.tool_name,
-                params={"image_url": image_url, "caption": caption},
+                params={"image_url": image_url, "caption": publish_caption},
                 source="aion",
             )
             approved = self.lifecycle.approve(proposed["id"], approver="auto-safety-gate")
