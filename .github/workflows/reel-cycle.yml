@@ -1,0 +1,62 @@
+name: AION - Instagram Reel cycle
+
+# Two deliberate Reels per week. This is a discovery format, not a volume bot.
+on:
+  schedule:
+    - cron: "0 11 * * 2,5"
+  workflow_dispatch: {}
+
+concurrency:
+  group: aion-memory-data
+  cancel-in-progress: false
+
+permissions:
+  contents: write
+
+jobs:
+  reel-cycle:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/checkout@v4
+        with:
+          repository: pongsatornm1991-droid/aion-memory-data
+          token: ${{ secrets.MEMORY_REPO_PAT }}
+          path: memory_data
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - run: pip install -r requirements.txt
+      - name: Draft a vertical Reel
+        env:
+          AION_MEMORY_ROOT: memory_data
+          AI_PROVIDER: ${{ vars.AI_PROVIDER || 'gemini' }}
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+          OPENAI_COMPATIBLE_BASE_URL: ${{ vars.OPENAI_COMPATIBLE_BASE_URL }}
+          OPENAI_COMPATIBLE_MODEL: ${{ vars.OPENAI_COMPATIBLE_MODEL }}
+          OPENAI_COMPATIBLE_API_KEY: ${{ secrets.OPENAI_COMPATIBLE_API_KEY }}
+        run: python main.py run-reel-draft
+      - name: Commit public Reel file
+        run: |
+          git config user.name "aion-bot"
+          git config user.email "aion-bot@users.noreply.github.com"
+          mkdir -p content/reels
+          git add content/reels/
+          if git diff --cached --quiet; then echo "HAS_REEL=false" >> "$GITHUB_ENV"; else git commit -m "AION: add Reel"; git push; echo "HAS_REEL=true" >> "$GITHUB_ENV"; fi
+      - name: Wait for public video URL
+        if: env.HAS_REEL == 'true'
+        run: sleep 60
+      - name: Publish Reel
+        if: env.HAS_REEL == 'true'
+        env:
+          AION_MEMORY_ROOT: memory_data
+          INSTAGRAM_ACCESS_TOKEN: ${{ secrets.INSTAGRAM_ACCESS_TOKEN }}
+          INSTAGRAM_BUSINESS_ACCOUNT_ID: ${{ secrets.INSTAGRAM_BUSINESS_ACCOUNT_ID }}
+        run: python main.py run-reel-publish
+      - name: Persist private memory
+        working-directory: memory_data
+        run: |
+          git config user.name "aion-bot"
+          git config user.email "aion-bot@users.noreply.github.com"
+          git add -A
+          if ! git diff --cached --quiet; then git commit -m "AION Reel memory update"; git push; fi

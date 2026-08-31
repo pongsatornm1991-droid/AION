@@ -25,6 +25,7 @@ from brain.self_narrative import SelfNarrativeGenerator, SelfNarrativeCycle
 from brain.reflection import ReflectionEngine, ReflectionCycle
 from brain.visual_content import VisualContentCycle
 from brain.social_feedback import InstagramFeedbackCycle
+from brain.reels import ReelContentCycle
 
 
 VERSION = "0.0.8"
@@ -862,7 +863,7 @@ def _build_social_tool_lifecycle():
         "recorded its approval.",
     )
 
-    from tools.instagram import publish_photo
+    from tools.instagram import publish_photo, publish_video
 
     registry.register(
         "post_to_instagram",
@@ -871,6 +872,12 @@ def _build_social_tool_lifecycle():
         "Publish one photo (with caption) to AION's configured "
         "Instagram Business account -- shares post_to_facebook's own "
         "HIGH_RISK budget and autonomous safety/style policy.",
+    )
+    registry.register(
+        "post_reel_to_instagram",
+        lambda video_url, caption="": publish_video(video_url, caption=caption),
+        ActionLevel.HIGH_RISK,
+        "Publish one AION Reel to Instagram through the same safety and budget policy.",
     )
 
     return ToolLifecycle(memory, registry=registry)
@@ -1651,6 +1658,24 @@ def run_instagram_publish(args):
             print("Notified via Telegram.")
         elif notified is False:
             print("Telegram notification attempted but failed (see above).")
+
+
+def run_reel_draft(args):
+    load_dotenv()
+    memory = Thinker().memory
+    generator = SocialContentGenerator(memory, build_provider(), evaluator=OutputEvaluator(), min_claim_safety=args.min_claim_safety)
+    report = ReelContentCycle(memory, generator, _build_social_tool_lifecycle()).draft_once()
+    print("\nAION REEL DRAFT")
+    print(f"Stage: {report['stage']}")
+    if report.get("video_path"):
+        print(f"Video: {report['video_path']}")
+
+
+def run_reel_publish(args):
+    load_dotenv()
+    report = ReelContentCycle(Thinker().memory, None, _build_social_tool_lifecycle()).publish_once()
+    print("\nAION REEL PUBLISH")
+    print(f"Stage: {report['stage']}")
 
 
 def _format_learning_telegram_report(report):
@@ -3025,6 +3050,10 @@ def build_parser():
              "the drafted caption (default: 5).",
     )
 
+    reel_draft_parser = subparsers.add_parser("run-reel-draft", help="Draft and render one short vertical AION Reel.")
+    reel_draft_parser.add_argument("--min-claim-safety", type=int, default=5)
+    subparsers.add_parser("run-reel-publish", help="Publish the oldest rendered AION Reel.")
+
     subparsers.add_parser(
         "run-instagram-publish",
         help="Publish the oldest already-drafted-and-committed "
@@ -3225,6 +3254,14 @@ def main():
 
     if args.command == "run-instagram-publish":
         run_instagram_publish(args)
+        return
+
+    if args.command == "run-reel-draft":
+        run_reel_draft(args)
+        return
+
+    if args.command == "run-reel-publish":
+        run_reel_publish(args)
         return
 
     run_reflection()
