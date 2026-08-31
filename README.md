@@ -74,6 +74,18 @@ real feedback, the Growth Engine stores one cautious, evidence-bound insight
 for future drafting. It never changes safety rules or optimizes for engagement
 alone.
 
+### Obsidian Brain Vault
+
+Create a linked, read-only Markdown view of AION's current memory with:
+
+```powershell
+python main.py export-obsidian-vault --output "AION Brain Vault"
+```
+
+Open that folder as an Obsidian vault, begin at `AION Brain Dashboard.md`, and
+use Graph View to navigate beliefs, goals, knowledge, lessons, feedback, and
+growth insights. The exporter never modifies the source memory files.
+
 Generate a reflection:
 
 ```powershell

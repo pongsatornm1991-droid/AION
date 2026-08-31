@@ -1905,6 +1905,15 @@ def run_instagram_feedback(args):
         print(f"Error: {report['error']}")
 
 
+def run_export_obsidian_vault(args):
+    """Export a read-only linked view of AION's brain for Obsidian."""
+    from brain.obsidian import ObsidianVaultExporter
+    report = ObsidianVaultExporter(Thinker().memory).export(args.output)
+    print("\nAION OBSIDIAN VAULT")
+    print(f"Location: {report['output']}")
+    print(f"Memory notes: {report['notes']}")
+
+
 def _format_self_narrative_telegram_report(report):
     """Turn a SelfNarrativeCycle.reflect_once() report dict into a
     short Thai summary -- the Telegram notification body, and also
@@ -2996,6 +3005,12 @@ def build_parser():
         help="Maximum recent Instagram posts to observe (default: 10).",
     )
 
+    obsidian_parser = subparsers.add_parser(
+        "export-obsidian-vault",
+        help="Export AION memory as a linked Markdown vault for Obsidian.",
+    )
+    obsidian_parser.add_argument("--output", default="aion-vault")
+
     instagram_draft_parser = subparsers.add_parser(
         "run-instagram-draft",
         help="Draft one Instagram caption (same gates as a Facebook "
@@ -3198,6 +3213,10 @@ def main():
 
     if args.command == "run-instagram-feedback":
         run_instagram_feedback(args)
+        return
+
+    if args.command == "export-obsidian-vault":
+        run_export_obsidian_vault(args)
         return
 
     if args.command == "run-instagram-draft":
