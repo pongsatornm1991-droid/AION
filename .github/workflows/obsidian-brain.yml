@@ -1,0 +1,50 @@
+name: AION - Obsidian brain dashboard
+
+# Regenerates the private Obsidian vault from the same memory that powers
+# AION's life cycle. Nothing in this workflow is published to the public
+# AION repository or any social network.
+on:
+  schedule:
+    - cron: "45 */6 * * *"
+  workflow_dispatch: {}
+
+concurrency:
+  group: aion-memory-data
+  cancel-in-progress: false
+
+jobs:
+  export-obsidian-brain:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout AION code
+        uses: actions/checkout@v4
+
+      - name: Checkout AION private memory
+        uses: actions/checkout@v4
+        with:
+          repository: pongsatornm1991-droid/aion-memory-data
+          token: ${{ secrets.MEMORY_REPO_PAT }}
+          path: memory_data
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Export linked brain dashboard
+        env:
+          AION_MEMORY_ROOT: memory_data
+        run: python main.py export-obsidian-vault --output "memory_data/AION Brain Vault"
+
+      - name: Persist the private Obsidian vault
+        working-directory: memory_data
+        run: |
+          git config user.name "aion-bot"
+          git config user.email "aion-bot@users.noreply.github.com"
+          git add "AION Brain Vault/"
+          if git diff --cached --quiet; then
+            echo "AION brain dashboard is already current."
+          else
+            git commit -m "AION Obsidian brain dashboard ($(date -u +%Y-%m-%dT%H:%M:%SZ))"
+            git push
+          fi

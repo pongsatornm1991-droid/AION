@@ -86,6 +86,11 @@ Open that folder as an Obsidian vault, begin at `AION Brain Dashboard.md`, and
 use Graph View to navigate beliefs, goals, knowledge, lessons, feedback, and
 growth insights. The exporter never modifies the source memory files.
 
+The private-memory workflow refreshes this vault every six hours. Its output
+lives only in the private `aion-memory-data` repository, so AION's internal
+thoughts and audience observations are not exposed through the public code
+repository.
+
 Generate a reflection:
 
 ```powershell
