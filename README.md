@@ -33,6 +33,13 @@ Set `GEMINI_API_KEY` before using reflection mode.
   an API key if that endpoint requires one. AION still applies the same
   memory, safety, and style gates after the model writes a draft.
 
+For original Instagram artwork, the default renderer is free and local. Set
+`IMAGE_PROVIDER=openai` plus `OPENAI_IMAGE_API_KEY` to generate a new square
+visual through OpenAI Images instead. Set `OPENAI_IMAGE_QUALITY=medium` for
+the normal daily feed and reserve `high` for deliberate campaign posts. AION
+automatically falls back to the branded-card renderer on a missing key or API
+failure, so the social loop does not stop or repeatedly spend money.
+
 ## Commands
 
 ### Autonomous operation

@@ -2,13 +2,8 @@ name: AION - social post cycle
 
 # Runs run-social-cycle so AION drafts and (if safe) posts new
 # content to Facebook without anyone running it by hand. Raised from
-# every 6 hours to hourly (2026-08-30, at the user's request for
-# AION to act on its own initiative more often) -- still safe to run
-# this often because a HIGH_RISK daily budget (30/day, see
-# brain/tools.py DEFAULT_BUDGETS) caps how many posts can actually go
-# out even if every single run finds something worth posting, and a
-# run that finds no good seed simply does nothing. Change the cron
-# below to adjust further.
+# once daily at 21:00 Bangkok time. This pace leaves room for audience
+# response and avoids treating social growth as a volume contest.
 #
 # Shares the same private memory_data repo as check-comments.yml (see
 # that file's header comment for why memory/ is not tracked in this
@@ -16,7 +11,7 @@ name: AION - social post cycle
 
 on:
   schedule:
-    - cron: "0 * * * *"
+    - cron: "0 14 * * *"
   workflow_dispatch: {}
 
 # All AION workflows share one private, git-backed memory_data repo

@@ -135,8 +135,14 @@ class VisualContentCycle:
             repo_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
         absolute_path = os.path.join(repo_root, relative_path)
 
-        from tools.image_render import render_content_card
-        render_content_card(caption, absolute_path)
+        # OpenAI image generation is opt-in and may fail transiently.  The
+        # deterministic branded card keeps every scheduled run publishable
+        # without spending a retry or losing AION's visual identity.
+        from tools.openai_image import generate_social_image
+        generated_by = "openai" if generate_social_image(caption, absolute_path) else "branded-card"
+        if generated_by == "branded-card":
+            from tools.image_render import render_content_card
+            render_content_card(caption, absolute_path)
 
         from brain.hashtags import append_hashtags
 
@@ -157,6 +163,7 @@ class VisualContentCycle:
                     "ig_caption": ig_caption,
                     "seed": draft_report.get("seed"),
                     "language": draft_report.get("language", "th"),
+                    "image_provider": generated_by,
                 },
                 ensure_ascii=False,
             ),
@@ -169,6 +176,7 @@ class VisualContentCycle:
             "stage": "drafted",
             "seed": draft_report.get("seed"),
             "caption": caption,
+            "image_provider": generated_by,
             "image_path": relative_path,
             "pending_id": record.get("id"),
         }
