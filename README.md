@@ -91,6 +91,13 @@ lives only in the private `aion-memory-data` repository, so AION's internal
 thoughts and audience observations are not exposed through the public code
 repository.
 
+### Reels renderer
+
+`tools/reel_render.py` turns an AION hook and one short thought into a
+caption-led 1080×1920 Reel cover and a 12-second MP4 with gentle camera motion.
+It uses the same bundled Visual DNA library as Instagram cards. MP4 encoding
+requires `ffmpeg`; GitHub's Ubuntu runners provide it by default.
+
 Generate a reflection:
 
 ```powershell
