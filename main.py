@@ -1779,19 +1779,27 @@ def run_learning_cycle(args):
     ):
         print(f"Reason: {report.get('reason') or report.get('error')}")
 
-    if report["stage"] not in ("no-open-questions",):
-        notified = _notify_report(report, formatter=_format_learning_telegram_report)
-        if notified is True:
-            print("Notified via Telegram.")
-        elif notified is False:
-            print("Telegram notification attempted but failed (see above).")
+    # Notify on every run, including the routine no-op stages -- the
+    # user explicitly asked (2026-08-31) to see every reflection/
+    # learning cycle's outcome as a visibility feature, not just the
+    # stages that produce something new. Telegram's Bot API has no
+    # quota/cost at this volume (hourly at most); the formatter keeps
+    # each no-op message to one short line so the higher frequency
+    # stays skimmable rather than noisy.
+    notified = _notify_report(report, formatter=_format_learning_telegram_report)
+    if notified is True:
+        print("Notified via Telegram.")
+    elif notified is False:
+        print("Telegram notification attempted but failed (see above).")
 
 
 def _format_reflection_telegram_report(report):
     """Turn a ReflectionCycle.run_once() report dict into a short Thai
-    summary. Only called for stages worth telling a human about (see
-    run_reflection_cycle's notify guard) -- the routine "nothing
-    happened" stages never reach here."""
+    summary -- the Telegram notification body for EVERY stage,
+    including the routine no-op ones (2026-08-31: the user asked to
+    see every cycle's outcome, not just the ones that raise something
+    new). Each no-op case is kept to one short line on purpose, so a
+    higher-frequency notification stream stays easy to skim."""
 
     lines = ["AION (ทบทวนตัวเอง):"]
 
@@ -1807,6 +1815,18 @@ def _format_reflection_telegram_report(report):
         )
     elif stage == "draft-failed":
         lines.append(f"ทบทวนไม่สำเร็จ (ปัญหาที่ตัว AI provider): {report.get('error')}")
+    elif stage == "questions-at-capacity":
+        lines.append(
+            f"มีคำถามที่เปิดอยู่เต็มโควต้าแล้ว ({report.get('open_count')}/"
+            f"{report.get('max_open')}) รอบนี้เลยยังไม่คิดเรื่องใหม่"
+        )
+    elif stage == "no-new-material":
+        lines.append("ยังไม่มีกิจกรรมใหม่ (คอมเมนต์/ความรู้/บทเรียน) ให้ทบทวนตอนนี้")
+    elif stage == "nothing-new":
+        count = report.get("material_count")
+        lines.append(
+            f"ทบทวนแล้ว ({count} รายการ) แต่ยังไม่เจออะไรน่าสงสัยพอจะตั้งคำถามใหม่"
+        )
 
     return "\n".join(lines)
 
@@ -1860,18 +1880,21 @@ def run_reflection_cycle(args):
     if report.get("error"):
         print(f"Error: {report['error']}")
 
-    # Only stages a human would actually want to see -- the routine
-    # no-op stages (questions-at-capacity, no-new-material,
-    # nothing-new) are deliberately silent, same reasoning as
-    # run_learning_cycle's own "no-open-questions" guard: an hourly-ish
-    # schedule reporting "nothing happened" every single run is noise,
-    # not signal.
-    if report["stage"] in ("raised", "safety-gate", "draft-failed"):
-        notified = _notify_report(report, formatter=_format_reflection_telegram_report)
-        if notified is True:
-            print("Notified via Telegram.")
-        elif notified is False:
-            print("Telegram notification attempted but failed (see above).")
+    # Notify on every run, including the routine no-op stages
+    # (questions-at-capacity, no-new-material, nothing-new) -- the
+    # user explicitly asked (2026-08-31) to see every reflection
+    # cycle's outcome as a visibility feature ("want to see what it's
+    # thinking about"), not just the stages that raise something new.
+    # Telegram's Bot API has no quota/cost at this volume (every 3h);
+    # the formatter keeps each no-op message to one short line so the
+    # higher frequency stays skimmable rather than a repeat of the
+    # earlier hourly-spam problem this guard was originally added to
+    # prevent.
+    notified = _notify_report(report, formatter=_format_reflection_telegram_report)
+    if notified is True:
+        print("Notified via Telegram.")
+    elif notified is False:
+        print("Telegram notification attempted but failed (see above).")
 
 
 def _format_self_narrative_telegram_report(report):
