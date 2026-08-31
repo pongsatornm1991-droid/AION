@@ -1,0 +1,57 @@
+name: AION - Instagram feedback
+
+# Read-only audience feedback. Changed follower/post counters are recorded in
+# private memory and become grounded material for AION's next reflection.
+on:
+  schedule:
+    - cron: "30 */6 * * *"
+  workflow_dispatch: {}
+
+concurrency:
+  group: aion-memory-data
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  instagram-feedback:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout AION code
+        uses: actions/checkout@v4
+
+      - name: Checkout AION memory
+        uses: actions/checkout@v4
+        with:
+          repository: pongsatornm1991-droid/aion-memory-data
+          token: ${{ secrets.MEMORY_REPO_PAT }}
+          path: memory_data
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: Capture Instagram feedback
+        env:
+          AION_MEMORY_ROOT: memory_data
+          INSTAGRAM_ACCESS_TOKEN: ${{ secrets.INSTAGRAM_ACCESS_TOKEN }}
+          INSTAGRAM_BUSINESS_ACCOUNT_ID: ${{ secrets.INSTAGRAM_BUSINESS_ACCOUNT_ID }}
+        run: python main.py run-instagram-feedback
+
+      - name: Persist memory changes
+        working-directory: memory_data
+        run: |
+          git config user.name "aion-bot"
+          git config user.email "aion-bot@users.noreply.github.com"
+          git add -A
+          if git diff --cached --quiet; then
+            echo "No feedback changes this run."
+          else
+            git commit -m "AION Instagram feedback ($(date -u +%Y-%m-%dT%H:%M:%SZ))"
+            git push
+          fi

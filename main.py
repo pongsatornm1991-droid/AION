@@ -24,6 +24,7 @@ from brain.learning import WebLearningGenerator, WebLearningCycle
 from brain.self_narrative import SelfNarrativeGenerator, SelfNarrativeCycle
 from brain.reflection import ReflectionEngine, ReflectionCycle
 from brain.visual_content import VisualContentCycle
+from brain.social_feedback import InstagramFeedbackCycle
 
 
 VERSION = "0.0.8"
@@ -1876,6 +1877,34 @@ def run_reflection_cycle(args):
         print("Telegram notification attempted but failed (see above).")
 
 
+def run_instagram_feedback(args):
+    """Read changed Instagram performance metrics into AION's memory.
+
+    The cycle has no publishing side effect. Its observations become material
+    for reflection, so future questions, beliefs, and goals can be grounded in
+    the audience's real response instead of guesses.
+    """
+
+    load_dotenv()
+    from tools.instagram_insights import get_account_overview, get_recent_media
+
+    cycle = InstagramFeedbackCycle(
+        Thinker().memory,
+        overview_reader=get_account_overview,
+        media_reader=get_recent_media,
+    )
+    report = cycle.capture_once(limit=args.limit)
+
+    print("\nAION INSTAGRAM FEEDBACK")
+    print(f"Stage: {report['stage']}")
+    print(f"Recorded: {report['recorded']}")
+    if report.get("overview"):
+        overview = report["overview"]
+        print(f"Followers: {overview.get('followers_count')}")
+    if report.get("error"):
+        print(f"Error: {report['error']}")
+
+
 def _format_self_narrative_telegram_report(report):
     """Turn a SelfNarrativeCycle.reflect_once() report dict into a
     short Thai summary -- the Telegram notification body, and also
@@ -2957,6 +2986,16 @@ def build_parser():
              "a raised question (default: 5).",
     )
 
+    instagram_feedback_parser = subparsers.add_parser(
+        "run-instagram-feedback",
+        help="Read changed Instagram follower and post-engagement metrics "
+             "into AION's memory; never publishes anything.",
+    )
+    instagram_feedback_parser.add_argument(
+        "--limit", type=int, default=10,
+        help="Maximum recent Instagram posts to observe (default: 10).",
+    )
+
     instagram_draft_parser = subparsers.add_parser(
         "run-instagram-draft",
         help="Draft one Instagram caption (same gates as a Facebook "
@@ -3155,6 +3194,10 @@ def main():
 
     if args.command == "run-reflection-cycle":
         run_reflection_cycle(args)
+        return
+
+    if args.command == "run-instagram-feedback":
+        run_instagram_feedback(args)
         return
 
     if args.command == "run-instagram-draft":

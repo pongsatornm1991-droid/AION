@@ -81,7 +81,9 @@ class ReflectionEngine:
     # only by a human manually running the `remember` CLI command, so
     # in practice it is almost always empty on the live, scheduled
     # deployment).
-    MATERIAL_SOURCES = ("comment_replies", "external_knowledge", "lessons")
+    MATERIAL_SOURCES = (
+        "comment_replies", "external_knowledge", "lessons", "social_feedback",
+    )
 
     # Lessons logged by this module's own safety gate, or by any other
     # module's safety/style self-review, are AION reflecting on its

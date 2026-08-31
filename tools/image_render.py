@@ -16,16 +16,16 @@ in this repo at assets/fonts/NotoSansThai-Regular.ttf, since Thai text
 otherwise renders as empty boxes on a bare Ubuntu GitHub Actions
 runner, which has no Thai-capable font installed by default).
 
-Deliberately simple: solid background + soft radial-ish glow band +
-centered word-wrapped caption + corner watermark. No external image
-assets, no template library -- easy to keep free-tier (nothing here
-costs money to run, unlike Gemini's paid image-generation models,
-which this project has declined to use since Phase 10).
+The generated AION visual reference supplies an atmospheric background;
+a dark overlay, glow band, centered caption, and corner watermark keep
+every post readable and recognizable. It remains a deterministic,
+free fallback: an unavailable future image-generation provider can
+never stop the Instagram cycle from publishing.
 """
 
 import os
 
-from PIL import Image, ImageDraw, ImageFont
+from PIL import Image, ImageDraw, ImageFont, ImageOps
 
 # Repo-relative so this works the same whether invoked from the repo
 # root (local CLI use) or from a GitHub Actions runner's checkout --
@@ -35,6 +35,9 @@ from PIL import Image, ImageDraw, ImageFont
 _REPO_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 DEFAULT_FONT_PATH = os.path.join(
     _REPO_ROOT, "assets", "fonts", "NotoSansThai-Regular.ttf"
+)
+BACKGROUND_ART_PATH = os.path.join(
+    _REPO_ROOT, "assets", "visual-references", "aion-learning-v1.png"
 )
 
 CARD_SIZE = (1080, 1080)
@@ -97,6 +100,23 @@ def _wrap_text(draw, text, font, max_width):
     return lines
 
 
+def _create_background(size):
+    """Build a readable branded background, even if the art asset is absent."""
+    width, height = size
+    image = Image.new("RGB", (width, height), BACKGROUND_COLOR)
+
+    try:
+        with Image.open(BACKGROUND_ART_PATH) as source:
+            image = ImageOps.fit(source.convert("RGB"), (width, height))
+    except OSError:
+        pass
+
+    # Preserve the artwork's atmosphere but reserve enough contrast for Thai
+    # caption text on every generated card.
+    overlay = Image.new("RGBA", (width, height), (0, 0, 0, 135))
+    return Image.alpha_composite(image.convert("RGBA"), overlay).convert("RGB")
+
+
 def render_content_card(
     caption,
     out_path,
@@ -120,7 +140,7 @@ def render_content_card(
     os.makedirs(os.path.dirname(os.path.abspath(out_path)) or ".", exist_ok=True)
 
     width, height = size
-    image = Image.new("RGB", (width, height), BACKGROUND_COLOR)
+    image = _create_background((width, height))
     draw = ImageDraw.Draw(image)
 
     # A soft horizontal glow band across the middle third, evoking the

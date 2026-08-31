@@ -53,6 +53,13 @@ public presence so more people can discover and follow AION. This resolves the
 empty-memory `no-seed` deadlock without treating a model-generated sentence as
 evidence or an invented fact.
 
+Instagram content uses a branded AI-art background with readable Thai caption
+overlay and falls back safely to the same renderer if a future image service is
+unavailable. A separate read-only feedback cycle captures changed follower,
+like, and comment counts every six hours; only changed values enter memory, so
+reflection can learn from real audience response without filling memory with
+duplicate snapshots.
+
 Generate a reflection:
 
 ```powershell

@@ -17,6 +17,7 @@ import unittest
 from PIL import Image, ImageDraw, ImageFont
 
 from tools.image_render import (
+    BACKGROUND_ART_PATH,
     CARD_SIZE,
     DEFAULT_FONT_PATH,
     _wrap_text,
@@ -111,6 +112,9 @@ class RenderContentCardTests(unittest.TestCase):
         with Image.open(out_path) as image:
             self.assertEqual(image.size, CARD_SIZE)
             self.assertEqual(image.format, "PNG")
+
+    def test_branded_visual_reference_is_present(self):
+        self.assertTrue(os.path.isfile(BACKGROUND_ART_PATH))
 
     def test_renders_even_with_a_long_caption(self):
         out_path = os.path.join(self.tmpdir, "card_long.png")
