@@ -86,6 +86,13 @@ jobs:
         run: |
           git config user.name "aion-bot"
           git config user.email "aion-bot@users.noreply.github.com"
+          # content/images/ does not exist until the very first image is
+          # ever rendered (e.g. the "no-seed" stage, before AION has any
+          # belief/question/goal/lesson material yet to draft from) --
+          # `git add` on a path that has never existed is a fatal error
+          # (exit 128), not a silent no-op like an existing empty dir, so
+          # this crashed every run until the directory was created once.
+          mkdir -p content/images
           git add content/images/
           if git diff --cached --quiet; then
             echo "No new image this run -- nothing to publish."
