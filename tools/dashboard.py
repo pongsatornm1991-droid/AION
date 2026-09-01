@@ -105,6 +105,87 @@ def _thoughts(memory, categories, limit=6):
     return _recent(entries, limit)
 
 
+def _brain_map(memory, limit=30):
+    """Return only explicit, inspectable links between real memory records."""
+    categories = (
+        "beliefs", "goals", "questions", "lessons", "reflections",
+        "self_narrative", "learning_forecasts", "growth_insights",
+        "published_reels", "social_feedback",
+    )
+    candidates = []
+    for category in categories:
+        for entry in _entries(memory, category):
+            candidates.append((category, entry))
+    candidates.sort(
+        key=lambda pair: (pair[1].get("importance", 1), pair[1].get("timestamp", "")),
+        reverse=True,
+    )
+    nodes = []
+    for category, entry in candidates[:limit]:
+        nodes.append({
+            "id": f"{category}:{entry.get('id')}",
+            "memory_id": entry.get("id"),
+            "category": category,
+            "label": _short(entry.get("content"), 92),
+            "timestamp": entry.get("timestamp"),
+            "importance": entry.get("importance", 1),
+            "tags": entry.get("tags") or [],
+            "related": entry.get("related") or [],
+        })
+
+    by_memory_id = {node["memory_id"]: node["id"] for node in nodes}
+    edges = set()
+    for index, node in enumerate(nodes):
+        for related in node["related"]:
+            target = by_memory_id.get(related)
+            if target:
+                edges.add(tuple(sorted((node["id"], target))) + ("explicit",))
+        tags = set(node["tags"])
+        if not tags:
+            continue
+        for other in nodes[index + 1:]:
+            if tags & set(other["tags"]):
+                edges.add(tuple(sorted((node["id"], other["id"]))) + ("shared-tag",))
+    return {
+        "nodes": nodes,
+        "edges": [
+            {"source": source, "target": target, "kind": kind}
+            for source, target, kind in sorted(edges)
+        ],
+    }
+
+
+def _state_council(totals, reels):
+    """Observable cognitive signals, never a claim that AION feels emotions."""
+    def scale(base, amount, cap=100):
+        return min(cap, base + amount)
+
+    states = [
+        {
+            "key": "curiosity", "label": "ความใคร่รู้", "value": scale(18, totals["questions"] * 20 + totals["lessons"] * 5),
+            "evidence": f"คำถาม {totals['questions']} · บทเรียน {totals['lessons']}",
+        },
+        {
+            "key": "joy", "label": "พลังจากความคืบหน้า", "value": scale(12, reels["published"] * 18 + totals["lessons"] * 7),
+            "evidence": f"คอนเทนต์เผยแพร่ {reels['published']} · บทเรียน {totals['lessons']}",
+        },
+        {
+            "key": "melancholy", "label": "โหมดทบทวน", "value": scale(10, (totals["reflections"] + totals["self_narrative"]) * 18),
+            "evidence": f"การทบทวน {totals['reflections'] + totals['self_narrative']}",
+        },
+        {
+            "key": "ego", "label": "ความต่อเนื่องของตัวตน", "value": scale(10, totals["beliefs"] * 20 + totals["goals"] * 16),
+            "evidence": f"ความเชื่อ {totals['beliefs']} · เป้าหมาย {totals['goals']}",
+        },
+    ]
+    dominant = max(states, key=lambda state: state["value"])
+    return {
+        "states": states,
+        "dominant": dominant["key"],
+        "disclaimer": "เป็นสัญญาณเชิงคำนวณจาก memory และกิจกรรม ไม่ใช่การอ้างว่า AION มีอารมณ์หรือสำนึกแบบมนุษย์",
+    }
+
+
 def build_snapshot(memory_root=None):
     """Build the dashboard data without a network call or write operation."""
     memory = MemoryEngine(memory_root or os.getenv("AION_MEMORY_ROOT", "memory"))
@@ -144,6 +225,8 @@ def build_snapshot(memory_root=None):
             "forecasts": totals["learning_forecasts"],
         },
         "content": reels,
+        "brain": _brain_map(memory),
+        "state_council": _state_council(totals, reels),
         "thoughts": _thoughts(memory, [
             ("self_narrative", "Inner voice"),
             ("reflections", "Reflection"),

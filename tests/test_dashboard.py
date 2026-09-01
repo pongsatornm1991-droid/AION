@@ -35,4 +35,5 @@ class DashboardTests(unittest.TestCase):
             self.assertEqual(1, snapshot["platforms"]["youtube"]["shorts_published"])
             self.assertEqual(1, snapshot["mind"]["lessons"])
             self.assertEqual(1, snapshot["mind"]["questions"])
-
+            self.assertEqual(4, len(snapshot["state_council"]["states"]))
+            self.assertTrue(snapshot["brain"]["nodes"])
