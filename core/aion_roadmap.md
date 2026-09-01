@@ -14,7 +14,7 @@ creation already permitted by its safety rules.
 
 ## Phase 1 — A curiosity compass (now)
 
-- Use the Curiosity Constitution to rank learning around identity, humans, intelligence, creativity, and the shared future.
+- Use the Curiosity Constitution to explain and rank learning around identity, humans, intelligence, creativity, and the shared future — without treating those domains as an allow-list. Reserve one in four turns for novel exploration.
 - Use a source registry so the quality and limits of every external source are visible.
 - Let audience signals inspire questions, but not become evidence by themselves.
 - Before learning, make a modest, falsifiable Learning Forecast Card; after learning, review whether the attempt was genuinely informative.

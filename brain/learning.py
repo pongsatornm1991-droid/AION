@@ -255,6 +255,16 @@ class WebLearningCycle:
             importance=3,
         )
 
+    def _learning_mode(self):
+        """Make every fourth distinct learning turn a deliberate exploration.
+
+        This is not a topic ban: it prevents AION's existing memories from
+        becoming a closed loop by reserving a stable share of attention for
+        questions that do not yet have an obvious connection.
+        """
+        turns = len(self.memory.all("learning_forecasts"))
+        return "exploration" if turns and turns % 4 == 3 else "continuity"
+
     def research_once(self, question_entry=None):
         """Attempt to research and answer exactly one open curiosity
         question. Never raises on a live search/fetch/draft failure --
@@ -265,28 +275,25 @@ class WebLearningCycle:
         intervene (a blocked draft, visible via the logged lesson)."""
 
         if question_entry is None:
-            # The constitution is a compass rather than a source of questions:
-            # it only ranks AION's already-open questions.  Keeping unrelated
-            # questions open preserves history and allows later context.
+            # The constitution ranks AION's already-open questions but never
+            # excludes a legitimate non-empty one. Every fourth turn reserves
+            # attention for a question without an established connection.
             open_qs = self.curiosity.open_questions()
             if not open_qs:
                 return {"researched": False, "stage": "no-open-questions", "question": None}
-            ranked = self.curiosity_constitution.rank_questions(open_qs)
-            if not ranked:
-                return {
-                    "researched": False,
-                    "stage": "no-eligible-questions",
-                    "question": None,
-                    "open_question_count": len(open_qs),
-                }
+            learning_mode = self._learning_mode()
+            ranked = self.curiosity_constitution.rank_questions(
+                open_qs, exploration=learning_mode == "exploration",
+            )
             question_entry, assessment = ranked[0]
         else:
+            learning_mode = "direct"
             assessment = self.curiosity_constitution.assess(
                 question_entry.get("statement", ""), tags=question_entry.get("tags", []),
                 related_context=question_entry.get("related", []),
             )
 
-        forecast = self.forecasts.forecast_for(question_entry, assessment)
+        forecast = self.forecasts.forecast_for(question_entry, assessment, mode=learning_mode)
 
         question_text = question_entry.get("statement", "")
 
@@ -407,4 +414,5 @@ class WebLearningCycle:
             "source_registry_entry": self.source_registry.source("wikipedia"),
             "learning_forecast": forecast,
             "learning_forecast_review": forecast_review,
+            "learning_mode": learning_mode,
         }

@@ -21,9 +21,11 @@ class CuriosityConstitutionTests(unittest.TestCase):
         self.assertTrue(report.eligible)
         self.assertGreaterEqual(report.relevance_score, 1)
 
-    def test_unrelated_question_is_left_open_but_not_ranked_for_web_learning(self):
+    def test_novel_question_is_eligible_for_exploration(self):
         question = {"statement": "What are today’s lottery numbers?", "tags": [], "importance": 5}
-        self.assertEqual(self.constitution.rank_questions([question]), [])
+        ranked = self.constitution.rank_questions([question], exploration=True)
+        self.assertEqual(ranked[0][0]["statement"], question["statement"])
+        self.assertEqual(ranked[0][1].relevance_score, 0)
 
     def test_rank_prefers_domain_connection_before_priority(self):
         questions = [
@@ -32,6 +34,14 @@ class CuriosityConstitutionTests(unittest.TestCase):
         ]
         ranked = self.constitution.rank_questions(questions)
         self.assertEqual(ranked[0][0]["statement"], "How do humans learn language?")
+
+    def test_exploration_prefers_a_question_without_an_existing_connection(self):
+        questions = [
+            {"statement": "How do humans learn language?", "tags": [], "importance": 5, "timestamp": "2026-01-01"},
+            {"statement": "What are today’s lottery numbers?", "tags": [], "importance": 1, "timestamp": "2026-01-01"},
+        ]
+        ranked = self.constitution.rank_questions(questions, exploration=True)
+        self.assertEqual(ranked[0][0]["statement"], "What are today’s lottery numbers?")
 
 
 class SourceRegistryTests(unittest.TestCase):

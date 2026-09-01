@@ -171,17 +171,17 @@ class WebLearningCycleTests(BaseLearningTest):
         self.assertFalse(report["researched"])
         self.assertEqual(report["stage"], "no-open-questions")
 
-    def test_unrelated_open_question_is_not_sent_to_external_learning(self):
+    def test_novel_open_question_is_sent_to_external_learning(self):
         self._raise_question("What are today’s lottery numbers?")
         generator = WebLearningGenerator(SafeProvider())
         cycle = WebLearningCycle(
             self.memory, self.curiosity, generator,
-            search_fn=fake_search(["Lottery"]), fetch_fn=fake_fetch({}),
+            search_fn=fake_search([]), fetch_fn=fake_fetch({}),
         )
 
         report = cycle.research_once()
 
-        self.assertEqual(report["stage"], "no-eligible-questions")
+        self.assertEqual(report["stage"], "no-search-results")
         self.assertEqual(len(self.curiosity.open_questions()), 1)
 
     def test_compass_prefers_relevant_question_over_higher_priority_unrelated_one(self):

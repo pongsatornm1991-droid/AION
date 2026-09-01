@@ -1,9 +1,10 @@
 name: AION - Instagram Reel cycle
 
-# Two deliberate Reels per week. This is a discovery format, not a volume bot.
+# One deliberate Reel per day for a 30-day discovery experiment. AION uses
+# feedback to judge whether this cadence earns attention; it is not a volume bot.
 on:
   schedule:
-    - cron: "0 11 * * 2,5"
+    - cron: "0 11 * * *"
   workflow_dispatch: {}
 
 concurrency:

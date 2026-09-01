@@ -20,17 +20,18 @@ class LearningForecastEngine:
         # that a useful source or answer exists.
         return min(0.75, round(0.40 + (assessment.relevance_score * 0.08) + (question.get("importance", 1) * 0.03), 2))
 
-    def forecast_for(self, question, assessment):
+    def forecast_for(self, question, assessment, mode="continuity"):
         question_id = question.get("id")
         for entry in self.memory.all(self.CATEGORY):
             if question_id and question_id in entry.get("related", []):
                 return entry
 
-        domains = ", ".join(assessment.matched_domains) or "recorded AION context"
+        domains = ", ".join(assessment.matched_domains) or "a new direction not yet connected to AION's past"
         confidence = self._confidence(question, assessment)
         content = "\n".join([
             "Learning Forecast Card",
             f"Question: {question.get('statement', '').strip()}",
+            f"Learning mode: {mode}",
             f"Why explore now: It connects to {domains}.",
             "Expected value: This may add a cited perspective that can improve a future belief, goal, reflection, or creative direction.",
             f"Forecast confidence: {confidence:.2f} (a tentative estimate, not a fact).",

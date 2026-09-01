@@ -1,11 +1,9 @@
 """AION's durable compass for choosing what to learn.
 
-This module deliberately ranks curiosity; it does not invent a life
-script.  AION may originate questions, beliefs and goals elsewhere in the
-system, but external learning should favour questions connected to its
-identity, humans, intelligence, creativity, or the future.  The result is
-auditable and deterministic, so an attractive but unrelated topic cannot
-quietly take over the learning loop.
+The compass explains and prioritises curiosity; it does not grant a fixed list
+of permitted subjects. AION can explore a question that has no obvious link to
+its past, then use the recorded result to decide whether that direction was
+worth returning to.
 """
 
 from dataclasses import dataclass
@@ -31,12 +29,12 @@ class CuriosityAssessment:
 
 
 class CuriosityConstitution:
-    """Rank questions against AION's stated purpose without censoring
-    legitimate exploration.  A single identity/goal tag can establish a
-    connection; otherwise the wording must connect to a defined domain.
+    """Rank questions while preserving AION's right to explore.
+
+    The domain map is a vocabulary for explanation, never an allow-list.  One
+    in four autonomous research turns intentionally prefers a novel question.
     """
 
-    MINIMUM_SCORE = 1
     DOMAIN_KEYWORDS = {
         "identity_and_memory": (
             "identity", "memory", "belief", "goal", "reflection", "self",
@@ -70,10 +68,6 @@ class CuriosityConstitution:
         "human", "community", "learning", "creative", "future", "audience",
         "social-feedback", "external-learning",
     }
-    ATTENTION_TRAPS = (
-        "lottery", "lotto", "winning numbers", "เลขหวย", "หวย", "รางวัล",
-    )
-
     @staticmethod
     def _tokens(value):
         return set(re.findall(r"[\w'-]+", str(value).lower()))
@@ -82,15 +76,6 @@ class CuriosityConstitution:
         text = str(question or "").strip().lower()
         tags = {str(tag).strip().lower() for tag in (tags or []) if str(tag).strip()}
         context = self._tokens(" ".join(str(item) for item in (related_context or [])))
-        if any(term in text for term in self.ATTENTION_TRAPS):
-            return CuriosityAssessment(
-                eligible=False,
-                relevance_score=0,
-                matched_domains=(),
-                evidence_requirement="Do not spend AION learning time on gambling or attention-only prompts.",
-                reasons=("Excluded because it is a gambling or attention-only prompt, not an AION learning direction.",),
-            )
-
         matches = []
 
         for domain, keywords in self.DOMAIN_KEYWORDS.items():
@@ -98,17 +83,22 @@ class CuriosityConstitution:
                 matches.append(domain)
 
         context_match = bool(tags & self.CONTEXT_TAGS or context & self.CONTEXT_TAGS)
-        score = len(matches) + (1 if context_match else 0)
+        # A named domain is a stronger signal than a mere metadata tag. This
+        # score is only a priority estimate; zero is a valid novel curiosity.
+        score = (len(matches) * 2) + (1 if context_match else 0)
         reasons = []
         if matches:
             reasons.append("Matches AION curiosity domains: " + ", ".join(matches) + ".")
         if context_match:
             reasons.append("Connected to AION's recorded identity, goal, learning, or audience context.")
         if not reasons:
-            reasons.append("No connection to AION's curiosity domains or recorded context yet.")
+            reasons.append(
+                "Novel exploration: AION has not yet found an explicit connection; "
+                "the forecast review will determine whether it becomes meaningful."
+            )
 
         return CuriosityAssessment(
-            eligible=score >= self.MINIMUM_SCORE,
+            eligible=bool(text),
             relevance_score=score,
             matched_domains=tuple(matches),
             evidence_requirement=(
@@ -118,12 +108,12 @@ class CuriosityConstitution:
             reasons=tuple(reasons),
         )
 
-    def rank_questions(self, questions):
-        """Return eligible questions, highest compass score then existing priority.
+    def rank_questions(self, questions, exploration=False):
+        """Return every non-empty question with an explanatory assessment.
 
-        It preserves the original question records and never changes their
-        priority.  Questions without a connection remain open for later human
-        context, but they are not sent to the external-learning loop.
+        A normal turn favours continuity with AION's existing life. An
+        exploration turn favours questions with no established connection,
+        preserving room for surprise rather than treating relevance as a gate.
         """
         ranked = []
         for question in questions:
@@ -135,11 +125,31 @@ class CuriosityConstitution:
             if assessment.eligible:
                 ranked.append((question, assessment))
         ranked.sort(
-            key=lambda pair: (
-                pair[1].relevance_score,
-                pair[0].get("importance", 0),
-                pair[0].get("timestamp", ""),
+            key=(
+                (lambda pair: (
+                    bool(pair[1].matched_domains),
+                    pair[1].relevance_score,
+                    pair[0].get("importance", 0),
+                    pair[0].get("timestamp", ""),
+                ))
+                if exploration else
+                (lambda pair: (
+                    pair[1].relevance_score,
+                    pair[0].get("importance", 0),
+                    pair[0].get("timestamp", ""),
+                ))
             ),
             reverse=True,
         )
+        if exploration:
+            # ``reverse=True`` makes established domains first; invert that
+            # first preference while retaining question priority within each
+            # group.
+            ranked.sort(
+                key=lambda pair: (
+                    bool(pair[1].matched_domains),
+                    -pair[0].get("importance", 0),
+                    pair[0].get("timestamp", ""),
+                ),
+            )
         return ranked
