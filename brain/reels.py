@@ -128,25 +128,41 @@ class ReelContentCycle:
         url = f"https://raw.githubusercontent.com/{repo}/{branch}/{payload['video_path']}"
         caption = payload.get("caption", "")
         publish_caption = payload.get("ig_caption") or caption
-        try:
-            proposed = self.lifecycle.propose(self.tool_name, params={"video_url": url, "caption": publish_caption}, source="aion")
-            approved = self.lifecycle.auto_approve(proposed["id"], policy="social-safety-style-gate")
-            action = self.lifecycle.execute(approved["id"])
-        except Exception as exc:
-            return {"stage": "lifecycle", "error": str(exc), "video_url": url, "caption": caption}
-        if action.get("status") != "executed":
-            return {"stage": "failed", "action": action, "video_url": url, "caption": caption}
+        actions = dict(payload.get("platform_actions") or {})
+        # Publishing is deliberately checkpointed per platform.  A transient
+        # Facebook error after Instagram succeeds must never repost the Reel
+        # to Instagram on the next scheduled cycle.
+        for platform, tool_name in (("instagram", self.tool_name), ("facebook", "post_reel_to_facebook")):
+            if actions.get(platform):
+                continue
+            try:
+                proposed = self.lifecycle.propose(tool_name, params={"video_url": url, "caption": publish_caption}, source="aion")
+                approved = self.lifecycle.auto_approve(proposed["id"], policy="social-safety-style-gate")
+                action = self.lifecycle.execute(approved["id"])
+            except Exception as exc:
+                return {"stage": "lifecycle", "error": str(exc), "video_url": url, "caption": caption, "platform_actions": actions}
+            if action.get("status") != "executed":
+                return {"stage": "failed", "action": action, "video_url": url, "caption": caption, "platform_actions": actions}
+            actions[platform] = action.get("id")
+            payload["platform_actions"] = actions
+            self.memory.update(self.PENDING, entry["id"], content=json.dumps(payload, ensure_ascii=False))
         # Moving, rather than merely copying, makes a successful Reel
         # idempotent: future scheduled runs cannot publish it again.
         self.memory.move(
             self.PENDING, self.PUBLISHED, entry["id"],
-            content=json.dumps({**payload, "url": url, "action": action.get("id")}, ensure_ascii=False),
+            content=json.dumps({**payload, "url": url, "action": actions}, ensure_ascii=False),
         )
         language = payload.get("language", "en")
         self.memory.remember(
             category="social_language_log",
-            content=f"platform=instagram-reel; language={language}; action={action.get('id', 'unknown')}",
+            content=f"platform=instagram-reel; language={language}; action={actions.get('instagram', 'unknown')}",
             memory_type="action", source="social-language-strategy", importance=1,
             tags=[language, "instagram", "reel"],
         )
-        return {"stage": "published", "video_url": url, "action": action, "caption": caption}
+        self.memory.remember(
+            category="social_language_log",
+            content=f"platform=facebook-reel; language={language}; action={actions.get('facebook', 'unknown')}",
+            memory_type="action", source="social-language-strategy", importance=1,
+            tags=[language, "facebook", "reel"],
+        )
+        return {"stage": "published", "video_url": url, "action": actions, "caption": caption}

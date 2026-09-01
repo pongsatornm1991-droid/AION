@@ -833,6 +833,7 @@ def _build_social_tool_lifecycle():
         post_to_facebook_page,
         reply_to_facebook_comment,
         update_page_bio,
+        publish_reel_to_facebook,
     )
 
     memory = Thinker().memory
@@ -843,6 +844,12 @@ def _build_social_tool_lifecycle():
         lambda message: post_to_facebook_page(message),
         ActionLevel.HIGH_RISK,
         "Publish one text post to AION's configured Facebook Page.",
+    )
+    registry.register(
+        "post_reel_to_facebook",
+        lambda video_url, caption="": publish_reel_to_facebook(video_url, caption=caption),
+        ActionLevel.HIGH_RISK,
+        "Publish one AION Reel to the configured Facebook Page.",
     )
 
     registry.register(

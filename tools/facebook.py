@@ -24,6 +24,81 @@ GRAPH_API_VERSION = "v21.0"
 GRAPH_API_BASE = f"https://graph.facebook.com/{GRAPH_API_VERSION}"
 
 
+def _resolve_page_credentials(access_token=None, page_id=None):
+    load_dotenv()
+    access_token = access_token or os.getenv("FACEBOOK_PAGE_ACCESS_TOKEN")
+    page_id = page_id or os.getenv("FACEBOOK_PAGE_ID")
+    if not access_token:
+        raise RuntimeError("FACEBOOK_PAGE_ACCESS_TOKEN is not configured. Add it to the .env file (see .env.example).")
+    if not page_id:
+        raise RuntimeError("FACEBOOK_PAGE_ID is not configured. Add it to the .env file (see .env.example).")
+    return access_token, page_id
+
+
+def publish_reel_to_facebook(video_url, caption="", access_token=None, page_id=None):
+    """Publish a public MP4 as a Facebook Page Reel.
+
+    The Reels API requires a three-stage transfer: start an upload session,
+    stream the public video to Meta's upload URL, then finish as PUBLISHED.
+    It deliberately performs no whole-operation retry; ReelContentCycle
+    checkpoints each platform after success and retries only the unfinished
+    platform on a later scheduled run.
+    """
+    video_url = str(video_url or "").strip()
+    if not video_url:
+        raise ValueError("video_url cannot be empty.")
+    access_token, page_id = _resolve_page_credentials(access_token, page_id)
+    import requests
+
+    endpoint = f"{GRAPH_API_BASE}/{page_id}/video_reels"
+    start = requests.post(
+        endpoint, json={"upload_phase": "start", "access_token": access_token}, timeout=30,
+    )
+    try:
+        start_payload = start.json()
+    except ValueError:
+        start_payload = {}
+    if start.status_code >= 400 or "error" in start_payload:
+        raise _graph_error(start_payload, start.status_code)
+    video_id, upload_url = start_payload.get("video_id"), start_payload.get("upload_url")
+    if not video_id or not upload_url:
+        raise RuntimeError("Facebook Reels API did not return video_id and upload_url.")
+
+    source = requests.get(video_url, stream=True, timeout=90)
+    if source.status_code >= 400:
+        raise RuntimeError(f"Could not download the rendered Reel for Facebook (HTTP {source.status_code}).")
+    upload = requests.post(
+        upload_url,
+        data=source.iter_content(chunk_size=1024 * 1024),
+        headers={
+            "Authorization": f"OAuth {access_token}",
+            "offset": "0",
+            "file_size": str(source.headers.get("content-length", "")),
+            "Content-Type": "application/octet-stream",
+        },
+        timeout=180,
+    )
+    try:
+        upload_payload = upload.json()
+    except ValueError:
+        upload_payload = {}
+    if upload.status_code >= 400 or "error" in upload_payload:
+        raise _graph_error(upload_payload, upload.status_code)
+
+    finish = requests.post(
+        endpoint,
+        data={"upload_phase": "finish", "video_id": video_id, "video_state": "PUBLISHED", "description": str(caption or ""), "access_token": access_token},
+        timeout=30,
+    )
+    try:
+        finish_payload = finish.json()
+    except ValueError:
+        finish_payload = {}
+    if finish.status_code >= 400 or "error" in finish_payload:
+        raise _graph_error(finish_payload, finish.status_code)
+    return finish_payload
+
+
 def post_to_facebook_page(message, access_token=None, page_id=None):
     """Publish one text post to a Facebook Page's feed.
 

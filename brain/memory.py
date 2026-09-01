@@ -490,6 +490,25 @@ class MemoryEngine:
 
         return selected
 
+    def update(self, category: str, entry_id: str, content: str = None):
+        """Update one memory entry's content without changing its identity.
+
+        Long-running external actions use this to checkpoint a partial result
+        (for example, an Instagram Reel published while Facebook is still
+        retrying) so a later run cannot repeat the completed side effect.
+        """
+        entries = self.all(category)
+        matches = [entry for entry in entries if entry["id"] == entry_id]
+        if len(matches) != 1:
+            raise ValueError("No unique memory entry matches the supplied id.")
+        if content is not None:
+            cleaned = str(content).strip()
+            if not cleaned:
+                raise ValueError("Memory content cannot be empty.")
+            matches[0]["content"] = cleaned
+        self._write_entries(category, entries)
+        return matches[0]
+
     def _write_entries(self, category: str, entries: list):
         """Rewrite one memory category from structured entries."""
 

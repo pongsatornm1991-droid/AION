@@ -64,7 +64,7 @@ class ReelCycleTests(unittest.TestCase):
             self.assertEqual(memory.all("pending_reels"), [])
             self.assertEqual(len(memory.all("published_reels")), 1)
             self.assertIn("#ArtificialIntelligence", lifecycle.params["caption"])
-            self.assertEqual(len(memory.all("social_language_log")), 1)
+            self.assertEqual(len(memory.all("social_language_log")), 2)
 
     def test_failed_publish_keeps_reel_for_a_later_retry(self):
         with tempfile.TemporaryDirectory() as root:
@@ -79,6 +79,37 @@ class ReelCycleTests(unittest.TestCase):
 
             self.assertEqual(report["stage"], "failed")
             self.assertEqual(len(memory.all("pending_reels")), 1)
+
+    def test_facebook_retry_does_not_repost_an_already_published_instagram_reel(self):
+        class SplitLifecycle(_Lifecycle):
+            def __init__(self):
+                super().__init__()
+                self.tools = []
+                self.facebook_attempts = 0
+
+            def propose(self, tool, params, source):
+                self.tools.append(tool)
+                return {"id": tool}
+
+            def auto_approve(self, action_id, policy):
+                return {"id": action_id}
+
+            def execute(self, action_id):
+                if action_id == "post_reel_to_facebook":
+                    self.facebook_attempts += 1
+                    if self.facebook_attempts == 1:
+                        return {"id": "fb-1", "status": "failed"}
+                return {"id": action_id, "status": "executed"}
+
+        with tempfile.TemporaryDirectory() as root:
+            memory = MemoryEngine(root)
+            memory.remember("pending_reels", json.dumps({"video_path": "content/reels/a.mp4", "caption": "A thought"}), memory_type="action", source="aion-reel-draft")
+            lifecycle = SplitLifecycle()
+            cycle = ReelContentCycle(memory, None, lifecycle)
+            self.assertEqual(cycle.publish_once(repo="owner/AION")["stage"], "failed")
+            self.assertEqual(cycle.publish_once(repo="owner/AION")["stage"], "published")
+            self.assertEqual(lifecycle.tools.count("post_reel_to_instagram"), 1)
+            self.assertEqual(lifecycle.tools.count("post_reel_to_facebook"), 2)
 
 
 class ReelRenderTests(unittest.TestCase):
