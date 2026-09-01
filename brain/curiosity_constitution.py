@@ -44,6 +44,10 @@ class CuriosityConstitution:
             "human", "people", "community", "relationship", "culture",
             "มนุษย์", "ผู้คน", "ชุมชน", "ความสัมพันธ์", "วัฒนธรรม",
         ),
+        "thai_context": (
+            "thailand", "thai", "bangkok", "siam", "thai language",
+            "ประเทศไทย", "ไทย", "กรุงเทพ", "ภาษาไทย", "ชุมชนไทย",
+        ),
         "intelligence_and_learning": (
             "ai", "artificial intelligence", "intelligence", "learning",
             "reasoning", "knowledge", "language", "ปัญญาประดิษฐ์", "เรียนรู้",

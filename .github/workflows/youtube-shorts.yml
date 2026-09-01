@@ -30,6 +30,8 @@ jobs:
         with:
           python-version: "3.11"
       - run: pip install -r requirements.txt
+      - name: Verify deterministic safeguards
+        run: python run_tests.py
       - name: Upload one completed Reel as a Short
         env:
           AION_MEMORY_ROOT: memory_data

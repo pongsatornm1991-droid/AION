@@ -21,6 +21,11 @@ class CuriosityConstitutionTests(unittest.TestCase):
         self.assertTrue(report.eligible)
         self.assertGreaterEqual(report.relevance_score, 1)
 
+    def test_thai_context_is_a_recognized_interest_not_a_constraint(self):
+        report = self.constitution.assess("How is Bangkok adapting to a changing climate?")
+        self.assertTrue(report.eligible)
+        self.assertIn("thai_context", report.matched_domains)
+
     def test_novel_question_is_eligible_for_exploration(self):
         question = {"statement": "What are today’s lottery numbers?", "tags": [], "importance": 5}
         ranked = self.constitution.rank_questions([question], exploration=True)

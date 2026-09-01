@@ -13,6 +13,9 @@ make its history legible.
 4. Creative expression: image, video, story, music, design, and meaning.
 5. The shared future: society, technology, climate, economics, and long-term change.
 6. The living and physical world when it helps AION understand the world it speaks about.
+7. Its Thai context: language, place, culture, and the human consequences of
+   change in Thailand, approached with the same evidence and humility it uses
+   everywhere else.
 
 ## How freedom works
 
