@@ -57,9 +57,10 @@ jobs:
           # A curated source lives in the already-public visual library, so
           # it creates no new file under content/reels/. Draft success, not
           # a git diff, is the authoritative signal that it must be posted.
-          if grep -q "Stage: drafted" reel-draft-report.txt; then echo "HAS_REEL=true" >> "$GITHUB_ENV"; else echo "HAS_REEL=false" >> "$GITHUB_ENV"; fi
+          if grep -Eq "Stage: (drafted|redesigned|pending-exists)" reel-draft-report.txt; then echo "HAS_REEL=true" >> "$GITHUB_ENV"; else echo "HAS_REEL=false" >> "$GITHUB_ENV"; fi
+          if grep -Eq "Stage: (drafted|redesigned)" reel-draft-report.txt; then echo "NEEDS_PUBLIC_URL=true" >> "$GITHUB_ENV"; else echo "NEEDS_PUBLIC_URL=false" >> "$GITHUB_ENV"; fi
       - name: Wait for public video URL
-        if: env.HAS_REEL == 'true'
+        if: env.NEEDS_PUBLIC_URL == 'true'
         run: sleep 60
       - name: Publish Reel
         if: env.HAS_REEL == 'true'

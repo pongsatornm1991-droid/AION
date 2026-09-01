@@ -66,7 +66,25 @@ class ReelCycleTests(unittest.TestCase):
             self.assertIn("#ArtificialIntelligence", lifecycle.params["caption"])
             self.assertEqual(len(memory.all("social_language_log")), 2)
 
-    def test_matching_curated_video_is_selected_once_then_not_reused(self):
+    def test_old_pending_reel_is_redesigned_without_asking_for_a_new_thought(self):
+        with tempfile.TemporaryDirectory() as root:
+            memory = MemoryEngine(root)
+            pending = memory.remember(
+                "pending_reels", json.dumps({"video_path": "content/reels/old.mp4", "caption": "A thought"}),
+                memory_type="action", source="aion-reel-draft",
+            )
+            cycle = ReelContentCycle(memory, None, _Lifecycle())
+            with mock.patch("tools.reel_render.render_reel") as render:
+                report = cycle.draft_once(repo_root=root)
+
+            self.assertEqual(report["stage"], "redesigned")
+            render.assert_called_once()
+            saved = json.loads(memory.all("pending_reels")[0]["content"])
+            self.assertEqual(saved["visual_style"], cycle.VISUAL_STYLE)
+            self.assertNotEqual(saved["video_path"], "content/reels/old.mp4")
+            self.assertEqual(pending["id"], report["pending_id"])
+
+    def test_matching_curated_video_is_selected_once_and_blocks_a_second_queue_item(self):
         class Generator:
             def draft_post(self):
                 return {
@@ -85,8 +103,8 @@ class ReelCycleTests(unittest.TestCase):
 
             self.assertEqual(first["library_asset"], "abstract-branching-purpose-v1")
             self.assertEqual(first["video_path"], "assets/content-library/aion-core/01-abstract-branching-purpose.mp4")
-            self.assertIsNone(second["library_asset"])
-            render.assert_called_once()
+            self.assertEqual(second["stage"], "pending-exists")
+            render.assert_not_called()
 
     def test_failed_publish_keeps_reel_for_a_later_retry(self):
         with tempfile.TemporaryDirectory() as root:

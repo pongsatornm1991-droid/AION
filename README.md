@@ -95,8 +95,11 @@ repository.
 
 ### Reels renderer
 
-`tools/reel_render.py` turns an AION hook and one short thought into a
-caption-led 1080×1920 Reel cover and a 12-second MP4 with gentle camera motion.
+`tools/reel_render.py` turns an AION thought into a character-led 1080×1920
+three-scene Reel with gentle camera motion and optional voice narration. The
+thought lives in the voice and caption rather than covering the artwork with
+large text. See [the YouTube channel plan](docs/YOUTUBE_CHANNEL.md) for the
+long-form publishing ladder.
 It uses the same bundled Visual DNA library as Instagram cards. MP4 encoding
 requires `ffmpeg`; GitHub's Ubuntu runners provide it by default.
 

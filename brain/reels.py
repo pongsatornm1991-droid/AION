@@ -10,6 +10,7 @@ from datetime import datetime
 class ReelContentCycle:
     PENDING = "pending_reels"
     PUBLISHED = "published_reels"
+    VISUAL_STYLE = "character-narration-v2"
     VIDEO_LIBRARY_PATH = os.path.join(
         os.path.dirname(os.path.dirname(os.path.abspath(__file__))),
         "assets", "content-library", "aion-core", "VIDEO_LIBRARY.json",
@@ -109,6 +110,28 @@ class ReelContentCycle:
         return {"id": asset_id, "path": video_path, "score": score}
 
     def draft_once(self, repo_root=None):
+        # Never add more material while something is waiting to be published.
+        # A retry must repair and finish its existing thought, not silently
+        # create a growing backlog of extra posts.
+        pending = self._oldest_pending()
+        if pending is not None:
+            try:
+                payload = json.loads(pending["content"])
+            except (TypeError, ValueError):
+                return {"stage": "pending-exists", "pending_id": pending.get("id")}
+            if payload.get("visual_style") != self.VISUAL_STYLE:
+                repo_root = repo_root or os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+                relative = f"content/reels/{datetime.now():%Y%m%d}-{uuid.uuid4().hex[:12]}.mp4"
+                try:
+                    from tools.reel_render import render_reel
+                    render_reel(self._hook(payload.get("caption", "")), payload.get("caption", ""), os.path.join(repo_root, relative))
+                except Exception as exc:
+                    return {"stage": "render-failed", "error": str(exc), "pending_id": pending.get("id")}
+                payload["video_path"] = relative
+                payload["visual_style"] = self.VISUAL_STYLE
+                self.memory.update(self.PENDING, pending["id"], content=json.dumps(payload, ensure_ascii=False))
+                return {"stage": "redesigned", "video_path": relative, "caption": payload.get("caption", ""), "pending_id": pending.get("id")}
+            return {"stage": "pending-exists", "pending_id": pending.get("id")}
         report = self.social_generator.draft_post()
         if report.get("stage") == "no-seed" or report.get("reason_kind") == "no_seed":
             # A new private memory repository is legitimately empty. Record
@@ -154,7 +177,8 @@ class ReelContentCycle:
             content=json.dumps({"video_path": relative, "caption": report["draft"],
                                 "ig_caption": ig_caption,
                                 "language": report.get("language", "en"), "seed": report.get("seed"),
-                                "library_asset": library_video["id"] if library_video else None},
+                                "library_asset": library_video["id"] if library_video else None,
+                                "visual_style": self.VISUAL_STYLE},
             ensure_ascii=False), memory_type="action", source="aion-reel-draft", importance=3,
         )
         return {"stage": "drafted", "video_path": relative, "caption": report["draft"],
