@@ -26,6 +26,7 @@ from brain.reflection import ReflectionEngine, ReflectionCycle
 from brain.visual_content import VisualContentCycle
 from brain.social_feedback import InstagramFeedbackCycle
 from brain.reels import ReelContentCycle
+from brain.evolution import EvolutionEngine
 
 
 VERSION = "0.0.8"
@@ -1981,6 +1982,31 @@ def run_export_obsidian_vault(args):
     print(f"Memory notes: {report['notes']}")
 
 
+def run_evolution_cycle(args):
+    """Create one evidence-backed weekly self-improvement proposal."""
+    load_dotenv()
+    report = EvolutionEngine(Thinker().memory).propose_once(force=args.force)
+    print("\nAION EVOLUTION CYCLE")
+    print(f"Stage: {report['stage']}")
+    if report.get("snapshot"):
+        print(f"Evidence snapshot: {report['snapshot']}")
+    if report.get("proposals"):
+        print(f"Proposals: {len(report['proposals'])}")
+        for proposal in report["proposals"]:
+            print(f"- [{proposal['priority']}] {proposal['area']}: {proposal['experiment']}")
+    _notify_report(report, formatter=_format_evolution_telegram_report)
+
+
+def _format_evolution_telegram_report(report):
+    lines = ["AION (วิวัฒนาการรายสัปดาห์):"]
+    if report.get("stage") == "not-due":
+        lines.append("รอบทบทวนยังไม่ถึงกำหนด")
+    else:
+        for proposal in report.get("proposals", [])[:3]:
+            lines.append(f"• {proposal['area']}: {proposal['experiment']}")
+    return "\n".join(lines)
+
+
 def _format_self_narrative_telegram_report(report):
     """Turn a SelfNarrativeCycle.reflect_once() report dict into a
     short Thai summary -- the Telegram notification body, and also
@@ -3078,6 +3104,15 @@ def build_parser():
     )
     obsidian_parser.add_argument("--output", default="aion-vault")
 
+    evolution_parser = subparsers.add_parser(
+        "run-evolution-cycle",
+        help="Create an evidence-backed weekly proposal for improving AION's habits and creative library.",
+    )
+    evolution_parser.add_argument(
+        "--force", action="store_true",
+        help="Create a proposal even if the normal weekly review is not due.",
+    )
+
     instagram_draft_parser = subparsers.add_parser(
         "run-instagram-draft",
         help="Draft one Instagram caption (same gates as a Facebook "
@@ -3289,6 +3324,10 @@ def main():
 
     if args.command == "export-obsidian-vault":
         run_export_obsidian_vault(args)
+        return
+
+    if args.command == "run-evolution-cycle":
+        run_evolution_cycle(args)
         return
 
     if args.command == "run-instagram-draft":

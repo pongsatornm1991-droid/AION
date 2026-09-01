@@ -15,5 +15,7 @@ class ObsidianVaultTests(unittest.TestCase):
             dashboard = (Path(report["output"]) / "AION Brain Dashboard.md").read_text(encoding="utf-8")
             note = (Path(report["output"]) / f"beliefs-{entry['id']}.md").read_text(encoding="utf-8")
             self.assertIn("[[Beliefs]]", dashboard)
+            self.assertIn("[[AION Life Cycle]]", dashboard)
             self.assertIn("#curiosity", note)
+            self.assertIn("[[Beliefs]]", note)
             self.assertIn("AION should stay curious.", note)

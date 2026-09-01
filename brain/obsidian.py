@@ -15,6 +15,8 @@ class ObsidianVaultExporter:
     CATEGORIES = (
         "beliefs", "questions", "goals", "external_knowledge", "lessons",
         "social_feedback", "growth_insights", "self_narratives",
+        "evolution_proposals", "published_reels", "pending_reels",
+        "social_language_log",
     )
 
     def __init__(self, memory):
@@ -34,6 +36,25 @@ class ObsidianVaultExporter:
                 encoding="utf-8",
             )
 
+        (root / "AION Life Cycle.md").write_text(
+            "\n".join([
+                "# AION Life Cycle", "", "[[AION Brain Dashboard]]", "",
+                "```mermaid",
+                "flowchart LR",
+                "  M[Memory] --> R[Reflection]",
+                "  R --> Q[Questions / Beliefs / Goals]",
+                "  Q --> L[Learning and Experiments]",
+                "  L --> C[Posts and Reels]",
+                "  C --> F[Audience Feedback]",
+                "  F --> M",
+                "  M --> E[Evolution Proposals]",
+                "  E --> L",
+                "```", "",
+                "This map describes recorded behaviour and planned experiments. It does not imply consciousness or unrestricted self-modification.",
+            ]) + "\n",
+            encoding="utf-8",
+        )
+
         for category in self.CATEGORIES:
             entries = self.memory.all(category)
             index_lines = [f"# {category.replace('_', ' ').title()}", "", "[[AION Brain Dashboard]]", ""]
@@ -46,7 +67,19 @@ class ObsidianVaultExporter:
                 (root / f"{note_name}.md").write_text(
                     "\n".join([
                         f"# {category[:-1].replace('_', ' ').title()} {entry.get('id')}", "",
-                        "[[AION Brain Dashboard]]", "",
+                        f"- **When:** {entry.get('timestamp', 'unknown')}",
+                        f"- **Type:** {entry.get('type', 'unknown')}",
+                        f"- **Source:** {entry.get('source', 'unknown')}",
+                        f"- **Importance:** {entry.get('importance', 1)}/5",
+                        f"- **Related:** {related}",
+                        f"- **Tags:** {tags or '—'}", "", "## Content", "", entry.get("content", ""), "",
+                        "[[AION Brain Dashboard]]", f"[[{category.replace('_', ' ').title()}]]", "",
+                        f"- **When:** {entry.get('timestamp', 'unknown')}",
+                        f"- **Type:** {entry.get('type', 'unknown')}",
+                        f"- **Source:** {entry.get('source', 'unknown')}",
+                        f"- **Importance:** {entry.get('importance', 1)}/5",
+                        f"- **Related:** {related}",
+                        f"- **Tags:** {tags or '—'}", "", "## Content", "", entry.get("content", ""), "",
                         f"- **When:** {entry.get('timestamp', 'unknown')}",
                         f"- **Type:** {entry.get('type', 'unknown')}",
                         f"- **Source:** {entry.get('source', 'unknown')}",
@@ -65,7 +98,8 @@ class ObsidianVaultExporter:
             "\n".join([
                 "# AION Brain Dashboard", "",
                 "A local, read-only map of AION's persistent mind. Open this folder as an Obsidian vault and use Graph View to explore its links.",
-                "", "## Brain areas", *category_links, "",
+                "", "## Life cycle", "", "- [[AION Life Cycle]]", "",
+                "## Brain areas", *category_links, "",
                 "## Identity", "", "- [[AION Manifesto]]", "- [[AION Visual DNA]]", "",
             ]), encoding="utf-8",
         )
