@@ -1699,6 +1699,11 @@ def run_reel_crosspost(args):
     print(f"Stage: {report['stage']}")
     if report.get("error"):
         print(f"Reason: {report['error']}")
+    action = report.get("action") or {}
+    if action.get("status"):
+        print(f"Action status: {action['status']}")
+    if action.get("error"):
+        print(f"Action error: {action['error']}")
     _notify_report(report, formatter=_format_reel_telegram_report)
 
 
@@ -1712,6 +1717,11 @@ def _format_reel_telegram_report(report):
         lines.append(f"สร้างวิดีโอแล้ว: {report.get('video_path')}")
     elif stage == "published":
         lines.append("เผยแพร่ Reel ขึ้น Instagram สำเร็จแล้ว ✅")
+    elif stage in ("failed", "lifecycle", "publish-failed"):
+        lines.append("สร้าง/ส่ง Reel ไม่สำเร็จในรอบนี้ — ระบบเก็บรายการค้างไว้เพื่อ retry")
+        action = report.get("action") or {}
+        if report.get("error") or action.get("error"):
+            lines.append(f"สาเหตุ: {report.get('error') or action.get('error')}")
     elif stage == "no-pending":
         lines.append("ไม่มี Reel ที่รอเผยแพร่")
     elif stage in ("failed", "lifecycle", "render-failed"):

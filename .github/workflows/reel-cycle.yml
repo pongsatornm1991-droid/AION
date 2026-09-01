@@ -71,7 +71,7 @@ jobs:
           FACEBOOK_PAGE_ID: ${{ secrets.FACEBOOK_PAGE_ID }}
           TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
           TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
-        run: python main.py run-reel-publish
+        run: python main.py run-reel-publish | tee reel-publish-report.txt
       - name: Persist private memory
         working-directory: memory_data
         run: |
@@ -79,3 +79,10 @@ jobs:
           git config user.email "aion-bot@users.noreply.github.com"
           git add -A
           if ! git diff --cached --quiet; then git commit -m "AION Reel memory update"; git push; fi
+      - name: Mark an unsuccessful publish clearly
+        if: env.HAS_REEL == 'true'
+        run: |
+          if ! grep -q "Stage: published" reel-publish-report.txt; then
+            echo "Reel rendering completed, but publishing did not. The pending record was persisted for retry."
+            exit 1
+          fi
