@@ -70,13 +70,24 @@ def publish_reel_to_facebook(video_url, caption="", access_token=None, page_id=N
     source = requests.get(video_url, stream=True, timeout=90)
     if source.status_code >= 400:
         raise RuntimeError(f"Could not download the rendered Reel for Facebook (HTTP {source.status_code}).")
+    # Meta's resumable-upload host validates the byte length twice.  Passing
+    # an iterator makes requests use chunked transfer encoding, which the
+    # host rejects unless it receives the matching entity-length headers.
+    # Reels produced by AION are intentionally short, so materialising this
+    # one bounded asset makes the transfer deterministic and inspectable.
+    video_bytes = b"".join(source.iter_content(chunk_size=1024 * 1024))
+    file_size = str(len(video_bytes))
+    if not video_bytes:
+        raise RuntimeError("The rendered Reel download was empty.")
     upload = requests.post(
         upload_url,
-        data=source.iter_content(chunk_size=1024 * 1024),
+        data=video_bytes,
         headers={
             "Authorization": f"OAuth {access_token}",
             "offset": "0",
-            "file_size": str(source.headers.get("content-length", "")),
+            "file_size": file_size,
+            "Content-Length": file_size,
+            "X-Entity-Length": file_size,
             "Content-Type": "application/octet-stream",
         },
         timeout=180,

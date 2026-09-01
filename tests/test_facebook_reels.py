@@ -42,6 +42,7 @@ class FacebookReelTests(unittest.TestCase):
         self.assertEqual(get.call_args.args[0], "https://cdn.example/reel.mp4")
         self.assertEqual(post.call_args_list[0].kwargs["data"]["upload_phase"], "start")
         self.assertEqual(post.call_args_list[1].kwargs["headers"]["Content-Type"], "application/octet-stream")
+        self.assertEqual(post.call_args_list[1].kwargs["headers"]["X-Entity-Length"], "3")
         self.assertEqual(post.call_args_list[2].kwargs["data"]["video_state"], "PUBLISHED")
 
     def test_rejects_empty_video_url_before_network_calls(self):
