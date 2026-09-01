@@ -1,0 +1,49 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>AION Observatory</title>
+  <style>
+    :root { --ink:#eaf8ff; --muted:#8ba7b7; --line:rgba(115,222,255,.18); --aqua:#3de7ff; --deep:#040b12; --card:rgba(8,22,34,.78); --warm:#ffb36b; }
+    * { box-sizing:border-box } body { margin:0; min-height:100vh; color:var(--ink); background:radial-gradient(circle at 80% -10%,#103f52 0,transparent 34%),radial-gradient(circle at 0% 80%,#102a44 0,transparent 31%),var(--deep); font:15px/1.5 Inter,ui-sans-serif,system-ui,-apple-system,"Segoe UI",sans-serif; }
+    body:before { content:""; position:fixed; inset:0; pointer-events:none; opacity:.22; background-image:linear-gradient(rgba(86,226,255,.04) 1px,transparent 1px),linear-gradient(90deg,rgba(86,226,255,.04) 1px,transparent 1px); background-size:42px 42px; mask-image:linear-gradient(#000,transparent); }
+    main { max-width:1320px; margin:auto; padding:48px 26px 60px; position:relative } .eyebrow { color:var(--aqua); letter-spacing:.18em; text-transform:uppercase; font-size:.72rem; font-weight:700 } h1 { font-size:clamp(2.4rem,6vw,4.7rem); line-height:.95; margin:10px 0 18px; letter-spacing:-.065em } .subtitle { color:var(--muted); max-width:650px; font-size:1.05rem; margin:0 } .top { display:flex; justify-content:space-between; align-items:flex-end; gap:24px; margin-bottom:46px } .live { color:var(--aqua); border:1px solid var(--line); border-radius:999px; padding:9px 13px; white-space:nowrap; font-size:.78rem } .dot { width:8px; height:8px; border-radius:100%; display:inline-block; background:var(--aqua); box-shadow:0 0 15px var(--aqua); margin-right:7px } 
+    .section-title { display:flex; align-items:center; gap:12px; font-size:.8rem; text-transform:uppercase; letter-spacing:.14em; color:var(--muted); margin:34px 0 14px } .section-title:after { content:""; height:1px; flex:1; background:var(--line) }
+    .grid { display:grid; grid-template-columns:repeat(3,1fr); gap:14px } .mind { grid-template-columns:repeat(7,1fr) } .card { border:1px solid var(--line); background:linear-gradient(145deg,rgba(14,36,52,.9),var(--card)); border-radius:18px; padding:21px; box-shadow:inset 0 1px rgba(255,255,255,.04),0 15px 50px rgba(0,0,0,.15) } .platform { min-height:196px; position:relative; overflow:hidden } .platform:after { content:""; position:absolute; width:150px; height:150px; border-radius:50%; right:-65px; bottom:-80px; background:radial-gradient(circle,var(--aqua),transparent 65%); opacity:.16 }.platform.fb:after{background:radial-gradient(circle,#7c9cff,transparent 65%)}.platform.yt:after{background:radial-gradient(circle,var(--warm),transparent 65%)}
+    .label { color:var(--muted); font-size:.8rem; font-weight:650; letter-spacing:.04em } .platform h2 { font-size:1.4rem; margin:14px 0 3px; letter-spacing:-.03em }.number { font-size:2.6rem; font-weight:700; letter-spacing:-.07em; margin:16px 0 0 }.metric-note { font-size:.78rem; color:var(--muted) }.state { display:inline-block; border:1px solid var(--line); color:var(--aqua); border-radius:999px; padding:4px 8px; font-size:.68rem; text-transform:uppercase; letter-spacing:.08em; margin-top:14px }.pending { color:var(--warm); border-color:rgba(255,179,107,.35) }
+    .mind .card { padding:16px; min-height:108px }.mind .number { font-size:1.9rem; margin-top:9px }.wide { display:grid; grid-template-columns:1.15fr .85fr; gap:14px }.thoughts { padding:0; overflow:hidden }.thought { padding:16px 20px; border-bottom:1px solid var(--line) }.thought:last-child{border:0}.thought-head { display:flex; justify-content:space-between; gap:10px; margin-bottom:6px }.badge { color:var(--aqua); font-size:.7rem; text-transform:uppercase; letter-spacing:.08em }.time { color:var(--muted); font-size:.74rem }.thought p { margin:0; color:#c9dce6; font-size:.9rem }.empty { color:var(--muted); padding:25px; text-align:center }.post { padding:15px 0; border-bottom:1px solid var(--line) }.post:last-child { border:0 }.post p { margin:6px 0; color:#c9dce6 }.channels { display:flex; gap:6px; flex-wrap:wrap }.channel { border-radius:999px; padding:3px 7px; color:var(--muted); background:rgba(255,255,255,.04); font-size:.7rem }.channel.on { color:#071017; background:var(--aqua); font-weight:700 } .footer { color:var(--muted); font-size:.75rem; padding-top:24px; text-align:right }
+    @media(max-width:850px){ main{padding:30px 16px}.top{display:block}.live{display:inline-block;margin-top:20px}.grid{grid-template-columns:1fr}.mind{grid-template-columns:repeat(3,1fr)}.wide{grid-template-columns:1fr}} @media(max-width:460px){.mind{grid-template-columns:repeat(2,1fr)}}
+  </style>
+</head>
+<body>
+<main>
+  <header class="top"><div><div class="eyebrow">Private live dashboard</div><h1>AION<br>Observatory</h1><p class="subtitle">One quiet place to watch AION think, learn, create, and reach the world.</p></div><div class="live"><span class="dot"></span><span id="live">Updating…</span></div></header>
+  <div class="section-title">Channels</div>
+  <section class="grid" id="platforms"></section>
+  <div class="section-title">Mind & growth</div>
+  <section class="grid mind" id="mind"></section>
+  <div class="section-title">Living record</div>
+  <section class="wide"><div class="card thoughts" id="thoughts"></div><div class="card" id="content"></div></section>
+  <div class="footer" id="updated"></div>
+</main>
+<script>
+  const el = id => document.getElementById(id);
+  const fmt = value => value == null ? '—' : new Intl.NumberFormat().format(value);
+  const title = value => ({'Inner voice':'Inner voice','Reflection':'Reflection','Lesson':'Lesson','Question':'Question','Goal':'Goal','Belief':'Belief','Forecast':'Forecast','Growth insight':'Growth insight'})[value] || value;
+  const platformCard = (name, data, metrics, cls='') => `<article class="card platform ${cls}"><div class="label">${name}</div><h2>${data.status.replaceAll('-', ' ')}</h2><div class="number">${fmt(metrics.value)}</div><div class="metric-note">${metrics.label}</div>${metrics.second ? `<div class="metric-note">${fmt(metrics.second.value)} ${metrics.second.label}</div>` : ''}<span class="state ${data.status.includes('pending') ? 'pending':''}">${data.status.replaceAll('-', ' ')}</span></article>`;
+  function render(data) {
+    const p = data.platforms;
+    el('platforms').innerHTML = platformCard('Instagram', p.instagram, {value:p.instagram.followers,label:'followers',second:{value:p.instagram.reels_published,label:'Reels published'}}, 'ig') + platformCard('Facebook', p.facebook, {value:p.facebook.reels_published,label:'Reels published'}, 'fb') + platformCard('YouTube', p.youtube, {value:p.youtube.shorts_published,label:'Shorts published'}, 'yt');
+    const mind = [['Memories',data.mind.total_memories],['Lessons',data.mind.lessons],['Questions',data.mind.questions],['Goals',data.mind.goals],['Beliefs',data.mind.beliefs],['Reflections',data.mind.reflections],['Forecasts',data.mind.forecasts]];
+    el('mind').innerHTML = mind.map(([name,value])=>`<article class="card"><div class="label">${name}</div><div class="number">${fmt(value)}</div></article>`).join('');
+    el('thoughts').innerHTML = data.thoughts.length ? data.thoughts.map(x=>`<article class="thought"><div class="thought-head"><span class="badge">${title(x.category)}</span><span class="time">${x.timestamp || ''}</span></div><p>${escapeHtml(x.content)}</p></article>`).join('') : '<div class="empty">AION is ready for its first recorded thought.</div>';
+    const c=data.content; el('content').innerHTML=`<div class="label">Content pulse</div><div class="number">${fmt(c.published)}</div><div class="metric-note">published Reels · ${fmt(c.pending)} pending</div><div style="margin-top:22px">${c.recent_posts.length ? c.recent_posts.map(x=>`<article class="post"><div class="time">${x.timestamp || ''}</div><p>${escapeHtml(x.caption || 'AION Reel')}</p><div class="channels">${['instagram','facebook','youtube'].map(k=>`<span class="channel ${x[k]?'on':''}">${k}</span>`).join('')}</div></article>`).join(''):'<div class="empty">No published Reels yet.</div>'}</div>`;
+    el('live').textContent='Live · refreshes every 15 seconds'; el('updated').textContent=`Last read: ${new Date(data.generated_at).toLocaleString()}`;
+  }
+  function escapeHtml(text){const d=document.createElement('div');d.textContent=text;return d.innerHTML}
+  async function load(){try{const response=await fetch('/api/snapshot',{cache:'no-store'}); if(!response.ok)throw Error(); render(await response.json())}catch{el('live').textContent='Waiting for AION Observatory…'}}
+  load(); setInterval(load,15000);
+</script>
+</body>
+</html>

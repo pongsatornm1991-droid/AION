@@ -93,6 +93,15 @@ lives only in the private `aion-memory-data` repository, so AION's internal
 thoughts and audience observations are not exposed through the public code
 repository.
 
+### AION Observatory dashboard
+
+`Start-AION-Observatory.bat` opens a separate private dashboard at
+`http://127.0.0.1:8787`. It refreshes every 15 seconds and reads AION's memory
+without modifying it. The page groups Instagram, Facebook, and YouTube activity
+separately, then shows AION's lessons, questions, goals, beliefs, reflections,
+forecasts, and recent public thoughts in one place. It stays on this computer;
+it is not a public website and does not expose AION's private memory.
+
 ### Reels renderer
 
 `tools/reel_render.py` turns an AION thought into a character-led 1080×1920
