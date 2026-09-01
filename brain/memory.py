@@ -16,6 +16,7 @@ class MemoryEngine:
         "question",
         "goal",
         "experiment",
+        "forecast",
         "action",
     }
 

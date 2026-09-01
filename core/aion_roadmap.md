@@ -17,6 +17,7 @@ creation already permitted by its safety rules.
 - Use the Curiosity Constitution to rank learning around identity, humans, intelligence, creativity, and the shared future.
 - Use a source registry so the quality and limits of every external source are visible.
 - Let audience signals inspire questions, but not become evidence by themselves.
+- Before learning, make a modest, falsifiable Learning Forecast Card; after learning, review whether the attempt was genuinely informative.
 
 ## Phase 2 — Learn from consequences
 

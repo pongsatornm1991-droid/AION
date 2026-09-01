@@ -16,7 +16,7 @@ class ObsidianVaultExporter:
         "beliefs", "questions", "goals", "external_knowledge", "lessons",
         "social_feedback", "growth_insights", "self_narratives",
         "evolution_proposals", "published_reels", "pending_reels",
-        "social_language_log",
+        "social_language_log", "learning_forecasts", "learning_forecast_reviews",
     )
 
     def __init__(self, memory):
@@ -49,6 +49,10 @@ class ObsidianVaultExporter:
                 "  M[Memory] --> R[Reflection]",
                 "  R --> Q[Questions / Beliefs / Goals]",
                 "  Q --> L[Learning and Experiments]",
+                "  Q --> P[Learning Forecast Card]",
+                "  P --> L",
+                "  L --> V[Forecast Review]",
+                "  V --> M",
                 "  L --> C[Posts and Reels]",
                 "  C --> F[Audience Feedback]",
                 "  F --> M",

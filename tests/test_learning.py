@@ -385,6 +385,12 @@ class WebLearningCycleTests(BaseLearningTest):
         self.assertIn("Chlorophyll", knowledge[0]["content"])
         self.assertIn(provider.text, knowledge[0]["content"])
 
+        forecasts = self.memory.all("learning_forecasts")
+        reviews = self.memory.all("learning_forecast_reviews")
+        self.assertEqual(len(forecasts), 1)
+        self.assertEqual(len(reviews), 1)
+        self.assertIn("Outcome: informative", reviews[0]["content"])
+
         # the resolved question's evidence cites the real source
         # (resolve_item() creates a NEW entry with a new id when
         # resolving -- history() walks backward from the id you give

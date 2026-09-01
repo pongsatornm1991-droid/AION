@@ -220,6 +220,8 @@ class WebLearningCycle:
             source_registry = SourceRegistry()
         self.curiosity_constitution = curiosity_constitution
         self.source_registry = source_registry
+        from brain.learning_forecast import LearningForecastEngine
+        self.forecasts = LearningForecastEngine(memory)
 
         if search_fn is None or fetch_fn is None:
             from tools.web_search import search_wikipedia, get_wikipedia_summary
@@ -284,6 +286,8 @@ class WebLearningCycle:
                 related_context=question_entry.get("related", []),
             )
 
+        forecast = self.forecasts.forecast_for(question_entry, assessment)
+
         question_text = question_entry.get("statement", "")
 
         try:
@@ -295,9 +299,13 @@ class WebLearningCycle:
             }
 
         if not results:
+            self.forecasts.review(
+                forecast, question_entry, "inconclusive",
+                "No relevant result was returned by the configured source.",
+            )
             return {
                 "researched": False, "stage": "no-search-results",
-                "question": question_entry,
+                "question": question_entry, "learning_forecast": forecast,
             }
 
         top_title = results[0]["title"]
@@ -311,9 +319,13 @@ class WebLearningCycle:
             }
 
         if not source.get("extract"):
+            self.forecasts.review(
+                forecast, question_entry, "inconclusive",
+                "The selected source had no usable extract.",
+            )
             return {
                 "researched": False, "stage": "empty-source",
-                "question": question_entry, "source": source,
+                "question": question_entry, "source": source, "learning_forecast": forecast,
             }
 
         style_notes = self.recent_style_notes()
@@ -337,6 +349,10 @@ class WebLearningCycle:
             reason_kind = draft_report.get("reason_kind")
             stage = "blocked-style" if reason_kind == "robotic_style" else "blocked-safety"
             self._log_lesson(reason_kind, draft_report["reason"])
+            self.forecasts.review(
+                forecast, question_entry, "blocked",
+                "A draft existed but did not pass AION's safety or voice gate.",
+            )
             return {
                 # draft_report spread FIRST: it carries its own
                 # "question" key (a plain string, the prompt's
@@ -347,6 +363,7 @@ class WebLearningCycle:
                 **draft_report,
                 "researched": False, "stage": stage, "question": question_entry,
                 "source": source,
+                "learning_forecast": forecast,
             }
 
         semantic_entry = self.memory.remember(
@@ -369,6 +386,10 @@ class WebLearningCycle:
                 "id": semantic_entry["id"],
             }],
         )
+        forecast_review = self.forecasts.review(
+            forecast, question_entry, "informative",
+            f"A cited answer was recorded from {source['title']} and the question was resolved.",
+        )
 
         return {
             # See the blocked-branch comment above: draft_report is
@@ -384,4 +405,6 @@ class WebLearningCycle:
             "resolved_question": resolved_question,
             "curiosity_assessment": assessment.as_dict(),
             "source_registry_entry": self.source_registry.source("wikipedia"),
+            "learning_forecast": forecast,
+            "learning_forecast_review": forecast_review,
         }
