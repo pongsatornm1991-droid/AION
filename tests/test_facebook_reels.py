@@ -40,7 +40,7 @@ class FacebookReelTests(unittest.TestCase):
         self.assertEqual(result["id"], "video-1")
         self.assertEqual(post.call_count, 3)
         self.assertEqual(get.call_args.args[0], "https://cdn.example/reel.mp4")
-        self.assertEqual(post.call_args_list[0].kwargs["json"]["upload_phase"], "start")
+        self.assertEqual(post.call_args_list[0].kwargs["data"]["upload_phase"], "start")
         self.assertEqual(post.call_args_list[1].kwargs["headers"]["Content-Type"], "application/octet-stream")
         self.assertEqual(post.call_args_list[2].kwargs["data"]["video_state"], "PUBLISHED")
 

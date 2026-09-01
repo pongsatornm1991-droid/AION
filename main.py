@@ -1689,6 +1689,11 @@ def run_reel_publish(args):
     print(f"Stage: {report['stage']}")
     if report.get("error"):
         print(f"Reason: {report['error']}")
+    action = report.get("action") or {}
+    if action.get("status"):
+        print(f"Action status: {action['status']}")
+    if action.get("error"):
+        print(f"Action error: {action['error']}")
     _notify_report(report, formatter=_format_reel_telegram_report)
 
 

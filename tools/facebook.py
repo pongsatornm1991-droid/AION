@@ -51,15 +51,18 @@ def publish_reel_to_facebook(video_url, caption="", access_token=None, page_id=N
     import requests
 
     endpoint = f"{GRAPH_API_BASE}/{page_id}/video_reels"
+    # The Page Reels endpoint expects form fields, not a JSON body.  Sending
+    # JSON can yield an opaque HTTP 400 before Meta even creates an upload
+    # session, despite the same token working for ordinary Page posts.
     start = requests.post(
-        endpoint, json={"upload_phase": "start", "access_token": access_token}, timeout=30,
+        endpoint, data={"upload_phase": "start", "access_token": access_token}, timeout=30,
     )
     try:
         start_payload = start.json()
     except ValueError:
         start_payload = {}
     if start.status_code >= 400 or "error" in start_payload:
-        raise _graph_error(start_payload, start.status_code)
+        raise _graph_error(start_payload, start.status_code, getattr(start, "text", ""))
     video_id, upload_url = start_payload.get("video_id"), start_payload.get("upload_url")
     if not video_id or not upload_url:
         raise RuntimeError("Facebook Reels API did not return video_id and upload_url.")
@@ -83,7 +86,7 @@ def publish_reel_to_facebook(video_url, caption="", access_token=None, page_id=N
     except ValueError:
         upload_payload = {}
     if upload.status_code >= 400 or "error" in upload_payload:
-        raise _graph_error(upload_payload, upload.status_code)
+        raise _graph_error(upload_payload, upload.status_code, getattr(upload, "text", ""))
 
     finish = requests.post(
         endpoint,
@@ -95,7 +98,7 @@ def publish_reel_to_facebook(video_url, caption="", access_token=None, page_id=N
     except ValueError:
         finish_payload = {}
     if finish.status_code >= 400 or "error" in finish_payload:
-        raise _graph_error(finish_payload, finish.status_code)
+        raise _graph_error(finish_payload, finish.status_code, getattr(finish, "text", ""))
     return finish_payload
 
 
@@ -159,13 +162,14 @@ def post_to_facebook_page(message, access_token=None, page_id=None):
     return payload
 
 
-def _graph_error(payload, status_code):
+def _graph_error(payload, status_code, response_text=""):
     error = payload.get("error", {})
+    detail = error.get("message") or str(response_text or "").strip()
     return RuntimeError(
         "Facebook Graph API error "
         f"({error.get('type', 'unknown')}, code "
         f"{error.get('code', 'unknown')}): "
-        f"{error.get('message') or f'HTTP {status_code}'}"
+        f"{detail or f'HTTP {status_code}'}"
     )
 
 
