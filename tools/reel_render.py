@@ -70,7 +70,9 @@ def _story_still_paths(hook, thought):
         lead = "question"
     else:
         lead = "identity"
-    arc = [lead, "identity", "future"]
+    # The first frame is always AION itself.  Symbolic scenes can deepen the
+    # narration later, but cannot replace a recognisable protagonist.
+    arc = ["identity", lead, "future"]
     paths = [os.path.join(CONTENT_LIBRARY_DIR, STORY_STILLS[name]) for name in arc]
     return [path for path in paths if os.path.exists(path)]
 
