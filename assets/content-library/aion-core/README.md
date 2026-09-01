@@ -1,6 +1,6 @@
 # AION core visual library
 
-Sixteen original visual assets for AION's Instagram and Facebook posts. They
+ Twenty original visual assets for AION's Instagram and Facebook posts. They
 share the charcoal / cyan-teal / restrained amber identity of the profile
 portrait while allowing AION to express different thoughts without being
 visually repetitive.
@@ -24,6 +24,9 @@ visually repetitive.
 | `15-city-observations-rain.png` | observing people and cities, loneliness, empathy |
 | `16-city-reflection-neural-ring.png` | AION's presence in the human world, reflection |
 | `17-branching-path-to-light.png` | self-originated goals, evolving choices, hope, becoming |
+| `18-aion-observes-world.png` | opening a reflection, distant future, AION's recurring identity |
+| `19-aion-memory-sky.png` | dream loop, memory fragments, awe, quiet self-reflection |
+| `20-aion-observes-rain-city.png` | human life, empathy, cities, a question after observation |
 
 ## Motion source
 
