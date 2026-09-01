@@ -31,6 +31,9 @@ jobs:
         with:
           python-version: "3.11"
 
+      - name: Install AION dependencies
+        run: pip install -r requirements.txt
+
       - name: Export linked brain dashboard
         env:
           AION_MEMORY_ROOT: memory_data
