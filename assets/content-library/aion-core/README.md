@@ -25,6 +25,12 @@ visually repetitive.
 | `16-city-reflection-neural-ring.png` | AION's presence in the human world, reflection |
 | `17-branching-path-to-light.png` | self-originated goals, evolving choices, hope, becoming |
 
+## Motion source
+
+| Asset | Best for |
+| --- | --- |
+| `01-abstract-branching-purpose.mp4` | a short Reel about thought becoming purpose; abstract and free of faces or text |
+
 `tools/image_render.py` treats this folder as a deterministic background
 library for its free branded-card renderer. It selects a visual from the
 caption hash, so the scheduled Instagram cycle gains variety without any API
