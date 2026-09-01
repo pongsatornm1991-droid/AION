@@ -1,0 +1,34 @@
+name: AION - cross-post latest Reel to Facebook
+on:
+  workflow_dispatch: {}
+permissions:
+  contents: read
+jobs:
+  crosspost:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/checkout@v4
+        with:
+          repository: pongsatornm1991-droid/aion-memory-data
+          token: ${{ secrets.MEMORY_REPO_PAT }}
+          path: memory_data
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - run: pip install -r requirements.txt
+      - name: Publish Facebook Reel
+        env:
+          AION_MEMORY_ROOT: memory_data
+          FACEBOOK_PAGE_ACCESS_TOKEN: ${{ secrets.FACEBOOK_PAGE_ACCESS_TOKEN }}
+          FACEBOOK_PAGE_ID: ${{ secrets.FACEBOOK_PAGE_ID }}
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+        run: python main.py run-reel-crosspost
+      - name: Persist private memory
+        working-directory: memory_data
+        run: |
+          git config user.name "aion-bot"
+          git config user.email "aion-bot@users.noreply.github.com"
+          git add -A
+          if ! git diff --cached --quiet; then git commit -m "AION Facebook Reel cross-post"; git push; fi

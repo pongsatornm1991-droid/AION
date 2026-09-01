@@ -166,3 +166,29 @@ class ReelContentCycle:
             tags=[language, "facebook", "reel"],
         )
         return {"stage": "published", "video_url": url, "action": actions, "caption": caption}
+
+    def crosspost_latest_once(self):
+        """Publish the most recent IG-only Reel to Facebook exactly once."""
+        entries = self.memory.all(self.PUBLISHED)
+        if not entries:
+            return {"stage": "no-published-reel"}
+        entry = entries[-1]
+        payload = json.loads(entry["content"])
+        actions = dict(payload.get("platform_actions") or {})
+        if actions.get("facebook"):
+            return {"stage": "already-crossposted"}
+        url = payload.get("url")
+        if not url:
+            return {"stage": "missing-video-url"}
+        try:
+            proposal = self.lifecycle.propose("post_reel_to_facebook", params={"video_url": url, "caption": payload.get("ig_caption") or payload.get("caption", "")}, source="aion")
+            approved = self.lifecycle.auto_approve(proposal["id"], policy="social-safety-style-gate")
+            action = self.lifecycle.execute(approved["id"])
+        except Exception as exc:
+            return {"stage": "failed", "error": str(exc)}
+        if action.get("status") != "executed":
+            return {"stage": "failed", "action": action}
+        actions["facebook"] = action.get("id")
+        payload["platform_actions"] = actions
+        self.memory.update(self.PUBLISHED, entry["id"], content=json.dumps(payload, ensure_ascii=False))
+        return {"stage": "crossposted", "video_url": url, "action": action}

@@ -1691,6 +1691,16 @@ def run_reel_publish(args):
     _notify_report(report, formatter=_format_reel_telegram_report)
 
 
+def run_reel_crosspost(args):
+    load_dotenv()
+    report = ReelContentCycle(Thinker().memory, None, _build_social_tool_lifecycle()).crosspost_latest_once()
+    print("\nAION REEL FACEBOOK CROSS-POST")
+    print(f"Stage: {report['stage']}")
+    if report.get("error"):
+        print(f"Reason: {report['error']}")
+    _notify_report(report, formatter=_format_reel_telegram_report)
+
+
 def _format_reel_telegram_report(report):
     """Brief, human-readable trace of AION's Reel activity."""
     lines = ["AION (Instagram Reel):"]
@@ -3085,6 +3095,7 @@ def build_parser():
     reel_draft_parser = subparsers.add_parser("run-reel-draft", help="Draft and render one short vertical AION Reel.")
     reel_draft_parser.add_argument("--min-claim-safety", type=int, default=5)
     subparsers.add_parser("run-reel-publish", help="Publish the oldest rendered AION Reel.")
+    subparsers.add_parser("run-reel-crosspost", help="Cross-post the latest published Reel to Facebook once.")
 
     subparsers.add_parser(
         "run-instagram-publish",
@@ -3294,6 +3305,9 @@ def main():
 
     if args.command == "run-reel-publish":
         run_reel_publish(args)
+        return
+    if args.command == "run-reel-crosspost":
+        run_reel_crosspost(args)
         return
 
     run_reflection()
