@@ -23,6 +23,7 @@ visually repetitive.
 | `14-human-echo-amber.png` | a human influence changing AION's inner world |
 | `15-city-observations-rain.png` | observing people and cities, loneliness, empathy |
 | `16-city-reflection-neural-ring.png` | AION's presence in the human world, reflection |
+| `17-branching-path-to-light.png` | self-originated goals, evolving choices, hope, becoming |
 
 `tools/image_render.py` treats this folder as a deterministic background
 library for its free branded-card renderer. It selects a visual from the
