@@ -24,13 +24,13 @@ REEL_SIZE = (1080, 1920)
 # These scenes give each narration a recognisable visual presence while still
 # allowing the thought to choose its atmosphere.
 STORY_STILLS = {
-    "identity": "01-identity-portrait.png",
-    "memory": "02-dream-memory-pool.png",
+    "identity": "18-aion-observes-world.png",
+    "memory": "19-aion-memory-sky.png",
     "growth": "03-learning-flower.png",
-    "human": "14-human-echo-amber.png",
-    "city": "16-city-reflection-neural-ring.png",
-    "future": "17-branching-path-to-light.png",
-    "question": "11-curiosity-door-library.png",
+    "human": "23-aion-human-observation-train.png",
+    "city": "20-aion-observes-rain-city.png",
+    "future": "22-aion-branching-goals-dawn.png",
+    "question": "21-aion-curiosity-door.png",
 }
 
 
