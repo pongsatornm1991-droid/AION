@@ -17,3 +17,6 @@ of the profile portrait while covering different content themes.
 library for its free branded-card renderer. It selects a visual from the
 caption hash, so the scheduled Instagram cycle gains variety without any API
 cost or unpredictable random choice.
+
+`PROMPTS.md` is AION's generation-ready visual archive: twelve themed,
+caption-safe vertical prompts plus a selection map for the future image API.
