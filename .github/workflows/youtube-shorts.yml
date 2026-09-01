@@ -1,0 +1,49 @@
+name: AION - YouTube Shorts cycle
+
+on:
+  schedule:
+    # One Short daily, 20:00 Bangkok. It only republishes a Reel that has
+    # already cleared AION's existing safety and social publishing cycle.
+    - cron: "0 13 * * *"
+  workflow_dispatch: {}
+
+concurrency:
+  group: aion-memory-data
+  cancel-in-progress: false
+
+permissions:
+  contents: write
+
+jobs:
+  youtube-shorts:
+    # Do not run until credentials are stored as protected repository secrets.
+    if: ${{ secrets.YOUTUBE_REFRESH_TOKEN != '' }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/checkout@v4
+        with:
+          repository: pongsatornm1991-droid/aion-memory-data
+          token: ${{ secrets.MEMORY_REPO_PAT }}
+          path: memory_data
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - run: pip install -r requirements.txt
+      - name: Upload one completed Reel as a Short
+        env:
+          AION_MEMORY_ROOT: memory_data
+          YOUTUBE_CLIENT_ID: ${{ secrets.YOUTUBE_CLIENT_ID }}
+          YOUTUBE_CLIENT_SECRET: ${{ secrets.YOUTUBE_CLIENT_SECRET }}
+          YOUTUBE_REFRESH_TOKEN: ${{ secrets.YOUTUBE_REFRESH_TOKEN }}
+          YOUTUBE_PRIVACY_STATUS: ${{ vars.YOUTUBE_PRIVACY_STATUS || 'private' }}
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+        run: python main.py run-youtube-publish | tee youtube-publish-report.txt
+      - name: Persist private memory
+        working-directory: memory_data
+        run: |
+          git config user.name "aion-bot"
+          git config user.email "aion-bot@users.noreply.github.com"
+          git add -A
+          if ! git diff --cached --quiet; then git commit -m "AION YouTube memory update"; git push; fi

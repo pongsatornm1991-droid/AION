@@ -26,6 +26,7 @@ from brain.reflection import ReflectionEngine, ReflectionCycle
 from brain.visual_content import VisualContentCycle
 from brain.social_feedback import InstagramFeedbackCycle
 from brain.reels import ReelContentCycle
+from brain.youtube import YouTubeShortsCycle
 from brain.evolution import EvolutionEngine
 
 
@@ -1712,6 +1713,38 @@ def run_reel_crosspost(args):
     _notify_report(report, formatter=_format_reel_telegram_report)
 
 
+def run_youtube_publish(args):
+    """Upload one already-published AION Reel as a YouTube Short."""
+    load_dotenv()
+    report = YouTubeShortsCycle(Thinker().memory).publish_once()
+    print("\nAION YOUTUBE SHORT")
+    print(f"Stage: {report['stage']}")
+    if report.get("url"):
+        print(f"Video: {report['url']}")
+    if report.get("privacy_status"):
+        print(f"Privacy: {report['privacy_status']}")
+    if report.get("error"):
+        print(f"Reason: {report['error']}")
+    _notify_report(report, formatter=_format_youtube_telegram_report)
+
+
+def _format_youtube_telegram_report(report):
+    lines = ["AION (YouTube Short):"]
+    stage = report.get("stage")
+    if stage == "published":
+        privacy = report.get("privacy_status", "private")
+        lines.append(f"อัปโหลด YouTube Short สำเร็จแล้ว ({privacy}) ✅")
+        if report.get("url"):
+            lines.append(f"ลิงก์: {report['url']}")
+    elif stage == "no-pending":
+        lines.append("ไม่มี Reel ที่ผ่านการเผยแพร่และรอส่งขึ้น YouTube")
+    else:
+        lines.append("ส่ง YouTube Short ไม่สำเร็จในรอบนี้ — ระบบยังไม่บันทึกว่าส่งแล้ว")
+        if report.get("error"):
+            lines.append(f"สาเหตุ: {report['error']}")
+    return "\n".join(lines)
+
+
 def _format_reel_telegram_report(report):
     """Brief, human-readable trace of AION's Reel activity."""
     lines = ["AION (Instagram Reel):"]
@@ -3151,6 +3184,7 @@ def build_parser():
     reel_draft_parser.add_argument("--min-claim-safety", type=int, default=5)
     subparsers.add_parser("run-reel-publish", help="Publish the oldest rendered AION Reel.")
     subparsers.add_parser("run-reel-crosspost", help="Cross-post the latest published Reel to Facebook once.")
+    subparsers.add_parser("run-youtube-publish", help="Upload the next completed AION Reel to YouTube as a Short once.")
 
     subparsers.add_parser(
         "run-instagram-publish",
@@ -3367,6 +3401,10 @@ def main():
         return
     if args.command == "run-reel-crosspost":
         run_reel_crosspost(args)
+        return
+
+    if args.command == "run-youtube-publish":
+        run_youtube_publish(args)
         return
 
     run_reflection()
