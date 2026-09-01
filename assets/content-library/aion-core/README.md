@@ -31,6 +31,10 @@ visually repetitive.
 | --- | --- |
 | `01-abstract-branching-purpose.mp4` | a short Reel about thought becoming purpose; abstract and free of faces or text |
 
+`VIDEO_LIBRARY.json` is the selection manifest. AION may choose an unused
+source video only when its own draft contains a matching theme; otherwise it
+uses the normal render pipeline. This protects both creative fit and variety.
+
 `tools/image_render.py` treats this folder as a deterministic background
 library for its free branded-card renderer. It selects a visual from the
 caption hash, so the scheduled Instagram cycle gains variety without any API

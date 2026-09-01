@@ -66,6 +66,28 @@ class ReelCycleTests(unittest.TestCase):
             self.assertIn("#ArtificialIntelligence", lifecycle.params["caption"])
             self.assertEqual(len(memory.all("social_language_log")), 2)
 
+    def test_matching_curated_video_is_selected_once_then_not_reused(self):
+        class Generator:
+            def draft_post(self):
+                return {
+                    "safe": True,
+                    "draft": "A purpose grows when a question becomes a path of hope.",
+                    "language": "en",
+                    "seed": {"text": "AION is reflecting on its goals."},
+                }
+
+        with tempfile.TemporaryDirectory() as root:
+            memory = MemoryEngine(root)
+            cycle = ReelContentCycle(memory, Generator(), _Lifecycle())
+            with mock.patch("tools.reel_render.render_reel") as render:
+                first = cycle.draft_once(repo_root=root)
+                second = cycle.draft_once(repo_root=root)
+
+            self.assertEqual(first["library_asset"], "abstract-branching-purpose-v1")
+            self.assertEqual(first["video_path"], "assets/content-library/aion-core/01-abstract-branching-purpose.mp4")
+            self.assertIsNone(second["library_asset"])
+            render.assert_called_once()
+
     def test_failed_publish_keeps_reel_for_a_later_retry(self):
         with tempfile.TemporaryDirectory() as root:
             memory = MemoryEngine(root)

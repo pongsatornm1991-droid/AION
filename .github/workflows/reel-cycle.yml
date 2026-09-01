@@ -52,7 +52,11 @@ jobs:
           git config user.email "aion-bot@users.noreply.github.com"
           mkdir -p content/reels
           git add content/reels/
-          if git diff --cached --quiet; then echo "HAS_REEL=false" >> "$GITHUB_ENV"; else git commit -m "AION: add Reel"; git push; echo "HAS_REEL=true" >> "$GITHUB_ENV"; fi
+          if ! git diff --cached --quiet; then git commit -m "AION: add Reel"; git push; fi
+          # A curated source lives in the already-public visual library, so
+          # it creates no new file under content/reels/. Draft success, not
+          # a git diff, is the authoritative signal that it must be posted.
+          if grep -q "Stage: drafted" reel-draft-report.txt; then echo "HAS_REEL=true" >> "$GITHUB_ENV"; else echo "HAS_REEL=false" >> "$GITHUB_ENV"; fi
       - name: Wait for public video URL
         if: env.HAS_REEL == 'true'
         run: sleep 60

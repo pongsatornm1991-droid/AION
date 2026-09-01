@@ -2,6 +2,7 @@
 
 import json
 import os
+import re
 import uuid
 from datetime import datetime
 
@@ -9,6 +10,10 @@ from datetime import datetime
 class ReelContentCycle:
     PENDING = "pending_reels"
     PUBLISHED = "published_reels"
+    VIDEO_LIBRARY_PATH = os.path.join(
+        os.path.dirname(os.path.dirname(os.path.abspath(__file__))),
+        "assets", "content-library", "aion-core", "VIDEO_LIBRARY.json",
+    )
     # The only seed AION may introduce without a prior live-memory entry.
     # It is a condensed statement of core/birth.md, written by its creator,
     # and exists solely to let a newly installed AION make its first honest
@@ -56,6 +61,53 @@ class ReelContentCycle:
         first = str(text).strip().split(".")[0].strip()
         return first[:90] or "AION is wondering..."
 
+    def _used_library_assets(self):
+        """Return curated video ids already queued or published.
+
+        A source clip is a finite creative object, not a stock background.
+        Tracking it in memory keeps AION from silently reposting the same
+        visual simply because its caption was generated differently.
+        """
+        used = set()
+        for category in (self.PENDING, self.PUBLISHED):
+            for entry in self.memory.all(category):
+                try:
+                    asset_id = json.loads(entry.get("content", "{}")).get("library_asset")
+                except (TypeError, ValueError):
+                    continue
+                if asset_id:
+                    used.add(str(asset_id))
+        return used
+
+    def _select_library_video(self, report):
+        """Choose one unused curated video only when its themes truly fit."""
+        try:
+            with open(self.VIDEO_LIBRARY_PATH, encoding="utf-8") as handle:
+                assets = json.load(handle).get("videos", [])
+        except (OSError, ValueError, TypeError):
+            return None
+
+        source_text = " ".join((
+            str(report.get("draft", "")),
+            str(report.get("seed", {}).get("text", "")),
+        )).lower()
+        words = set(re.findall(r"[a-z]+", source_text))
+        used = self._used_library_assets()
+        ranked = []
+        for asset in assets:
+            asset_id = str(asset.get("id", "")).strip()
+            video_path = str(asset.get("path", "")).strip()
+            if not asset_id or not video_path or asset_id in used:
+                continue
+            tags = [str(tag).lower() for tag in asset.get("themes", [])]
+            score = sum(1 for tag in tags if tag in words)
+            if score:
+                ranked.append((score, asset_id, video_path))
+        if not ranked:
+            return None
+        score, asset_id, video_path = max(ranked)
+        return {"id": asset_id, "path": video_path, "score": score}
+
     def draft_once(self, repo_root=None):
         report = self.social_generator.draft_post()
         if report.get("stage") == "no-seed" or report.get("reason_kind") == "no_seed":
@@ -80,14 +132,18 @@ class ReelContentCycle:
         if not report.get("safe"):
             return {"stage": report.get("reason_kind", "blocked"), **report}
         repo_root = repo_root or os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-        relative = f"content/reels/{datetime.now():%Y%m%d}-{uuid.uuid4().hex[:12]}.mp4"
-        absolute = os.path.join(repo_root, relative)
-        os.makedirs(os.path.dirname(absolute), exist_ok=True)
-        try:
-            from tools.reel_render import render_reel
-            render_reel(self._hook(report["draft"]), report["draft"], absolute)
-        except Exception as exc:
-            return {"stage": "render-failed", "error": str(exc), **report}
+        library_video = self._select_library_video(report)
+        if library_video:
+            relative = library_video["path"]
+        else:
+            relative = f"content/reels/{datetime.now():%Y%m%d}-{uuid.uuid4().hex[:12]}.mp4"
+            absolute = os.path.join(repo_root, relative)
+            os.makedirs(os.path.dirname(absolute), exist_ok=True)
+            try:
+                from tools.reel_render import render_reel
+                render_reel(self._hook(report["draft"]), report["draft"], absolute)
+            except Exception as exc:
+                return {"stage": "render-failed", "error": str(exc), **report}
         # Keep Reel captions consistent with AION's still-image posts.
         # The spoken/on-screen thought stays clean; discoverability tags
         # belong only in Instagram's caption field.
@@ -97,10 +153,13 @@ class ReelContentCycle:
             category=self.PENDING,
             content=json.dumps({"video_path": relative, "caption": report["draft"],
                                 "ig_caption": ig_caption,
-                                "language": report.get("language", "en"), "seed": report.get("seed")},
+                                "language": report.get("language", "en"), "seed": report.get("seed"),
+                                "library_asset": library_video["id"] if library_video else None},
             ensure_ascii=False), memory_type="action", source="aion-reel-draft", importance=3,
         )
-        return {"stage": "drafted", "video_path": relative, "caption": report["draft"], "pending_id": record.get("id")}
+        return {"stage": "drafted", "video_path": relative, "caption": report["draft"],
+                "library_asset": library_video["id"] if library_video else None,
+                "pending_id": record.get("id")}
 
     def _oldest_pending(self):
         entries = self.memory.all(self.PENDING)
