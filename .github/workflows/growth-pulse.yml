@@ -1,0 +1,51 @@
+name: AION - Daily Growth Pulse
+
+on:
+  schedule:
+    - cron: "15 1 * * *" # 08:15 Asia/Bangkok
+  workflow_dispatch: {}
+
+concurrency:
+  group: aion-memory-data
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  growth-pulse:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out AION
+        uses: actions/checkout@v4
+
+      - name: Check out AION memory
+        uses: actions/checkout@v4
+        with:
+          repository: pongsatornm1991-droid/aion-memory-data
+          token: ${{ secrets.MEMORY_REPO_PAT }}
+          path: memory_data
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install AION dependencies
+        run: pip install -r requirements.txt
+
+      - name: Capture and send daily growth pulse
+        env:
+          AION_MEMORY_ROOT: memory_data
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+        run: python main.py run-growth-pulse
+
+      - name: Save AION's daily pulse
+        working-directory: memory_data
+        run: |
+          git config user.name "AION Memory"
+          git config user.email "aion@users.noreply.github.com"
+          git add .
+          git diff --cached --quiet || git commit -m "Record daily AION growth pulse"
+          git push

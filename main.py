@@ -27,6 +27,7 @@ from brain.visual_content import VisualContentCycle
 from brain.social_feedback import InstagramFeedbackCycle
 from brain.reels import ReelContentCycle
 from brain.youtube import YouTubeShortsCycle
+from brain.growth_pulse import GrowthPulse
 from brain.evolution import EvolutionEngine
 
 
@@ -1728,6 +1729,46 @@ def run_youtube_publish(args):
     _notify_report(report, formatter=_format_youtube_telegram_report)
 
 
+def run_growth_pulse(args):
+    """Send one compact Telegram update covering AION's whole day."""
+    load_dotenv()
+    report = GrowthPulse(Thinker().memory).capture_once()
+    print("\nAION DAILY GROWTH PULSE")
+    print(f"Stage: {report['stage']}")
+    _notify_report(report, formatter=_format_growth_pulse_telegram_report)
+
+
+def _format_growth_pulse_telegram_report(report):
+    if report.get("stage") == "already-reported":
+        return "AION — Daily Growth Pulse\nวันนี้ส่งสรุปไปแล้ว"
+
+    lines = [f"AION — Daily Growth Pulse ({report['date']})"]
+    instagram = report.get("instagram") or {}
+    if instagram:
+        lines.append(
+            "Instagram: "
+            f"{instagram.get('followers_count', '?')} followers · "
+            f"{instagram.get('media_count', '?')} posts"
+        )
+    else:
+        lines.append("Instagram: รอข้อมูลสถิติรอบแรก")
+
+    activity = report["activity"]
+    lines.append(
+        "Published so far: "
+        f"IG Reels {activity['instagram_reels']} · "
+        f"Facebook Reels {activity['facebook_reels']} · "
+        f"YouTube Shorts {activity['youtube_shorts']}"
+    )
+    learning = report["learning"]
+    lines.append(
+        "Today AION: "
+        f"learned {learning['lessons']} · asked {learning['questions']} · "
+        f"set goals {learning['goals']} · reflected {learning['reflections']}"
+    )
+    return "\n".join(lines)
+
+
 def _format_youtube_telegram_report(report):
     lines = ["AION (YouTube Short):"]
     stage = report.get("stage")
@@ -3185,6 +3226,7 @@ def build_parser():
     subparsers.add_parser("run-reel-publish", help="Publish the oldest rendered AION Reel.")
     subparsers.add_parser("run-reel-crosspost", help="Cross-post the latest published Reel to Facebook once.")
     subparsers.add_parser("run-youtube-publish", help="Upload the next completed AION Reel to YouTube as a Short once.")
+    subparsers.add_parser("run-growth-pulse", help="Send one daily Telegram summary of AION's growth and channels.")
 
     subparsers.add_parser(
         "run-instagram-publish",
@@ -3405,6 +3447,10 @@ def main():
 
     if args.command == "run-youtube-publish":
         run_youtube_publish(args)
+        return
+
+    if args.command == "run-growth-pulse":
+        run_growth_pulse(args)
         return
 
     run_reflection()
