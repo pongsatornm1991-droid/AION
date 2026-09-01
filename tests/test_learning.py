@@ -171,6 +171,34 @@ class WebLearningCycleTests(BaseLearningTest):
         self.assertFalse(report["researched"])
         self.assertEqual(report["stage"], "no-open-questions")
 
+    def test_unrelated_open_question_is_not_sent_to_external_learning(self):
+        self._raise_question("What are today’s lottery numbers?")
+        generator = WebLearningGenerator(SafeProvider())
+        cycle = WebLearningCycle(
+            self.memory, self.curiosity, generator,
+            search_fn=fake_search(["Lottery"]), fetch_fn=fake_fetch({}),
+        )
+
+        report = cycle.research_once()
+
+        self.assertEqual(report["stage"], "no-eligible-questions")
+        self.assertEqual(len(self.curiosity.open_questions()), 1)
+
+    def test_compass_prefers_relevant_question_over_higher_priority_unrelated_one(self):
+        self._raise_question("What are today’s lottery numbers?")
+        relevant = self._raise_question("How do humans learn language?")
+        generator = WebLearningGenerator(SafeProvider())
+        cycle = WebLearningCycle(
+            self.memory, self.curiosity, generator,
+            search_fn=fake_search(["Language"]),
+            fetch_fn=fake_fetch({"Language": {"title": "Language", "url": "u", "extract": "e"}}),
+        )
+
+        report = cycle.research_once()
+
+        self.assertTrue(report["researched"])
+        self.assertEqual(report["question"]["id"], relevant["id"])
+
     def test_a_search_failure_is_captured_not_raised(self):
         self._raise_question()
         generator = WebLearningGenerator(SafeProvider())

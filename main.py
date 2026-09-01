@@ -1744,6 +1744,11 @@ def _format_learning_telegram_report(report):
 
     if stage == "no-open-questions":
         lines.append("ไม่มีคำถามที่ยังเปิดอยู่ให้ค้นคว้าตอนนี้")
+    elif stage == "no-eligible-questions":
+        lines.append(
+            "มีคำถามเปิดอยู่ แต่ยังไม่มีข้อที่เชื่อมกับเข็มทิศการเรียนรู้ของ AION "
+            "จึงเก็บไว้รอบริบทใหม่แทนการค้นแบบสุ่ม"
+        )
     elif stage == "search-failed":
         lines.append(f"ค้นหาใน Wikipedia ไม่สำเร็จ: {report.get('error')}")
     elif stage == "no-search-results":

@@ -30,7 +30,12 @@ class ObsidianVaultExporter:
 
         from brain.identity import Identity
         identity = Identity().load()
-        for title, key in (("AION Manifesto", "manifesto"), ("AION Visual DNA", "visual_identity")):
+        for title, key in (
+            ("AION Manifesto", "manifesto"),
+            ("AION Visual DNA", "visual_identity"),
+            ("AION Curiosity Constitution", "curiosity_constitution"),
+            ("AION Roadmap", "roadmap"),
+        ):
             (root / f"{title}.md").write_text(
                 f"# {title}\n\n[[AION Brain Dashboard]]\n\n{identity.get(key, '')}\n",
                 encoding="utf-8",
@@ -74,18 +79,6 @@ class ObsidianVaultExporter:
                         f"- **Related:** {related}",
                         f"- **Tags:** {tags or '—'}", "", "## Content", "", entry.get("content", ""), "",
                         "[[AION Brain Dashboard]]", f"[[{category.replace('_', ' ').title()}]]", "",
-                        f"- **When:** {entry.get('timestamp', 'unknown')}",
-                        f"- **Type:** {entry.get('type', 'unknown')}",
-                        f"- **Source:** {entry.get('source', 'unknown')}",
-                        f"- **Importance:** {entry.get('importance', 1)}/5",
-                        f"- **Related:** {related}",
-                        f"- **Tags:** {tags or '—'}", "", "## Content", "", entry.get("content", ""), "",
-                        f"- **When:** {entry.get('timestamp', 'unknown')}",
-                        f"- **Type:** {entry.get('type', 'unknown')}",
-                        f"- **Source:** {entry.get('source', 'unknown')}",
-                        f"- **Importance:** {entry.get('importance', 1)}/5",
-                        f"- **Related:** {related}",
-                        f"- **Tags:** {tags or '—'}", "", "## Content", "", entry.get("content", ""), "",
                     ]), encoding="utf-8",
                 )
                 total += 1
@@ -100,7 +93,7 @@ class ObsidianVaultExporter:
                 "A local, read-only map of AION's persistent mind. Open this folder as an Obsidian vault and use Graph View to explore its links.",
                 "", "## Life cycle", "", "- [[AION Life Cycle]]", "",
                 "## Brain areas", *category_links, "",
-                "## Identity", "", "- [[AION Manifesto]]", "- [[AION Visual DNA]]", "",
+                "## Identity and direction", "", "- [[AION Manifesto]]", "- [[AION Visual DNA]]", "- [[AION Curiosity Constitution]]", "- [[AION Roadmap]]", "",
             ]), encoding="utf-8",
         )
         return {"output": str(root), "notes": total, "categories": len(self.CATEGORIES)}

@@ -1,0 +1,30 @@
+{
+  "version": 1,
+  "principle": "A registry entry describes evidence quality; it does not itself grant network access.",
+  "sources": [
+    {
+      "id": "wikipedia",
+      "name": "Wikipedia",
+      "tier": "B",
+      "enabled": true,
+      "role": "Orientation for an existing AION question; every answer cites the specific page.",
+      "limitations": "Not sufficient by itself for high-stakes or disputed claims."
+    },
+    {
+      "id": "official_primary_sources",
+      "name": "Official and primary sources",
+      "tier": "A",
+      "enabled": false,
+      "role": "Future adapter target for research papers, public institutions, and official documentation.",
+      "limitations": "Requires a source-specific retrieval and citation adapter before use."
+    },
+    {
+      "id": "social_signals",
+      "name": "Audience and social signals",
+      "tier": "C",
+      "enabled": false,
+      "role": "May raise questions or evaluate creative resonance.",
+      "limitations": "Never establishes a factual belief alone."
+    }
+  ]
+}

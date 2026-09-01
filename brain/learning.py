@@ -207,10 +207,19 @@ class WebLearningCycle:
 
     LESSON_CATEGORY = "lessons"
 
-    def __init__(self, memory, curiosity, generator, search_fn=None, fetch_fn=None):
+    def __init__(self, memory, curiosity, generator, search_fn=None, fetch_fn=None,
+                 curiosity_constitution=None, source_registry=None):
         self.memory = memory
         self.curiosity = curiosity
         self.generator = generator
+        if curiosity_constitution is None:
+            from brain.curiosity_constitution import CuriosityConstitution
+            curiosity_constitution = CuriosityConstitution()
+        if source_registry is None:
+            from brain.source_registry import SourceRegistry
+            source_registry = SourceRegistry()
+        self.curiosity_constitution = curiosity_constitution
+        self.source_registry = source_registry
 
         if search_fn is None or fetch_fn is None:
             from tools.web_search import search_wikipedia, get_wikipedia_summary
@@ -254,10 +263,26 @@ class WebLearningCycle:
         intervene (a blocked draft, visible via the logged lesson)."""
 
         if question_entry is None:
-            open_qs = self.curiosity.open_questions(limit=1)
+            # The constitution is a compass rather than a source of questions:
+            # it only ranks AION's already-open questions.  Keeping unrelated
+            # questions open preserves history and allows later context.
+            open_qs = self.curiosity.open_questions()
             if not open_qs:
                 return {"researched": False, "stage": "no-open-questions", "question": None}
-            question_entry = open_qs[0]
+            ranked = self.curiosity_constitution.rank_questions(open_qs)
+            if not ranked:
+                return {
+                    "researched": False,
+                    "stage": "no-eligible-questions",
+                    "question": None,
+                    "open_question_count": len(open_qs),
+                }
+            question_entry, assessment = ranked[0]
+        else:
+            assessment = self.curiosity_constitution.assess(
+                question_entry.get("statement", ""), tags=question_entry.get("tags", []),
+                related_context=question_entry.get("related", []),
+            )
 
         question_text = question_entry.get("statement", "")
 
@@ -357,4 +382,6 @@ class WebLearningCycle:
             "source": source,
             "semantic_entry": semantic_entry,
             "resolved_question": resolved_question,
+            "curiosity_assessment": assessment.as_dict(),
+            "source_registry_entry": self.source_registry.source("wikipedia"),
         }

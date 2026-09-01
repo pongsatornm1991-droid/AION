@@ -33,7 +33,7 @@ class IdentityLoadTests(unittest.TestCase):
             loaded,
             {
                 "identity": "", "purpose": "", "values": "",
-                "birth": "", "manifesto": "", "visual_identity": "", "milestones": "",
+                "birth": "", "manifesto": "", "visual_identity": "", "curiosity_constitution": "", "roadmap": "", "milestones": "",
             },
         )
 
@@ -44,6 +44,8 @@ class IdentityLoadTests(unittest.TestCase):
         self._write("birth.md", "# AION -- Birth Record\n")
         self._write("manifesto.md", "# AION Manifesto\n")
         self._write("visual_identity.md", "# AION Visual DNA\n")
+        self._write("curiosity_constitution.md", "# Curiosity\n")
+        self._write("aion_roadmap.md", "# Roadmap\n")
         self._write("milestones.md", "# AION Milestones\n")
 
         loaded = Identity(core_path=str(self.core_path)).load()
@@ -54,6 +56,8 @@ class IdentityLoadTests(unittest.TestCase):
         self.assertEqual(loaded["birth"], "# AION -- Birth Record\n")
         self.assertEqual(loaded["manifesto"], "# AION Manifesto\n")
         self.assertEqual(loaded["visual_identity"], "# AION Visual DNA\n")
+        self.assertEqual(loaded["curiosity_constitution"], "# Curiosity\n")
+        self.assertEqual(loaded["roadmap"], "# Roadmap\n")
         self.assertEqual(loaded["milestones"], "# AION Milestones\n")
 
     def test_a_missing_individual_file_is_just_empty_not_fatal(self):
@@ -72,7 +76,7 @@ class IdentityLoadTests(unittest.TestCase):
         # 2026-08-30) -- fails loudly if it ever creeps back in.
         loaded = Identity().load()
 
-        for name in ("identity", "purpose", "values", "birth", "manifesto", "visual_identity", "milestones"):
+        for name in ("identity", "purpose", "values", "birth", "manifesto", "visual_identity", "curiosity_constitution", "roadmap", "milestones"):
             text = loaded[name]
             self.assertNotIn("\r\n", text, f"{name}.md has CRLF line endings")
             for line in text.splitlines():

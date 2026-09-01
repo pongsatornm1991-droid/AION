@@ -69,7 +69,9 @@ duplicate snapshots.
 
 AION's public voice and five content pillars are defined in
 `core/manifesto.md`; its reusable visual rules live in
-`core/visual_identity.md`. After at least three distinct Instagram posts have
+`core/visual_identity.md`. Its learning compass and source-quality boundaries
+live in `core/curiosity_constitution.md` and `core/source_registry.json`; the
+evolution map is in `core/aion_roadmap.md`. After at least three distinct Instagram posts have
 real feedback, the Growth Engine stores one cautious, evidence-bound insight
 for future drafting. It never changes safety rules or optimizes for engagement
 alone.
