@@ -118,7 +118,7 @@ def render_reel_cover(hook, thought, output_path, mood=None):
     return output_path
 
 
-def render_reel(hook, thought, output_path, duration=12, mood=None):
+def render_reel(hook, thought, output_path, duration=12, mood=None, still_paths=None):
     """Create a 9:16 three-scene AION narration Reel with gentle motion."""
     ffmpeg = shutil.which("ffmpeg")
     if not ffmpeg:
@@ -129,7 +129,10 @@ def render_reel(hook, thought, output_path, duration=12, mood=None):
     from tools.voice import synthesize_reel_voice
     has_voice = synthesize_reel_voice(f"{hook}. {thought}", audio)
     frames = max(3, int(duration * 30))
-    stills = _story_still_paths(hook, thought) or [cover]
+    # A creator episode can supply a purpose-built storyboard.  Normal
+    # autonomous Reels keep the selected AION story arc above.
+    stills = [str(path) for path in (still_paths or []) if os.path.isfile(path)]
+    stills = stills or _story_still_paths(hook, thought) or [cover]
     scene_frames = max(1, frames // len(stills))
     command = [ffmpeg, "-y"]
     for still in stills:
