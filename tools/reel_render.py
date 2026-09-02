@@ -91,9 +91,10 @@ def _story_still_paths(hook, thought):
     return [path for path in paths if os.path.exists(path)]
 
 
-def render_reel_cover(hook, thought, output_path, mood=None):
+def render_reel_cover(hook, thought, output_path, mood=None, still_paths=None):
     """Create a clean character-first cover; narration carries the words."""
-    paths = _story_still_paths(hook, thought) or _background_paths()
+    paths = [str(path) for path in (still_paths or []) if os.path.isfile(path)]
+    paths = paths or _story_still_paths(hook, thought) or _background_paths()
     image = Image.new("RGB", REEL_SIZE, BACKGROUND_COLOR)
     if paths:
         with Image.open(paths[0]) as source:
@@ -119,26 +120,29 @@ def render_reel_cover(hook, thought, output_path, mood=None):
 
 
 def render_reel(hook, thought, output_path, duration=12, mood=None, still_paths=None):
-    """Create a 9:16 three-scene AION narration Reel with gentle motion."""
+    """Create a 9:16, paced multi-scene AION narration Reel."""
     ffmpeg = shutil.which("ffmpeg")
     if not ffmpeg:
         raise RuntimeError("ffmpeg is required to render MP4 Reels; GitHub Actions runners include it.")
+    # A creator episode can supply a purpose-built storyboard.  Normal
+    # autonomous Reels keep the selected AION story arc above.
+    stills = [str(path) for path in (still_paths or []) if os.path.isfile(path)]
+    stills = stills or _story_still_paths(hook, thought) or [output_path]
     cover = os.path.splitext(output_path)[0] + "-cover.png"
-    render_reel_cover(hook, thought, cover, mood=mood)
+    render_reel_cover(hook, thought, cover, mood=mood, still_paths=stills)
     audio = os.path.splitext(output_path)[0] + ".mp3"
     from tools.voice import synthesize_reel_voice
     has_voice = synthesize_reel_voice(f"{hook}. {thought}", audio)
     frames = max(3, int(duration * 30))
-    # A creator episode can supply a purpose-built storyboard.  Normal
-    # autonomous Reels keep the selected AION story arc above.
-    stills = [str(path) for path in (still_paths or []) if os.path.isfile(path)]
-    stills = stills or _story_still_paths(hook, thought) or [cover]
     scene_frames = max(1, frames // len(stills))
     command = [ffmpeg, "-y"]
     for still in stills:
-        command.extend(["-loop", "1", "-t", str(duration / len(stills)), "-i", still])
+        # Feed exactly one input frame per still.  zoompan expands that frame
+        # to the precise scene duration; looping it here would multiply the
+        # first scene and make a whole episode appear to be one static image.
+        command.extend(["-loop", "1", "-framerate", "1", "-t", "1", "-i", still])
     scene_filters = [
-        f"[{index}:v]zoompan=z='min(zoom+0.00045,1.05)':d={scene_frames}:s=1080x1920,format=yuv420p[v{index}]"
+        f"[{index}:v]zoompan=z='min(zoom+0.00045,1.05)':d={scene_frames}:s=1080x1920:fps=30,format=yuv420p[v{index}]"
         for index in range(len(stills))
     ]
     joined = "".join(f"[v{index}]" for index in range(len(stills)))

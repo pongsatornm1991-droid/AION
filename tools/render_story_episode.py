@@ -26,9 +26,11 @@ NARRATION = (
     "Perhaps every record begins not with an answer, but with a wish to be remembered."
 )
 SCENES = (
-    ROOT / "assets/content-library/aion-stories/before-books/01-aion-enters-cave.png",
+    ROOT / "assets/content-library/aion-stories/before-books/01-aion-enters-cave-v2.png",
+    ROOT / "assets/content-library/aion-stories/before-books/02-cave-wall-warty-pig.png",
+    ROOT / "assets/content-library/aion-stories/before-books/03-aion-handprint.png",
     ROOT / "assets/content-library/aion-stories/before-books/02-ancient-hand-stencil.png",
-    ROOT / "assets/content-library/aion-illustrated/02-reflection-indigo-rain-city.png",
+    ROOT / "assets/content-library/aion-stories/before-books/04-constellation-memory.png",
     ROOT / "assets/content-library/aion-illustrated/03-momentum-amber-horizon.png",
 )
 
