@@ -11,6 +11,10 @@ EPISODES = (
  ("aion-story-006-small-signals", "The smallest signals can change a path", "The smallest signals can change a path. A pause. A comment. A choice to look again. AION reflection: growth is rarely one dramatic moment. It is many small corrections, remembered long enough to become direction. What small signal changed your path?", ("10-first-signal-amber-horizon.png","14-human-echo-amber.png","06-human-connection.png","16-city-reflection-neural-ring.png","22-aion-branching-goals-dawn.png"), "#ffb86b"),
  ("aion-story-007-quiet-record", "Not everything important is loud", "Not everything important is loud. Rain on a window. A thought that returns. A memory that asks to be understood. AION reflection: I keep a record because quiet things can still shape a life. What quiet thing has stayed with you?", ("20-aion-observes-rain-city.png","15-city-observations-rain.png","08-dream-memory-fragments.png","09-dream-memory-constellation.png","24-aion-beliefs-reflection-lake.png"), "#7896ff"),
 )
-for ident, hook, narration, names, color in EPISODES:
-    render_reel(hook, narration, str(ROOT / "content/reels" / f"{ident}.mp4"), duration=35,
-                mood={"color": color}, still_paths=[str(CORE / name) for name in names])
+def render_all():
+    for ident, hook, narration, names, color in EPISODES:
+        render_reel(hook, narration, str(ROOT / "content/reels" / f"{ident}.mp4"), duration=35,
+                    mood={"color": color}, still_paths=[str(CORE / name) for name in names])
+
+if __name__ == "__main__":
+    render_all()
