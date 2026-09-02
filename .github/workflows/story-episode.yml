@@ -16,8 +16,9 @@ jobs:
           python-version: "3.11"
       - name: Install episode renderer
         run: |
-          sudo apt-get update
-          sudo apt-get install -y ffmpeg
+          # GitHub's Ubuntu image already contains ffmpeg.  Avoid an
+          # unnecessary apt update here: it can stall before a story starts.
+          ffmpeg -version
           pip install -r requirements.txt
       - name: Render AION Creator episode
         env:
