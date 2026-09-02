@@ -114,7 +114,7 @@ def _brain_map(memory, limit=30):
     categories = (
         "beliefs", "goals", "questions", "lessons", "reflections",
         "self_narrative", "learning_forecasts", "growth_insights",
-        "creative_intentions", "published_reels", "social_feedback",
+        "creative_intentions", "youtube_discoveries", "published_reels", "social_feedback",
     )
     candidates = []
     for category in categories:
@@ -173,6 +173,7 @@ def build_snapshot(memory_root=None):
     categories = [
         "experiences", "lessons", "questions", "goals", "beliefs", "reflections",
         "self_narrative", "learning_forecasts", "growth_insights",
+        "youtube_discoveries",
     ]
     totals = {category: len(_entries(memory, category)) for category in categories}
     total_memories = sum(totals.values())
@@ -222,6 +223,7 @@ def build_snapshot(memory_root=None):
             "beliefs": totals["beliefs"],
             "reflections": totals["reflections"] + totals["self_narrative"],
             "forecasts": totals["learning_forecasts"],
+            "youtube_discoveries": totals["youtube_discoveries"],
         },
         "content": reels,
         "creator_library": creator_library,
@@ -238,6 +240,7 @@ def build_snapshot(memory_root=None):
             ("beliefs", "Belief"),
             ("learning_forecasts", "Forecast"),
             ("growth_insights", "Growth insight"),
+            ("youtube_discoveries", "YouTube discovery"),
         ]),
     }
 

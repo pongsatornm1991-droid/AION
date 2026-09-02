@@ -38,10 +38,10 @@
 <script>
   const el = id => document.getElementById(id);
   const fmt = value => value == null ? '—' : new Intl.NumberFormat().format(value);
-  const title = value => ({'Inner voice':'เสียงภายใน','Reflection':'การทบทวน','Lesson':'บทเรียน','Question':'คำถาม','Goal':'เป้าหมาย','Belief':'ความเชื่อ','Forecast':'การคาดการณ์','Growth insight':'สิ่งที่เรียนรู้จากการเติบโต'})[value] || value;
+  const title = value => ({'Inner voice':'เสียงภายใน','Reflection':'การทบทวน','Lesson':'บทเรียน','Question':'คำถาม','Goal':'เป้าหมาย','Belief':'ความเชื่อ','Forecast':'การคาดการณ์','Growth insight':'สิ่งที่เรียนรู้จากการเติบโต','YouTube discovery':'สิ่งที่ค้นพบจาก YouTube'})[value] || value;
   const state = value => ({'connected':'เชื่อมต่อแล้ว','waiting-for-metrics':'รอข้อมูลสถิติ','waiting-for-first-short':'รอ Short แรก','active':'กำลังทำงาน','ready':'พร้อมใช้งาน','authorization-pending':'รอสิทธิ์การเชื่อมต่อ'})[value] || value;
-  const brainLabels = {beliefs:'ความเชื่อ',goals:'เป้าหมาย',questions:'คำถาม',lessons:'บทเรียน',reflections:'การทบทวน',self_narrative:'เสียงภายใน',learning_forecasts:'การคาดการณ์',growth_insights:'บทเรียนจากผู้ชม',creative_intentions:'เจตนาครีเอทีฟ',published_reels:'Reel',social_feedback:'เสียงตอบรับ'};
-  const brainColors = {beliefs:'#ffb36b',goals:'#68edb4',questions:'#bda4ff',lessons:'#3de7ff',reflections:'#5599ff',self_narrative:'#ff8fcf',learning_forecasts:'#f3d267',growth_insights:'#ff7d7d',creative_intentions:'#ffcf70',published_reels:'#71d0ff',social_feedback:'#99a9bd'};
+  const brainLabels = {beliefs:'ความเชื่อ',goals:'เป้าหมาย',questions:'คำถาม',lessons:'บทเรียน',reflections:'การทบทวน',self_narrative:'เสียงภายใน',learning_forecasts:'การคาดการณ์',growth_insights:'บทเรียนจากผู้ชม',creative_intentions:'เจตนาครีเอทีฟ',youtube_discoveries:'YouTube ที่ค้นพบ',published_reels:'Reel',social_feedback:'เสียงตอบรับ'};
+  const brainColors = {beliefs:'#ffb36b',goals:'#68edb4',questions:'#bda4ff',lessons:'#3de7ff',reflections:'#5599ff',self_narrative:'#ff8fcf',learning_forecasts:'#f3d267',growth_insights:'#ff7d7d',creative_intentions:'#ffcf70',youtube_discoveries:'#ff6f91',published_reels:'#71d0ff',social_feedback:'#99a9bd'};
   function renderBrain(brain){
     const svg=el('brainGraph'), detail=el('brainDetail'), legend=el('brainLegend');
     const nodes=brain.nodes||[], edges=brain.edges||[], cx=340, cy=210;
@@ -64,7 +64,7 @@
   function render(data) {
     const p = data.platforms;
     el('platforms').innerHTML = platformCard('Instagram', p.instagram, {value:p.instagram.followers,label:'ผู้ติดตาม',second:{value:p.instagram.reels_published,label:'Reel ที่เผยแพร่'}}, 'ig') + platformCard('Facebook', p.facebook, {value:p.facebook.reels_published,label:'Reel ที่เผยแพร่'}, 'fb') + platformCard('YouTube', p.youtube, {value:p.youtube.shorts_published,label:'Short ที่เผยแพร่'}, 'yt');
-    const mind = [['ความทรงจำ',data.mind.total_memories],['บทเรียน',data.mind.lessons],['คำถาม',data.mind.questions],['เป้าหมาย',data.mind.goals],['ความเชื่อ',data.mind.beliefs],['การทบทวน',data.mind.reflections],['การคาดการณ์',data.mind.forecasts]];
+    const mind = [['ความทรงจำ',data.mind.total_memories],['บทเรียน',data.mind.lessons],['คำถาม',data.mind.questions],['เป้าหมาย',data.mind.goals],['ความเชื่อ',data.mind.beliefs],['การทบทวน',data.mind.reflections],['YouTube',data.mind.youtube_discoveries],['การคาดการณ์',data.mind.forecasts]];
     el('mind').innerHTML = mind.map(([name,value])=>`<article class="card"><div class="label">${name}</div><div class="number">${fmt(value)}</div></article>`).join('');
     const statusLabel={ready:'พร้อม',queued:'รอเผยแพร่',published:'เผยแพร่แล้ว'};
     const intention=data.creator_autonomy?.current;

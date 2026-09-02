@@ -52,7 +52,10 @@ class CuriosityConstitutionTests(unittest.TestCase):
 class SourceRegistryTests(unittest.TestCase):
     def test_registry_exposes_only_enabled_source(self):
         registry = SourceRegistry()
-        self.assertEqual([item["id"] for item in registry.enabled_sources()], ["wikipedia"])
+        self.assertEqual(
+            [item["id"] for item in registry.enabled_sources()],
+            ["wikipedia", "youtube_discovery"],
+        )
 
     def test_missing_registry_is_safe(self):
         registry = SourceRegistry("missing-source-registry.json")

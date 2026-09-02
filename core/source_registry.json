@@ -25,6 +25,14 @@
       "enabled": false,
       "role": "May raise questions or evaluate creative resonance.",
       "limitations": "Never establishes a factual belief alone."
+    },
+    {
+      "id": "youtube_discovery",
+      "name": "YouTube public video metadata",
+      "tier": "C",
+      "enabled": true,
+      "role": "Discovery leads for AION's existing curiosity questions; only public title, description, channel, and URL are recorded.",
+      "limitations": "Requires YOUTUBE_DATA_API_KEY. Never downloads captions, media, or comments; a video is not factual evidence without corroboration."
     }
   ]
 }

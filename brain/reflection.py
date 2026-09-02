@@ -82,7 +82,7 @@ class ReflectionEngine:
     # in practice it is almost always empty on the live, scheduled
     # deployment).
     MATERIAL_SOURCES = (
-        "comment_replies", "external_knowledge", "lessons", "social_feedback",
+        "comment_replies", "external_knowledge", "youtube_discoveries", "lessons", "social_feedback",
     )
 
     # Lessons logged by this module's own safety gate, or by any other
