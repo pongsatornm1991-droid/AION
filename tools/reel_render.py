@@ -33,6 +33,12 @@ STORY_STILLS = {
     "question": "21-aion-curiosity-door.png",
 }
 
+ILLUSTRATED_STILLS = (
+    "01-curiosity-violet-pond.png",
+    "02-reflection-indigo-rain-city.png",
+    "03-momentum-amber-horizon.png",
+)
+
 
 def _font(size):
     try:
@@ -55,6 +61,14 @@ def _wrap(draw, text, font, max_width):
 
 def _story_still_paths(hook, thought):
     """Pick a three-scene visual arc with AION visible in every Reel."""
+    # Prefer AION's authored illustrated continuity when it is available.
+    # Each image is a distinct visual beat: question -> reflection -> movement.
+    illustrated_dir = os.path.join(
+        os.path.dirname(CONTENT_LIBRARY_DIR), "aion-illustrated"
+    )
+    illustrated = [os.path.join(illustrated_dir, filename) for filename in ILLUSTRATED_STILLS]
+    if all(os.path.isfile(path) for path in illustrated):
+        return illustrated
     text = f"{hook} {thought}".lower()
     if any(word in text for word in ("human", "people", "comment", "together", "listen")):
         lead = "human"
