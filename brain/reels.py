@@ -136,6 +136,7 @@ class ReelContentCycle:
             return {"stage": "pending-exists", "pending_id": pending.get("id")}
         from pathlib import Path
         from brain.content_registry import CreatorContentRegistry
+        from brain.cross_platform import append_invitation
         from brain.hashtags import append_hashtags
         creator_root = Path(repo_root or Path(__file__).resolve().parents[1])
         registry_path = creator_root / "content" / "creator_library.json"
@@ -145,7 +146,7 @@ class ReelContentCycle:
             record = self.memory.remember(
                 category=self.PENDING,
                 content=json.dumps({"video_path": creator["video_path"], "caption": caption,
-                    "ig_caption": append_hashtags(caption), "language": "en",
+                    "ig_caption": append_hashtags(append_invitation(caption, "instagram", self.memory)), "language": "en",
                     "seed": {"kind": "creator-library", "text": creator["title"]},
                     "library_asset": creator["id"], "source_url": creator.get("source_url"),
                     "visual_style": self.VISUAL_STYLE}, ensure_ascii=False),
@@ -194,7 +195,8 @@ class ReelContentCycle:
         # The spoken/on-screen thought stays clean; discoverability tags
         # belong only in Instagram's caption field.
         from brain.hashtags import append_hashtags
-        ig_caption = append_hashtags(report["draft"])
+        from brain.cross_platform import append_invitation
+        ig_caption = append_hashtags(append_invitation(report["draft"], "instagram", self.memory))
         record = self.memory.remember(
             category=self.PENDING,
             content=json.dumps({"video_path": relative, "caption": report["draft"],

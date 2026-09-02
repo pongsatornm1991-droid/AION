@@ -92,6 +92,8 @@ jobs:
           OPENAI_IMAGE_QUALITY: ${{ vars.OPENAI_IMAGE_QUALITY || 'medium' }}
           TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
           TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+          AION_INSTAGRAM_URL: ${{ vars.AION_INSTAGRAM_URL }}
+          AION_FACEBOOK_URL: ${{ vars.AION_FACEBOOK_URL }}
         run: python main.py run-instagram-draft
 
       - name: Commit + push the new image to the code repo (if any)

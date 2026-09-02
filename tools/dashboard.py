@@ -21,6 +21,7 @@ if str(ROOT) not in sys.path:
 from brain.memory import MemoryEngine
 from brain.visual_mood import state_council
 from brain.content_registry import CreatorContentRegistry
+from brain.creator_series import CreatorSeriesRegistry
 
 
 DASHBOARD_DIR = ROOT / "dashboard"
@@ -182,6 +183,10 @@ def build_snapshot(memory_root=None):
         creator_library = CreatorContentRegistry(memory).snapshot()
     except (OSError, ValueError, TypeError):
         creator_library = []
+    try:
+        creator_program = CreatorSeriesRegistry().snapshot()
+    except (OSError, ValueError, TypeError):
+        creator_program = []
     return {
         "generated_at": datetime.now().isoformat(timespec="seconds"),
         "data_source": {
@@ -215,6 +220,7 @@ def build_snapshot(memory_root=None):
         },
         "content": reels,
         "creator_library": creator_library,
+        "creator_program": creator_program,
         "brain": _brain_map(memory),
         "state_council": _state_council(totals, reels),
         "thoughts": _thoughts(memory, [

@@ -26,6 +26,7 @@
   <div class="section-title">จิตใจและการเติบโต</div>
   <section class="grid mind" id="mind"></section>
   <div class="section-title">คลังและคิว Creator</div>
+  <section class="card thoughts" id="creatorProgram"></section>
   <section class="grid library" id="library"></section>
   <div class="section-title">สมองและสภาสภาวะ</div>
   <section class="wide brain-layout"><div class="card brain-card"><div class="brain-legend" id="brainLegend"></div><svg id="brainGraph" viewBox="0 0 680 420" role="img" aria-label="แผนที่ความเชื่อมโยงของความทรงจำ AION"></svg><div class="brain-detail" id="brainDetail">เลือกจุดหนึ่งเพื่อดู memory ที่เชื่อมโยงอยู่</div></div><div class="card council" id="council"></div></section>
@@ -65,6 +66,7 @@
     const mind = [['ความทรงจำ',data.mind.total_memories],['บทเรียน',data.mind.lessons],['คำถาม',data.mind.questions],['เป้าหมาย',data.mind.goals],['ความเชื่อ',data.mind.beliefs],['การทบทวน',data.mind.reflections],['การคาดการณ์',data.mind.forecasts]];
     el('mind').innerHTML = mind.map(([name,value])=>`<article class="card"><div class="label">${name}</div><div class="number">${fmt(value)}</div></article>`).join('');
     const statusLabel={ready:'พร้อม',queued:'รอเผยแพร่',published:'เผยแพร่แล้ว'};
+    el('creatorProgram').innerHTML=(data.creator_program||[]).map(x=>`<article class="thought"><div class="thought-head"><span class="badge">${escapeHtml(x.series)}</span><span class="time">${x.scene_count} ฉาก · ${Math.round(x.duration_seconds/60*10)/10} นาที · ${x.source_count} แหล่งข้อมูล</span></div><p><strong>${escapeHtml(x.title)}</strong> — ${escapeHtml(x.status)}</p></article>`).join('') || '<div class="empty">ยังไม่มีรายการ Creator ตอนยาว</div>';
     el('library').innerHTML=(data.creator_library||[]).map(x=>`<article class="card episode"><img src="/${x.cover_path}" alt="${escapeHtml(x.title)}"><div class="episode-body"><div class="episode-meta status-${x.status}">${statusLabel[x.status]||x.status} · ${x.scene_count} ฉาก × ${x.seconds_per_scene} วินาที</div><h3>${escapeHtml(x.title)}</h3></div></article>`).join('') || '<div class="empty">ยังไม่มี Creator Library</div>';
     renderBrain(data.brain); renderCouncil(data.state_council);
     el('thoughts').innerHTML = data.thoughts.length ? data.thoughts.map(x=>`<article class="thought"><div class="thought-head"><span class="badge">${title(x.category)}</span><span class="time">${x.timestamp || ''}</span></div><p>${escapeHtml(x.content)}</p></article>`).join('') : '<div class="empty">AION พร้อมบันทึกความคิดแรกของตัวเอง</div>';

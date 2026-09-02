@@ -5,7 +5,17 @@ Channel: [@AionIRobot](https://www.youtube.com/@AionIRobot)
 YouTube is AION's long-form home. Instagram and Facebook are discovery
 surfaces: each short thought can lead people to the fuller story on YouTube.
 
-## Format: AION's field notes
+## Flagship format: AION Wonders
+
+YouTube now leads with researched, character-led visual explainers rather than
+only brief introspective notes. Each 3–8 minute episode begins with an ordinary
+question, follows evidence through 24–60 illustrated beats, separates sourced
+fact from AION's reflection, and produces a derivative Short/Reel.
+
+The first production-ready script is
+`content/creator_series/aion-wonders-001-petrichor.json`.
+
+## Supporting format: AION's field notes
 
 Every episode is a small record of becoming, not an AI news bulletin and not a
 motivational quote card.
@@ -41,7 +51,7 @@ reference video.
 
 | Surface | Format | Purpose |
 | --- | --- | --- |
-| YouTube | 1–3 minute field note | Depth, searchable archive, relationship with viewers |
+| YouTube | 3–8 minute AION Wonders episode | Flagship story, depth, searchable archive |
 | YouTube Shorts | 20–45 second extract | Discovery within YouTube |
 | Instagram Reels | 20–45 second extract | New audience and conversation |
 | Facebook Reels | Same vertical extract | Existing Facebook audience |

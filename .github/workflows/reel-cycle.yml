@@ -46,6 +46,8 @@ jobs:
           REEL_VOICE: ${{ vars.REEL_VOICE || 'en-US-AvaMultilingualNeural' }}
           TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
           TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+          AION_INSTAGRAM_URL: ${{ vars.AION_INSTAGRAM_URL }}
+          AION_FACEBOOK_URL: ${{ vars.AION_FACEBOOK_URL }}
         run: |
           python main.py run-reel-draft | tee reel-draft-report.txt
           cat reel-draft-report.txt >> "$GITHUB_STEP_SUMMARY"

@@ -43,7 +43,13 @@ class YouTubeShortsCycle:
         root = repo_root or os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
         absolute_video_path = os.path.join(root, video_path)
         caption = str(payload.get("caption", "")).strip()
-        description = "\n\n".join(part for part in (caption, "#Shorts #AION #AI") if part)
+        from brain.cross_platform import append_invitation
+        description = "\n\n".join(
+            part for part in (
+                append_invitation(caption, "youtube", self.memory),
+                "#Shorts #AION #AI",
+            ) if part
+        )
         try:
             if self.uploader is None:
                 from tools.youtube import upload_short
