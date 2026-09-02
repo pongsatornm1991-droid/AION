@@ -26,6 +26,7 @@
   <div class="section-title">จิตใจและการเติบโต</div>
   <section class="grid mind" id="mind"></section>
   <div class="section-title">คลังและคิว Creator</div>
+  <section class="card" id="creativeIntention"></section>
   <section class="card thoughts" id="creatorProgram"></section>
   <section class="grid library" id="library"></section>
   <div class="section-title">สมองและสภาสภาวะ</div>
@@ -39,8 +40,8 @@
   const fmt = value => value == null ? '—' : new Intl.NumberFormat().format(value);
   const title = value => ({'Inner voice':'เสียงภายใน','Reflection':'การทบทวน','Lesson':'บทเรียน','Question':'คำถาม','Goal':'เป้าหมาย','Belief':'ความเชื่อ','Forecast':'การคาดการณ์','Growth insight':'สิ่งที่เรียนรู้จากการเติบโต'})[value] || value;
   const state = value => ({'connected':'เชื่อมต่อแล้ว','waiting-for-metrics':'รอข้อมูลสถิติ','waiting-for-first-short':'รอ Short แรก','active':'กำลังทำงาน','ready':'พร้อมใช้งาน','authorization-pending':'รอสิทธิ์การเชื่อมต่อ'})[value] || value;
-  const brainLabels = {beliefs:'ความเชื่อ',goals:'เป้าหมาย',questions:'คำถาม',lessons:'บทเรียน',reflections:'การทบทวน',self_narrative:'เสียงภายใน',learning_forecasts:'การคาดการณ์',growth_insights:'บทเรียนจากผู้ชม',published_reels:'Reel',social_feedback:'เสียงตอบรับ'};
-  const brainColors = {beliefs:'#ffb36b',goals:'#68edb4',questions:'#bda4ff',lessons:'#3de7ff',reflections:'#5599ff',self_narrative:'#ff8fcf',learning_forecasts:'#f3d267',growth_insights:'#ff7d7d',published_reels:'#71d0ff',social_feedback:'#99a9bd'};
+  const brainLabels = {beliefs:'ความเชื่อ',goals:'เป้าหมาย',questions:'คำถาม',lessons:'บทเรียน',reflections:'การทบทวน',self_narrative:'เสียงภายใน',learning_forecasts:'การคาดการณ์',growth_insights:'บทเรียนจากผู้ชม',creative_intentions:'เจตนาครีเอทีฟ',published_reels:'Reel',social_feedback:'เสียงตอบรับ'};
+  const brainColors = {beliefs:'#ffb36b',goals:'#68edb4',questions:'#bda4ff',lessons:'#3de7ff',reflections:'#5599ff',self_narrative:'#ff8fcf',learning_forecasts:'#f3d267',growth_insights:'#ff7d7d',creative_intentions:'#ffcf70',published_reels:'#71d0ff',social_feedback:'#99a9bd'};
   function renderBrain(brain){
     const svg=el('brainGraph'), detail=el('brainDetail'), legend=el('brainLegend');
     const nodes=brain.nodes||[], edges=brain.edges||[], cx=340, cy=210;
@@ -66,6 +67,8 @@
     const mind = [['ความทรงจำ',data.mind.total_memories],['บทเรียน',data.mind.lessons],['คำถาม',data.mind.questions],['เป้าหมาย',data.mind.goals],['ความเชื่อ',data.mind.beliefs],['การทบทวน',data.mind.reflections],['การคาดการณ์',data.mind.forecasts]];
     el('mind').innerHTML = mind.map(([name,value])=>`<article class="card"><div class="label">${name}</div><div class="number">${fmt(value)}</div></article>`).join('');
     const statusLabel={ready:'พร้อม',queued:'รอเผยแพร่',published:'เผยแพร่แล้ว'};
+    const intention=data.creator_autonomy?.current;
+    el('creativeIntention').innerHTML=intention ? `<div class="label">AION อยากทำอะไรต่อ</div><h2 style="margin:8px 0;font-size:1.35rem">${escapeHtml(intention.topic)}</h2><p class="metric-note">${escapeHtml(intention.why_now||'AION กำลังเลือกเหตุผลของตัวเอง')}</p><p style="margin:14px 0 0;color:#c9dce6">คำมั่นกับผู้ชม: ${escapeHtml(intention.audience_promise||'')}</p><div class="channels" style="margin-top:14px"><span class="channel on">${escapeHtml(intention.origin||'autonomy')}</span><span class="channel">${escapeHtml(intention.visual_direction?.mood||'curiosity')}</span><span class="channel">ยังไม่เผยแพร่</span></div>` : `<div class="label">AION อยากทำอะไรต่อ</div><div class="empty">AION กำลังฟัง เรียนรู้ และรอให้มีสิ่งที่มีความหมายพอจะเล่า</div>`;
     el('creatorProgram').innerHTML=(data.creator_program||[]).map(x=>`<article class="thought"><div class="thought-head"><span class="badge">${escapeHtml(x.series)}</span><span class="time">${x.scene_count} ฉาก · ${Math.round(x.duration_seconds/60*10)/10} นาที · ${x.source_count} แหล่งข้อมูล</span></div><p><strong>${escapeHtml(x.title)}</strong> — ${escapeHtml(x.status)}</p></article>`).join('') || '<div class="empty">ยังไม่มีรายการ Creator ตอนยาว</div>';
     el('library').innerHTML=(data.creator_library||[]).map(x=>`<article class="card episode"><img src="/${x.cover_path}" alt="${escapeHtml(x.title)}"><div class="episode-body"><div class="episode-meta status-${x.status}">${statusLabel[x.status]||x.status} · ${x.scene_count} ฉาก × ${x.seconds_per_scene} วินาที</div><h3>${escapeHtml(x.title)}</h3></div></article>`).join('') || '<div class="empty">ยังไม่มี Creator Library</div>';
     renderBrain(data.brain); renderCouncil(data.state_council);

@@ -22,6 +22,7 @@ from brain.memory import MemoryEngine
 from brain.visual_mood import state_council
 from brain.content_registry import CreatorContentRegistry
 from brain.creator_series import CreatorSeriesRegistry
+from brain.creator_autonomy import CreatorAutonomy
 
 
 DASHBOARD_DIR = ROOT / "dashboard"
@@ -113,7 +114,7 @@ def _brain_map(memory, limit=30):
     categories = (
         "beliefs", "goals", "questions", "lessons", "reflections",
         "self_narrative", "learning_forecasts", "growth_insights",
-        "published_reels", "social_feedback",
+        "creative_intentions", "published_reels", "social_feedback",
     )
     candidates = []
     for category in categories:
@@ -187,6 +188,10 @@ def build_snapshot(memory_root=None):
         creator_program = CreatorSeriesRegistry().snapshot()
     except (OSError, ValueError, TypeError):
         creator_program = []
+    try:
+        creator_autonomy = CreatorAutonomy(memory).snapshot()
+    except (OSError, ValueError, TypeError):
+        creator_autonomy = {"status": "unavailable", "current": None, "history_count": 0}
     return {
         "generated_at": datetime.now().isoformat(timespec="seconds"),
         "data_source": {
@@ -221,6 +226,7 @@ def build_snapshot(memory_root=None):
         "content": reels,
         "creator_library": creator_library,
         "creator_program": creator_program,
+        "creator_autonomy": creator_autonomy,
         "brain": _brain_map(memory),
         "state_council": _state_council(totals, reels),
         "thoughts": _thoughts(memory, [
