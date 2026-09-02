@@ -1,0 +1,41 @@
+name: AION - Creator intention cycle
+
+on:
+  schedule:
+    - cron: "10 */6 * * *"
+  workflow_dispatch: {}
+
+concurrency:
+  group: aion-memory-data
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  choose:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/checkout@v4
+        with:
+          repository: pongsatornm1991-droid/aion-memory-data
+          token: ${{ secrets.MEMORY_REPO_PAT }}
+          path: memory_data
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Let AION choose one creative intention
+        env:
+          AION_MEMORY_ROOT: memory_data
+        run: python tools/run_creator_autonomy.py
+      - name: Persist AION's private intention
+        working-directory: memory_data
+        run: |
+          git config user.name "aion-bot"
+          git config user.email "aion-bot@users.noreply.github.com"
+          git add -A
+          if ! git diff --cached --quiet; then
+            git commit -m "AION creator intention ($(date -u +%Y-%m-%dT%H:%M:%SZ))"
+            git push
+          fi

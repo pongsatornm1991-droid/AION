@@ -1,5 +1,6 @@
 """Create AION's next inspectable creative intention without publishing it."""
 import json
+import os
 import sys
 from pathlib import Path
 
@@ -12,4 +13,5 @@ from brain.memory import MemoryEngine
 
 
 if __name__ == "__main__":
-    print(json.dumps(CreatorAutonomy(MemoryEngine()).choose_once(), ensure_ascii=False, indent=2))
+    memory = MemoryEngine(os.getenv("AION_MEMORY_ROOT", "memory"))
+    print(json.dumps(CreatorAutonomy(memory).choose_once(), ensure_ascii=False, indent=2))

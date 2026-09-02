@@ -1,5 +1,6 @@
 """Run one read-only AION YouTube discovery turn."""
 import json
+import os
 import sys
 from pathlib import Path
 
@@ -11,4 +12,5 @@ from brain.memory import MemoryEngine
 from brain.youtube_learning import YouTubeLearningCycle
 
 if __name__ == "__main__":
-    print(json.dumps(YouTubeLearningCycle(MemoryEngine()).discover_once(), ensure_ascii=False, indent=2))
+    memory = MemoryEngine(os.getenv("AION_MEMORY_ROOT", "memory"))
+    print(json.dumps(YouTubeLearningCycle(memory).discover_once(), ensure_ascii=False, indent=2))
