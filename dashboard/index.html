@@ -52,7 +52,8 @@
   }
   function renderCouncil(council){
     const dominant=(council.states||[]).find(s=>s.key===council.dominant);
-    el('council').innerHTML=`<div class="label">สภาสภาวะของ AION</div><h2>${dominant ? dominant.label : 'กำลังรอข้อมูล'}</h2><p class="council-intro">สัญญาณเด่นจากสิ่งที่ AION กำลังบันทึกและทำอยู่</p>${(council.states||[]).map(s=>`<div class="signal"><div class="signal-head"><span>${s.label}</span><span>${s.value}%</span></div><div class="track"><div class="fill" style="width:${s.value}%"></div></div><small>${s.evidence}</small></div>`).join('')}<p class="council-note">${council.disclaimer||''}</p>`;
+    const color=dominant?.color||'#3de7ff';
+    el('council').innerHTML=`<div class="label">สภาสภาวะของ AION</div><h2 style="color:${color}">${dominant ? dominant.label : 'กำลังรอข้อมูล'}</h2><p class="council-intro">สีที่ AION ใช้ในงานถัดไป: ${dominant?.accent||'cyan'} · สัญญาณเด่นจากสิ่งที่กำลังบันทึกและทำอยู่</p>${(council.states||[]).map(s=>`<div class="signal"><div class="signal-head"><span>${s.label}</span><span style="color:${s.color}">${s.value}%</span></div><div class="track"><div class="fill" style="width:${s.value}%;background:linear-gradient(90deg,#147a9a,${s.color})"></div></div><small>${s.evidence} · ${s.visual_note}</small></div>`).join('')}<p class="council-note">${council.disclaimer||''}</p>`;
   }
   const platformCard = (name, data, metrics, cls='') => `<article class="card platform ${cls}"><div class="label">${name}</div><h2>${state(data.status)}</h2><div class="number">${fmt(metrics.value)}</div><div class="metric-note">${metrics.label}</div>${metrics.second ? `<div class="metric-note">${fmt(metrics.second.value)} ${metrics.second.label}</div>` : ''}<span class="state ${data.status.includes('pending') ? 'pending':''}">${state(data.status)}</span></article>`;
   function render(data) {

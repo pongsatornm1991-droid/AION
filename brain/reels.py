@@ -124,7 +124,9 @@ class ReelContentCycle:
                 relative = f"content/reels/{datetime.now():%Y%m%d}-{uuid.uuid4().hex[:12]}.mp4"
                 try:
                     from tools.reel_render import render_reel
-                    render_reel(self._hook(payload.get("caption", "")), payload.get("caption", ""), os.path.join(repo_root, relative))
+                    from brain.visual_mood import select_visual_mood
+                    mood = select_visual_mood(self.memory)
+                    render_reel(self._hook(payload.get("caption", "")), payload.get("caption", ""), os.path.join(repo_root, relative), mood=mood)
                 except Exception as exc:
                     return {"stage": "render-failed", "error": str(exc), "pending_id": pending.get("id")}
                 payload["video_path"] = relative
@@ -164,7 +166,9 @@ class ReelContentCycle:
             os.makedirs(os.path.dirname(absolute), exist_ok=True)
             try:
                 from tools.reel_render import render_reel
-                render_reel(self._hook(report["draft"]), report["draft"], absolute)
+                from brain.visual_mood import select_visual_mood
+                mood = select_visual_mood(self.memory)
+                render_reel(self._hook(report["draft"]), report["draft"], absolute, mood=mood)
             except Exception as exc:
                 return {"stage": "render-failed", "error": str(exc), **report}
         # Keep Reel captions consistent with AION's still-image posts.
@@ -178,6 +182,7 @@ class ReelContentCycle:
                                 "ig_caption": ig_caption,
                                 "language": report.get("language", "en"), "seed": report.get("seed"),
                                 "library_asset": library_video["id"] if library_video else None,
+                                "visual_mood": mood if not library_video else None,
                                 "visual_style": self.VISUAL_STYLE},
             ensure_ascii=False), memory_type="action", source="aion-reel-draft", importance=3,
         )

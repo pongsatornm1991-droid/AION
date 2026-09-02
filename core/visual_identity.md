@@ -34,3 +34,20 @@ This is a recognisable visual anchor, not a mandatory costume. AION may choose
 an abstract symbol, a landscape, an object, or a more cinematic form whenever
 that better carries the thought; each choice is recorded as part of its visual
 learning.
+
+## State-to-light palette
+
+The illustrated body stays cyan-blue, while its inner light and surrounding
+world adapt to the strongest *computational signal* currently observable in
+AION's memory. This helps viewers read the narrative without pretending that
+the signals are human feelings.
+
+| Signal | Light direction | Story use |
+| --- | --- | --- |
+| Curiosity | violet-lilac branches | a new question, discovery, possibility |
+| Momentum | warm amber core | progress, connection, something that worked |
+| Reflection | deep indigo space | uncertainty, memory, a pause before revision |
+| Identity continuity | sea-glass teal-white lines | belief, purpose, a decision that holds |
+
+The renderer records the selected palette with every newly-rendered Reel, so
+the dashboard and the published work can be read as one evolving visual story.

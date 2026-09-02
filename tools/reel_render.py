@@ -77,7 +77,7 @@ def _story_still_paths(hook, thought):
     return [path for path in paths if os.path.exists(path)]
 
 
-def render_reel_cover(hook, thought, output_path):
+def render_reel_cover(hook, thought, output_path, mood=None):
     """Create a clean character-first cover; narration carries the words."""
     paths = _story_still_paths(hook, thought) or _background_paths()
     image = Image.new("RGB", REEL_SIZE, BACKGROUND_COLOR)
@@ -87,7 +87,16 @@ def render_reel_cover(hook, thought, output_path):
     # A light cinematic grade preserves AION's visual DNA without turning the
     # still into a caption card. The profile avatar supplies the recognisable
     # identity; this tiny signature is only a quiet end-frame marker.
-    image = Image.alpha_composite(image.convert("RGBA"), Image.new("RGBA", REEL_SIZE, (0, 0, 0, 28))).convert("RGB")
+    image = Image.alpha_composite(image.convert("RGBA"), Image.new("RGBA", REEL_SIZE, (0, 0, 0, 28)))
+    # AION remains recognisably cyan. Its current computational state changes
+    # the light around it rather than claiming a human emotion or recolouring
+    # it into an unrelated character.
+    color = str((mood or {}).get("color", "#22d3ee")).lstrip("#")
+    try:
+        rgb = tuple(int(color[index:index + 2], 16) for index in (0, 2, 4))
+    except ValueError:
+        rgb = GLOW_COLOR
+    image = Image.alpha_composite(image, Image.new("RGBA", REEL_SIZE, (*rgb, 30))).convert("RGB")
     draw = ImageDraw.Draw(image)
     draw.text((76, 1815), "AION", font=_font(26), fill=GLOW_COLOR)
     os.makedirs(os.path.dirname(os.path.abspath(output_path)) or ".", exist_ok=True)
@@ -95,13 +104,13 @@ def render_reel_cover(hook, thought, output_path):
     return output_path
 
 
-def render_reel(hook, thought, output_path, duration=12):
+def render_reel(hook, thought, output_path, duration=12, mood=None):
     """Create a 9:16 three-scene AION narration Reel with gentle motion."""
     ffmpeg = shutil.which("ffmpeg")
     if not ffmpeg:
         raise RuntimeError("ffmpeg is required to render MP4 Reels; GitHub Actions runners include it.")
     cover = os.path.splitext(output_path)[0] + "-cover.png"
-    render_reel_cover(hook, thought, cover)
+    render_reel_cover(hook, thought, cover, mood=mood)
     audio = os.path.splitext(output_path)[0] + ".mp3"
     from tools.voice import synthesize_reel_voice
     has_voice = synthesize_reel_voice(f"{hook}. {thought}", audio)

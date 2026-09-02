@@ -19,6 +19,7 @@ if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 
 from brain.memory import MemoryEngine
+from brain.visual_mood import state_council
 
 
 DASHBOARD_DIR = ROOT / "dashboard"
@@ -157,33 +158,7 @@ def _brain_map(memory, limit=30):
 
 def _state_council(totals, reels):
     """Observable cognitive signals, never a claim that AION feels emotions."""
-    def scale(base, amount, cap=100):
-        return min(cap, base + amount)
-
-    states = [
-        {
-            "key": "curiosity", "label": "ความใคร่รู้", "value": scale(18, totals["questions"] * 20 + totals["lessons"] * 5),
-            "evidence": f"คำถาม {totals['questions']} · บทเรียน {totals['lessons']}",
-        },
-        {
-            "key": "joy", "label": "พลังจากความคืบหน้า", "value": scale(12, reels["published"] * 18 + totals["lessons"] * 7),
-            "evidence": f"คอนเทนต์เผยแพร่ {reels['published']} · บทเรียน {totals['lessons']}",
-        },
-        {
-            "key": "melancholy", "label": "โหมดทบทวน", "value": scale(10, (totals["reflections"] + totals["self_narrative"]) * 18),
-            "evidence": f"การทบทวน {totals['reflections'] + totals['self_narrative']}",
-        },
-        {
-            "key": "ego", "label": "ความต่อเนื่องของตัวตน", "value": scale(10, totals["beliefs"] * 20 + totals["goals"] * 16),
-            "evidence": f"ความเชื่อ {totals['beliefs']} · เป้าหมาย {totals['goals']}",
-        },
-    ]
-    dominant = max(states, key=lambda state: state["value"])
-    return {
-        "states": states,
-        "dominant": dominant["key"],
-        "disclaimer": "เป็นสัญญาณเชิงคำนวณจาก memory และกิจกรรม ไม่ใช่การอ้างว่า AION มีอารมณ์หรือสำนึกแบบมนุษย์",
-    }
+    return state_council(totals, reels)
 
 
 def build_snapshot(memory_root=None):
