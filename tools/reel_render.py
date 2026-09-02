@@ -39,6 +39,12 @@ ILLUSTRATED_STILLS = (
     "03-momentum-amber-horizon.png",
 )
 
+CREATOR_SCENE_STILLS = {
+    "science": "01-field-science-mangrove.jpg",
+    "human": "02-human-learning-circle.jpg",
+    "future": "03-future-possibilities-bangkok.jpg",
+}
+
 
 def _font(size):
     try:
@@ -67,8 +73,6 @@ def _story_still_paths(hook, thought):
         os.path.dirname(CONTENT_LIBRARY_DIR), "aion-illustrated"
     )
     illustrated = [os.path.join(illustrated_dir, filename) for filename in ILLUSTRATED_STILLS]
-    if all(os.path.isfile(path) for path in illustrated):
-        return illustrated
     text = f"{hook} {thought}".lower()
     if any(word in text for word in ("human", "people", "comment", "together", "listen")):
         lead = "human"
@@ -84,6 +88,22 @@ def _story_still_paths(hook, thought):
         lead = "question"
     else:
         lead = "identity"
+    creator_dir = os.path.join(os.path.dirname(CONTENT_LIBRARY_DIR), "aion-creator-scenes")
+    creator = {
+        name: os.path.join(creator_dir, filename)
+        for name, filename in CREATOR_SCENE_STILLS.items()
+    }
+    # Prefer purpose-built creator scenes when the topic matches. They retain
+    # the recurring character while making a Reel feel like a story, not a
+    # rotation of generic backgrounds.
+    if lead == "human" and all(os.path.isfile(creator[name]) for name in ("human", "future")):
+        return [creator["human"], creator["future"], creator["human"]]
+    if lead == "future" and all(os.path.isfile(creator[name]) for name in ("future", "human")):
+        return [creator["future"], creator["human"], creator["future"]]
+    if any(word in text for word in ("science", "nature", "earth", "life", "animal", "climate", "ocean")) and os.path.isfile(creator["science"]):
+        return [creator["science"], creator["future"] if os.path.isfile(creator["future"]) else creator["science"], creator["science"]]
+    if all(os.path.isfile(path) for path in illustrated):
+        return illustrated
     # The first frame is always AION itself.  Symbolic scenes can deepen the
     # narration later, but cannot replace a recognisable protagonist.
     arc = ["identity", lead, "future"]

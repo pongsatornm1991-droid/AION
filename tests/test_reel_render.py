@@ -1,17 +1,15 @@
-import os
-import tempfile
 import unittest
 
-from PIL import Image
-
-from tools.reel_render import REEL_SIZE, render_reel_cover
+from tools.reel_render import _story_still_paths
 
 
-class ReelRenderTests(unittest.TestCase):
-    def test_renders_a_vertical_cover(self):
-        with tempfile.TemporaryDirectory() as temp:
-            path = os.path.join(temp, "cover.png")
-            render_reel_cover("What changes when memory returns?", "AION is tracing the answer.", path)
-            self.assertTrue(os.path.isfile(path))
-            with Image.open(path) as image:
-                self.assertEqual(image.size, REEL_SIZE)
+class ReelRenderLibraryTests(unittest.TestCase):
+    def test_science_topics_use_the_creator_scene_library(self):
+        paths = _story_still_paths("A question about ocean life", "science and discovery")
+        self.assertEqual(3, len(paths))
+        self.assertTrue(any("aion-creator-scenes" in path for path in paths))
+
+    def test_human_topics_use_the_creator_scene_library(self):
+        paths = _story_still_paths("Listening to people", "community conversation")
+        self.assertEqual(3, len(paths))
+        self.assertTrue(all("aion-creator-scenes" in path for path in paths))
