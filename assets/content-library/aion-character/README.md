@@ -5,6 +5,7 @@ This folder contains the visual identity references used to keep AION consistent
 ## Canonical reference
 
 - `01-aion-character-sheet-seedream.jpg`
+- `02-aion-emotional-color-guide.jpg` maps AION's visible emotional states: cyan curiosity, gold joy, violet wonder, indigo contemplation, and rain-blue melancholy.
 - Generated with Seedream 4.0 through AIPass on 2026-09-03.
 - Treat the character design as a reference, not a rigid costume. AION may evolve, age visually, and change color with emotional state while retaining the same silhouette, translucent body, neural-light texture, and subtle Thai motifs.
 

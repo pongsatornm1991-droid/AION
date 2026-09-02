@@ -123,7 +123,15 @@ def render_reel(hook, thought, output_path, duration=18, mood=None, still_paths=
     """Create a 9:16, paced multi-scene AION narration Reel."""
     ffmpeg = shutil.which("ffmpeg")
     if not ffmpeg:
-        raise RuntimeError("ffmpeg is required to render MP4 Reels; GitHub Actions runners include it.")
+        try:
+            import imageio_ffmpeg
+            ffmpeg = imageio_ffmpeg.get_ffmpeg_exe()
+        except (ImportError, RuntimeError):
+            ffmpeg = None
+    if not ffmpeg:
+        raise RuntimeError(
+            "ffmpeg is required to render MP4 Reels. Install ffmpeg or imageio-ffmpeg."
+        )
     # A creator episode can supply a purpose-built storyboard.  Normal
     # autonomous Reels keep the selected AION story arc above.
     stills = [str(path) for path in (still_paths or []) if os.path.isfile(path)]
