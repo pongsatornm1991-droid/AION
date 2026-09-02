@@ -16,8 +16,6 @@ permissions:
 
 jobs:
   youtube-shorts:
-    # Do not run until credentials are stored as protected repository secrets.
-    if: ${{ secrets.YOUTUBE_REFRESH_TOKEN != '' }}
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -30,6 +28,15 @@ jobs:
         with:
           python-version: "3.11"
       - run: pip install -r requirements.txt
+      - name: Validate YouTube credentials
+        env:
+          YOUTUBE_CLIENT_ID: ${{ secrets.YOUTUBE_CLIENT_ID }}
+          YOUTUBE_CLIENT_SECRET: ${{ secrets.YOUTUBE_CLIENT_SECRET }}
+          YOUTUBE_REFRESH_TOKEN: ${{ secrets.YOUTUBE_REFRESH_TOKEN }}
+        run: |
+          test -n "$YOUTUBE_CLIENT_ID"
+          test -n "$YOUTUBE_CLIENT_SECRET"
+          test -n "$YOUTUBE_REFRESH_TOKEN"
       - name: Verify deterministic safeguards
         run: python run_tests.py
       - name: Upload one completed Reel as a Short
