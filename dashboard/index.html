@@ -34,7 +34,7 @@
   const el = id => document.getElementById(id);
   const fmt = value => value == null ? '—' : new Intl.NumberFormat().format(value);
   const title = value => ({'Inner voice':'เสียงภายใน','Reflection':'การทบทวน','Lesson':'บทเรียน','Question':'คำถาม','Goal':'เป้าหมาย','Belief':'ความเชื่อ','Forecast':'การคาดการณ์','Growth insight':'สิ่งที่เรียนรู้จากการเติบโต'})[value] || value;
-  const state = value => ({'connected':'เชื่อมต่อแล้ว','waiting-for-metrics':'รอข้อมูลสถิติ','active':'กำลังทำงาน','ready':'พร้อมใช้งาน','authorization-pending':'รอสิทธิ์การเชื่อมต่อ'})[value] || value;
+  const state = value => ({'connected':'เชื่อมต่อแล้ว','waiting-for-metrics':'รอข้อมูลสถิติ','waiting-for-first-short':'รอ Short แรก','active':'กำลังทำงาน','ready':'พร้อมใช้งาน','authorization-pending':'รอสิทธิ์การเชื่อมต่อ'})[value] || value;
   const brainLabels = {beliefs:'ความเชื่อ',goals:'เป้าหมาย',questions:'คำถาม',lessons:'บทเรียน',reflections:'การทบทวน',self_narrative:'เสียงภายใน',learning_forecasts:'การคาดการณ์',growth_insights:'บทเรียนจากผู้ชม',published_reels:'Reel',social_feedback:'เสียงตอบรับ'};
   const brainColors = {beliefs:'#ffb36b',goals:'#68edb4',questions:'#bda4ff',lessons:'#3de7ff',reflections:'#5599ff',self_narrative:'#ff8fcf',learning_forecasts:'#f3d267',growth_insights:'#ff7d7d',published_reels:'#71d0ff',social_feedback:'#99a9bd'};
   function renderBrain(brain){
