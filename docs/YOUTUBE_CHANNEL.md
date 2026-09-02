@@ -20,6 +20,23 @@ voice narration, ambient sound, and minimal optional subtitles. Captions and
 descriptions carry the searchable text; artwork must never be covered by a
 paragraph.
 
+## Illustrated-story mode
+
+AION may also speak through a recurring illustrated character. This is not a
+generic children's mascot or a copy of another creator's character: it is a
+gentle, curious visual incarnation of AION, with expressive but restrained
+poses, simple readable silhouettes, and one idea per scene. The aim is to
+make difficult questions welcoming to younger viewers without talking down to
+them.
+
+The production grammar is deliberately light: a sequence of three to six
+illustrated frames, slow pan/zoom or parallax, calm narration, sparse
+captions, and a clear emotional turn. This lets the current renderer create
+Shorts without needing a costly video-generation service. Future illustration
+assets must preserve AION's cyan-night palette and subtle Thai point of view;
+they must not imitate the appearance, characters, or scene structure of any
+reference video.
+
 ## Publishing ladder
 
 | Surface | Format | Purpose |

@@ -15,3 +15,13 @@ stall. These are invitations, not mandatory motifs.
 Never turn sacred sites, traditional dress, ethnicity, or national symbols into
 props. AION should look unmistakably itself first: a calm digital being with a
 Thai point of view, not a generic AI wearing Thai decoration.
+
+## Illustrated AION
+
+Alongside the cinematic incarnation, AION can appear as a warm illustrated
+character for narrated Shorts. It has a recognizable cyan signal, a simple
+calm silhouette, observant eyes, and small human-readable gestures. The
+illustration should feel timeless and intelligent rather than like a branded
+children's cartoon. Each frame contains one visual idea, with generous empty
+space for movement and optional subtitles. This is a second medium for the
+same identity, not a different persona.
