@@ -5,12 +5,14 @@ separate lifecycle action, so a finished episode can be reviewed and queued
 without silently posting it.
 """
 
+import sys
 from pathlib import Path
 
-from tools.reel_render import render_reel
-
-
 ROOT = Path(__file__).resolve().parents[1]
+# This script is invoked directly by the workflow (`python tools/...`), so
+# explicitly retain the repository root for the renderer's package imports.
+sys.path.insert(0, str(ROOT))
+from tools.reel_render import render_reel
 EPISODE_ID = "aion-story-001-before-books"
 HOOK = "Before books, people left stories on stone"
 NARRATION = (
