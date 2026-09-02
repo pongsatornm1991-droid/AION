@@ -9,6 +9,14 @@ from brain.memory import MemoryEngine
 
 
 class CrossPlatformTests(unittest.TestCase):
+    def test_real_registry_connects_all_three_aion_profiles(self):
+        urls = platform_urls()
+        self.assertEqual("https://www.youtube.com/@AionIRobot", urls["youtube"])
+        self.assertEqual("https://www.instagram.com/aion_i.robot/", urls["instagram"])
+        self.assertEqual("https://www.facebook.com/profile.php?id=61593972322904", urls["facebook"])
+        self.assertIn("Instagram:", invitation("youtube"))
+        self.assertIn("Facebook:", invitation("youtube"))
+
     def test_registry_reads_static_and_environment_urls(self):
         with tempfile.TemporaryDirectory() as root:
             path = os.path.join(root, "platforms.json")
@@ -27,4 +35,3 @@ class CrossPlatformTests(unittest.TestCase):
             self.assertIn("YouTube", message)
             memory.remember("social_language_log", "platform=instagram; action=4", memory_type="action", source="test")
             self.assertEqual("", invitation("instagram", memory))
-

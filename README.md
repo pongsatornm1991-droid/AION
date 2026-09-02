@@ -586,9 +586,10 @@ mix. Long-form episode packages live in `content/creator_series/`; the first
 24-scene pilot is ready as a sourced script and visual-production plan.
 
 Cross-platform invitations are deliberately occasional (about one in four
-posts). Instagram and Facebook point viewers to the full YouTube stories. Add
-repository variables `AION_INSTAGRAM_URL` and `AION_FACEBOOK_URL` so YouTube
-descriptions can point viewers back to those profiles as well.
+posts). Instagram and Facebook point viewers to the full YouTube stories;
+YouTube descriptions point back to AION's registered Instagram and Facebook
+profiles. Repository variables `AION_INSTAGRAM_URL` and `AION_FACEBOOK_URL`
+remain optional overrides if either public profile URL changes later.
 
 Single deterministic command (unit tests + both offline benchmarks; never
 calls Gemini, so it needs no API key and costs no quota):
