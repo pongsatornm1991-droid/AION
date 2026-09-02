@@ -220,7 +220,7 @@ def build_snapshot(memory_root=None):
                 "reels_published": reels["platform_counts"].get("facebook", 0),
             },
             "youtube": {
-                "status": "active" if reels["platform_counts"].get("youtube") else "authorization-pending",
+                "status": "active" if reels["platform_counts"].get("youtube") else "waiting-for-first-short",
                 "shorts_published": reels["platform_counts"].get("youtube", 0),
             },
         },
