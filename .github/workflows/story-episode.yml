@@ -16,8 +16,10 @@ jobs:
           python-version: "3.11"
       - name: Install episode renderer
         run: |
-          # GitHub's Ubuntu image already contains ffmpeg.  Avoid an
-          # unnecessary apt update here: it can stall before a story starts.
+          # Constrain package setup so a transient mirror problem cannot hold
+          # a Creator episode forever. IPv4 avoids flaky IPv6 mirror routes.
+          sudo timeout 90s apt-get update -o Acquire::ForceIPv4=true -o Acquire::http::Timeout=20
+          sudo timeout 90s apt-get install -y ffmpeg
           ffmpeg -version
           pip install -r requirements.txt
       - name: Render AION Creator episode
