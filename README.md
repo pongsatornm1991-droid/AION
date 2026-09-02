@@ -578,6 +578,18 @@ Default schedule (Bangkok time): Instagram/Facebook at 18:00 and YouTube at
 20:00. Set the repository variable `YOUTUBE_PRIVACY_STATUS` to `private` or
 `unlisted` whenever a non-public YouTube review cycle is preferred.
 
+### AION Creator Studio
+
+`core/creator_bible.md` defines AION's recurring character, emotional colour
+language, flagship `AION Wonders` series, voice, platform roles, and publishing
+mix. Long-form episode packages live in `content/creator_series/`; the first
+24-scene pilot is ready as a sourced script and visual-production plan.
+
+Cross-platform invitations are deliberately occasional (about one in four
+posts). Instagram and Facebook point viewers to the full YouTube stories. Add
+repository variables `AION_INSTAGRAM_URL` and `AION_FACEBOOK_URL` so YouTube
+descriptions can point viewers back to those profiles as well.
+
 Single deterministic command (unit tests + both offline benchmarks; never
 calls Gemini, so it needs no API key and costs no quota):
 

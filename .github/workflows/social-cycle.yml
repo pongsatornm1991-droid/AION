@@ -68,6 +68,8 @@ jobs:
           FACEBOOK_PAGE_ID: ${{ secrets.FACEBOOK_PAGE_ID }}
           TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
           TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+          AION_INSTAGRAM_URL: ${{ vars.AION_INSTAGRAM_URL }}
+          AION_FACEBOOK_URL: ${{ vars.AION_FACEBOOK_URL }}
         run: python main.py run-social-cycle
 
       - name: Persist memory changes back to the private repo

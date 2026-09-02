@@ -152,7 +152,8 @@ class VisualContentCycle:
         # clutter the visual design. "ig_caption" is the separate,
         # hashtag-appended text actually sent to the Instagram Graph
         # API as the post's real caption (see publish_once() below).
-        ig_caption = append_hashtags(caption)
+        from brain.cross_platform import append_invitation
+        ig_caption = append_hashtags(append_invitation(caption, "instagram", self.memory))
 
         record = self.memory.remember(
             category=PENDING_CATEGORY,

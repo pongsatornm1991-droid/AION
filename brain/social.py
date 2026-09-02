@@ -547,7 +547,10 @@ class SocialAutoCycle:
         # Telegram notifications should reflect what was actually
         # drafted and gated, not the mechanically-appended tag block.
         # Only the message actually sent to Facebook gets hashtags.
-        message = append_hashtags(draft_report["draft"])
+        from brain.cross_platform import append_invitation
+        message = append_hashtags(
+            append_invitation(draft_report["draft"], "facebook", self.generator.memory)
+        )
 
         try:
             proposed = self.lifecycle.propose(
