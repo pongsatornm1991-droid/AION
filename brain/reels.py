@@ -134,6 +134,25 @@ class ReelContentCycle:
                 self.memory.update(self.PENDING, pending["id"], content=json.dumps(payload, ensure_ascii=False))
                 return {"stage": "redesigned", "video_path": relative, "caption": payload.get("caption", ""), "pending_id": pending.get("id")}
             return {"stage": "pending-exists", "pending_id": pending.get("id")}
+        from pathlib import Path
+        from brain.content_registry import CreatorContentRegistry
+        from brain.hashtags import append_hashtags
+        creator_root = Path(repo_root or Path(__file__).resolve().parents[1])
+        registry_path = creator_root / "content" / "creator_library.json"
+        creator = CreatorContentRegistry(self.memory, path=registry_path, root=creator_root).next_ready() if registry_path.is_file() else None
+        if creator is not None:
+            caption = creator["caption"]
+            record = self.memory.remember(
+                category=self.PENDING,
+                content=json.dumps({"video_path": creator["video_path"], "caption": caption,
+                    "ig_caption": append_hashtags(caption), "language": "en",
+                    "seed": {"kind": "creator-library", "text": creator["title"]},
+                    "library_asset": creator["id"], "source_url": creator.get("source_url"),
+                    "visual_style": self.VISUAL_STYLE}, ensure_ascii=False),
+                memory_type="action", source="aion-creator-library", importance=3,
+                tags=["creator", "story", "english"])
+            return {"stage": "drafted", "video_path": creator["video_path"], "caption": caption,
+                    "library_asset": creator["id"], "pending_id": record.get("id")}
         report = self.social_generator.draft_post()
         if report.get("stage") == "no-seed" or report.get("reason_kind") == "no_seed":
             # A new private memory repository is legitimately empty. Record

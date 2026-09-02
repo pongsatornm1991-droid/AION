@@ -26,6 +26,38 @@ class _Lifecycle:
 
 
 class ReelCycleTests(unittest.TestCase):
+    def test_creator_registry_is_published_in_order_without_calling_generator(self):
+        class Generator:
+            def draft_post(self):
+                raise AssertionError("Creator episodes must be preferred while the queue is not empty")
+
+        with tempfile.TemporaryDirectory() as root:
+            os.makedirs(os.path.join(root, "content", "reels"))
+            video = os.path.join(root, "content", "reels", "episode.mp4")
+            with open(video, "wb") as handle:
+                handle.write(b"0" * 100_001)
+            registry = {
+                "policy": {"scene_min_seconds": 5, "scene_max_seconds": 10},
+                "episodes": [{
+                    "id": "creator-test", "title": "A first story",
+                    "video_path": "content/reels/episode.mp4",
+                    "cover_path": "content/reels/cover.png",
+                    "duration_seconds": 35, "scene_count": 5,
+                    "caption": "AION remembers one small question.",
+                }],
+            }
+            with open(os.path.join(root, "content", "creator_library.json"), "w", encoding="utf-8") as handle:
+                json.dump(registry, handle)
+
+            memory = MemoryEngine(root)
+            report = ReelContentCycle(memory, Generator(), _Lifecycle()).draft_once(repo_root=root)
+            payload = json.loads(memory.all("pending_reels")[0]["content"])
+
+            self.assertEqual("creator-test", report["library_asset"])
+            self.assertEqual("creator-test", payload["library_asset"])
+            self.assertEqual("en", payload["language"])
+            self.assertIn("#ArtificialIntelligence", payload["ig_caption"])
+
     def test_empty_memory_bootstraps_only_from_the_creator_defined_birth_record(self):
         class Generator:
             def __init__(self):

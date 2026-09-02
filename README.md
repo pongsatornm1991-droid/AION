@@ -561,6 +561,23 @@ of this project's test suite.
 
 ## Offline verification
 
+### Autonomous Creator queue
+
+The seven finished illustrated episodes are registered in
+`content/creator_library.json`. The daily Reel cycle validates every episode,
+selects the next unused item, publishes it to Instagram and Facebook, and
+records its status in private memory so it cannot be posted twice. The daily
+YouTube cycle then republishes the completed Reel as a public Short. Scene
+pacing is quality-gated at 5–10 seconds per image.
+
+The Thai dashboard shows the same queue as **ready**, **waiting to publish**,
+or **published**. After the curated queue is exhausted, AION returns to its
+normal memory-grounded content generator instead of repeating an episode.
+
+Default schedule (Bangkok time): Instagram/Facebook at 18:00 and YouTube at
+20:00. Set the repository variable `YOUTUBE_PRIVACY_STATUS` to `private` or
+`unlisted` whenever a non-public YouTube review cycle is preferred.
+
 Single deterministic command (unit tests + both offline benchmarks; never
 calls Gemini, so it needs no API key and costs no quota):
 

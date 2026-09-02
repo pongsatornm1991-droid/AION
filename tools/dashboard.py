@@ -20,6 +20,7 @@ if str(ROOT) not in sys.path:
 
 from brain.memory import MemoryEngine
 from brain.visual_mood import state_council
+from brain.content_registry import CreatorContentRegistry
 
 
 DASHBOARD_DIR = ROOT / "dashboard"
@@ -177,6 +178,10 @@ def build_snapshot(memory_root=None):
     for category in categories + ["published_reels", "social_feedback"]:
         observed_entries.extend(_entries(memory, category))
     latest_memory = _latest(observed_entries) or {}
+    try:
+        creator_library = CreatorContentRegistry(memory).snapshot()
+    except (OSError, ValueError, TypeError):
+        creator_library = []
     return {
         "generated_at": datetime.now().isoformat(timespec="seconds"),
         "data_source": {
@@ -209,6 +214,7 @@ def build_snapshot(memory_root=None):
             "forecasts": totals["learning_forecasts"],
         },
         "content": reels,
+        "creator_library": creator_library,
         "brain": _brain_map(memory),
         "state_council": _state_council(totals, reels),
         "thoughts": _thoughts(memory, [
@@ -245,6 +251,12 @@ class DashboardHandler(BaseHTTPRequestHandler):
         if path in ("/", "/index.html"):
             self._send((DASHBOARD_DIR / "index.html").read_text(encoding="utf-8"), "text/html; charset=utf-8")
             return
+        if path.startswith("/content/reels/"):
+            target = (ROOT / path.lstrip("/")).resolve()
+            reels = (ROOT / "content" / "reels").resolve()
+            if target.parent == reels and target.is_file() and target.suffix.lower() in (".png", ".mp4"):
+                self._send(target.read_bytes(), "image/png" if target.suffix.lower() == ".png" else "video/mp4")
+                return
         self._send("Not found", "text/plain; charset=utf-8", HTTPStatus.NOT_FOUND)
 
 
