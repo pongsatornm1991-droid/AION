@@ -74,8 +74,26 @@ class BeliefSystemTests(unittest.TestCase):
             "Staged rollouts reduce rollback risk.",
         )
         self.assertEqual(active[0]["confidence"], 0.7)
-        self.assertIsNotNone(active[0]["expires"])
+        # 2026-09-02: beliefs no longer expire by default (see
+        # BeliefSystem.DEFAULT_EXPIRES_DAYS) -- a belief formed
+        # without an explicit expires_in_days stays active
+        # indefinitely, not just until some default lapses.
+        self.assertIsNone(active[0]["expires"])
         self.assertIsNone(active[0]["predecessor"])
+
+    def test_form_belief_never_expires_by_default(self):
+        """At the user's explicit request (2026-09-02): a belief
+        formed with no explicit expires_in_days must stay active
+        forever, not silently age out after some default window."""
+        self.beliefs.form_belief(
+            "AION should keep captions in Thai.",
+            confidence=0.6,
+            evidence=[{"description": "User confirmed this choice."}],
+        )
+
+        active = self.beliefs.active_beliefs()
+        self.assertEqual(len(active), 1)
+        self.assertIsNone(active[0]["expires"])
 
     def test_active_beliefs_filters_by_topic(self):
         self.beliefs.form_belief(

@@ -24,7 +24,18 @@ class BeliefSystem:
     """
 
     CATEGORY = "beliefs"
-    DEFAULT_EXPIRES_DAYS = 90
+    # 2026-09-02, at the user's explicit request: beliefs never
+    # expire by default. A belief record is already permanent on
+    # disk either way (see the class docstring -- "Beliefs are
+    # never deleted"); this default controlled only whether a
+    # belief silently stopped being "active" (and so stopped
+    # informing future drafts via active_beliefs()) after 90 days
+    # with no human or code ever revisiting it. Explicit callers
+    # can still pass expires_in_days=<N> to form_belief()/
+    # revise_belief() for a belief that genuinely should lapse on
+    # its own (e.g. something time-bound); nothing expires by
+    # default anymore.
+    DEFAULT_EXPIRES_DAYS = None
 
     _EVIDENCE_ID_PATTERN = re.compile(r"^(.*?)\(id:\s*(.+?)\)\s*$")
 
