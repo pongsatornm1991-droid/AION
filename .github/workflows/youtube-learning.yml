@@ -14,9 +14,6 @@ permissions:
 
 jobs:
   discover:
-    # The cycle is intentionally read-only against YouTube. It is skipped,
-    # rather than failing repeatedly, until the owner adds the API key.
-    if: ${{ secrets.YOUTUBE_DATA_API_KEY != '' && secrets.MEMORY_REPO_PAT != '' }}
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
