@@ -62,7 +62,7 @@ jobs:
         run: pip install -r requirements.txt
 
       - name: Verify deterministic safeguards
-        run: python run_tests.py
+        run: python -m unittest tests.test_comment_reply tests.test_social tests.test_tools -q
 
       - name: Run check-comments
         env:

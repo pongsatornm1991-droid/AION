@@ -1,4 +1,10 @@
-# AION Project Audit
+# AION Project Audit — Historical Snapshot
+
+> This file records an audit from 2026-08-29, before the current social,
+> dashboard, scheduled-workflow, YouTube, and memory-reliability work. It is
+> retained for history only and must not be treated as a description of the
+> current system. See `docs/ARCHITECTURE.md` and the repository workflows for
+> the current implementation.
 
 Audit date: 2026-08-29  
 Current runtime version: `0.0.8`

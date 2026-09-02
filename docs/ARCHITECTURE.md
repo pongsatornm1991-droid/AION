@@ -3,20 +3,18 @@
 ## Current system
 
 ```text
-core/*.md ──► Identity ─────────────────────────────────────────────┐
-memory/*.md ► MemoryEngine ► Thinker ► Reflection prompt ─► Gemini  │
-                                                              │      │
-                                                              ▼      │
-                                                    OutputEvaluator  │
-                                                              │      │
-                         score < 4.0 ─► CorrectionEngine ─────┘      │
-                                                              │      │
-                                                              ▼      │
-                                             experiences + lessons ──┘
+core/*.md ─► Identity ─┐
+memory/*.md ─► MemoryEngine (atomic writes + lock + recovery journal)
+                         ├─► reflection / beliefs / goals / curiosity
+                         ├─► web-learning source registry ─► provider
+                         └─► social + Reel + YouTube queues ─► safety gates
+                                                              │
+GitHub Actions schedules cycles ─► outcomes + lessons + Telegram ──┘
 ```
 
-The reflection loop is explicitly invoked through `python main.py reflect`.
-It is not a background process and does not claim awareness or consciousness.
+The system can run scheduled cycles through GitHub Actions. It models state,
+memory, goals, and predictions as recorded computational data; it does not
+claim awareness, feelings, or consciousness.
 
 ## Decision path
 
@@ -71,8 +69,9 @@ Question + options + facts + inferences + uncertainties
 - A pending decision is always treated as unverified context.
 - Gemini output is evaluated, but the evaluator does not independently verify
   external facts.
-- External communication, web retrieval, social-media actions, scheduling, and
-  self-modifying code are not implemented.
+- External learning, social publishing, scheduled workflows, and notifications
+  are implemented behind explicit credentials, budgets, kill switches, and
+  deterministic safety gates. Self-modifying source code is not autonomous.
 - A belief is never created from bare AI output: `BeliefSystem.form_belief()`
   raises if no evidence is supplied, regardless of how confident the
   statement sounds.

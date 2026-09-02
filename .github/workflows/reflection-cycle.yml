@@ -21,7 +21,7 @@ name: AION - reflection cycle
 
 on:
   schedule:
-    - cron: "0 * * * *"
+    - cron: "5 * * * *"
   workflow_dispatch: {}
 
 # All AION workflows share one private, git-backed memory_data repo

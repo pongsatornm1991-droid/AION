@@ -2,7 +2,7 @@ name: AION - Daily Growth Pulse
 
 on:
   schedule:
-    - cron: "15 1 * * *" # 08:15 Asia/Bangkok
+    - cron: "25 1 * * *" # 08:25 Asia/Bangkok
   workflow_dispatch: {}
 
 concurrency:

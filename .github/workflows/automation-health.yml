@@ -1,0 +1,45 @@
+name: AION - Automation Health Monitor
+
+on:
+  workflow_run:
+    workflows:
+      - AION - check comments
+      - AION - cross-post latest Reel to Facebook
+      - AION - deterministic tests
+      - AION - Instagram content cycle
+      - AION - Instagram Reel cycle
+      - AION - external learning cycle
+      - AION - reflection cycle
+      - AION - social post cycle
+      - AION - YouTube Shorts cycle
+      - AION - Instagram feedback
+      - AION - Daily Growth Pulse
+      - AION - weekly evolution review
+      - AION - Obsidian brain dashboard
+      - AION - propose profile change
+      - AION - legacy profile approval check
+    types: [completed]
+
+permissions:
+  contents: read
+
+jobs:
+  notify-on-failure:
+    if: ${{ github.event.workflow_run.conclusion != 'success' && github.event.workflow_run.conclusion != 'skipped' }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Notify AION owner
+        env:
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+          WORKFLOW_NAME: ${{ github.event.workflow_run.name }}
+          WORKFLOW_CONCLUSION: ${{ github.event.workflow_run.conclusion }}
+          WORKFLOW_URL: ${{ github.event.workflow_run.html_url }}
+        run: |
+          test -n "$TELEGRAM_BOT_TOKEN"
+          test -n "$TELEGRAM_CHAT_ID"
+          message=$(printf 'AION automation needs attention\nWorkflow: %s\nStatus: %s\n%s' "$WORKFLOW_NAME" "$WORKFLOW_CONCLUSION" "$WORKFLOW_URL")
+          curl --fail --silent --show-error --max-time 20 \
+            --data-urlencode "chat_id=${TELEGRAM_CHAT_ID}" \
+            --data-urlencode "text=${message}" \
+            "https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage"

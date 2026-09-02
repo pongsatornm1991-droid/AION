@@ -256,6 +256,25 @@ class MemoryEngineFilesystemTests(unittest.TestCase):
         self.assertEqual(archived_entry["tags"], ["x"])
         self.assertEqual(archived_entry["related"], ["some-other-id"])
 
+    def test_interrupted_move_is_recovered_on_next_memory_engine_start(self):
+        saved = self.memory.remember(
+            category="experiences", content="Recover this move.",
+        )
+        original_write = self.memory._write_entries
+
+        def fail_source_write(category, entries):
+            if category == "experiences":
+                raise OSError("simulated interruption")
+            return original_write(category, entries)
+
+        with mock.patch.object(self.memory, "_write_entries", side_effect=fail_source_write):
+            with self.assertRaises(OSError):
+                self.memory.move("experiences", "archived", saved["id"])
+
+        recovered = MemoryEngine(root=self.tmp_dir)
+        self.assertEqual([], recovered.all("experiences"))
+        self.assertEqual(saved["id"], recovered.all("archived")[0]["id"])
+
 
 class DecisionHistoryFilesystemTests(unittest.TestCase):
     """End-to-end promote() against real decisions_*.md files on disk."""

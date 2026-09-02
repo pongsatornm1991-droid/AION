@@ -159,6 +159,26 @@ class DraftAnswerTests(BaseLearningTest):
 
 class WebLearningCycleTests(BaseLearningTest):
 
+    def test_disabled_source_is_never_contacted(self):
+        self._raise_question()
+
+        class DisabledRegistry:
+            def source(self, source_id):
+                return {"id": source_id, "enabled": False}
+
+        def must_not_search(*args, **kwargs):
+            raise AssertionError("disabled source must not be contacted")
+
+        cycle = WebLearningCycle(
+            self.memory, self.curiosity, WebLearningGenerator(SafeProvider()),
+            search_fn=must_not_search, fetch_fn=fake_fetch({}),
+            source_registry=DisabledRegistry(),
+        )
+        report = cycle.research_once()
+
+        self.assertFalse(report["researched"])
+        self.assertEqual("source-disabled", report["stage"])
+
     def test_no_open_questions_is_a_no_op(self):
         generator = WebLearningGenerator(SafeProvider())
         cycle = WebLearningCycle(

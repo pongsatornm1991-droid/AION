@@ -296,6 +296,18 @@ class WebLearningCycle:
         forecast = self.forecasts.forecast_for(question_entry, assessment, mode=learning_mode)
 
         question_text = question_entry.get("statement", "")
+        source_entry = self.source_registry.source("wikipedia")
+        if not source_entry or not source_entry.get("enabled"):
+            self.forecasts.review(
+                forecast, question_entry, "blocked",
+                "The configured Wikipedia source is not enabled in AION's source registry.",
+            )
+            return {
+                "researched": False,
+                "stage": "source-disabled",
+                "question": question_entry,
+                "learning_forecast": forecast,
+            }
 
         try:
             results = self.search_fn(question_text)
@@ -411,7 +423,7 @@ class WebLearningCycle:
             "semantic_entry": semantic_entry,
             "resolved_question": resolved_question,
             "curiosity_assessment": assessment.as_dict(),
-            "source_registry_entry": self.source_registry.source("wikipedia"),
+            "source_registry_entry": source_entry,
             "learning_forecast": forecast,
             "learning_forecast_review": forecast_review,
             "learning_mode": learning_mode,

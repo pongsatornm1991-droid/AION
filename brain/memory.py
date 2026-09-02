@@ -1,6 +1,11 @@
 from pathlib import Path
 from datetime import datetime
+from contextlib import contextmanager
+import json
+import os
 import re
+import tempfile
+import time
 import uuid
 
 
@@ -23,6 +28,80 @@ class MemoryEngine:
     def __init__(self, root="memory"):
         self.root = Path(root)
         self.root.mkdir(parents=True, exist_ok=True)
+        self._lock_path = self.root / ".aion-memory.lock"
+        self._transaction_dir = self.root / ".aion-memory-transactions"
+        self._transaction_dir.mkdir(exist_ok=True)
+        # A previous process may have stopped between writing the destination
+        # and removing the source.  Serialize recovery with normal writers so
+        # a newly-started worker cannot race another worker that is saving.
+        with self._exclusive_lock():
+            self._recover_interrupted_moves()
+
+    @contextmanager
+    def _exclusive_lock(self, timeout=15):
+        """Serialize writers while allowing lock-free atomic reads.
+
+        The lock is intentionally filesystem-backed so separate AION
+        processes (local dashboard helpers and GitHub workflow commands) do
+        not pass a Python-only mutex and write the same category concurrently.
+        """
+        deadline = time.monotonic() + timeout
+        fd = None
+        while fd is None:
+            try:
+                fd = os.open(self._lock_path, os.O_CREAT | os.O_EXCL | os.O_WRONLY)
+                os.write(fd, str(os.getpid()).encode("ascii"))
+            except FileExistsError:
+                try:
+                    stale = time.time() - self._lock_path.stat().st_mtime > 300
+                    if stale:
+                        self._lock_path.unlink(missing_ok=True)
+                        continue
+                except FileNotFoundError:
+                    continue
+                if time.monotonic() >= deadline:
+                    raise TimeoutError("Timed out waiting for the AION memory write lock.")
+                time.sleep(0.05)
+        try:
+            yield
+        finally:
+            if fd is not None:
+                os.close(fd)
+            self._lock_path.unlink(missing_ok=True)
+
+    def _atomic_write_text(self, filename, content):
+        """Write a complete category file then atomically replace the old copy."""
+        fd, temp_name = tempfile.mkstemp(prefix=f".{filename.name}.", suffix=".tmp", dir=self.root)
+        try:
+            with os.fdopen(fd, "w", encoding="utf-8", newline="") as handle:
+                handle.write(content)
+                handle.flush()
+                os.fsync(handle.fileno())
+            os.replace(temp_name, filename)
+        except Exception:
+            Path(temp_name).unlink(missing_ok=True)
+            raise
+
+    def _recover_interrupted_moves(self):
+        """Finish a recorded move after an interruption instead of losing state."""
+        for journal_path in self._transaction_dir.glob("move-*.json"):
+            try:
+                journal = json.loads(journal_path.read_text(encoding="utf-8"))
+                source = str(journal["source"])
+                target = str(journal["target"])
+                entry_id = str(journal["entry_id"])
+                selected = journal["entry"]
+            except (OSError, ValueError, KeyError, TypeError):
+                continue
+            source_entries = self.all(source)
+            target_entries = self.all(target)
+            if not any(entry.get("id") == entry_id for entry in target_entries):
+                target_entries.append(selected)
+                self._write_entries(target, target_entries)
+            remaining = [entry for entry in source_entries if entry.get("id") != entry_id]
+            if len(remaining) != len(source_entries):
+                self._write_entries(source, remaining)
+            journal_path.unlink(missing_ok=True)
 
     # ---------------------------------------------------------
     # SAVE
@@ -70,55 +149,42 @@ class MemoryEngine:
                 "Memory content cannot be empty."
             )
 
-        # Prevent accidental exact duplicates.
-        if self.is_duplicate(
-            category=category,
-            content=content,
-            memory_type=memory_type,
-            source=source,
-        ):
-            return {
-                "saved": False,
-                "duplicate": True,
-                "category": category,
-                "type": memory_type,
-                "source": source,
-                "importance": importance,
-            }
+        with self._exclusive_lock():
+            # Duplicate checking must share the same writer lock as the
+            # append; otherwise two simultaneous cycles can both decide that
+            # the same memory is new.
+            if self.is_duplicate(
+                category=category,
+                content=content,
+                memory_type=memory_type,
+                source=source,
+            ):
+                return {
+                    "saved": False,
+                    "duplicate": True,
+                    "category": category,
+                    "type": memory_type,
+                    "source": source,
+                    "importance": importance,
+                }
 
-        timestamp = datetime.now().strftime(
-            "%Y-%m-%d %H:%M:%S"
-        )
-
-        # A stable, collision-free identifier separate from the
-        # human-readable timestamp header. Callers (DecisionHistory,
-        # move()) must match entries by this id, never by timestamp
-        # text, since two entries can share the same second.
-        entry_id = uuid.uuid4().hex[:12]
-
-        tags = self._normalize_list(tags)
-        related = self._normalize_list(related)
-
-        filename = self.root / f"{category}.md"
-
-        header_lines = [
-            f"ID: {entry_id}",
-            f"TYPE: {memory_type}",
-            f"SOURCE: {source}",
-            f"IMPORTANCE: {importance}",
-        ]
-
-        if tags:
-            header_lines.append(f"TAGS: {', '.join(tags)}")
-
-        if related:
-            header_lines.append(f"RELATED: {', '.join(related)}")
-
-        with open(filename, "a", encoding="utf-8") as file:
-            file.write(
-                f"\n## {timestamp}\n\n"
-                + "\n".join(header_lines)
-                + f"\n\n{content}\n\n"
+            timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+            entry_id = uuid.uuid4().hex[:12]
+            tags = self._normalize_list(tags)
+            related = self._normalize_list(related)
+            filename = self.root / f"{category}.md"
+            header_lines = [
+                f"ID: {entry_id}", f"TYPE: {memory_type}",
+                f"SOURCE: {source}", f"IMPORTANCE: {importance}",
+            ]
+            if tags:
+                header_lines.append(f"TAGS: {', '.join(tags)}")
+            if related:
+                header_lines.append(f"RELATED: {', '.join(related)}")
+            previous = filename.read_text(encoding="utf-8") if filename.exists() else ""
+            self._atomic_write_text(
+                filename,
+                previous + f"\n## {timestamp}\n\n" + "\n".join(header_lines) + f"\n\n{content}\n\n",
             )
 
         return {
@@ -437,6 +503,20 @@ class MemoryEngine:
         content: str = None,
         importance: int = None,
     ):
+        """Move one entry as a locked, recoverable two-file transaction."""
+        with self._exclusive_lock():
+            return self._move_unlocked(
+                source_category, target_category, entry_id, content, importance,
+            )
+
+    def _move_unlocked(
+        self,
+        source_category: str,
+        target_category: str,
+        entry_id: str,
+        content: str = None,
+        importance: int = None,
+    ):
         """Move one memory entry to another category.
 
         entry_id must identify exactly one entry in the source
@@ -486,8 +566,21 @@ class MemoryEngine:
         target_entries = self.all(target_category)
         target_entries.append(selected)
 
-        self._write_entries(target_category, target_entries)
-        self._write_entries(source_category, remaining)
+        journal_path = self._transaction_dir / f"move-{uuid.uuid4().hex}.json"
+        self._atomic_write_text(journal_path, json.dumps({
+            "source": source_category,
+            "target": target_category,
+            "entry_id": entry_id,
+            "entry": selected,
+        }, ensure_ascii=False, sort_keys=True))
+        try:
+            self._write_entries(target_category, target_entries)
+            self._write_entries(source_category, remaining)
+        except Exception:
+            # Leave the journal in place. The next MemoryEngine instance
+            # completes the same move deterministically before doing work.
+            raise
+        journal_path.unlink(missing_ok=True)
 
         return selected
 
@@ -498,17 +591,18 @@ class MemoryEngine:
         (for example, an Instagram Reel published while Facebook is still
         retrying) so a later run cannot repeat the completed side effect.
         """
-        entries = self.all(category)
-        matches = [entry for entry in entries if entry["id"] == entry_id]
-        if len(matches) != 1:
-            raise ValueError("No unique memory entry matches the supplied id.")
-        if content is not None:
-            cleaned = str(content).strip()
-            if not cleaned:
-                raise ValueError("Memory content cannot be empty.")
-            matches[0]["content"] = cleaned
-        self._write_entries(category, entries)
-        return matches[0]
+        with self._exclusive_lock():
+            entries = self.all(category)
+            matches = [entry for entry in entries if entry["id"] == entry_id]
+            if len(matches) != 1:
+                raise ValueError("No unique memory entry matches the supplied id.")
+            if content is not None:
+                cleaned = str(content).strip()
+                if not cleaned:
+                    raise ValueError("Memory content cannot be empty.")
+                matches[0]["content"] = cleaned
+            self._write_entries(category, entries)
+            return matches[0]
 
     def _write_entries(self, category: str, entries: list):
         """Rewrite one memory category from structured entries."""
@@ -540,10 +634,7 @@ class MemoryEngine:
                 + f"\n\n{entry['content'].strip()}\n"
             )
 
-        filename.write_text(
-            "".join(parts),
-            encoding="utf-8",
-        )
+        self._atomic_write_text(filename, "".join(parts))
 
     # ---------------------------------------------------------
     # QUALITY
@@ -705,6 +796,11 @@ class MemoryEngine:
         """Attach additional tags to an existing entry (retroactive
         tagging). Merges with any tags the entry already has rather
         than replacing them. Returns the updated entry."""
+
+        with self._exclusive_lock():
+            return self._add_tags_unlocked(category, entry_id, tags)
+
+    def _add_tags_unlocked(self, category: str, entry_id: str, tags: list):
 
         entries = self.all(category)
         matches = [entry for entry in entries if entry["id"] == entry_id]

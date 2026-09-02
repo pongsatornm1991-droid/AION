@@ -188,7 +188,8 @@ def _state_council(totals, reels):
 
 def build_snapshot(memory_root=None):
     """Build the dashboard data without a network call or write operation."""
-    memory = MemoryEngine(memory_root or os.getenv("AION_MEMORY_ROOT", "memory"))
+    configured_root = memory_root or os.getenv("AION_DASHBOARD_MEMORY_ROOT") or os.getenv("AION_MEMORY_ROOT", "memory")
+    memory = MemoryEngine(configured_root)
     reels = _reel_summary(memory)
     instagram = _instagram_snapshot(memory)
     categories = [
@@ -197,8 +198,16 @@ def build_snapshot(memory_root=None):
     ]
     totals = {category: len(_entries(memory, category)) for category in categories}
     total_memories = sum(totals.values())
+    observed_entries = []
+    for category in categories + ["published_reels", "social_feedback"]:
+        observed_entries.extend(_entries(memory, category))
+    latest_memory = _latest(observed_entries) or {}
     return {
         "generated_at": datetime.now().isoformat(timespec="seconds"),
+        "data_source": {
+            "mode": "configured" if os.getenv("AION_DASHBOARD_MEMORY_ROOT") else "local-default",
+            "latest_memory_at": latest_memory.get("timestamp"),
+        },
         "platforms": {
             "instagram": {
                 "status": "connected" if instagram else "waiting-for-metrics",
