@@ -160,11 +160,18 @@ class ReelRenderTests(unittest.TestCase):
                  mock.patch("tools.reel_render.synthesize_reel_voice", return_value=True, create=True), \
                  mock.patch("tools.voice.synthesize_reel_voice", return_value=True), \
                  mock.patch("tools.reel_render.subprocess.run") as run:
-                render_reel("A hook", "A thought", output, duration=12)
+                render_reel("A hook", "A thought", output, duration=18)
             command = run.call_args.args[0]
-            self.assertIn("apad=pad_dur=12", " ".join(command))
+            self.assertIn("apad=pad_dur=18", " ".join(command))
             self.assertNotIn("-shortest", command)
             self.assertIn("+faststart", command)
+
+    def test_rejects_a_storyboard_with_scenes_that_are_too_short(self):
+        with tempfile.TemporaryDirectory() as root:
+            output = os.path.join(root, "reel.mp4")
+            with mock.patch("tools.reel_render.shutil.which", return_value="ffmpeg"):
+                with self.assertRaisesRegex(ValueError, "5–10 seconds"):
+                    render_reel("A hook", "A thought", output, duration=12)
 
 
 if __name__ == "__main__":

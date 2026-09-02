@@ -105,10 +105,12 @@ it is not a public website and does not expose AION's private memory.
 ### Reels renderer
 
 `tools/reel_render.py` turns an AION thought into a character-led 1080×1920
-three-scene Reel with gentle camera motion and optional voice narration. The
-thought lives in the voice and caption rather than covering the artwork with
-large text. See [the YouTube channel plan](docs/YOUTUBE_CHANNEL.md) for the
-long-form publishing ladder.
+storyboard Reel with gentle camera motion and optional voice narration. Every
+scene is deliberately constrained to **5–10 seconds**; a render fails if a
+single visual would be stretched across the whole episode. The thought lives
+in the voice and caption rather than covering the artwork with large text. See
+[the YouTube channel plan](docs/YOUTUBE_CHANNEL.md) for the long-form
+publishing ladder.
 It uses the same bundled Visual DNA library as Instagram cards. MP4 encoding
 requires `ffmpeg`; GitHub's Ubuntu runners provide it by default.
 

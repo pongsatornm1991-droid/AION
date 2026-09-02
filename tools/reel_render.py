@@ -60,7 +60,7 @@ def _wrap(draw, text, font, max_width):
 
 
 def _story_still_paths(hook, thought):
-    """Pick a three-scene visual arc with AION visible in every Reel."""
+    """Pick a paced visual arc with AION visible in every Reel."""
     # Prefer AION's authored illustrated continuity when it is available.
     # Each image is a distinct visual beat: question -> reflection -> movement.
     illustrated_dir = os.path.join(
@@ -119,7 +119,7 @@ def render_reel_cover(hook, thought, output_path, mood=None, still_paths=None):
     return output_path
 
 
-def render_reel(hook, thought, output_path, duration=12, mood=None, still_paths=None):
+def render_reel(hook, thought, output_path, duration=18, mood=None, still_paths=None):
     """Create a 9:16, paced multi-scene AION narration Reel."""
     ffmpeg = shutil.which("ffmpeg")
     if not ffmpeg:
@@ -128,6 +128,12 @@ def render_reel(hook, thought, output_path, duration=12, mood=None, still_paths=
     # autonomous Reels keep the selected AION story arc above.
     stills = [str(path) for path in (still_paths or []) if os.path.isfile(path)]
     stills = stills or _story_still_paths(hook, thought) or [output_path]
+    seconds_per_scene = duration / len(stills)
+    if not 5 <= seconds_per_scene <= 10:
+        raise ValueError(
+            "AION Creator scenes must last 5–10 seconds each; "
+            f"received {len(stills)} scenes across {duration} seconds."
+        )
     cover = os.path.splitext(output_path)[0] + "-cover.png"
     render_reel_cover(hook, thought, cover, mood=mood, still_paths=stills)
     audio = os.path.splitext(output_path)[0] + ".mp3"

@@ -10,7 +10,7 @@ from datetime import datetime
 class ReelContentCycle:
     PENDING = "pending_reels"
     PUBLISHED = "published_reels"
-    VISUAL_STYLE = "illustrated-aion-narration-v3"
+    VISUAL_STYLE = "illustrated-aion-storyboard-v4"
     VIDEO_LIBRARY_PATH = os.path.join(
         os.path.dirname(os.path.dirname(os.path.abspath(__file__))),
         "assets", "content-library", "aion-core", "VIDEO_LIBRARY.json",
