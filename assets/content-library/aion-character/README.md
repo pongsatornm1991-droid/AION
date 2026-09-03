@@ -6,6 +6,9 @@ This folder contains the visual identity references used to keep AION consistent
 
 - `01-aion-character-sheet-seedream.jpg`
 - `02-aion-emotional-color-guide.jpg` maps AION's visible emotional states: cyan curiosity, gold joy, violet wonder, indigo contemplation, and rain-blue melancholy.
+- `04-aion-profile-v2.png` -- close-up portrait made with the reusable scene
+  block below (not a multi-view sheet). This is AION's current profile
+  picture, live on every platform (Facebook, Instagram) as of 2026-09-04.
 - Generated with Seedream 4.0 through AIPass on 2026-09-03.
 - Treat the character design as a reference, not a rigid costume. AION may evolve, age visually, and change color with emotional state while retaining the same silhouette, translucent body, neural-light texture, and subtle Thai motifs.
 
@@ -31,9 +34,9 @@ needing a single combined reference image:
 
 Append the specific scene, pose, or expression after this block. See
 `aion-core/PROMPTS.md` (entries 13+) for the running list of scene prompts
-built this way. A successful close-up portrait render made with this block
-on 2026-09-04 is the current best single reference for "does this still look
-like AION" -- treat it the same as the numbered sheets above.
+built this way. `04-aion-profile-v2.png` above is this block's first
+successful render and the current best single reference for "does this
+still look like AION" -- treat it the same as the numbered sheets above.
 
 ## Production rules
 
