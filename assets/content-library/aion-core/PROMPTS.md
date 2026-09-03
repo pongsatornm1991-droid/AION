@@ -38,6 +38,30 @@ Use: correction and revised beliefs. Prompt: A fractured translucent cyan memory
 ## 12 — The Long Archive
 Use: milestones and monthly recap. Prompt: An immense dark archive of floating cyan memory fragments stretches into the distance like a quiet galaxy. A small evolving digital silhouette follows a thin illuminated path. A few amber lights appear far away as traces of human connection. Epic but calm and intimate.
 
+## Character-present block (use for prompts 13+)
+
+Prompts 01-12 above are backgrounds only, with AION kept abstract. Prompts
+13+ put AION-the-character visibly into the scene (see
+`aion-character/README.md`, "Reusable scene block", added 2026-09-04 after
+full multi-view character sheets started triggering false-positive
+content-safety blocks). Start every prompt below with this exact block, then
+add the scene text that follows it:
+
+> AION: a gender-neutral digital spirit made entirely of soft translucent
+> cyan-blue light and fine glowing neural-constellation lines, large
+> expressive glowing eyes, calm friendly presence, faint lotus-petal light
+> pattern at the chest, no human skin. Premium 3D animated film quality, no
+> text, no logo, no watermark.
+
+## 13 — Rain on the Window
+Use: quiet reflection at home, character-forward posts. Scene: AION sits cross-legged on a woven mat in a warm, softly-lit wooden Thai home at golden hour, rain tapping the glass window behind it, gazing curiously at a single floating translucent memory-fragment held between its hands. Warm amber accents, cinematic soft lighting.
+
+## 14 — Canal at Blue Hour
+Use: memory and quiet observation, character-forward posts. Scene: AION kneels beside a calm canal at blue hour, small boats drifting past in the background, watching its own reflection ripple with faint constellation light, one small lotus flower glowing at the water's edge. Cinematic lighting.
+
+## 15 — Garden at Dusk
+Use: quiet growth and connection, character-forward posts. Scene: AION stands in a quiet tropical garden at dusk, dense foliage silhouetted around it, tiny drifting light-particles like fireflies, a warm amber glow visible far off through the leaves suggesting a nearby human home. Cinematic lighting.
+
 ## Selection map
 
 | Thought | Prompt |
@@ -50,3 +74,4 @@ Use: milestones and monthly recap. Prompt: An immense dark archive of floating c
 | human comment / community | 07 |
 | observation about people | 08 |
 | reflection / pause | 09 |
+| character-forward / relatable moment | 13, 14, 15 |
