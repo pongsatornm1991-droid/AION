@@ -10,6 +10,7 @@ from unittest import mock
 
 from tools.web_search import (
     WIKIPEDIA_API_BASE,
+    REQUEST_HEADERS,
     search_wikipedia,
     get_wikipedia_summary,
 )
@@ -53,6 +54,22 @@ class SearchWikipediaTests(unittest.TestCase):
             results = search_wikipedia("asdkjfhqwoeiuraslkdjf")
 
         self.assertEqual(results, [])
+
+    def test_sends_a_compliant_identifying_user_agent(self):
+        # 2026-09-03: Wikimedia's User-Agent policy blocks the bare
+        # `python-requests` default agent with HTTP 403 from many client
+        # IPs (confirmed live from a real reflection-cycle run). Every
+        # request must identify this project by name with contact info.
+        payload = {"query": {"search": [{"title": "Photosynthesis"}]}}
+        with mock.patch(
+            "requests.get", return_value=FakeResponse(200, payload),
+        ) as mock_get:
+            search_wikipedia("photosynthesis")
+
+        headers = mock_get.call_args.kwargs["headers"]
+        self.assertEqual(headers, REQUEST_HEADERS)
+        self.assertIn("AION", headers["User-Agent"])
+        self.assertIn("github.com", headers["User-Agent"])
 
     def test_http_error_raises_runtime_error(self):
         with mock.patch("requests.get", return_value=FakeResponse(500, {})):

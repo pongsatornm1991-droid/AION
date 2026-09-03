@@ -27,6 +27,20 @@ first version of "AION learns from outside sources," not an oversight.
 
 WIKIPEDIA_API_BASE = "https://en.wikipedia.org/w/api.php"
 
+# Wikimedia's own User-Agent policy (meta.wikimedia.org/wiki/User-Agent_policy)
+# requires API clients to identify themselves with a descriptive User-Agent
+# that includes contact info; requests sent with the bare default
+# `python-requests/x.x` agent (what `requests` sends with no header set) are
+# blocked outright with HTTP 403 from many client IPs, including GitHub
+# Actions runners. Found live 2026-09-03 after a real reflection-cycle run
+# logged "Wikipedia search error: HTTP 403" for every query. Fixed by
+# sending a compliant identifying header on every request.
+USER_AGENT = (
+    "AION/1.0 (https://github.com/pongsatornm1991-droid/AION; "
+    "AION self-directed learning bot) python-requests"
+)
+REQUEST_HEADERS = {"User-Agent": USER_AGENT}
+
 
 def search_wikipedia(query, limit=3):
     """Search Wikipedia for `query`. Returns a list of {"title": ...}
@@ -49,7 +63,9 @@ def search_wikipedia(query, limit=3):
         "format": "json",
     }
 
-    response = requests.get(WIKIPEDIA_API_BASE, params=params, timeout=15)
+    response = requests.get(
+        WIKIPEDIA_API_BASE, params=params, headers=REQUEST_HEADERS, timeout=15
+    )
 
     if response.status_code >= 400:
         raise RuntimeError(
@@ -92,7 +108,9 @@ def get_wikipedia_summary(title):
         "format": "json",
     }
 
-    response = requests.get(WIKIPEDIA_API_BASE, params=params, timeout=15)
+    response = requests.get(
+        WIKIPEDIA_API_BASE, params=params, headers=REQUEST_HEADERS, timeout=15
+    )
 
     if response.status_code >= 400:
         raise RuntimeError(
