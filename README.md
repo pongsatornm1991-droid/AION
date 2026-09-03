@@ -564,8 +564,9 @@ an unsafe claim still has to clear the same output-side gates as
 anything else, and is blocked the same way.
 
 AION is a script you run, not a server listening for Facebook
-webhooks, so this is **near-real-time, not real-time**: set it up as
-a recurring scheduled task rather than running it once.
+webhooks, so out of the box this is **near-real-time, not real-time**:
+set it up as a recurring scheduled task rather than running it once.
+An optional free add-on closes most of that gap -- see below.
 
 **Recommended: GitHub Actions** (see
 `docs/GITHUB_ACTIONS_SETUP.md` for the full one-time setup) -- runs on
@@ -605,6 +606,17 @@ which is why they came first.
 `tests/test_facebook.py` cover every path above against stub providers
 and a mocked Graph API call -- no live network call, same as the rest
 of this project's test suite.
+
+### Optional: real-time comment webhook
+
+`check-comments.yml`'s 5-minute schedule above always works and needs
+no setup, but on a low-traffic public repo GitHub itself often
+throttles it to well over 5 minutes in practice. A small, free
+Cloudflare Worker (`webhook/worker.js`) can relay Meta's own Facebook/
+Instagram webhook into a `repository_dispatch` that makes
+`check-comments.yml` run the instant a real comment lands, instead of
+waiting for the next scheduled tick. Entirely optional -- skipping it
+changes nothing. See `docs/WEBHOOK_SETUP.md` for the full setup.
 
 ## Offline verification
 

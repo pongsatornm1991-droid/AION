@@ -17,10 +17,17 @@ name: AION - check comments
 # run would start from a blank memory and the "never reply to the
 # same comment twice" guarantee would silently break.
 
+# Also triggerable instantly via `repository_dispatch` (event_type:
+# "new-comment") from an optional Cloudflare Worker that relays Meta's
+# own Facebook/Instagram webhook -- see docs/WEBHOOK_SETUP.md. That path
+# is entirely optional; the schedule below is unaffected either way and
+# keeps catching anything the webhook path misses or hasn't been set up.
 on:
   schedule:
     - cron: "*/5 * * * *"
   workflow_dispatch: {}
+  repository_dispatch:
+    types: [new-comment]
 
 # All AION workflows share one private, git-backed memory_data repo
 # with no locking of its own: two runs (any mix of these 7 workflows)
