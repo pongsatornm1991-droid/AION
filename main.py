@@ -29,6 +29,7 @@ from brain.reels import ReelContentCycle
 from brain.youtube import YouTubeShortsCycle
 from brain.growth_pulse import GrowthPulse
 from brain.evolution import EvolutionEngine
+from brain.self_improvement import SelfImprovementCycle
 
 
 VERSION = "0.0.8"
@@ -1955,6 +1956,88 @@ def run_learning_cycle(args):
         print("Telegram notification attempted but failed (see above).")
 
 
+def _format_self_improvement_telegram_report(report):
+    """Turn a SelfImprovementCycle.propose_fix() report dict into a
+    short Thai summary -- the Telegram notification body, and also
+    what is printed for stages that produce no new proposal."""
+
+    lines = ["AION (เสนอแนวทางปรับปรุงตัวเอง):"]
+
+    stage = report.get("stage")
+
+    if stage == "no-recurring-pattern":
+        lines.append("ยังไม่มีรูปแบบข้อผิดพลาดที่เกิดซ้ำมากพอให้วิเคราะห์ตอนนี้")
+    elif stage == "no-new-pattern":
+        sources = ", ".join(
+            item["source"] for item in report.get("recurring") or []
+        )
+        lines.append(
+            "รูปแบบที่เกิดซ้ำตอนนี้มีข้อเสนอไว้แล้วทุกอันก่อนหน้า "
+            f"({sources or 'ไม่ทราบแหล่งที่มา'}) รอให้พิจารณา/จัดการก่อน"
+        )
+    elif stage == "blocked-safety":
+        lines.append(
+            f"ร่างข้อเสนอเรื่อง '{report.get('error_source')}' "
+            f"แล้วแต่ถูกบล็อกที่ตัวกรองความปลอดภัย: "
+            f"{(report.get('evaluation') or {}).get('flags')}"
+        )
+    elif stage == "proposed":
+        lines.append(
+            f"พบรูปแบบที่เกิดซ้ำ {report.get('occurrences')} ครั้ง "
+            f"(ที่มา: {report.get('error_source')})"
+        )
+        lines.append(f"ข้อเสนอ: {report.get('draft')}")
+        lines.append(
+            "(นี่คือข้อเสนอให้พิจารณาเท่านั้น AION ยังไม่ได้แก้ไขอะไรเอง)"
+        )
+
+    return "\n".join(lines)
+
+
+def run_self_improvement_cycle(args):
+    """Review AION's own recurring lesson-source patterns (via
+    MetacognitionEngine.recurring_error_report()) and, if a
+    not-yet-proposed pattern recurs often enough, draft one
+    diagnosis + suggested-fix note for a person to read and act on.
+
+    Never touches this repo's own source files, opens no pull
+    request, and needs no ToolLifecycle -- see brain/self_improvement.py's
+    module docstring for why. Meant to be run repeatedly on a
+    schedule, same discipline as run_learning_cycle().
+    """
+
+    load_dotenv()
+
+    memory = Thinker().memory
+    provider = build_provider()
+    evaluator = OutputEvaluator()
+    metacognition = MetacognitionEngine(memory)
+
+    cycle = SelfImprovementCycle(
+        memory, provider, metacognition=metacognition, evaluator=evaluator,
+        min_claim_safety=args.min_claim_safety,
+    )
+
+    report = cycle.propose_fix(min_occurrences=args.min_occurrences)
+
+    print("\nAION SELF-IMPROVEMENT CYCLE")
+    print(f"Stage: {report['stage']}")
+
+    if report.get("error_source"):
+        print(f"Error source: {report['error_source']} ({report.get('occurrences')} times)")
+
+    if report.get("draft"):
+        print("-" * 60)
+        print(report["draft"])
+        print("-" * 60)
+
+    notified = _notify_report(report, formatter=_format_self_improvement_telegram_report)
+    if notified is True:
+        print("Notified via Telegram.")
+    elif notified is False:
+        print("Telegram notification attempted but failed (see above).")
+
+
 def _format_reflection_telegram_report(report):
     """Turn a ReflectionCycle.run_once() report dict into a short Thai
     summary -- the Telegram notification body for EVERY stage,
@@ -3183,6 +3266,25 @@ def build_parser():
              "the drafted answer (default: 5).",
     )
 
+    self_improvement_parser = subparsers.add_parser(
+        "run-self-improvement",
+        help="Review recurring lesson-source patterns and, if a "
+             "not-yet-proposed one recurs often enough, draft one "
+             "diagnosis + suggested-fix note for a person to review. "
+             "Never edits code or executes anything on its own. "
+             "Meant to be run repeatedly on a schedule.",
+    )
+    self_improvement_parser.add_argument(
+        "--min-claim-safety", type=int, default=5,
+        help="Minimum claim_safety score (0-5) required to accept "
+             "the drafted proposal (default: 5).",
+    )
+    self_improvement_parser.add_argument(
+        "--min-occurrences", type=int, default=3,
+        help="How many times a lesson source must recur before it "
+             "is proposed (default: 3).",
+    )
+
     self_narrative_parser = subparsers.add_parser(
         "run-self-narrative",
         help="If anything new has happened in memory since the last "
@@ -3438,6 +3540,8 @@ def main():
 
     if args.command == "run-learning-cycle":
         run_learning_cycle(args)
+    elif args.command == "run-self-improvement":
+        run_self_improvement_cycle(args)
         return
 
     if args.command == "run-self-narrative":
