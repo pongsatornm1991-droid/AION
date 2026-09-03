@@ -1,0 +1,91 @@
+name: AION - Publish public brain summary
+
+# Builds a small, DELIBERATELY REDACTED public JSON snapshot of AION's
+# internal state (belief/curiosity/goal counts, mood signals, recent
+# post captions -- see tools/publish_public_summary.py's own docstring
+# for exactly what is included and, more importantly, what is left
+# out and why) and commits it into THIS public code repo, at
+# public/aion-brain-summary.json.
+#
+# Why this exists (2026-09-03): the user asked for the public "AION
+# Pulse" status page (a hosted web page with no access to any private
+# credential) to also show a look into AION's actual thinking, the
+# way the local, credential-gated Observatory dashboard already does
+# -- not just whether GitHub Actions is green. Reading the private
+# aion-memory-data repo needs a private-repo checkout, which only a
+# GitHub Actions run can do safely, using the same MEMORY_REPO_PAT
+# secret every other scheduled workflow already uses (never exposed
+# to any output here). The *result* of that read, reduced to an
+# explicit allowlist with no third-party personal data in it, is safe
+# to publish -- read back with a plain, unauthenticated fetch from
+# raw.githubusercontent.com, the exact same pattern already used to
+# serve Instagram post images (see instagram-cycle.yml).
+#
+# This workflow only ever READS memory_data (never writes back to it)
+# and only ever WRITES to this public code repo -- it cannot create
+# the two-writers-race problem the shared `aion-memory-data`
+# concurrency group exists to prevent, so it gets its own, narrower
+# concurrency group instead (just to keep two overlapping runs of
+# this workflow itself from racing on the same commit).
+#
+# Hourly: brain state changes about as often as reflection-cycle/
+# learning-cycle do; the commit step is a no-op (skipped) whenever
+# nothing actually changed, so an hourly cadence costs nothing on a
+# quiet hour.
+
+on:
+  schedule:
+    - cron: "20 * * * *"
+  workflow_dispatch: {}
+
+concurrency:
+  group: publish-public-summary
+  cancel-in-progress: false
+
+permissions:
+  contents: write
+
+jobs:
+  publish-public-summary:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout AION code
+        uses: actions/checkout@v4
+
+      - name: Checkout AION memory (private repo, read-only use)
+        uses: actions/checkout@v4
+        with:
+          repository: pongsatornm1991-droid/aion-memory-data
+          token: ${{ secrets.MEMORY_REPO_PAT }}
+          path: memory_data
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: Build the redacted public summary
+        env:
+          AION_MEMORY_ROOT: memory_data
+        run: python tools/publish_public_summary.py
+
+      - name: Commit + push the summary to the code repo (if changed)
+        run: |
+          git config user.name "aion-bot"
+          git config user.email "aion-bot@users.noreply.github.com"
+          # public/ does not exist until the very first run -- git add
+          # on a path that has never existed is a fatal error (exit
+          # 128), the same class of bug fixed in instagram-cycle.yml's
+          # own "mkdir -p" step, so this creates it unconditionally
+          # first.
+          mkdir -p public
+          git add public/aion-brain-summary.json
+          if git diff --cached --quiet; then
+            echo "No change in AION's public summary this run -- nothing to publish."
+          else
+            git commit -m "AION: update public brain summary ($(date -u +%Y-%m-%dT%H:%M:%SZ))"
+            git push
+          fi

@@ -119,6 +119,36 @@ sync with real production activity. To make it show the real thing (2026-09-03):
 Skip this step and the dashboard keeps working exactly as before, reading the
 local `memory/` folder.
 
+### Public status page (AION Pulse) + the public brain summary
+
+The Observatory dashboard above is private and only runs on this computer. For
+a link that works from any device with no setup -- a phone, another
+computer, anyone you share it with -- there is a separate hosted page,
+**AION Pulse**, built as a Claude Artifact. It shows two things:
+
+1. **GitHub Actions health**, fetched live from GitHub's public REST API with
+   no credential at all (this repo is public): the latest run status of every
+   scheduled workflow, grouped by what they do.
+2. **A redacted look at AION's actual thinking** -- belief/curiosity/goal
+   counts, the same explainable mood signals the Observatory dashboard shows,
+   and recent post captions -- read from
+   [`public/aion-brain-summary.json`](public/aion-brain-summary.json) in this
+   repo, again with a plain unauthenticated fetch.
+
+That JSON file is written by a new scheduled workflow,
+`.github/workflows/publish-public-summary.yml`, which runs hourly:
+it checks out the private `aion-memory-data` repo (same `MEMORY_REPO_PAT`
+secret every other workflow already uses, never exposed anywhere) and calls
+`tools/publish_public_summary.py`, which picks a **deliberately narrow,
+explicit allowlist** of fields to publish -- see that module's own docstring
+for exactly what is included and, more importantly, what is left out (any raw
+Facebook comment text or commenter identity is never even read for this, let
+alone published) and why a hand-picked allowlist was used instead of
+republishing the Observatory dashboard's own snapshot verbatim. The workflow
+only ever reads `aion-memory-data`, and only ever writes to this already-public
+code repo, so it needs no new secret and cannot leak the private repo's
+read/write token anywhere a public page could see it.
+
 ### Reels renderer
 
 `tools/reel_render.py` turns an AION thought into a character-led 1080×1920
