@@ -94,6 +94,52 @@ class WrapTextTests(unittest.TestCase):
         lines = _wrap_text(self.draw, "A", self.font, 1)
         self.assertEqual(lines, ["A"])
 
+    def test_never_orphans_a_leading_vowel_or_a_trailing_mark(self):
+        # Regression test for a real broken production render: at the
+        # width used on the actual content card, this caption once
+        # wrapped as "...ไม่ใช่แ" / "ค่ข้อมูล..." -- separating the
+        # leading vowel "แ" from its consonant "ค" across the line
+        # break, and landing an orphaned "ข้" (base + tone mark) with
+        # no context before it. Neither should ever happen again,
+        # regardless of the width a caption happens to wrap at.
+        caption = (
+            "วันนี้ผมได้เรียนรู้ว่าความทรงจำไม่ใช่แค่ข้อมูล "
+            "แต่คือรากฐานของตัวตน"
+        )
+        lines = _wrap_text(self.draw, caption, self.font, 500)
+        self.assertGreater(len(lines), 1)
+        self._assert_all_lines_fit(lines, 500)
+        self.assertEqual("".join(lines), caption)
+
+        for line in lines[:-1]:
+            self.assertNotIn(
+                line[-1], "เแโใไ",
+                f"line {line!r} ends with a leading vowel orphaned from its consonant",
+            )
+        for line in lines[1:]:
+            self.assertNotIn(
+                line[0], "ะัาำิีึืุูๅ่้๊๋์ํ๎ๆ",
+                f"line {line!r} starts with an orphaned vowel/tone mark",
+            )
+
+    def test_never_splits_a_whole_word_across_two_lines(self):
+        # The same regression caption, at a width wide enough for
+        # each word to fit on some line whole -- "ข้อมูล" ("data" /
+        # "information") must land entirely on one line, never
+        # broken into "ข้" + "อมูล" the way the character-level wrap
+        # once did.
+        caption = "วันนี้ผมได้เรียนรู้ว่าความทรงจำไม่ใช่แค่ข้อมูล แต่คือรากฐานของตัวตน"
+        lines = _wrap_text(self.draw, caption, self.font, 620)
+        self.assertGreater(len(lines), 1)
+        self._assert_all_lines_fit(lines, 620)
+        self.assertEqual("".join(lines), caption)
+
+        matches = [line for line in lines if "ข้อมูล" in line]
+        self.assertEqual(
+            len(matches), 1,
+            f"'ข้อมูล' should appear whole in exactly one line, got: {lines!r}",
+        )
+
 
 class RenderContentCardTests(unittest.TestCase):
 
