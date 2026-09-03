@@ -34,10 +34,23 @@ class GrowthPulse:
                 payload = json.loads(entry.get("content") or "")
             except (TypeError, ValueError):
                 continue
+            if not isinstance(payload, dict):
+                # A malformed/legacy record (e.g. content that parses to a
+                # bare string or list) must never crash the whole pulse.
+                continue
             actions = payload.get("platform_actions") or payload.get("action") or {}
+            if not isinstance(actions, dict):
+                # Some historical records predate the multi-platform
+                # {"instagram": ..., "facebook": ...} shape and stored a
+                # single action id/string here instead -- treat that as
+                # "no platform breakdown available" rather than crashing.
+                actions = {}
             counts["instagram_reels"] += bool(actions.get("instagram"))
             counts["facebook_reels"] += bool(actions.get("facebook"))
-            counts["youtube_shorts"] += bool((payload.get("youtube") or {}).get("video_id"))
+            youtube_info = payload.get("youtube")
+            if not isinstance(youtube_info, dict):
+                youtube_info = {}
+            counts["youtube_shorts"] += bool(youtube_info.get("video_id"))
         return counts
 
     def _new_count(self, category):
