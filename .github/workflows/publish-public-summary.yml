@@ -44,6 +44,7 @@ concurrency:
 
 permissions:
   contents: write
+  actions: read
 
 jobs:
   publish-public-summary:
@@ -72,6 +73,11 @@ jobs:
           AION_MEMORY_ROOT: memory_data
         run: python tools/publish_public_summary.py
 
+      - name: Build the public workflow-health summary
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: python tools/publish_workflow_status.py
+
       - name: Commit + push the summary to the code repo (if changed)
         run: |
           git config user.name "aion-bot"
@@ -82,10 +88,10 @@ jobs:
           # own "mkdir -p" step, so this creates it unconditionally
           # first.
           mkdir -p public
-          git add public/aion-brain-summary.json
+          git add public/aion-brain-summary.json public/aion-workflow-status.json
           if git diff --cached --quiet; then
             echo "No change in AION's public summary this run -- nothing to publish."
           else
-            git commit -m "AION: update public brain summary ($(date -u +%Y-%m-%dT%H:%M:%SZ))"
+            git commit -m "AION: update public brain + workflow-health summary ($(date -u +%Y-%m-%dT%H:%M:%SZ))"
             git push
           fi

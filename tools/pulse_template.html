@@ -1,0 +1,550 @@
+<title>AION Pulse</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#f5f8fa;
+    --surface:#ffffff;
+    --surface-2:#eef2f5;
+    --border:#dbe3e8;
+    --text:#101820;
+    --text-muted:#5c6b74;
+    --accent:#0a8a86;
+    --accent-soft:#e0f5f3;
+    --success:#1a7f37;
+    --success-soft:#d9f2e0;
+    --warning:#9a6700;
+    --warning-soft:#fbeacb;
+    --critical:#cf222e;
+    --critical-soft:#fbe0df;
+    --pill-bg:#eef2f5;
+    --shadow: 0 1px 2px rgba(16,24,32,.06), 0 1px 1px rgba(16,24,32,.04);
+  }
+  @media (prefers-color-scheme: dark){
+    :root:not([data-theme="light"]){
+      --bg:#0a0f14;
+      --surface:#111820;
+      --surface-2:#17202a;
+      --border:#223140;
+      --text:#e7eef3;
+      --text-muted:#8fa1ad;
+      --accent:#2dd4c8;
+      --accent-soft:#123330;
+      --success:#4bc363;
+      --success-soft:#113321;
+      --warning:#e0ab3f;
+      --warning-soft:#3a2c0d;
+      --critical:#ff6b62;
+      --critical-soft:#3b1615;
+      --pill-bg:#1c2530;
+      --shadow: 0 1px 2px rgba(0,0,0,.4), 0 1px 1px rgba(0,0,0,.3);
+    }
+  }
+  :root[data-theme="dark"]{
+    --bg:#0a0f14;
+    --surface:#111820;
+    --surface-2:#17202a;
+    --border:#223140;
+    --text:#e7eef3;
+    --text-muted:#8fa1ad;
+    --accent:#2dd4c8;
+    --accent-soft:#123330;
+    --success:#4bc363;
+    --success-soft:#113321;
+    --warning:#e0ab3f;
+    --warning-soft:#3a2c0d;
+    --critical:#ff6b62;
+    --critical-soft:#3b1615;
+    --pill-bg:#1c2530;
+    --shadow: 0 1px 2px rgba(0,0,0,.4), 0 1px 1px rgba(0,0,0,.3);
+  }
+
+  *{box-sizing:border-box;}
+  body{
+    margin:0;
+    background:var(--bg);
+    color:var(--text);
+    font-family:"IBM Plex Sans", -apple-system, "Segoe UI", sans-serif;
+    font-size:15px;
+    line-height:1.5;
+    -webkit-font-smoothing:antialiased;
+  }
+  .wrap{
+    max-width:1080px;
+    margin:0 auto;
+    padding:28px 20px 64px;
+  }
+
+  /* ---------- header ---------- */
+  header{
+    display:flex;
+    align-items:flex-start;
+    justify-content:space-between;
+    gap:20px;
+    flex-wrap:wrap;
+    margin-bottom:24px;
+  }
+  .brand{
+    display:flex;
+    align-items:center;
+    gap:12px;
+  }
+  .brand-mark{
+    width:40px;height:40px;
+    border-radius:10px;
+    background:radial-gradient(circle at 30% 30%, var(--accent), var(--accent-soft) 70%);
+    display:flex;align-items:center;justify-content:center;
+    box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--accent) 40%, transparent);
+    flex-shrink:0;
+  }
+  .brand-mark svg{width:20px;height:20px;}
+  h1{
+    font-family:"IBM Plex Sans", sans-serif;
+    font-weight:700;
+    font-size:1.5rem;
+    margin:0;
+    letter-spacing:-.01em;
+    text-wrap:balance;
+  }
+  .subtitle{
+    margin:2px 0 0;
+    color:var(--text-muted);
+    font-size:.9rem;
+  }
+  .header-actions{
+    display:flex;
+    align-items:center;
+    gap:10px;
+    flex-wrap:wrap;
+  }
+  button.refresh{
+    display:inline-flex;
+    align-items:center;
+    gap:7px;
+    background:var(--surface);
+    color:var(--text);
+    border:1px solid var(--border);
+    border-radius:8px;
+    padding:8px 14px;
+    font-size:.85rem;
+    font-family:inherit;
+    font-weight:600;
+    cursor:pointer;
+    box-shadow:var(--shadow);
+    transition: border-color .15s ease, transform .1s ease;
+  }
+  button.refresh:hover{ border-color: var(--accent); }
+  button.refresh:active{ transform: scale(.97); }
+  button.refresh:focus-visible{ outline:2px solid var(--accent); outline-offset:2px; }
+  button.refresh svg{ width:14px; height:14px; transition: transform .5s ease; }
+  button.refresh.spinning svg{ animation: spin 1s linear infinite; }
+  @keyframes spin{ to{ transform: rotate(360deg);} }
+  @media (prefers-reduced-motion: reduce){
+    button.refresh.spinning svg{ animation:none; }
+  }
+
+  /* ---------- summary tiles ---------- */
+  .tiles{
+    display:grid;
+    grid-template-columns:repeat(auto-fit, minmax(150px, 1fr));
+    gap:12px;
+    margin-bottom:28px;
+  }
+  .tile{
+    background:var(--surface);
+    border:1px solid var(--border);
+    border-radius:12px;
+    padding:16px 18px;
+    box-shadow:var(--shadow);
+  }
+  .tile .num{
+    font-family:"IBM Plex Mono", monospace;
+    font-size:1.9rem;
+    font-weight:600;
+    font-variant-numeric: tabular-nums;
+    line-height:1;
+  }
+  .tile .label{
+    margin-top:6px;
+    font-size:.78rem;
+    color:var(--text-muted);
+    text-transform:uppercase;
+    letter-spacing:.06em;
+  }
+  .tile.ok .num{ color:var(--success); }
+  .tile.warn .num{ color:var(--critical); }
+  .tile.accent .num{ color:var(--accent); }
+
+  /* ---------- category groups ---------- */
+  .group{ margin-bottom:26px; }
+  .group-head{
+    display:flex;
+    align-items:baseline;
+    gap:8px;
+    margin-bottom:10px;
+    padding-bottom:8px;
+    border-bottom:1px solid var(--border);
+  }
+  .group-head h2{
+    font-size:.8rem;
+    font-weight:700;
+    text-transform:uppercase;
+    letter-spacing:.07em;
+    color:var(--text-muted);
+    margin:0;
+  }
+  .group-head .count{
+    font-family:"IBM Plex Mono", monospace;
+    font-size:.75rem;
+    color:var(--text-muted);
+  }
+  .cards{
+    display:grid;
+    grid-template-columns:repeat(auto-fill, minmax(250px, 1fr));
+    gap:10px;
+  }
+  .card{
+    background:var(--surface);
+    border:1px solid var(--border);
+    border-radius:10px;
+    padding:13px 14px;
+    box-shadow:var(--shadow);
+    display:flex;
+    flex-direction:column;
+    gap:7px;
+    text-decoration:none;
+    color:inherit;
+    transition: border-color .15s ease, transform .1s ease;
+  }
+  .card:hover{ border-color: color-mix(in srgb, var(--accent) 50%, var(--border)); transform: translateY(-1px); }
+  .card:focus-visible{ outline:2px solid var(--accent); outline-offset:2px; }
+  .card-top{
+    display:flex;
+    align-items:flex-start;
+    justify-content:space-between;
+    gap:8px;
+  }
+  .card-name{
+    font-weight:600;
+    font-size:.92rem;
+    text-wrap:balance;
+  }
+  .card-path{
+    font-family:"IBM Plex Mono", monospace;
+    font-size:.72rem;
+    color:var(--text-muted);
+    word-break:break-all;
+  }
+  .card-time{
+    font-size:.78rem;
+    color:var(--text-muted);
+    margin-top:auto;
+    font-variant-numeric: tabular-nums;
+  }
+  .pill{
+    display:inline-flex;
+    align-items:center;
+    gap:5px;
+    font-size:.72rem;
+    font-weight:600;
+    padding:3px 8px;
+    border-radius:99px;
+    white-space:nowrap;
+    flex-shrink:0;
+  }
+  .pill svg{ width:9px; height:9px; }
+  .pill.success{ background:var(--success-soft); color:var(--success); }
+  .pill.failure{ background:var(--critical-soft); color:var(--critical); }
+  .pill.running{ background:var(--accent-soft); color:var(--accent); }
+  .pill.unknown{ background:var(--pill-bg); color:var(--text-muted); }
+
+  /* ---------- page sections ---------- */
+  .section{ margin-bottom:34px; }
+  .section-head{
+    display:flex;
+    align-items:baseline;
+    justify-content:space-between;
+    gap:10px;
+    margin-bottom:14px;
+  }
+  .section-head h2{
+    font-size:1.02rem;
+    font-weight:700;
+    margin:0;
+    text-wrap:balance;
+  }
+  .section-head .section-sub{
+    font-family:"IBM Plex Mono", monospace;
+    font-size:.76rem;
+    color:var(--text-muted);
+    font-variant-numeric: tabular-nums;
+    white-space:nowrap;
+  }
+
+  /* ---------- mood ---------- */
+  .moods{
+    display:grid;
+    grid-template-columns:repeat(auto-fit, minmax(220px, 1fr));
+    gap:12px;
+    margin-bottom:14px;
+  }
+  .mood{
+    background:var(--surface);
+    border:1px solid var(--border);
+    border-radius:12px;
+    padding:14px 16px;
+    box-shadow:var(--shadow);
+  }
+  .mood-top{
+    display:flex;
+    align-items:baseline;
+    justify-content:space-between;
+    gap:8px;
+    margin-bottom:8px;
+  }
+  .mood-label{ font-weight:600; font-size:.88rem; }
+  .mood-value{
+    font-family:"IBM Plex Mono", monospace;
+    font-size:.85rem;
+    font-variant-numeric: tabular-nums;
+    color:var(--text-muted);
+  }
+  .mood-bar{
+    height:7px;
+    border-radius:99px;
+    background:var(--pill-bg);
+    overflow:hidden;
+    margin-bottom:8px;
+  }
+  .mood-bar-fill{
+    height:100%;
+    border-radius:99px;
+  }
+  .mood-evidence{
+    font-size:.76rem;
+    color:var(--text-muted);
+  }
+  .mood-disclaimer{
+    font-size:.76rem;
+    color:var(--text-muted);
+    font-style:italic;
+  }
+
+  /* ---------- mind stat strip ---------- */
+  .mindstrip{
+    display:grid;
+    grid-template-columns:repeat(auto-fit, minmax(110px, 1fr));
+    gap:10px;
+    margin-bottom:18px;
+  }
+  .mindstat{
+    background:var(--surface-2);
+    border:1px solid var(--border);
+    border-radius:10px;
+    padding:11px 12px;
+    text-align:left;
+  }
+  .mindstat .num{
+    font-family:"IBM Plex Mono", monospace;
+    font-weight:600;
+    font-size:1.3rem;
+    font-variant-numeric: tabular-nums;
+    color:var(--accent);
+  }
+  .mindstat .label{
+    font-size:.72rem;
+    color:var(--text-muted);
+    text-transform:uppercase;
+    letter-spacing:.05em;
+    margin-top:3px;
+  }
+
+  /* ---------- thoughts + posts feeds ---------- */
+  .feeds{
+    display:grid;
+    grid-template-columns:1.3fr 1fr;
+    gap:16px;
+  }
+  @media (max-width: 760px){ .feeds{ grid-template-columns:1fr; } }
+  .feed-col h3{
+    font-size:.78rem;
+    font-weight:700;
+    text-transform:uppercase;
+    letter-spacing:.06em;
+    color:var(--text-muted);
+    margin:0 0 10px;
+  }
+  .feed-list{
+    display:flex;
+    flex-direction:column;
+    gap:8px;
+  }
+  .feed-item{
+    background:var(--surface);
+    border:1px solid var(--border);
+    border-radius:10px;
+    padding:11px 13px;
+    box-shadow:var(--shadow);
+  }
+  .feed-item-top{
+    display:flex;
+    align-items:baseline;
+    justify-content:space-between;
+    gap:8px;
+    margin-bottom:4px;
+  }
+  .feed-tag{
+    font-size:.68rem;
+    font-weight:700;
+    text-transform:uppercase;
+    letter-spacing:.04em;
+    color:var(--accent);
+  }
+  .feed-time{
+    font-size:.72rem;
+    color:var(--text-muted);
+    font-variant-numeric: tabular-nums;
+    white-space:nowrap;
+    flex-shrink:0;
+  }
+  .feed-content{
+    font-size:.87rem;
+    line-height:1.45;
+  }
+  .feed-platforms{
+    display:flex;
+    gap:5px;
+    margin-top:6px;
+  }
+  .feed-platforms .pill{ font-size:.66rem; padding:2px 7px; }
+  .empty-note{
+    font-size:.83rem;
+    color:var(--text-muted);
+    padding:10px 2px;
+  }
+
+  /* ---------- notes / footer ---------- */
+  .note{
+    background:var(--surface-2);
+    border:1px solid var(--border);
+    border-radius:12px;
+    padding:16px 18px;
+    font-size:.86rem;
+    color:var(--text-muted);
+    margin-top:8px;
+  }
+  .note strong{ color:var(--text); }
+  .note code{
+    font-family:"IBM Plex Mono", monospace;
+    background:var(--pill-bg);
+    padding:1px 5px;
+    border-radius:4px;
+    font-size:.82rem;
+    color:var(--text);
+  }
+  .note-links{ margin-top:10px; display:flex; gap:14px; flex-wrap:wrap; }
+  .note-links a{ color:var(--accent); font-weight:600; text-decoration:none; font-size:.83rem; }
+  .note-links a:hover{ text-decoration:underline; }
+
+  .error-box{
+    background:var(--critical-soft);
+    border:1px solid color-mix(in srgb, var(--critical) 35%, var(--border));
+    color:var(--critical);
+    border-radius:12px;
+    padding:16px 18px;
+    font-size:.88rem;
+    margin-bottom:24px;
+  }
+  .missing-box{
+    background:var(--surface-2);
+    border:1px solid var(--border);
+    color:var(--text-muted);
+    border-radius:12px;
+    padding:16px 18px;
+    font-size:.88rem;
+    margin-bottom:24px;
+  }
+
+  @media (max-width: 480px){
+    h1{ font-size:1.25rem; }
+    .wrap{ padding:20px 14px 48px; }
+  }
+</style>
+
+<div class="wrap">
+  <header>
+    <div class="brand">
+      <div class="brand-mark">
+        <svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M3 12h4l2.5-7L14 19l2.5-7H21"/>
+        </svg>
+      </div>
+      <div>
+        <h1>AION Pulse</h1>
+        <p class="subtitle">สมอง + สถานะระบบของ AION — อัปเดตอัตโนมัติทุกชั่วโมง อ่านตรงจากข้อมูลสาธารณะ ไม่ต้องล็อกอิน</p>
+      </div>
+    </div>
+    <div class="header-actions">
+      <button class="refresh" id="reloadBtn" type="button" onclick="this.classList.add('spinning');location.reload();">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 1 1-3-6.7"/><path d="M21 3v6h-6"/></svg>
+        โหลดหน้าล่าสุด
+      </button>
+    </div>
+  </header>
+
+  <section class="section" id="brainSection">
+    <div class="section-head">
+      <h2>สมองของ AION</h2>
+      <span class="section-sub">%%BRAIN_UPDATED_AT%%</span>
+    </div>
+    %%BRAIN_ERROR_HTML%%
+    <div id="brainBody">
+      <div class="moods">
+        %%MOODS_HTML%%
+      </div>
+      %%MOOD_DISCLAIMER_HTML%%
+      <div class="mindstrip">
+        %%MINDSTRIP_HTML%%
+      </div>
+      <div class="feeds">
+        <div class="feed-col">
+          <h3>ความคิดล่าสุด</h3>
+          <div class="feed-list">%%THOUGHTS_HTML%%</div>
+        </div>
+        <div class="feed-col">
+          <h3>โพสต์ล่าสุด</h3>
+          <div class="feed-list">%%POSTS_HTML%%</div>
+        </div>
+      </div>
+    </div>
+    <div class="note" style="margin-top:14px;">
+      <strong>ข้อมูลส่วนนี้มาจากไหน:</strong> อ่านจาก <code>public/aion-brain-summary.json</code> ใน repo โค้ดของ AION เอง — ไฟล์นี้ถูกเขียนทุกชั่วโมงโดย workflow ที่อ่านความจำจริงของ AION แล้ว "คัดกรอง" เหลือแค่ตัวเลขนับ/มู้ด/แคปชันโพสต์ที่เผยแพร่ไปแล้วเท่านั้น — คอมเมนต์หรือชื่อผู้ใช้จริงจาก Facebook <strong>ไม่เคยถูกอ่านหรือเผยแพร่ที่นี่</strong>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="section-head">
+      <h2>สถานะระบบอัตโนมัติ</h2>
+      <span class="section-sub">%%CHECKED_AT%%</span>
+    </div>
+    %%GH_ERROR_HTML%%
+
+    <div class="tiles">
+      %%TILES_HTML%%
+    </div>
+
+    <div id="groups">
+      %%GROUPS_HTML%%
+    </div>
+  </section>
+
+  <div class="note">
+    <strong>ระบบสถานะนี้เห็นอะไรบ้าง:</strong> สถานะรันจริงของทุก workflow ใน GitHub Actions (repo สาธารณะ) — ว่ารอบล่าสุดสำเร็จ ล้มเหลว หรือกำลังรันอยู่ คำนวณจากภายใน GitHub Actions เอง (ไม่ใช่จากเบราว์เซอร์ของพี่ — หน้าเว็บที่เผยแพร่แบบนี้ถูกแพลตฟอร์มบล็อกไม่ให้ดึงข้อมูลจากอินเทอร์เน็ตได้เอง) แล้วเผยแพร่เป็นไฟล์สาธารณะให้หน้านี้แสดงผลทุกชั่วโมง<br><br>
+    <strong>สิ่งที่หน้านี้ยังไม่เห็น:</strong> คอมเมนต์จริงจาก Facebook หรือรายละเอียดความจำแบบเจาะลึกทั้งหมด — ข้อมูลดิบนั้นอยู่ใน private repo <code>aion-memory-data</code> เท่านั้น ต้องเปิด Observatory ในเครื่อง (<code>Start-AION-Observatory.bat</code> → <code>http://127.0.0.1:8787</code>) เพื่อดูแบบละเอียดที่สุด
+    <div class="note-links">
+      <a href="https://github.com/pongsatornm1991-droid/AION/actions" target="_blank" rel="noopener">ดู Actions log เต็มบน GitHub ↗</a>
+      <a href="https://github.com/pongsatornm1991-droid/AION" target="_blank" rel="noopener">เปิด repo AION ↗</a>
+    </div>
+  </div>
+</div>
