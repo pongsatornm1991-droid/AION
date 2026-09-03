@@ -3,7 +3,7 @@ import os
 from dotenv import load_dotenv
 from google import genai
 
-from providers.base import AIProvider
+from providers.base import AIProvider, retry_transient
 
 
 class GeminiProvider(AIProvider):
@@ -43,9 +43,11 @@ class GeminiProvider(AIProvider):
                 "Prompt cannot be empty."
             )
 
-        response = self.client.models.generate_content(
-            model=self.model,
-            contents=prompt,
+        response = retry_transient(
+            lambda: self.client.models.generate_content(
+                model=self.model,
+                contents=prompt,
+            )
         )
 
         if response is None:

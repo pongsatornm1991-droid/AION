@@ -2,7 +2,7 @@ import os
 
 from dotenv import load_dotenv
 
-from providers.base import AIProvider
+from providers.base import AIProvider, retry_transient
 
 
 class ClaudeProvider(AIProvider):
@@ -57,12 +57,14 @@ class ClaudeProvider(AIProvider):
                 "Prompt cannot be empty."
             )
 
-        response = self.client.messages.create(
-            model=self.model,
-            max_tokens=2048,
-            messages=[
-                {"role": "user", "content": prompt},
-            ],
+        response = retry_transient(
+            lambda: self.client.messages.create(
+                model=self.model,
+                max_tokens=2048,
+                messages=[
+                    {"role": "user", "content": prompt},
+                ],
+            )
         )
 
         if response is None or not getattr(response, "content", None):

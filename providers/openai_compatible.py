@@ -10,7 +10,7 @@ import os
 
 from dotenv import load_dotenv
 
-from providers.base import AIProvider
+from providers.base import AIProvider, retry_transient
 
 
 class OpenAICompatibleProvider(AIProvider):
@@ -44,29 +44,34 @@ class OpenAICompatibleProvider(AIProvider):
         if self.api_key:
             headers["Authorization"] = f"Bearer {self.api_key}"
 
-        response = requests.post(
-            f"{self.base_url}/chat/completions",
-            headers=headers,
-            json={
-                "model": self.model,
-                "messages": [{"role": "user", "content": prompt}],
-                "temperature": 0.7,
-            },
-            timeout=45,
-        )
-
-        try:
-            payload = response.json()
-        except ValueError:
-            payload = {}
-
-        if response.status_code >= 400 or payload.get("error"):
-            error = payload.get("error") or {}
-            message = error.get("message") if isinstance(error, dict) else error
-            raise RuntimeError(
-                "OpenAI-compatible API error: "
-                f"{message or f'HTTP {response.status_code}'}"
+        def _call():
+            response = requests.post(
+                f"{self.base_url}/chat/completions",
+                headers=headers,
+                json={
+                    "model": self.model,
+                    "messages": [{"role": "user", "content": prompt}],
+                    "temperature": 0.7,
+                },
+                timeout=45,
             )
+
+            try:
+                payload = response.json()
+            except ValueError:
+                payload = {}
+
+            if response.status_code >= 400 or payload.get("error"):
+                error = payload.get("error") or {}
+                message = error.get("message") if isinstance(error, dict) else error
+                raise RuntimeError(
+                    "OpenAI-compatible API error: "
+                    f"{message or f'HTTP {response.status_code}'}"
+                )
+
+            return payload
+
+        payload = retry_transient(_call)
 
         choices = payload.get("choices") or []
         message = choices[0].get("message") if choices else None
