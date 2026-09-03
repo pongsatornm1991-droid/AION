@@ -94,12 +94,17 @@ class BaseVisualContentTest(unittest.TestCase):
         shutil.rmtree(self.tmpdir, ignore_errors=True)
         shutil.rmtree(self.repo_root, ignore_errors=True)
 
-    def _lifecycle(self, publish_func=None, level=ActionLevel.HIGH_RISK):
+    def _lifecycle(self, publish_func=None, fb_publish_func=None, level=ActionLevel.HIGH_RISK):
         self.published = []
+        self.fb_published = []
 
         def default_publish(image_url, caption=""):
             self.published.append((image_url, caption))
             return {"id": "fake-media-id"}
+
+        def default_fb_publish(image_url, caption=""):
+            self.fb_published.append((image_url, caption))
+            return {"id": "fake-fb-post-id"}
 
         registry = ToolRegistry()
         registry.register(
@@ -107,6 +112,12 @@ class BaseVisualContentTest(unittest.TestCase):
             publish_func or default_publish,
             level,
             "Publish one photo to Instagram.",
+        )
+        registry.register(
+            "post_photo_to_facebook",
+            fb_publish_func or default_fb_publish,
+            level,
+            "Publish one photo to Facebook.",
         )
         return ToolLifecycle(self.memory, registry=registry)
 
@@ -236,14 +247,24 @@ class PublishOnceTests(BaseVisualContentTest):
             "https://raw.githubusercontent.com/pongsatornm1991-droid/AION/"
             f"main/{drafted['image_path']}",
         )
+        # Since 2026-09-03, publish_once() checkpoints BOTH Instagram
+        # and Facebook -- the same rendered image + caption goes to
+        # both, so AION's Facebook Page is never quiet on a day it
+        # posted to Instagram.
         self.assertEqual(len(self.published), 1)
-        # The real Instagram API caption gets the multilingual hashtag
-        # block appended (2026-08-31) -- the on-image rendered caption
-        # and report["caption"] stay hashtag-free (see
-        # brain/hashtags.py); only the text actually sent to Instagram
-        # carries it.
+        self.assertEqual(len(self.fb_published), 1)
+        self.assertTrue(report["action"]["instagram"])
+        self.assertTrue(report["action"]["facebook"])
+        # The real Instagram/Facebook API caption gets the multilingual
+        # hashtag block appended (2026-08-31) -- the on-image rendered
+        # caption and report["caption"] stay hashtag-free (see
+        # brain/hashtags.py); only the text actually sent to each
+        # platform carries it, and both platforms get the same text.
         published_url, published_caption = self.published[0]
+        fb_url, fb_caption = self.fb_published[0]
         self.assertEqual(published_url, report["image_url"])
+        self.assertEqual(fb_url, report["image_url"])
+        self.assertEqual(fb_caption, published_caption)
         self.assertTrue(published_caption.startswith(drafted["caption"]))
         self.assertIn("#AI", published_caption)
         self.assertNotEqual(published_caption, drafted["caption"])
@@ -251,6 +272,9 @@ class PublishOnceTests(BaseVisualContentTest):
         # moved out of pending so a later run never reposts it
         self.assertEqual(self.memory.all(PENDING_CATEGORY), [])
         self.assertEqual(len(self.memory.all(PUBLISHED_CATEGORY)), 1)
+        published_payload = json.loads(self.memory.all(PUBLISHED_CATEGORY)[0]["content"])
+        self.assertTrue(published_payload["platform_actions"]["instagram"])
+        self.assertTrue(published_payload["platform_actions"]["facebook"])
 
     def test_a_graph_api_failure_leaves_the_record_pending_for_retry(self):
         drafted = self._draft_one_pending()
@@ -267,6 +291,10 @@ class PublishOnceTests(BaseVisualContentTest):
         report = cycle.publish_once(repo="pongsatornm1991-droid/AION")
 
         self.assertEqual(report["stage"], "failed")
+        self.assertEqual(report["platform"], "instagram")
+        # Instagram failed first, so Facebook must never have been
+        # attempted this run.
+        self.assertEqual(self.fb_published, [])
         # still pending -- must be retried with the SAME already-
         # rendered image next run, not re-drafted from scratch.
         pending = self.memory.all(PENDING_CATEGORY)
@@ -274,6 +302,50 @@ class PublishOnceTests(BaseVisualContentTest):
         payload = json.loads(pending[0]["content"])
         self.assertEqual(payload["image_path"], drafted["image_path"])
         self.assertEqual(self.memory.all(PUBLISHED_CATEGORY), [])
+
+    def test_a_facebook_failure_after_instagram_succeeds_retries_only_facebook(self):
+        """Per-platform checkpointing (mirrors ReelContentCycle's own
+        publish_once() loop in brain/reels.py): if Instagram succeeds
+        but Facebook then fails, a later run must retry ONLY Facebook,
+        never repost the same image to Instagram a second time."""
+
+        drafted = self._draft_one_pending()
+
+        def failing_fb_publish(image_url, caption=""):
+            raise RuntimeError("Facebook Graph API error: temporary failure.")
+
+        lifecycle = self._lifecycle(fb_publish_func=failing_fb_publish)
+        cycle = VisualContentCycle(self.memory, None, lifecycle)
+
+        first_report = cycle.publish_once(repo="pongsatornm1991-droid/AION")
+
+        self.assertEqual(first_report["stage"], "failed")
+        self.assertEqual(first_report["platform"], "facebook")
+        self.assertTrue(first_report["platform_actions"]["instagram"])
+        self.assertEqual(len(self.published), 1)
+        self.assertEqual(self.memory.all(PUBLISHED_CATEGORY), [])
+
+        pending = self.memory.all(PENDING_CATEGORY)
+        self.assertEqual(len(pending), 1)
+        payload = json.loads(pending[0]["content"])
+        self.assertTrue(payload["platform_actions"]["instagram"])
+        self.assertNotIn("facebook", payload["platform_actions"])
+
+        # Retry with a fresh (working) lifecycle -- _lifecycle() resets
+        # self.published/self.fb_published to [] each call, so any
+        # instagram call on this retry would show up here.
+        retry_lifecycle = self._lifecycle()
+        retry_cycle = VisualContentCycle(self.memory, None, retry_lifecycle)
+        second_report = retry_cycle.publish_once(repo="pongsatornm1991-droid/AION")
+
+        self.assertEqual(second_report["stage"], "published")
+        # Instagram must NOT have been called again on the retry --
+        # only the still-missing Facebook leg was attempted.
+        self.assertEqual(self.published, [])
+        self.assertEqual(len(self.fb_published), 1)
+        self.assertTrue(second_report["action"]["instagram"])
+        self.assertTrue(second_report["action"]["facebook"])
+        self.assertEqual(len(self.memory.all(PUBLISHED_CATEGORY)), 1)
 
     def test_publishes_the_oldest_pending_record_first(self):
         first = self._draft_one_pending()

@@ -204,23 +204,42 @@ class VisualContentCycle:
             )
         return f"https://raw.githubusercontent.com/{repo}/{branch}/{image_path}"
 
+    # Platforms published in this order, each checkpointed
+    # independently in the pending record's own "platform_actions"
+    # dict before moving on to the next -- mirrors
+    # ReelContentCycle.publish_once()'s identical per-platform
+    # checkpoint loop in brain/reels.py. A transient failure on one
+    # platform after the other already succeeded must never repost to
+    # the platform that already worked on a later retry.
+    _PLATFORM_TOOLS = (("instagram", None), ("facebook", "post_photo_to_facebook"))
+
     def publish_once(self, repo=None, branch="main"):
-        """Publish the oldest pending drafted image to Instagram.
+        """Publish the oldest pending drafted image to Instagram AND
+        Facebook (added 2026-09-03, at the user's request -- the two
+        platforms had been fully separate pipelines since this cycle
+        was first built; Instagram's own posts were never mirrored to
+        the Facebook Page, unlike ReelContentCycle's video pipeline,
+        which already cross-posts both platforms in one run).
 
         Returns a report dict with a "stage" key:
         - "no-pending": nothing to publish (safe no-op, no AI/Graph
           API call at all).
-        - "lifecycle": the propose/approve/execute chain raised.
-        - "published": the Instagram Graph API call succeeded; the
-          pending record has been moved to published_visual_content
-          so a later run never reposts the same image.
-        - "failed": execute() ran but the underlying Graph API call
-          itself reported failure (e.g. the image URL is not yet
-          reachable because raw.githubusercontent.com has not
-          finished propagating the just-pushed commit) -- the pending
-          record is deliberately left in place so a later run can
-          retry publishing the SAME already-rendered image, rather
-          than drafting and rendering a brand new one.
+        - "lifecycle": the propose/approve/execute chain raised for
+          one platform (report["platform"] says which).
+        - "published": both Instagram and Facebook succeeded (this
+          run, or on an earlier attempt already checkpointed);
+          report["action"] is a {"instagram": id, "facebook": id}
+          dict. The pending record has moved to
+          published_visual_content so a later run never reposts
+          either platform.
+        - "failed": one platform's Graph API call itself reported
+          failure (report["platform"] says which; report["action"]
+          is that platform's own failed action) -- the pending record
+          is deliberately left in place, with any already-succeeded
+          platform's action id checkpointed in it
+          (report["platform_actions"]), so a later run retries only
+          the platform that failed rather than reposting to one that
+          already worked or re-rendering a brand new image.
         """
 
         pending = self._oldest_pending()
@@ -253,61 +272,103 @@ class VisualContentCycle:
         # before ig_caption existed -- never crashes on an older
         # record, just publishes without the hashtag block that time.
         publish_caption = payload.get("ig_caption") or caption
+        actions = dict(payload.get("platform_actions") or {})
 
         try:
             image_url = self._build_image_url(image_path, repo=repo, branch=branch)
         except RuntimeError as exc:
             return {
                 "stage": "lifecycle",
+                "platform": None,
                 "error": str(exc),
                 "caption": caption,
                 "image_path": image_path,
             }
 
-        try:
-            proposed = self.lifecycle.propose(
-                self.tool_name,
-                params={"image_url": image_url, "caption": publish_caption},
-                source="aion",
-            )
-            approved = self.lifecycle.auto_approve(
-                proposed["id"], policy="visual-safety-style-gate"
-            )
-            executed = self.lifecycle.execute(approved["id"])
-        except Exception as exc:
-            return {
-                "stage": "lifecycle",
-                "error": str(exc),
-                "caption": caption,
-                "image_path": image_path,
-            }
+        for platform, tool_name in self._PLATFORM_TOOLS:
+            if actions.get(platform):
+                continue
 
-        published = executed["status"] == "executed"
+            tool_name = tool_name or self.tool_name
 
-        if published:
-            self.memory.move(PENDING_CATEGORY, PUBLISHED_CATEGORY, pending["id"])
-            language = payload.get("language", "th")
-            if self.social_generator is not None:
-                self.social_generator.record_published_language(
-                    language, "instagram", executed.get("id"),
+            try:
+                proposed = self.lifecycle.propose(
+                    tool_name,
+                    params={"image_url": image_url, "caption": publish_caption},
+                    source="aion",
                 )
-            else:
-                # publish_once is independently testable and can be invoked
-                # later with no generator object; keep language accounting
-                # intact in that valid split-stage configuration.
-                self.memory.remember(
-                    category="social_language_log",
-                    content=(f"platform=instagram; language={language}; "
-                             f"action={executed.get('id', 'unknown')}"),
-                    memory_type="action",
-                    source="social-language-strategy",
-                    importance=1,
-                    tags=[language, "instagram"],
+                approved = self.lifecycle.auto_approve(
+                    proposed["id"], policy="visual-safety-style-gate"
                 )
+                executed = self.lifecycle.execute(approved["id"])
+            except Exception as exc:
+                return {
+                    "stage": "lifecycle",
+                    "platform": platform,
+                    "error": str(exc),
+                    "caption": caption,
+                    "image_path": image_path,
+                    "platform_actions": actions,
+                }
+
+            if executed["status"] != "executed":
+                payload["platform_actions"] = actions
+                self.memory.update(
+                    PENDING_CATEGORY, pending["id"],
+                    content=json.dumps(payload, ensure_ascii=False),
+                )
+                return {
+                    "stage": "failed",
+                    "platform": platform,
+                    "action": executed,
+                    "platform_actions": actions,
+                    "caption": caption,
+                    "image_path": image_path,
+                    "image_url": image_url,
+                }
+
+            actions[platform] = executed.get("id")
+            payload["platform_actions"] = actions
+            self.memory.update(
+                PENDING_CATEGORY, pending["id"],
+                content=json.dumps(payload, ensure_ascii=False),
+            )
+
+        self.memory.move(
+            PENDING_CATEGORY, PUBLISHED_CATEGORY, pending["id"],
+            content=json.dumps(payload, ensure_ascii=False),
+        )
+        language = payload.get("language", "th")
+        if self.social_generator is not None:
+            self.social_generator.record_published_language(
+                language, "instagram", actions.get("instagram"),
+            )
+        else:
+            # publish_once is independently testable and can be invoked
+            # later with no generator object; keep language accounting
+            # intact in that valid split-stage configuration.
+            self.memory.remember(
+                category="social_language_log",
+                content=(f"platform=instagram; language={language}; "
+                         f"action={actions.get('instagram', 'unknown')}"),
+                memory_type="action",
+                source="social-language-strategy",
+                importance=1,
+                tags=[language, "instagram"],
+            )
+        self.memory.remember(
+            category="social_language_log",
+            content=(f"platform=facebook; language={language}; "
+                     f"action={actions.get('facebook', 'unknown')}"),
+            memory_type="action",
+            source="social-language-strategy",
+            importance=1,
+            tags=[language, "facebook"],
+        )
 
         return {
-            "stage": "published" if published else "failed",
-            "action": executed,
+            "stage": "published",
+            "action": actions,
             "caption": caption,
             "image_path": image_path,
             "image_url": image_url,

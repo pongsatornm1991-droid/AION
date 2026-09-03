@@ -1,14 +1,17 @@
 name: AION - Instagram content cycle
 
-# Runs the two-stage Instagram pipeline (brain/visual_content.py) in
-# one job: draft a caption + render a PNG card (run-instagram-draft),
-# commit+push that image to THIS public code repo (Instagram's Graph
-# API needs a publicly reachable image_url -- raw.githubusercontent.com
-# serves any file already in this repo for free, with no new image-
-# hosting credential -- see brain/visual_content.py's own docstring
-# for why Imgur/etc. was deliberately not used), wait a short while
-# for raw.githubusercontent.com's CDN to see the new commit, then
-# publish it (run-instagram-publish).
+# Runs the two-stage Instagram+Facebook pipeline (brain/visual_content.py)
+# in one job: draft a caption + render a PNG card (run-instagram-draft),
+# commit+push that image to THIS public code repo (both platforms need a
+# publicly reachable image_url -- raw.githubusercontent.com serves any
+# file already in this repo for free, with no new image-hosting
+# credential -- see brain/visual_content.py's own docstring for why
+# Imgur/etc. was deliberately not used), wait a short while for
+# raw.githubusercontent.com's CDN to see the new commit, then publish
+# it to Instagram AND cross-post the same image+caption to the
+# Facebook Page (run-instagram-publish; added 2026-09-03 so AION's
+# Facebook Page is never quiet on a day it posted to Instagram --
+# mirrors reel-cycle.yml's own existing dual-platform publish).
 #
 # Deliberately one post daily at 19:00 Bangkok time: enough consistency to
 # learn from audience response without filling the feed with low-signal work.
@@ -121,22 +124,26 @@ jobs:
         if: env.HAS_IMAGE == 'true'
         run: sleep 60
 
-      - name: Publish to Instagram
+      - name: Publish to Instagram + Facebook
         if: env.HAS_IMAGE == 'true'
         env:
           AION_MEMORY_ROOT: memory_data
           INSTAGRAM_ACCESS_TOKEN: ${{ secrets.INSTAGRAM_ACCESS_TOKEN }}
           INSTAGRAM_BUSINESS_ACCOUNT_ID: ${{ secrets.INSTAGRAM_BUSINESS_ACCOUNT_ID }}
+          FACEBOOK_PAGE_ACCESS_TOKEN: ${{ secrets.FACEBOOK_PAGE_ACCESS_TOKEN }}
+          FACEBOOK_PAGE_ID: ${{ secrets.FACEBOOK_PAGE_ID }}
           TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
           TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
         run: python main.py run-instagram-publish
 
-      - name: Retry publishing any still-pending older image
+      - name: Retry publishing any still-pending older image (Instagram + Facebook)
         if: env.HAS_IMAGE != 'true'
         env:
           AION_MEMORY_ROOT: memory_data
           INSTAGRAM_ACCESS_TOKEN: ${{ secrets.INSTAGRAM_ACCESS_TOKEN }}
           INSTAGRAM_BUSINESS_ACCOUNT_ID: ${{ secrets.INSTAGRAM_BUSINESS_ACCOUNT_ID }}
+          FACEBOOK_PAGE_ACCESS_TOKEN: ${{ secrets.FACEBOOK_PAGE_ACCESS_TOKEN }}
+          FACEBOOK_PAGE_ID: ${{ secrets.FACEBOOK_PAGE_ID }}
           TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
           TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
         run: python main.py run-instagram-publish

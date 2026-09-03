@@ -173,6 +173,79 @@ def post_to_facebook_page(message, access_token=None, page_id=None):
     return payload
 
 
+def post_photo_to_facebook(image_url, caption="", access_token=None, page_id=None):
+    """Publish one photo to a Facebook Page's feed, given a public
+    image URL (Facebook fetches the file itself, no raw upload --
+    the same one-step shape tools/instagram.py's photo container flow
+    aims at, simpler here since a Facebook Page photo post needs no
+    separate publish step the way an Instagram media container does).
+
+    Built 2026-09-03 so VisualContentCycle can cross-post the exact
+    same rendered image + caption that already goes to Instagram to
+    the Facebook Page too, instead of only Instagram -- mirrors
+    ReelContentCycle's own existing per-platform checkpoint loop in
+    brain/reels.py (publish_reel_to_facebook is that same pattern's
+    video counterpart).
+
+    Returns the Graph API's own response dict (contains the new
+    post's id) on success. Raises RuntimeError with the Graph API's
+    own error message on failure -- never retries internally, same
+    discipline as post_to_facebook_page() above.
+    """
+
+    image_url = str(image_url or "").strip()
+
+    if not image_url:
+        raise ValueError("image_url cannot be empty.")
+
+    load_dotenv()
+
+    access_token = access_token or os.getenv("FACEBOOK_PAGE_ACCESS_TOKEN")
+    page_id = page_id or os.getenv("FACEBOOK_PAGE_ID")
+
+    if not access_token:
+        raise RuntimeError(
+            "FACEBOOK_PAGE_ACCESS_TOKEN is not configured. Add it to "
+            "the .env file (see .env.example)."
+        )
+
+    if not page_id:
+        raise RuntimeError(
+            "FACEBOOK_PAGE_ID is not configured. Add it to the .env "
+            "file (see .env.example)."
+        )
+
+    import requests  # lazy: only needed when this actually runs
+
+    url = f"{GRAPH_API_BASE}/{page_id}/photos"
+
+    response = requests.post(
+        url,
+        data={
+            "url": image_url,
+            "caption": str(caption or ""),
+            "access_token": access_token,
+        },
+        timeout=30,
+    )
+
+    try:
+        payload = response.json()
+    except ValueError:
+        payload = {}
+
+    if response.status_code >= 400 or "error" in payload:
+        error = payload.get("error", {})
+        raise RuntimeError(
+            "Facebook Graph API error "
+            f"({error.get('type', 'unknown')}, code "
+            f"{error.get('code', 'unknown')}): "
+            f"{error.get('message') or f'HTTP {response.status_code}'}"
+        )
+
+    return payload
+
+
 def _graph_error(payload, status_code, response_text=""):
     error = payload.get("error", {})
     detail = error.get("message") or str(response_text or "").strip()

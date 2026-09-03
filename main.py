@@ -837,6 +837,7 @@ def _build_social_tool_lifecycle():
         reply_to_facebook_comment,
         update_page_bio,
         publish_reel_to_facebook,
+        post_photo_to_facebook,
     )
 
     memory = Thinker().memory
@@ -882,6 +883,15 @@ def _build_social_tool_lifecycle():
         "Publish one photo (with caption) to AION's configured "
         "Instagram Business account -- shares post_to_facebook's own "
         "HIGH_RISK budget and autonomous safety/style policy.",
+    )
+    registry.register(
+        "post_photo_to_facebook",
+        lambda image_url, caption="": post_photo_to_facebook(image_url, caption=caption),
+        ActionLevel.HIGH_RISK,
+        "Publish the same photo (with caption) VisualContentCycle just "
+        "sent to Instagram to AION's configured Facebook Page too -- "
+        "shares post_to_facebook's own HIGH_RISK budget, so the two "
+        "platforms are checkpointed against the same daily cap.",
     )
     registry.register(
         "post_reel_to_instagram",
@@ -1570,11 +1580,19 @@ def _format_instagram_draft_telegram_report(report):
     return "\n".join(lines)
 
 
+_PLATFORM_LABEL_TH = {"instagram": "Instagram", "facebook": "Facebook"}
+
+
 def _format_instagram_publish_telegram_report(report):
     """Turn a VisualContentCycle.publish_once() report dict into a
-    short Thai summary."""
+    short Thai summary. Since 2026-09-03, publish_once() checkpoints
+    BOTH Instagram and Facebook per image (mirroring
+    ReelContentCycle's own per-platform checkpoint loop), so this
+    reports which of the two actually went out -- not just Instagram
+    -- and, on a partial failure, which platform still needs a retry
+    next run."""
 
-    lines = ["AION (เผยแพร่ภาพ Instagram):"]
+    lines = ["AION (เผยแพร่ภาพ):"]
 
     stage = report.get("stage")
     caption = report.get("caption")
@@ -1585,12 +1603,28 @@ def _format_instagram_publish_telegram_report(report):
     if stage == "no-pending":
         lines.append("ไม่มีภาพที่ร่างไว้รอเผยแพร่ตอนนี้")
     elif stage == "lifecycle":
-        lines.append(f"ผิดพลาดในระบบ lifecycle: {report.get('error')}")
+        platform = _PLATFORM_LABEL_TH.get(report.get("platform"), report.get("platform") or "?")
+        lines.append(f"ผิดพลาดในระบบ lifecycle ({platform}): {report.get('error')}")
     elif stage == "published":
-        lines.append(f"เผยแพร่ขึ้น Instagram สำเร็จแล้ว ✅ ({report.get('image_url')})")
+        actions = report.get("action") or {}
+        posted = [_PLATFORM_LABEL_TH[p] for p in ("instagram", "facebook") if actions.get(p)]
+        posted_text = " + ".join(posted) if posted else "?"
+        lines.append(f"เผยแพร่ขึ้น {posted_text} สำเร็จแล้ว ✅ ({report.get('image_url')})")
     elif stage == "failed":
+        already = report.get("platform_actions") or {}
+        done = [_PLATFORM_LABEL_TH[p] for p in ("instagram", "facebook") if already.get(p)]
+        platform = _PLATFORM_LABEL_TH.get(report.get("platform"), report.get("platform") or "?")
         action = report.get("action") or {}
-        lines.append(f"เผยแพร่ไม่สำเร็จ: {action.get('error')} (จะลองใหม่รอบหน้าด้วยภาพเดิม)")
+        if done:
+            lines.append(
+                f"{' + '.join(done)} เผยแพร่สำเร็จแล้ว แต่ {platform} ยังไม่สำเร็จ: "
+                f"{action.get('error')} (จะลองใหม่รอบหน้า)"
+            )
+        else:
+            lines.append(
+                f"เผยแพร่ไป {platform} ไม่สำเร็จ: {action.get('error')} "
+                "(จะลองใหม่รอบหน้าด้วยภาพเดิม)"
+            )
 
     return "\n".join(lines)
 
