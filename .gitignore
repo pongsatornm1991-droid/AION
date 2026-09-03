@@ -13,3 +13,9 @@ _patch_*.py*
 # absolute path that breaks on any other machine or clone.
 memory
 AION Brain Vault/
+
+# Local clone of the private aion-memory-data repo, kept fresh by
+# tools/sync_memory_from_github.py so the Observatory dashboard can
+# show real production activity. Machine-specific, never tracked.
+aion-memory-data-sync/
+.env.memory_sync

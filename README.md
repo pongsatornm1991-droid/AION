@@ -102,6 +102,23 @@ separately, then shows AION's lessons, questions, goals, beliefs, reflections,
 forecasts, and recent public thoughts in one place. It stays on this computer;
 it is not a public website and does not expose AION's private memory.
 
+By default it reads this machine's own local `memory/` folder (the OneDrive
+backup, see above) -- **not** the private `aion-memory-data` repo that GitHub
+Actions actually writes to when AION runs in the cloud, so it can drift out of
+sync with real production activity. To make it show the real thing (2026-09-03):
+
+1. Copy `.env.memory_sync.example` to `.env.memory_sync` and paste in the same
+   `MEMORY_REPO_PAT` token you already created for GitHub Secrets (see
+   [docs/GITHUB_ACTIONS_SETUP.md](docs/GITHUB_ACTIONS_SETUP.md)).
+2. Run `Start-AION-Observatory.bat` as usual. When `.env.memory_sync` exists it
+   also starts `tools/sync_memory_from_github.py` in the background, which
+   pulls a local clone of `aion-memory-data` every 45 seconds, and points the
+   dashboard at that clone instead. The sync loop only ever reads (clone +
+   pull); it never pushes.
+
+Skip this step and the dashboard keeps working exactly as before, reading the
+local `memory/` folder.
+
 ### Reels renderer
 
 `tools/reel_render.py` turns an AION thought into a character-led 1080×1920
