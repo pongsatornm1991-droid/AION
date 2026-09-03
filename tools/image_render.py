@@ -16,11 +16,14 @@ in this repo at assets/fonts/NotoSansThai-Regular.ttf, since Thai text
 otherwise renders as empty boxes on a bare Ubuntu GitHub Actions
 runner, which has no Thai-capable font installed by default).
 
-The generated AION visual reference supplies an atmospheric background;
-a dark overlay, glow band, centered caption, and corner watermark keep
-every post readable and recognizable. It remains a deterministic,
-free fallback: an unavailable future image-generation provider can
-never stop the Instagram cycle from publishing.
+The generated AION visual reference supplies an atmospheric background,
+kept close to its original vibrancy (reader feedback: an earlier
+version's full-card dark overlay looked too heavy/dull -- "ทึบ"). A
+soft dark scrim now sits only directly behind the caption block, with
+a cyan accent bar marking it, and a small corner watermark -- the rest
+of the artwork stays untouched. It remains a deterministic, free
+fallback: an unavailable future image-generation provider can never
+stop the Instagram cycle from publishing.
 """
 
 import hashlib
@@ -239,10 +242,42 @@ def _create_background(size, seed=""):
         except OSError:
             pass
 
-    # Preserve the artwork's atmosphere but reserve enough contrast for Thai
-    # caption text on every generated card.
-    overlay = Image.new("RGBA", (width, height), (0, 0, 0, 135))
+    # A light global tint only, for mood and to keep every library photo
+    # reading as one visual family -- readable contrast for the caption
+    # itself comes from a separate, localized scrim (see _text_scrim())
+    # placed just behind the text block, not from darkening the whole
+    # card. A heavier full-card overlay looked too flat and dull.
+    overlay = Image.new("RGBA", (width, height), (0, 0, 0, 55))
     return Image.alpha_composite(image.convert("RGBA"), overlay).convert("RGB")
+
+
+def _text_scrim(size, top_y, bottom_y, max_alpha=165, fade=110):
+    """A soft dark gradient panel behind the caption block ONLY --
+    not the whole card. Reader feedback on an earlier version (a
+    full-card dark overlay plus a glow band across the middle) was
+    that it looked too heavy/dull ("ทึบ") and hid the artwork's best
+    part. This keeps every pixel outside the text block at the
+    background's original vibrancy, and only dims the strip the
+    caption actually sits on, fading in/out over `fade` pixels so the
+    edge is soft rather than a hard-edged box."""
+
+    width, height = size
+    scrim = Image.new("RGBA", size, (0, 0, 0, 0))
+    draw = ImageDraw.Draw(scrim)
+
+    fade_in_start = max(0, top_y - fade)
+    fade_out_end = min(height, bottom_y + fade)
+
+    for y in range(fade_in_start, fade_out_end):
+        if y < top_y:
+            alpha = int(max_alpha * (y - fade_in_start) / max(1, top_y - fade_in_start))
+        elif y > bottom_y:
+            alpha = int(max_alpha * (1 - (y - bottom_y) / max(1, fade_out_end - bottom_y)))
+        else:
+            alpha = max_alpha
+        draw.line([(0, y), (width, y)], fill=(0, 0, 0, alpha))
+
+    return scrim
 
 
 def render_content_card(
@@ -254,7 +289,7 @@ def render_content_card(
 ):
     """Draw one branded square content card and save it as a PNG.
 
-    caption: the short Thai text to display, centered.
+    caption: the short Thai text to display.
     out_path: where to write the PNG (parent directories are created
       if missing).
     Returns out_path on success. Raises ValueError for an empty
@@ -268,29 +303,13 @@ def render_content_card(
     os.makedirs(os.path.dirname(os.path.abspath(out_path)) or ".", exist_ok=True)
 
     width, height = size
-    image = _create_background((width, height), seed=caption)
+    image = _create_background((width, height), seed=caption).convert("RGBA")
     draw = ImageDraw.Draw(image)
-
-    # A soft horizontal glow band across the middle third, evoking the
-    # cyan hair/iris glow in AION's profile picture without trying to
-    # reproduce a photorealistic portrait in code.
-    band_top = int(height * 0.38)
-    band_bottom = int(height * 0.62)
-    band_height = band_bottom - band_top
-    for offset in range(band_height):
-        # Fade opacity toward the edges of the band for a soft glow
-        # rather than a hard-edged rectangle.
-        distance_from_center = abs(offset - band_height / 2) / (band_height / 2)
-        alpha = max(0.0, 1.0 - distance_from_center)
-        blended = tuple(
-            int(BACKGROUND_COLOR[i] + (GLOW_COLOR[i] - BACKGROUND_COLOR[i]) * alpha * 0.18)
-            for i in range(3)
-        )
-        draw.line([(0, band_top + offset), (width, band_top + offset)], fill=blended)
 
     caption_font = _load_font(56, font_path=font_path)
     margin = 100
-    max_text_width = width - 2 * margin
+    accent_gap = 36
+    max_text_width = width - 2 * margin - accent_gap
 
     lines = _wrap_text(draw, caption, caption_font, max_text_width)
 
@@ -299,15 +318,34 @@ def render_content_card(
         bbox = draw.textbbox((0, 0), line, font=caption_font)
         line_heights.append(bbox[3] - bbox[1])
 
-    line_spacing = 20
+    line_spacing = 22
     total_text_height = sum(line_heights) + line_spacing * max(0, len(lines) - 1)
-    current_y = (height - total_text_height) / 2
+    # Lower two-thirds of the card, not dead-center -- leaves the
+    # background art's upper portion (usually its most interesting
+    # part) completely unobstructed.
+    start_y = height * 0.58 - total_text_height / 2
 
+    scrim_top = max(0, int(start_y - 50))
+    scrim_bottom = min(height, int(start_y + total_text_height + 70))
+    image = Image.alpha_composite(
+        image, _text_scrim((width, height), scrim_top, scrim_bottom)
+    )
+    draw = ImageDraw.Draw(image)
+
+    # A slim accent bar marks the caption block instead of a kicker
+    # label or logo badge -- reader feedback was to drop those and
+    # keep the card simple.
+    bar_x = margin
+    draw.rounded_rectangle(
+        [bar_x, start_y - 6, bar_x + 8, start_y + total_text_height + 6],
+        radius=4, fill=GLOW_COLOR,
+    )
+
+    current_y = start_y
     for line, line_height in zip(lines, line_heights):
-        bbox = draw.textbbox((0, 0), line, font=caption_font)
-        line_width = bbox[2] - bbox[0]
-        x = (width - line_width) / 2
-        draw.text((x, current_y), line, font=caption_font, fill=TEXT_COLOR)
+        draw.text(
+            (margin + accent_gap, current_y), line, font=caption_font, fill=TEXT_COLOR,
+        )
         current_y += line_height + line_spacing
 
     watermark_font = _load_font(34, font_path=font_path)
@@ -321,5 +359,5 @@ def render_content_card(
             (wm_x, wm_y), watermark_text, font=watermark_font, fill=WATERMARK_COLOR,
         )
 
-    image.save(out_path, format="PNG")
+    image.convert("RGB").save(out_path, format="PNG")
     return out_path
