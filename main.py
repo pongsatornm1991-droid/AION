@@ -29,6 +29,7 @@ from brain.reels import ReelContentCycle
 from brain.youtube import YouTubeShortsCycle
 from brain.growth_pulse import GrowthPulse
 from brain.evolution import EvolutionEngine
+from brain.manual_publish import publish_local_video_everywhere
 from brain.self_improvement import SelfImprovementCycle
 
 
@@ -1764,6 +1765,68 @@ def run_youtube_publish(args):
     _notify_report(report, formatter=_format_youtube_telegram_report)
 
 
+def run_publish_video(args):
+    """Upload a human-supplied local video (not an AION-generated Reel)
+    to YouTube, then post the link to Facebook and Instagram. Manual,
+    one-off command -- meant to be run by hand on a machine that has the
+    video file, not by a scheduled cycle."""
+    load_dotenv()
+
+    try:
+        report = publish_local_video_everywhere(
+            args.file,
+            args.title,
+            caption=args.caption,
+            description=args.description,
+            privacy_status=args.privacy,
+            instagram_image_url=args.image,
+            skip_facebook=args.skip_facebook,
+            skip_instagram=args.skip_instagram,
+        )
+    except Exception as exc:
+        print(f"\nอัปโหลดขึ้น YouTube ไม่สำเร็จ: {exc}")
+        _notify_report(
+            {"stage": "youtube-failed", "error": str(exc), "video_path": args.file},
+            formatter=_format_publish_video_telegram_report,
+        )
+        return
+
+    print("\nAION PUBLISH VIDEO")
+    print(f"YouTube: {report['youtube']['url']} ({report['youtube']['privacy_status']})")
+    print(f"Facebook: {report['facebook']['status']}" + (f" -- {report['facebook'].get('error')}" if report['facebook'].get('error') else ""))
+    print(f"Instagram: {report['instagram']['status']}" + (f" -- {report['instagram'].get('error')}" if report['instagram'].get('error') else ""))
+    _notify_report(report, formatter=_format_publish_video_telegram_report)
+
+
+def _format_publish_video_telegram_report(report):
+    lines = ["AION (เผยแพร่วิดีโอที่คุณอัปโหลดเอง):"]
+
+    if report.get("stage") == "youtube-failed":
+        lines.append("อัปโหลดขึ้น YouTube ไม่สำเร็จ ❌")
+        if report.get("error"):
+            lines.append(f"สาเหตุ: {report['error']}")
+        return "\n".join(lines)
+
+    youtube = report.get("youtube") or {}
+    if youtube.get("url"):
+        lines.append(f"YouTube: อัปโหลดสำเร็จ ({youtube.get('privacy_status')}) ✅")
+        lines.append(youtube["url"])
+
+    facebook = report.get("facebook") or {}
+    if facebook.get("status") == "ok":
+        lines.append("Facebook: โพสต์ลิงก์สำเร็จ ✅")
+    elif facebook.get("status") == "failed":
+        lines.append(f"Facebook: โพสต์ไม่สำเร็จ ❌ ({facebook.get('error')})")
+
+    instagram = report.get("instagram") or {}
+    if instagram.get("status") == "ok":
+        lines.append("Instagram: โพสต์ลิงก์สำเร็จ ✅")
+    elif instagram.get("status") == "failed":
+        lines.append(f"Instagram: โพสต์ไม่สำเร็จ ❌ ({instagram.get('error')})")
+
+    return "\n".join(lines)
+
+
 def run_growth_pulse(args):
     """Send one compact Telegram update covering AION's whole day."""
     load_dotenv()
@@ -3364,6 +3427,25 @@ def build_parser():
     subparsers.add_parser("run-youtube-publish", help="Upload the next completed AION Reel to YouTube as a Short once.")
     subparsers.add_parser("run-growth-pulse", help="Send one daily Telegram summary of AION's growth and channels.")
 
+    publish_video_parser = subparsers.add_parser(
+        "publish-video",
+        help="Manual, one-off: upload a local video file to YouTube, "
+             "then post the resulting link to Facebook and Instagram. "
+             "Not an automatic cycle -- run this by hand whenever there "
+             "is a new human-made video to share.",
+    )
+    publish_video_parser.add_argument("--file", required=True, help="Path to the local video file (.mp4/.mov/.m4v).")
+    publish_video_parser.add_argument("--title", required=True, help="YouTube title.")
+    publish_video_parser.add_argument("--description", default=None, help="YouTube description (default: same as --caption/--title).")
+    publish_video_parser.add_argument("--caption", default=None, help="Text used for the Facebook/Instagram posts (default: --title).")
+    publish_video_parser.add_argument(
+        "--privacy", dest="privacy", default=None, choices=sorted({"private", "unlisted", "public"}),
+        help="YouTube privacy status (default: YOUTUBE_PRIVACY_STATUS env var, or private).",
+    )
+    publish_video_parser.add_argument("--image", default=None, help="Override the Instagram image URL (default: AION's profile picture).")
+    publish_video_parser.add_argument("--skip-facebook", action="store_true", help="Don't post to Facebook.")
+    publish_video_parser.add_argument("--skip-instagram", action="store_true", help="Don't post to Instagram.")
+
     subparsers.add_parser(
         "run-instagram-publish",
         help="Publish the oldest already-drafted-and-committed "
@@ -3589,6 +3671,10 @@ def main():
 
     if args.command == "run-growth-pulse":
         run_growth_pulse(args)
+        return
+
+    if args.command == "publish-video":
+        run_publish_video(args)
         return
 
     run_reflection()
