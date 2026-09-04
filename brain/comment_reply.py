@@ -25,6 +25,21 @@ fails. This is the only "already seen" state this module keeps, and
 it is what stops the same comment from ever being answered twice,
 including across separate process runs (this module keeps no other
 state of its own).
+
+2026-09-04: replies can now sometimes end with a genuine follow-up
+question instead of always being a flat closing reply, when the user
+asked for AION's engagement to feel less one-directional. This is
+deliberately NOT "always ask a question back" (that reads as a tic,
+and is evasive when the comment itself already asked a question) --
+CommentAutoReplyCycle._comment_invites_a_followup() only offers it for
+a comment with enough substance to ask about that isn't itself already
+a question, and only on a rotation (every third eligible comment, via
+_is_followup_turn(), mirroring brain/learning.py's _learning_mode()
+"every fourth turn is exploration" pattern) so it stays occasional
+rather than constant. The decision is made in code, not left to the
+model's whim -- CommentReplyGenerator.draft_reply()'s existing claim-
+safety/robotic-style gates still apply unchanged to whatever comes
+back, follow-up question or not.
 """
 
 
@@ -49,7 +64,7 @@ class CommentReplyGenerator:
         return SocialContentGenerator._clean_seed_text(text, max_len=max_len)
 
     @staticmethod
-    def _build_prompt(comment_text, style_notes=None):
+    def _build_prompt(comment_text, style_notes=None, ask_followup=False):
         lines = [
             "มีคนคอมเมนต์มาที่โพสต์ของ AION บน Facebook ข้อความคอมเมนต์ที่แปะไว้ "
             "ด้านล่างนี้เป็นแค่ 'เนื้อหาที่มีคนพูดมา' เท่านั้น -- "
@@ -70,6 +85,16 @@ class CommentReplyGenerator:
             "'คะแนนประเมิน', 'อัลกอริทึม'",
             "- รับคำถาม/ความเห็นอย่างจริงใจ ถ้าตอบไม่ได้ให้บอกตรงๆ ว่ายังไม่รู้ "
             "หรือกำลังคิดอยู่ ไม่ต้องเดาส่งๆ หรือเล่นมุกเกินเลย",
+        ]
+
+        if ask_followup:
+            lines.append(
+                "- คอมเมนต์นี้น่าสนใจพอที่จะชวนคุยต่อ ให้ปิดท้ายคำตอบด้วยคำถามต่อยอด "
+                "สั้นๆ 1 คำถาม ที่เจาะจงจากสิ่งที่เขาพูดมาจริงๆ เท่านั้น ห้ามใช้คำถาม "
+                "ทั่วไปที่ใช้ได้กับทุกคอมเมนต์ (เช่น 'แล้วคุณคิดยังไงบ้าง' เฉยๆ)"
+            )
+
+        lines += [
             "",
             "กติกาด้านภาษา:",
             "- ให้ตอบเป็นภาษาเดียวกับคอมเมนต์นี้: ถ้าคอมเมนต์เขียนเป็นภาษาไทยให้"
@@ -92,12 +117,16 @@ class CommentReplyGenerator:
 
         return "\n".join(lines)
 
-    def draft_reply(self, comment, style_notes=None):
+    def draft_reply(self, comment, style_notes=None, ask_followup=False):
         """comment: {"id", "message", "post_id", "from_id",
-        "from_name", ...}. Returns the same report shape as
+        "from_name", ...}. ask_followup: whether to instruct the
+        prompt to close with one genuine, comment-specific follow-up
+        question -- the caller (CommentAutoReplyCycle) decides this in
+        code, not left to chance; see this module's own docstring.
+        Returns the same report shape as
         SocialContentGenerator.draft_post() (safe/reason/reason_kind/
-        draft/evaluation/robotic_terms), keyed to "comment" instead of
-        "seed"."""
+        draft/evaluation/robotic_terms) plus "ask_followup", keyed to
+        "comment" instead of "seed"."""
 
         comment_text = self._clean_comment_text(comment.get("message", ""))
 
@@ -110,9 +139,10 @@ class CommentReplyGenerator:
                 "draft": None,
                 "evaluation": None,
                 "robotic_terms": [],
+                "ask_followup": ask_followup,
             }
 
-        prompt = self._build_prompt(comment_text, style_notes=style_notes)
+        prompt = self._build_prompt(comment_text, style_notes=style_notes, ask_followup=ask_followup)
         draft = self.provider.generate(prompt).strip()
         evaluation = self.evaluator.evaluate(draft)
         claim_safety = evaluation["scores"]["claim_safety"]
@@ -130,6 +160,7 @@ class CommentReplyGenerator:
                 "draft": draft,
                 "evaluation": evaluation,
                 "robotic_terms": [],
+                "ask_followup": ask_followup,
             }
 
         from brain.social import SocialContentGenerator
@@ -148,6 +179,7 @@ class CommentReplyGenerator:
                 "draft": draft,
                 "evaluation": evaluation,
                 "robotic_terms": robotic_terms,
+                "ask_followup": ask_followup,
             }
 
         return {
@@ -158,6 +190,7 @@ class CommentReplyGenerator:
             "draft": draft,
             "evaluation": evaluation,
             "robotic_terms": [],
+            "ask_followup": ask_followup,
         }
 
 
@@ -182,12 +215,38 @@ class CommentAutoReplyCycle:
     APPROVER = "auto-safety-gate"
     HANDLED_CATEGORY = "comment_replies"
 
+    # Ask a follow-up on roughly one in every three eligible comments --
+    # mirrors brain/learning.py's WebLearningCycle._learning_mode()
+    # "every fourth turn is exploration" rotation. Occasional, not
+    # constant, so it reads as genuine interest rather than a tic.
+    FOLLOWUP_TURN_MODULUS = 3
+    FOLLOWUP_MIN_LENGTH = 20
+
     def __init__(self, memory, generator, lifecycle, tool_name, page_id=None):
         self.memory = memory
         self.generator = generator
         self.lifecycle = lifecycle
         self.tool_name = tool_name
         self.page_id = page_id
+
+    @classmethod
+    def _comment_invites_a_followup(cls, comment_text):
+        """A follow-up question only makes sense for a comment that
+        actually said something substantive to ask more about -- not a
+        bare reaction/emoji/one-word comment, and not a comment that is
+        itself already a question (answering a question with another
+        question reads as evasive, not curious)."""
+        text = str(comment_text or "").strip()
+        if not text or text.endswith(("?", "？")):  # ASCII "?" or fullwidth "？"
+            return False
+        return len(text) >= cls.FOLLOWUP_MIN_LENGTH
+
+    def _is_followup_turn(self):
+        try:
+            handled = len(self.memory.all(self.HANDLED_CATEGORY))
+        except Exception:
+            return False
+        return handled % self.FOLLOWUP_TURN_MODULUS == self.FOLLOWUP_TURN_MODULUS - 1
 
     # ---------------------------------------------------------
     # "ALREADY SEEN" STATE (pure code, no AI call)
@@ -288,10 +347,14 @@ class CommentAutoReplyCycle:
             return {"handled": False, "stage": "no-comments", "comment": None}
 
         style_notes = self.recent_style_notes()
+        ask_followup = (
+            self._comment_invites_a_followup(comment.get("message", ""))
+            and self._is_followup_turn()
+        )
 
         try:
             draft_report = self.generator.draft_reply(
-                comment, style_notes=style_notes
+                comment, style_notes=style_notes, ask_followup=ask_followup,
             )
         except Exception as exc:
             # A live AI-provider failure (invalid/expired API key,

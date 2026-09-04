@@ -84,6 +84,22 @@ class BaseCommentReplyTest(unittest.TestCase):
     def tearDown(self):
         shutil.rmtree(self.tmpdir, ignore_errors=True)
 
+    def _lifecycle(self, reply_func=None):
+        self.replies = []
+
+        def default_reply(comment_id, message):
+            self.replies.append((comment_id, message))
+            return {"id": f"{comment_id}_reply"}
+
+        registry = ToolRegistry()
+        registry.register(
+            "reply_to_facebook_comment",
+            reply_func or default_reply,
+            ActionLevel.HIGH_RISK,
+            "Reply to a Facebook comment.",
+        )
+        return ToolLifecycle(self.memory, registry=registry)
+
 
 class DraftReplyTests(BaseCommentReplyTest):
 
@@ -170,24 +186,26 @@ class DraftReplyTests(BaseCommentReplyTest):
         self.assertIn("ถ้าคอมเมนต์เขียนเป็นภาษาอื่นที่ไม่ใช่ไทยหรืออังกฤษ", prompt)
         self.assertIn("ให้ตอบเป็นภาษาอังกฤษแทนเสมอ", prompt)
 
+    def test_ask_followup_true_adds_the_followup_instruction(self):
+        provider = SafeProvider()
+        generator = CommentReplyGenerator(provider)
+
+        report = generator.draft_reply(make_comment(), ask_followup=True)
+
+        self.assertIn("คำถามต่อยอด", provider.calls[0])
+        self.assertTrue(report["ask_followup"])
+
+    def test_ask_followup_false_by_default_omits_the_instruction(self):
+        provider = SafeProvider()
+        generator = CommentReplyGenerator(provider)
+
+        report = generator.draft_reply(make_comment())
+
+        self.assertNotIn("คำถามต่อยอด", provider.calls[0])
+        self.assertFalse(report["ask_followup"])
+
 
 class CommentAutoReplyCycleTests(BaseCommentReplyTest):
-
-    def _lifecycle(self, reply_func=None):
-        self.replies = []
-
-        def default_reply(comment_id, message):
-            self.replies.append((comment_id, message))
-            return {"id": f"{comment_id}_reply"}
-
-        registry = ToolRegistry()
-        registry.register(
-            "reply_to_facebook_comment",
-            reply_func or default_reply,
-            ActionLevel.HIGH_RISK,
-            "Reply to a Facebook comment.",
-        )
-        return ToolLifecycle(self.memory, registry=registry)
 
     def test_no_comments_returns_no_comments_stage_and_logs_nothing(self):
         generator = CommentReplyGenerator(SafeProvider())
@@ -433,6 +451,89 @@ class CommentAutoReplyCycleTests(BaseCommentReplyTest):
 
     def test_auto_safety_gate_can_never_self_approve_as_aion(self):
         self.assertNotEqual(CommentAutoReplyCycle.APPROVER.lower(), "aion")
+
+
+class FollowupDecisionTests(BaseCommentReplyTest):
+    """2026-09-04: CommentAutoReplyCycle can offer a genuine follow-up
+    question back on roughly one in every FOLLOWUP_TURN_MODULUS
+    eligible comments -- decided in code (never left to the model),
+    so it is fully deterministic and testable here."""
+
+    def test_short_comment_never_invites_a_followup(self):
+        self.assertFalse(CommentAutoReplyCycle._comment_invites_a_followup("ok"))
+        self.assertFalse(CommentAutoReplyCycle._comment_invites_a_followup(""))
+        self.assertFalse(CommentAutoReplyCycle._comment_invites_a_followup(None))
+
+    def test_a_comment_that_is_already_a_question_never_invites_a_followup(self):
+        long_question = "ทำไมท้องฟ้าถึงเป็นสีฟ้าครับ อยากรู้จริงๆ ว่ามันเกิดจากอะไร?"
+        self.assertFalse(CommentAutoReplyCycle._comment_invites_a_followup(long_question))
+
+    def test_a_substantive_non_question_comment_invites_a_followup(self):
+        long_comment = "ผมว่าเรื่องนี้น่าสนใจมากเลยครับ เพิ่งเคยได้ยินเป็นครั้งแรก"
+        self.assertTrue(CommentAutoReplyCycle._comment_invites_a_followup(long_comment))
+
+    def test_is_followup_turn_fires_on_every_third_handled_comment(self):
+        generator = CommentReplyGenerator(SafeProvider())
+        cycle = CommentAutoReplyCycle(
+            self.memory, generator, self._lifecycle(),
+            "reply_to_facebook_comment",
+        )
+
+        # 0 handled so far -> not a followup turn (0 % 3 == 0)
+        self.assertFalse(cycle._is_followup_turn())
+
+        for i in range(2):
+            self.memory.remember(
+                category="comment_replies", content=f"filler {i}",
+                memory_type="action", source="test", tags=[f"fb-comment:filler{i}"],
+            )
+        # 2 handled so far -> IS a followup turn (2 % 3 == 2)
+        self.assertTrue(cycle._is_followup_turn())
+
+        self.memory.remember(
+            category="comment_replies", content="filler 2",
+            memory_type="action", source="test", tags=["fb-comment:filler2"],
+        )
+        # 3 handled so far -> not a followup turn again (3 % 3 == 0)
+        self.assertFalse(cycle._is_followup_turn())
+
+    def _cycle_at_followup_turn(self, provider):
+        generator = CommentReplyGenerator(provider)
+        cycle = CommentAutoReplyCycle(
+            self.memory, generator, self._lifecycle(),
+            "reply_to_facebook_comment", page_id="page-1",
+        )
+        for i in range(2):
+            self.memory.remember(
+                category="comment_replies", content=f"filler {i}",
+                memory_type="action", source="test", tags=[f"fb-comment:filler{i}"],
+            )
+        return cycle
+
+    def test_a_substantive_comment_gets_a_followup_on_the_configured_turn(self):
+        provider = SafeProvider()
+        cycle = self._cycle_at_followup_turn(provider)
+        comment = make_comment(
+            comment_id="c-long",
+            message="ผมว่าเรื่องนี้น่าสนใจมากเลยครับ เพิ่งเคยได้ยินเป็นครั้งแรก",
+        )
+
+        report = cycle.run_once(comments=[comment])
+
+        self.assertTrue(report["handled"])
+        self.assertTrue(report["ask_followup"])
+        self.assertIn("คำถามต่อยอด", provider.calls[0])
+
+    def test_a_short_comment_never_gets_a_followup_even_on_the_configured_turn(self):
+        provider = SafeProvider()
+        cycle = self._cycle_at_followup_turn(provider)
+        comment = make_comment(comment_id="c-short", message="เยี่ยมเลย")
+
+        report = cycle.run_once(comments=[comment])
+
+        self.assertTrue(report["handled"])
+        self.assertFalse(report["ask_followup"])
+        self.assertNotIn("คำถามต่อยอด", provider.calls[0])
 
 
 if __name__ == "__main__":
