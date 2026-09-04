@@ -21,6 +21,7 @@ from brain.social import SocialContentGenerator, SocialAutoCycle
 from brain.comment_reply import CommentReplyGenerator, CommentAutoReplyCycle
 from brain.profile_change import ProfileChangeGenerator, ProfileChangeCycle
 from brain.learning import WebLearningGenerator, WebLearningCycle
+from tools.web_search import search_arxiv, get_arxiv_summary
 from brain.self_narrative import SelfNarrativeGenerator, SelfNarrativeCycle
 from brain.reflection import ReflectionEngine, ReflectionCycle
 from brain.visual_content import VisualContentCycle
@@ -1979,7 +1980,14 @@ def run_learning_cycle(args):
     generator = WebLearningGenerator(
         provider, evaluator=evaluator, min_claim_safety=args.min_claim_safety,
     )
-    cycle = WebLearningCycle(memory, curiosity, generator)
+    # arXiv is a fallback only -- tried when Wikipedia has no result
+    # or no usable extract for AION's question (see
+    # core/source_registry.json's "arxiv" entry and
+    # brain/learning.py's _attempt_fallback_source).
+    cycle = WebLearningCycle(
+        memory, curiosity, generator,
+        fallback_search_fn=search_arxiv, fallback_fetch_fn=get_arxiv_summary,
+    )
 
     report = cycle.research_once()
 

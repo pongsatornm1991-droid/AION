@@ -33,6 +33,14 @@
       "enabled": true,
       "role": "Discovery leads for AION's existing curiosity questions; only public title, description, channel, and URL are recorded.",
       "limitations": "Requires YOUTUBE_DATA_API_KEY. Never downloads captions, media, or comments; a video is not factual evidence without corroboration."
+    },
+    {
+      "id": "arxiv",
+      "name": "arXiv (open-access research abstracts)",
+      "tier": "A",
+      "enabled": true,
+      "role": "Fallback for AION's own open curiosity questions when Wikipedia has no matching article or no usable extract -- covers recent or specialised science/technology topics Wikipedia doesn't. Every answer cites the specific paper.",
+      "limitations": "Abstracts only, not full paper text or peer-review status; a preprint is not automatically settled fact."
     }
   ]
 }

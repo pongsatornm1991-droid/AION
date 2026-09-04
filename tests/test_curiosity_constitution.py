@@ -54,7 +54,7 @@ class SourceRegistryTests(unittest.TestCase):
         registry = SourceRegistry()
         self.assertEqual(
             [item["id"] for item in registry.enabled_sources()],
-            ["wikipedia", "youtube_discovery"],
+            ["wikipedia", "youtube_discovery", "arxiv"],
         )
 
     def test_missing_registry_is_safe(self):

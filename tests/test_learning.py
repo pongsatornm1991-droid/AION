@@ -441,5 +441,127 @@ class WebLearningCycleTests(BaseLearningTest):
         self.assertEqual(report["question"]["id"], q1["id"])
 
 
+class FallbackSourceRegistry:
+    """Fake registry where "wikipedia" is enabled and "arxiv" (or
+    whichever fallback_source_id is passed) can be toggled per test."""
+
+    def __init__(self, fallback_enabled=True, fallback_id="arxiv"):
+        self.fallback_enabled = fallback_enabled
+        self.fallback_id = fallback_id
+
+    def source(self, source_id):
+        if source_id == "wikipedia":
+            return {"id": "wikipedia", "enabled": True}
+        if source_id == self.fallback_id:
+            return {"id": self.fallback_id, "enabled": self.fallback_enabled}
+        return None
+
+
+class FallbackLearningSourceTests(BaseLearningTest):
+    """2026-09-04: WebLearningCycle can fall back to a second source
+    (e.g. tools.web_search.search_arxiv/get_arxiv_summary in
+    production) when Wikipedia has no result or no usable extract --
+    but only when a caller explicitly wires fallback_search_fn/
+    fallback_fetch_fn in. Every test above this class constructs
+    WebLearningCycle without those, and must keep behaving exactly as
+    before this feature existed -- that is the whole point of making
+    fallback opt-in rather than defaulted."""
+
+    def test_fallback_answers_when_wikipedia_has_no_results(self):
+        self._raise_question()
+        generator = WebLearningGenerator(SafeProvider())
+        cycle = WebLearningCycle(
+            self.memory, self.curiosity, generator,
+            search_fn=fake_search([]), fetch_fn=fake_fetch({}),
+            source_registry=FallbackSourceRegistry(),
+            fallback_search_fn=fake_search(["2301.12345"]),
+            fallback_fetch_fn=fake_fetch({"2301.12345": {
+                "title": "A Paper About Plants",
+                "url": "https://arxiv.org/abs/2301.12345",
+                "extract": "This paper studies plant pigments.",
+            }}),
+        )
+
+        report = cycle.research_once()
+
+        self.assertTrue(report["researched"])
+        self.assertEqual(report["stage"], "answered")
+        self.assertEqual(report["source"]["title"], "A Paper About Plants")
+        self.assertEqual(report["source_registry_entry"]["id"], "arxiv")
+
+    def test_fallback_answers_when_wikipedia_extract_is_empty(self):
+        self._raise_question()
+        generator = WebLearningGenerator(SafeProvider())
+        cycle = WebLearningCycle(
+            self.memory, self.curiosity, generator,
+            search_fn=fake_search(["Stub"]),
+            fetch_fn=fake_fetch({"Stub": {"title": "Stub", "url": "u", "extract": ""}}),
+            source_registry=FallbackSourceRegistry(),
+            fallback_search_fn=fake_search(["2301.12345"]),
+            fallback_fetch_fn=fake_fetch({"2301.12345": {
+                "title": "A Paper About Plants",
+                "url": "https://arxiv.org/abs/2301.12345",
+                "extract": "This paper studies plant pigments.",
+            }}),
+        )
+
+        report = cycle.research_once()
+
+        self.assertTrue(report["researched"])
+        self.assertEqual(report["source_registry_entry"]["id"], "arxiv")
+
+    def test_fallback_is_not_tried_when_disabled_in_the_registry(self):
+        self._raise_question()
+        generator = WebLearningGenerator(SafeProvider())
+
+        def must_not_search(*args, **kwargs):
+            raise AssertionError("a disabled fallback source must not be contacted")
+
+        cycle = WebLearningCycle(
+            self.memory, self.curiosity, generator,
+            search_fn=fake_search([]), fetch_fn=fake_fetch({}),
+            source_registry=FallbackSourceRegistry(fallback_enabled=False),
+            fallback_search_fn=must_not_search, fallback_fetch_fn=must_not_search,
+        )
+
+        report = cycle.research_once()
+
+        self.assertFalse(report["researched"])
+        self.assertEqual(report["stage"], "no-search-results")
+
+    def test_fallback_failure_still_reports_the_original_stage(self):
+        self._raise_question()
+        generator = WebLearningGenerator(SafeProvider())
+
+        def failing_fallback_search(query, limit=3):
+            raise RuntimeError("arXiv search error (simulated).")
+
+        cycle = WebLearningCycle(
+            self.memory, self.curiosity, generator,
+            search_fn=fake_search([]), fetch_fn=fake_fetch({}),
+            source_registry=FallbackSourceRegistry(),
+            fallback_search_fn=failing_fallback_search, fallback_fetch_fn=fake_fetch({}),
+        )
+
+        report = cycle.research_once()
+
+        self.assertFalse(report["researched"])
+        self.assertEqual(report["stage"], "no-search-results")
+
+    def test_no_fallback_configured_behaves_exactly_as_before(self):
+        self._raise_question()
+        generator = WebLearningGenerator(SafeProvider())
+        cycle = WebLearningCycle(
+            self.memory, self.curiosity, generator,
+            search_fn=fake_search([]), fetch_fn=fake_fetch({}),
+            source_registry=FallbackSourceRegistry(),
+        )
+
+        report = cycle.research_once()
+
+        self.assertFalse(report["researched"])
+        self.assertEqual(report["stage"], "no-search-results")
+
+
 if __name__ == "__main__":
     unittest.main()

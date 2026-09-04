@@ -208,7 +208,9 @@ class WebLearningCycle:
     LESSON_CATEGORY = "lessons"
 
     def __init__(self, memory, curiosity, generator, search_fn=None, fetch_fn=None,
-                 curiosity_constitution=None, source_registry=None):
+                 curiosity_constitution=None, source_registry=None,
+                 fallback_search_fn=None, fallback_fetch_fn=None,
+                 fallback_source_id="arxiv"):
         self.memory = memory
         self.curiosity = curiosity
         self.generator = generator
@@ -230,6 +232,19 @@ class WebLearningCycle:
 
         self.search_fn = search_fn
         self.fetch_fn = fetch_fn
+
+        # Unlike search_fn/fetch_fn above, a missing fallback pair is
+        # deliberately NOT defaulted to a real network call (e.g.
+        # tools.web_search.search_arxiv) -- it simply means "no
+        # fallback source configured", so a WebLearningCycle built the
+        # old way (no fallback_* args, as every existing test and any
+        # caller written before 2026-09-04 does) behaves byte-for-byte
+        # as it did before this fallback feature existed. Callers that
+        # want the fallback (main.py's run_learning_cycle does) must
+        # pass it explicitly.
+        self.fallback_search_fn = fallback_search_fn
+        self.fallback_fetch_fn = fallback_fetch_fn
+        self.fallback_source_id = fallback_source_id
 
     def recent_style_notes(self, limit=5):
         """The most recent style-review lessons AION has logged about
@@ -254,6 +269,44 @@ class WebLearningCycle:
             source=source,
             importance=3,
         )
+
+    def _attempt_fallback_source(self, question_text):
+        """Try the configured fallback source (arXiv, by default --
+        see fallback_source_id) when the primary Wikipedia source had
+        no results or no usable extract for this question.
+
+        Returns (source_dict, source_registry_entry) on success, or
+        None on ANY failure to find/use it -- no fallback configured,
+        the fallback source disabled in the registry, a live
+        search/fetch error, no results, or no usable extract. In
+        every "None" case the caller falls back to its original
+        no-answer stage exactly as if this method did not exist, so a
+        WebLearningCycle with no fallback configured is unaffected."""
+
+        if not self.fallback_search_fn or not self.fallback_fetch_fn:
+            return None
+
+        fallback_entry = self.source_registry.source(self.fallback_source_id)
+        if not fallback_entry or not fallback_entry.get("enabled"):
+            return None
+
+        try:
+            results = self.fallback_search_fn(question_text)
+        except Exception:
+            return None
+
+        if not results:
+            return None
+
+        try:
+            source = self.fallback_fetch_fn(results[0]["title"])
+        except Exception:
+            return None
+
+        if not source.get("extract"):
+            return None
+
+        return source, fallback_entry
 
     def _learning_mode(self):
         """Make every fourth distinct learning turn a deliberate exploration.
@@ -318,34 +371,40 @@ class WebLearningCycle:
             }
 
         if not results:
-            self.forecasts.review(
-                forecast, question_entry, "inconclusive",
-                "No relevant result was returned by the configured source.",
-            )
-            return {
-                "researched": False, "stage": "no-search-results",
-                "question": question_entry, "learning_forecast": forecast,
-            }
+            fallback = self._attempt_fallback_source(question_text)
+            if fallback is None:
+                self.forecasts.review(
+                    forecast, question_entry, "inconclusive",
+                    "No relevant result was returned by the configured source.",
+                )
+                return {
+                    "researched": False, "stage": "no-search-results",
+                    "question": question_entry, "learning_forecast": forecast,
+                }
+            source, source_entry = fallback
+        else:
+            top_title = results[0]["title"]
 
-        top_title = results[0]["title"]
+            try:
+                source = self.fetch_fn(top_title)
+            except Exception as exc:
+                return {
+                    "researched": False, "stage": "fetch-failed",
+                    "error": str(exc), "question": question_entry,
+                }
 
-        try:
-            source = self.fetch_fn(top_title)
-        except Exception as exc:
-            return {
-                "researched": False, "stage": "fetch-failed",
-                "error": str(exc), "question": question_entry,
-            }
-
-        if not source.get("extract"):
-            self.forecasts.review(
-                forecast, question_entry, "inconclusive",
-                "The selected source had no usable extract.",
-            )
-            return {
-                "researched": False, "stage": "empty-source",
-                "question": question_entry, "source": source, "learning_forecast": forecast,
-            }
+            if not source.get("extract"):
+                fallback = self._attempt_fallback_source(question_text)
+                if fallback is None:
+                    self.forecasts.review(
+                        forecast, question_entry, "inconclusive",
+                        "The selected source had no usable extract.",
+                    )
+                    return {
+                        "researched": False, "stage": "empty-source",
+                        "question": question_entry, "source": source, "learning_forecast": forecast,
+                    }
+                source, source_entry = fallback
 
         style_notes = self.recent_style_notes()
 
