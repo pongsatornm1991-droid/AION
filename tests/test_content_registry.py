@@ -29,3 +29,20 @@ class CreatorContentRegistryTests(unittest.TestCase):
             registry = self._registry(root, seconds=4)
             with self.assertRaisesRegex(ValueError, "5–10"):
                 registry.episodes()
+
+    def test_a_legacy_string_content_record_never_crashes_status_lookup(self):
+        # Same historical-record gap as tests/test_dashboard.py and
+        # tests/test_growth_pulse.py: a published_reels/pending_reels
+        # record whose content parses to a bare string (not a dict) used
+        # to crash this registry's own snapshot()/next_ready() with
+        # AttributeError: 'str' object has no attribute 'get'.
+        with tempfile.TemporaryDirectory() as root:
+            registry = self._registry(root)
+            registry.memory.remember(
+                "pending_reels", json.dumps("a bare string record, not even an object"), "action",
+            )
+            registry.memory.remember(
+                "published_reels", json.dumps("another bare string record"), "action",
+            )
+            self.assertEqual("one", registry.next_ready()["id"])
+            self.assertEqual("ready", registry.snapshot()[0]["status"])

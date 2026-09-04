@@ -62,20 +62,37 @@ def _reel_summary(memory):
     platform_counts = Counter()
     recent_posts = []
     for entry in published:
-        payload = _safe_json(entry.get("content")) or {}
+        payload = _safe_json(entry.get("content"))
+        if not isinstance(payload, dict):
+            # A malformed/legacy record (e.g. content that parses to a bare
+            # string or list) must never crash the whole dashboard/public
+            # summary -- same defensive rule brain/growth_pulse.py already
+            # applies to this same "published_reels" category.
+            continue
         actions = payload.get("platform_actions") or payload.get("action") or {}
+        if not isinstance(actions, dict):
+            # Some historical records predate the multi-platform
+            # {"instagram": ..., "facebook": ...} action shape and stored a
+            # single action id/string here instead -- treat that as "no
+            # platform breakdown available" rather than crashing (this is
+            # the exact bug, and the exact fix, already applied in
+            # brain/growth_pulse.py's _channel_activity).
+            actions = {}
+        youtube_info = payload.get("youtube")
+        if not isinstance(youtube_info, dict):
+            youtube_info = {}
         if actions.get("instagram"):
             platform_counts["instagram"] += 1
         if actions.get("facebook"):
             platform_counts["facebook"] += 1
-        if (payload.get("youtube") or {}).get("video_id"):
+        if youtube_info.get("video_id"):
             platform_counts["youtube"] += 1
         recent_posts.append({
             "timestamp": entry.get("timestamp"),
             "caption": _short(payload.get("caption")),
             "instagram": bool(actions.get("instagram")),
             "facebook": bool(actions.get("facebook")),
-            "youtube": bool((payload.get("youtube") or {}).get("video_id")),
+            "youtube": bool(youtube_info.get("video_id")),
         })
     return {
         "published": len(published),

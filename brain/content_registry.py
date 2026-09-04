@@ -29,6 +29,14 @@ class CreatorContentRegistry:
             for entry in self.memory.all(category):
                 try: payload = json.loads(entry.get("content") or "{}")
                 except (TypeError, ValueError): continue
+                if not isinstance(payload, dict):
+                    # Same historical-record gap tools/dashboard.py and
+                    # brain/growth_pulse.py already defend against: a
+                    # legacy/malformed record whose content parses to a
+                    # bare string or list must never crash the whole
+                    # snapshot (real bug: AttributeError: 'str' object has
+                    # no attribute 'get', found 2026-09-04).
+                    continue
                 if payload.get("library_asset"): values[state][str(payload["library_asset"])] = payload
         return values
 
