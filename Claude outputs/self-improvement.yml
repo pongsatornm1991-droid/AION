@@ -1,0 +1,83 @@
+name: AION - self-improvement proposals
+
+# Runs run-self-improvement a few times a day so AION reviews its own
+# recurring lesson-source patterns (repeated safety/style-gate
+# rejections, logged by every other drafting cycle) and, if a
+# not-yet-proposed pattern recurs often enough, drafts one plain-
+# language diagnosis + suggested-fix note for a person to read and
+# act on.
+#
+# This cycle never edits this repo's own code, opens no pull request,
+# and needs no ToolLifecycle approval -- see brain/self_improvement.py's
+# module docstring for why: it has no "apply" step at all, only a
+# memory write and a Telegram notification. Turning a proposal into an
+# actual change stays a deliberate human-initiated step outside this
+# project's automation entirely.
+#
+# Runs every 6 hours rather than hourly like learning-cycle.yml --
+# content-failure patterns accumulate slowly (they need
+# --min-occurrences repeats of the SAME lesson source first), so
+# checking this often is plenty; a shorter interval would mostly just
+# repeat "nothing new to propose" notifications.
+#
+# Shares the same private memory_data repo as check-comments.yml (see
+# that file's header comment for why memory/ is not tracked in this
+# public repo).
+
+on:
+  schedule:
+    - cron: "40 */6 * * *"
+  workflow_dispatch: {}
+
+# See learning-cycle.yml's header comment for why every AION workflow
+# that touches memory_data shares this same concurrency group.
+concurrency:
+  group: aion-memory-data
+  cancel-in-progress: false
+
+jobs:
+  self-improvement:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout AION code
+        uses: actions/checkout@v4
+
+      - name: Checkout AION memory (private repo)
+        uses: actions/checkout@v4
+        with:
+          repository: pongsatornm1991-droid/aion-memory-data
+          token: ${{ secrets.MEMORY_REPO_PAT }}
+          path: memory_data
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: Run run-self-improvement
+        env:
+          AION_MEMORY_ROOT: memory_data
+          AI_PROVIDER: ${{ vars.AI_PROVIDER || 'gemini' }}
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+          OPENAI_COMPATIBLE_BASE_URL: ${{ vars.OPENAI_COMPATIBLE_BASE_URL }}
+          OPENAI_COMPATIBLE_MODEL: ${{ vars.OPENAI_COMPATIBLE_MODEL }}
+          OPENAI_COMPATIBLE_API_KEY: ${{ secrets.OPENAI_COMPATIBLE_API_KEY }}
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+        run: python main.py run-self-improvement
+
+      - name: Persist memory changes back to the private repo
+        working-directory: memory_data
+        run: |
+          git config user.name "aion-bot"
+          git config user.email "aion-bot@users.noreply.github.com"
+          git add -A
+          if git diff --cached --quiet; then
+            echo "No memory changes this run -- nothing to commit."
+          else
+            git commit -m "AION memory update ($(date -u +%Y-%m-%dT%H:%M:%SZ))"
+            git push
+          fi
