@@ -1,10 +1,10 @@
 {
-  "generated_at": "2026-09-05T23:01:33.935143+00:00",
+  "generated_at": "2026-09-06T01:03:47.859123+00:00",
   "tiles": {
     "total": 18,
-    "ok": 16,
+    "ok": 15,
     "attn": 0,
-    "running": 1
+    "running": 2
   },
   "groups": [
     {
@@ -60,18 +60,18 @@
         {
           "name": "AION - external learning cycle",
           "file": "learning-cycle.yml",
-          "status_class": "success",
-          "status_label": "สำเร็จ",
-          "html_url": "https://github.com/pongsatornm1991-droid/AION/actions/runs/33997457605",
-          "created_at": "2026-09-05T23:00:07Z"
+          "status_class": "running",
+          "status_label": "กำลังรัน",
+          "html_url": "https://github.com/pongsatornm1991-droid/AION/actions/runs/34002861479",
+          "created_at": "2026-09-06T01:02:42Z"
         },
         {
           "name": "AION - reflection cycle",
           "file": "reflection-cycle.yml",
           "status_class": "success",
           "status_label": "สำเร็จ",
-          "html_url": "https://github.com/pongsatornm1991-droid/AION/actions/runs/33992051983",
-          "created_at": "2026-09-05T21:06:22Z"
+          "html_url": "https://github.com/pongsatornm1991-droid/AION/actions/runs/33999538374",
+          "created_at": "2026-09-05T23:46:09Z"
         },
         {
           "name": "AION - self-narrative",
@@ -92,8 +92,8 @@
           "file": "check-comments.yml",
           "status_class": "success",
           "status_label": "สำเร็จ",
-          "html_url": "https://github.com/pongsatornm1991-droid/AION/actions/runs/33993323249",
-          "created_at": "2026-09-05T21:32:05Z"
+          "html_url": "https://github.com/pongsatornm1991-droid/AION/actions/runs/34002751818",
+          "created_at": "2026-09-06T01:00:19Z"
         },
         {
           "name": "AION - propose profile change",
@@ -128,8 +128,8 @@
           "file": "automation-health.yml",
           "status_class": "unknown",
           "status_label": "skipped",
-          "html_url": "https://github.com/pongsatornm1991-droid/AION/actions/runs/33997511314",
-          "created_at": "2026-09-05T23:01:05Z"
+          "html_url": "https://github.com/pongsatornm1991-droid/AION/actions/runs/34002791006",
+          "created_at": "2026-09-06T01:01:04Z"
         },
         {
           "name": "AION - Obsidian brain dashboard",
@@ -144,8 +144,8 @@
           "file": "publish-public-summary.yml",
           "status_class": "running",
           "status_label": "กำลังรัน",
-          "html_url": "https://github.com/pongsatornm1991-droid/AION/actions/runs/33997502844",
-          "created_at": "2026-09-05T23:00:56Z"
+          "html_url": "https://github.com/pongsatornm1991-droid/AION/actions/runs/34002881760",
+          "created_at": "2026-09-06T01:03:06Z"
         },
         {
           "name": "AION - deterministic tests",
