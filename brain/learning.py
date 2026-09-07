@@ -4151,6 +4151,47 @@ class WebLearningCycle:
                 ),
             }
 
+        # ----------------------------------------------------
+        # PHASE 6A.2B — CONTROLLED BELIEF MUTATION
+        # ----------------------------------------------------
+        #
+        # Phase 5F and Phase 6A.1 have already completed here.
+        # Only the bounded mutation layer may persist a belief.
+        # Failure here must never change stage='answered'.
+
+        try:
+            from brain.belief_mutation import (
+                safely_apply_belief_mutation,
+            )
+
+            belief_mutation = (
+                safely_apply_belief_mutation(
+                    memory=self.memory,
+                    proposal=belief_integration,
+                    qualified_evidence=(
+                        accumulated_evidence
+                    ),
+                )
+            )
+
+        except Exception as exc:
+            belief_mutation = {
+                "stage": "mutation-error",
+                "applied": False,
+                "action": "no_change",
+                "relation": None,
+                "belief_entry": None,
+                "audit_entry": None,
+                "reason": (
+                    "Controlled belief mutation could not "
+                    "start after external learning completed "
+                    "successfully."
+                ),
+                "error": (
+                    f"{type(exc).__name__}: {exc}"
+                ),
+            }
+
         return {
             **synthesis_report,
             "researched": True,
@@ -4198,5 +4239,8 @@ class WebLearningCycle:
             ),
             "belief_integration": (
                 belief_integration
+            ),
+            "belief_mutation": (
+                belief_mutation
             ),
         }

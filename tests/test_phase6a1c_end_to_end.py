@@ -12,6 +12,7 @@ Belief mutation must remain disabled.
 
 import json
 import unittest
+from unittest.mock import patch
 
 from brain.beliefs import BeliefSystem
 from brain.learning import (
@@ -223,9 +224,31 @@ class Phase6A1CEndToEndTests(
             ),
         )
 
-        report = (
-            cycle.research_once()
-        )
+        # PHASE 6A.2B TEST-SCOPE GUARD
+        #
+        # This historical Phase 6A.1C test verifies the
+        # proposal layer only. Phase 6A.2B now adds a
+        # downstream mutation layer, so suppress that
+        # later layer here to preserve this test's scope.
+        with patch(
+            "brain.belief_mutation."
+            "safely_apply_belief_mutation",
+            return_value={
+                "stage": "mutation-blocked",
+                "applied": False,
+                "action": "no_change",
+                "relation": "form",
+                "belief_entry": None,
+                "audit_entry": None,
+                "reason": (
+                    "Suppressed by Phase 6A.1C "
+                    "scope guard."
+                ),
+            },
+        ):
+            report = (
+                cycle.research_once()
+            )
 
         # -------------------------------------------------
         # Phase 5F must still complete normally.
