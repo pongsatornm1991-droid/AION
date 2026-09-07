@@ -39,9 +39,11 @@ reflection mode.
   memory, safety, and style gates after the model writes a draft.
 
 For original Instagram artwork, the default renderer is free and local. Set
-`IMAGE_PROVIDER=openai` plus `OPENAI_IMAGE_API_KEY` to generate a new square
-visual through OpenAI Images instead. Set `OPENAI_IMAGE_QUALITY=medium` for
-the normal daily feed and reserve `high` for deliberate campaign posts. AION
+`IMAGE_PROVIDER=openai` to generate a new square visual through OpenAI Images
+instead. AION reuses `OPENAI_API_KEY` unless a dedicated
+`OPENAI_IMAGE_API_KEY` is supplied, and defaults to `gpt-image-2`. Set
+`OPENAI_IMAGE_QUALITY=medium` for the normal daily feed and reserve `high` for
+deliberate campaign posts. AION
 automatically falls back to the branded-card renderer on a missing key or API
 failure, so the social loop does not stop or repeatedly spend money.
 

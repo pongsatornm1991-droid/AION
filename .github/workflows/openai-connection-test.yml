@@ -37,3 +37,28 @@ jobs:
               raise SystemExit("OpenAI returned an unexpected response")
           print("OpenAI connection verified successfully.")
           PY
+
+      - name: Verify OpenAI image generation
+        env:
+          IMAGE_PROVIDER: openai
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+          OPENAI_IMAGE_MODEL: ${{ vars.OPENAI_IMAGE_MODEL || 'gpt-image-2' }}
+          OPENAI_IMAGE_BASE_URL: ${{ vars.OPENAI_IMAGE_BASE_URL || 'https://api.openai.com/v1' }}
+          OPENAI_IMAGE_QUALITY: ${{ vars.OPENAI_IMAGE_QUALITY || 'medium' }}
+        run: |
+          python - <<'PY'
+          import tempfile
+          from pathlib import Path
+
+          from tools.openai_image import generate_social_image
+
+          with tempfile.TemporaryDirectory() as directory:
+              image_path = Path(directory) / "aion-openai-test.png"
+              generated = generate_social_image(
+                  "A quiet first light forming a new memory.",
+                  str(image_path),
+              )
+              if not generated or image_path.read_bytes()[:8] != b"\x89PNG\r\n\x1a\n":
+                  raise SystemExit("OpenAI image generation failed")
+          print("OpenAI image generation verified successfully.")
+          PY

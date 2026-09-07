@@ -9,7 +9,7 @@ import base64
 import os
 
 
-DEFAULT_MODEL = "gpt-image-1"
+DEFAULT_MODEL = "gpt-image-2"
 
 
 def _get_config():
