@@ -154,7 +154,7 @@ class Phase6A2AControlledFormTests(
             [],
         )
 
-    def test_support_remains_disabled(
+    def test_support_requires_review_existing_action(
         self,
     ):
         result = self.mutator.apply(

@@ -4152,11 +4152,11 @@ class WebLearningCycle:
             }
 
         # ----------------------------------------------------
-        # PHASE 6A.2B — CONTROLLED BELIEF MUTATION
+        # PHASE 6A.2B / 6A.3 — CONTROLLED BELIEF MUTATION
         # ----------------------------------------------------
         #
         # Phase 5F and Phase 6A.1 have already completed here.
-        # Only the bounded mutation layer may persist a belief.
+        # Only the bounded mutation layer may FORM or SUPPORT a belief.
         # Failure here must never change stage='answered'.
 
         try:
