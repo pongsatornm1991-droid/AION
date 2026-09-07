@@ -1959,15 +1959,17 @@ def _format_learning_telegram_report(report):
 
 def run_learning_cycle(args):
     """Pick one open curiosity question, search Wikipedia, draft a
-    grounded answer, safety-gate it, and -- if safe -- record it as
-    new knowledge and resolve the question with that source as
-    evidence.
+    grounded answer, safety-gate it, check its completion criteria,
+    and -- only when every gate passes -- record it as new knowledge
+    and resolve the question.
 
-    Never touches Facebook/Telegram tools directly and needs no
-    ToolLifecycle -- researching and updating AION's own memory has no
-    external side effect to gate, unlike posting/replying/bio changes.
-    Meant to be run repeatedly on a schedule, same discipline as
-    run_check_comments()/run_social_cycle().
+    Provider failures, criteria-check failures, insufficient evidence,
+    unsafe drafts, or unusable sources must never resolve the question.
+
+    Never touches Facebook tools directly and needs no ToolLifecycle.
+    Telegram is used only as a best-effort visibility notification.
+
+    Meant to be run repeatedly on a schedule.
     """
 
     load_dotenv()
@@ -1977,16 +1979,21 @@ def run_learning_cycle(args):
     evaluator = OutputEvaluator()
 
     curiosity = CuriosityEngine(memory)
+
     generator = WebLearningGenerator(
-        provider, evaluator=evaluator, min_claim_safety=args.min_claim_safety,
+        provider,
+        evaluator=evaluator,
+        min_claim_safety=args.min_claim_safety,
     )
-    # arXiv is a fallback only -- tried when Wikipedia has no result
-    # or no usable extract for AION's question (see
-    # core/source_registry.json's "arxiv" entry and
-    # brain/learning.py's _attempt_fallback_source).
+
+    # arXiv is a fallback only. It is tried when Wikipedia has no
+    # usable result for the selected question.
     cycle = WebLearningCycle(
-        memory, curiosity, generator,
-        fallback_search_fn=search_arxiv, fallback_fetch_fn=get_arxiv_summary,
+        memory,
+        curiosity,
+        generator,
+        fallback_search_fn=search_arxiv,
+        fallback_fetch_fn=get_arxiv_summary,
     )
 
     report = cycle.research_once()
@@ -1996,38 +2003,123 @@ def run_learning_cycle(args):
 
     question = report.get("question")
     if question is not None:
-        print(f"Question: {question.get('statement', '')}")
+        print(
+            f"Question: "
+            f"{question.get('statement', '')}"
+        )
+
+        criteria = question.get("criteria")
+        if criteria:
+            print(f"Criteria: {criteria}")
 
     source = report.get("source")
     if source and source.get("title"):
-        print(f"Source: {source['title']} ({source.get('url', '')})")
+        print(
+            f"Source: "
+            f"{source['title']} "
+            f"({source.get('url', '')})"
+        )
 
-    if report.get("draft") is not None:
+    draft = report.get("draft")
+    if draft is not None:
         print("-" * 60)
-        print(report["draft"])
+        print(draft)
         print("-" * 60)
 
-    if report["stage"] in (
-        "search-failed", "fetch-failed", "draft-failed",
-        "blocked-safety", "blocked-style",
-    ):
-        print(f"Reason: {report.get('reason') or report.get('error')}")
+    stage = report.get("stage")
 
-    # Notify on every run, including the routine no-op stages -- the
-    # user explicitly asked (2026-08-31) to see every reflection/
-    # learning cycle's outcome as a visibility feature, not just the
-    # stages that produce something new. Telegram's Bot API has no
-    # quota/cost at this volume (hourly at most); the formatter keeps
-    # each no-op message to one short line so the higher frequency
-    # stays skimmable rather than noisy.
-    notified = _notify_report(report, formatter=_format_learning_telegram_report)
+    # Stages where AION did not complete the learning cycle.
+    #
+    # Important:
+    # criteria-check-failed is different from
+    # insufficient-evidence.
+    #
+    # criteria-check-failed:
+    #     the completion-criteria evaluator itself failed.
+    #
+    # insufficient-evidence:
+    #     the evaluator worked correctly and concluded that the
+    #     evidence does not satisfy the question's criteria.
+    failure_or_incomplete_stages = {
+        "search-failed",
+        "no-search-results",
+        "fetch-failed",
+        "empty-source",
+        "draft-failed",
+        "blocked-safety",
+        "blocked-style",
+        "criteria-check-failed",
+        "insufficient-evidence",
+    }
+
+    if stage in failure_or_incomplete_stages:
+        reason = (
+            report.get("reason")
+            or report.get("error")
+            or report.get("criteria_reason")
+            or "No additional reason was provided."
+        )
+
+        print(f"Reason: {reason}")
+
+    if stage == "criteria-check-failed":
+        print(
+            "Result: Completion Criteria Gate could not be "
+            "evaluated. The question remains open."
+        )
+
+    elif stage == "insufficient-evidence":
+        print(
+            "Result: Evidence does not yet satisfy the "
+            "completion criteria. The question remains open."
+        )
+
+        attempted_question = report.get("attempted_question")
+        if attempted_question:
+            attempts = attempted_question.get("attempts")
+            budget = attempted_question.get("budget")
+
+            if attempts is not None and budget is not None:
+                print(
+                    f"Attempts: {attempts}/{budget}"
+                )
+
+    elif stage == "answered":
+        print(
+            "Result: Completion criteria passed. "
+            "Knowledge was recorded and the question was resolved."
+        )
+
+    elif stage == "no-open-questions":
+        print(
+            "Result: There are currently no open questions "
+            "available for research."
+        )
+
+    elif stage == "no-eligible-questions":
+        print(
+            "Result: Open questions exist, but none are currently "
+            "eligible for this learning cycle."
+        )
+
+    # Visibility notification.
+    #
+    # Telegram failure must never break the learning cycle itself.
+    notified = _notify_report(
+        report,
+        formatter=_format_learning_telegram_report,
+    )
+
     if notified is True:
         print("Notified via Telegram.")
+
     elif notified is False:
-        print("Telegram notification attempted but failed (see above).")
+        print(
+            "Telegram notification attempted but failed "
+            "(see above)."
+        )
 
-
-def _format_self_improvement_telegram_report(report):
+    return report
     """Turn a SelfImprovementCycle.propose_fix() report dict into a
     short Thai summary -- the Telegram notification body, and also
     what is printed for stages that produce no new proposal."""
@@ -3630,7 +3722,9 @@ def main():
 
     if args.command == "run-learning-cycle":
         run_learning_cycle(args)
-    elif args.command == "run-self-improvement":
+        return
+
+    if args.command == "run-self-improvement":
         run_self_improvement_cycle(args)
         return
 
@@ -3669,6 +3763,7 @@ def main():
     if args.command == "run-reel-publish":
         run_reel_publish(args)
         return
+
     if args.command == "run-reel-crosspost":
         run_reel_crosspost(args)
         return
@@ -3685,6 +3780,8 @@ def main():
         run_publish_video(args)
         return
 
+    # No command, or explicit "reflect" command:
+    # run AION's normal reflection cycle.
     run_reflection()
 
 

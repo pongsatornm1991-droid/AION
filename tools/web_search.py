@@ -160,6 +160,302 @@ def get_wikipedia_summary(title):
     return {"title": resolved_title, "url": url, "extract": extract}
 
 
+
+# ============================================================
+# HACKER NEWS PUBLIC HUMAN-PERSPECTIVE ADAPTER
+# ============================================================
+
+HACKER_NEWS_SEARCH_API_BASE = (
+    "https://hn.algolia.com/api/v1/search"
+)
+
+HACKER_NEWS_ITEM_API_BASE = (
+    "https://hn.algolia.com/api/v1/items"
+)
+
+
+def _plain_text_from_html(value):
+    """Convert small public-comment HTML fragments to plain text.
+
+    Source HTML remains untrusted data. This function only removes
+    presentation markup before the text is passed to AION's grounded
+    learning prompt.
+    """
+
+    from html import unescape
+    from html.parser import HTMLParser
+
+
+    class _TextExtractor(HTMLParser):
+        def __init__(self):
+            super().__init__()
+            self.parts = []
+
+        def handle_data(self, data):
+            value = str(
+                data or ""
+            ).strip()
+
+            if value:
+                self.parts.append(
+                    value
+                )
+
+
+    parser = _TextExtractor()
+
+    try:
+        parser.feed(
+            str(value or "")
+        )
+    except Exception:
+        return " ".join(
+            unescape(
+                str(value or "")
+            ).split()
+        )
+
+    return " ".join(
+        unescape(
+            " ".join(
+                parser.parts
+            )
+        ).split()
+    )
+
+
+def search_hacker_news(
+    query,
+    limit=10,
+):
+    """Search public Hacker News comments for human perspectives.
+
+    Uses the public HN Search API powered by Algolia.
+
+    Every result represents one traceable public comment. Search
+    results are only discovery leads; the selected item is fetched
+    again by ID before AION uses it as evidence.
+
+    Returns dictionaries compatible with AION's existing search
+    adapter convention:
+
+        {
+            "title": "<HN item id>",
+            "url": "<traceable HN discussion URL>"
+        }
+
+    Raises RuntimeError on HTTP or malformed-response failures.
+    """
+
+    query = str(
+        query
+    ).strip()
+
+    if not query:
+        raise ValueError(
+            "query cannot be empty."
+        )
+
+    try:
+        limit = int(
+            limit
+        )
+    except (
+        TypeError,
+        ValueError,
+    ):
+        raise ValueError(
+            "limit must be an integer."
+        )
+
+    if limit < 1:
+        raise ValueError(
+            "limit must be at least 1."
+        )
+
+    import requests
+
+    params = {
+        "query": query,
+        "tags": "comment",
+        "hitsPerPage": min(
+            limit,
+            20,
+        ),
+    }
+
+    response = requests.get(
+        HACKER_NEWS_SEARCH_API_BASE,
+        params=params,
+        headers=REQUEST_HEADERS,
+        timeout=15,
+    )
+
+    if response.status_code >= 400:
+        raise RuntimeError(
+            "Hacker News search error: "
+            f"HTTP {response.status_code}"
+        )
+
+    try:
+        payload = response.json()
+    except ValueError:
+        raise RuntimeError(
+            "Hacker News search error: "
+            "invalid JSON response."
+        )
+
+    hits = payload.get(
+        "hits",
+        []
+    )
+
+    results = []
+
+    for hit in hits:
+        item_id = str(
+            hit.get(
+                "objectID",
+                "",
+            )
+        ).strip()
+
+        if not item_id:
+            continue
+
+        comment_text = (
+            _plain_text_from_html(
+                hit.get(
+                    "comment_text",
+                    "",
+                )
+            )
+        )
+
+        # Extremely tiny comments are usually not useful enough to
+        # count as a meaningful perspective.
+        if len(comment_text) < 40:
+            continue
+
+        results.append({
+            "title": item_id,
+            "url": (
+                "https://news.ycombinator.com/"
+                f"item?id={item_id}"
+            ),
+        })
+
+    return results
+
+
+def get_hacker_news_perspective(
+    item_id,
+):
+    """Fetch one traceable public Hacker News comment.
+
+    A single comment is treated only as one person's public
+    perspective. It is never represented as consensus or as factual
+    authority.
+
+    Returns the standard AION source structure:
+
+        {
+            "title": "...",
+            "url": "...",
+            "extract": "..."
+        }
+    """
+
+    item_id = str(
+        item_id
+    ).strip()
+
+    if not item_id:
+        raise ValueError(
+            "item_id cannot be empty."
+        )
+
+    import requests
+
+    url = (
+        f"{HACKER_NEWS_ITEM_API_BASE}/"
+        f"{item_id}"
+    )
+
+    response = requests.get(
+        url,
+        headers=REQUEST_HEADERS,
+        timeout=15,
+    )
+
+    if response.status_code >= 400:
+        raise RuntimeError(
+            "Hacker News fetch error: "
+            f"HTTP {response.status_code}"
+        )
+
+    try:
+        payload = response.json()
+    except ValueError:
+        raise RuntimeError(
+            "Hacker News fetch error: "
+            "invalid JSON response."
+        )
+
+    if not isinstance(
+        payload,
+        dict,
+    ):
+        return {
+            "title": "",
+            "url": "",
+            "extract": "",
+        }
+
+    text = _plain_text_from_html(
+        payload.get(
+            "text",
+            "",
+        )
+    )
+
+    if not text:
+        return {
+            "title": "",
+            "url": "",
+            "extract": "",
+        }
+
+    author = str(
+        payload.get(
+            "author",
+            "unknown user",
+        )
+    ).strip() or "unknown user"
+
+    trace_url = (
+        "https://news.ycombinator.com/"
+        f"item?id={item_id}"
+    )
+
+    title = (
+        "Hacker News perspective by "
+        f"{author} (comment {item_id})"
+    )
+
+    extract = (
+        "Public human perspective from "
+        f"Hacker News user {author}: "
+        f"{text}"
+    )
+
+    return {
+        "title": title,
+        "url": trace_url,
+        "extract": extract,
+    }
+
+
 def _arxiv_id_from_entry_id(entry_id):
     """arXiv Atom <id> values look like
     "http://arxiv.org/abs/2301.12345v2" -- extract just "2301.12345"

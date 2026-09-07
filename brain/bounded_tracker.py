@@ -147,6 +147,18 @@ class BoundedItemTracker:
             )
 
         parsed = self._parse_content(current["content"])
+
+        # ----------------------------------------------------
+        # PHASE 5F.5K — HARD ATTEMPT BUDGET
+        # ----------------------------------------------------
+        # The budget is a hard upper bound on NEW attempts.
+        # Resolution remains separately allowed by resolve_item().
+        if parsed["attempts"] >= parsed["budget"]:
+            raise ValueError(
+                f"Cannot record an attempt on a budget-exhausted "
+                f"{self.ITEM_LABEL.lower()} "
+                f"({parsed['attempts']}/{parsed['budget']})."
+            )
         progress = list(parsed["progress"])
 
         if note:

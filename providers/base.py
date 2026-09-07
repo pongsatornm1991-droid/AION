@@ -9,50 +9,227 @@ class AIProvider(ABC):
         pass
 
 
-def _default_is_transient(exc):
-    """True for errors that look like a temporary provider hiccup rather
-    than a real problem: an overloaded/rate-limited AI provider or a
-    dropped connection. Matched on the stringified error rather than
-    provider-specific exception types, since each provider (Gemini,
-    Claude, an OpenAI-compatible endpoint) raises its own SDK's error
-    classes and this helper is shared across all of them."""
+def classify_provider_error(exc):
+    """
+    Classify provider failures without depending on one SDK's
+    exception classes.
 
-    text = str(exc).lower()
-    markers = (
-        "503", "unavailable", "overloaded", "429", "rate limit",
-        "rate_limit", "timeout", "timed out", "connection",
-        "temporarily", "try again",
-    )
-    return any(marker in text for marker in markers)
+    The project supports multiple providers, so classification is
+    deliberately based on stable error-message signals.
 
+    Important distinction:
 
-def retry_transient(call, attempts=3, base_delay=2.0, is_transient=None):
-    """Call `call()` (a zero-argument callable) up to `attempts` times,
-    retrying only errors that look transient, with a short exponential
-    backoff between tries. Anything else -- a bad prompt, an auth
-    failure, a malformed response -- is raised immediately on the first
-    attempt, so a real problem is never silently retried and hidden
-    behind a delay.
+    - Daily/project quota exhaustion:
+        NOT useful to retry immediately inside one provider call.
 
-    AION's drafting cycles (SocialContentGenerator.draft_post() and
-    friends) run once per scheduled GitHub Actions job with no retry of
-    their own -- a single transient blip used to cost that entire
-    cycle's post outright. Gemini's "503 UNAVAILABLE / high demand,
-    please try again later" is the failure actually observed in
-    production; this exists to absorb exactly that class of error
-    without masking a genuine failure (bad API key, empty prompt, and
-    so on), which still raises on the first try as before.
+    - Short rate limit / overload / timeout / dropped connection:
+        may be worth a small bounded retry.
+
+    - Authentication/configuration failures:
+        never retry automatically.
+
+    - Unknown errors:
+        are not assumed to be transient.
     """
 
-    is_transient = is_transient or _default_is_transient
+    text = str(exc or "").lower()
+
+    # --------------------------------------------------------
+    # DAILY / PROJECT QUOTA EXHAUSTION
+    # --------------------------------------------------------
+
+    daily_quota_markers = (
+        "requestsperday",
+        "requests per day",
+        "perday",
+        "per day",
+        "daily quota",
+        "free_tier_requests",
+        "free tier requests",
+        "generate_content_free_tier_requests",
+        "generate requests per day",
+        "perprojectpermodel-freetier",
+    )
+
+    quota_language = (
+        "quota exceeded",
+        "resource_exhausted",
+        "resource exhausted",
+    )
+
+    daily_quota = (
+        any(
+            marker in text
+            for marker in daily_quota_markers
+        )
+        and any(
+            marker in text
+            for marker in quota_language
+        )
+    )
+
+    if daily_quota:
+        return {
+            "provider_related": True,
+            "kind": "quota_exhausted",
+            "stage": "provider-quota-exhausted",
+            "retriable_later": True,
+            "retry_inside_call": False,
+        }
+
+    # --------------------------------------------------------
+    # AUTH / CONFIGURATION
+    # --------------------------------------------------------
+
+    auth_markers = (
+        "401",
+        "403",
+        "unauthorized",
+        "permission denied",
+        "permission_denied",
+        "invalid api key",
+        "api key not valid",
+        "api_key_invalid",
+        "authentication",
+        "credentials",
+    )
+
+    if any(
+        marker in text
+        for marker in auth_markers
+    ):
+        return {
+            "provider_related": True,
+            "kind": "authentication",
+            "stage": "provider-auth-failed",
+            "retriable_later": False,
+            "retry_inside_call": False,
+        }
+
+    # --------------------------------------------------------
+    # TEMPORARY RATE LIMIT
+    # --------------------------------------------------------
+
+    rate_limit_markers = (
+        "429",
+        "rate limit",
+        "rate_limit",
+        "too many requests",
+    )
+
+    if any(
+        marker in text
+        for marker in rate_limit_markers
+    ):
+        return {
+            "provider_related": True,
+            "kind": "rate_limited",
+            "stage": "provider-rate-limited",
+            "retriable_later": True,
+            "retry_inside_call": True,
+        }
+
+    # --------------------------------------------------------
+    # TEMPORARY PROVIDER / NETWORK FAILURE
+    # --------------------------------------------------------
+
+    temporary_markers = (
+        "503",
+        "unavailable",
+        "overloaded",
+        "timeout",
+        "timed out",
+        "connection",
+        "temporarily",
+        "try again",
+        "high demand",
+    )
+
+    if any(
+        marker in text
+        for marker in temporary_markers
+    ):
+        return {
+            "provider_related": True,
+            "kind": "temporarily_unavailable",
+            "stage": "provider-temporarily-unavailable",
+            "retriable_later": True,
+            "retry_inside_call": True,
+        }
+
+    # --------------------------------------------------------
+    # UNKNOWN / NON-PROVIDER-SPECIFIC ERROR
+    # --------------------------------------------------------
+
+    return {
+        "provider_related": False,
+        "kind": "unknown",
+        "stage": None,
+        "retriable_later": False,
+        "retry_inside_call": False,
+    }
+
+
+def _default_is_transient(exc):
+    """
+    True only when retrying immediately inside the current provider
+    request may reasonably succeed.
+
+    Daily/project quota exhaustion deliberately returns False.
+    """
+
+    report = classify_provider_error(
+        exc
+    )
+
+    return bool(
+        report.get(
+            "retry_inside_call"
+        )
+    )
+
+
+def retry_transient(
+    call,
+    attempts=3,
+    base_delay=2.0,
+    is_transient=None,
+):
+    """
+    Call call() with a small bounded retry only for failures that may
+    recover immediately.
+
+    Daily/project quota exhaustion is intentionally not retried here.
+    It is raised immediately so the calling cycle can stop safely and
+    remain retriable later.
+    """
+
+    is_transient = (
+        is_transient
+        or _default_is_transient
+    )
 
     last_exc = None
-    for attempt in range(attempts):
+
+    for attempt in range(
+        attempts
+    ):
         try:
             return call()
+
         except Exception as exc:
-            if not is_transient(exc) or attempt == attempts - 1:
+            if (
+                not is_transient(exc)
+                or attempt
+                == attempts - 1
+            ):
                 raise
+
             last_exc = exc
-            time.sleep(base_delay * (2 ** attempt))
-    raise last_exc  # pragma: no cover -- loop above always returns or raises
+
+            time.sleep(
+                base_delay
+                * (2 ** attempt)
+            )
+
+    raise last_exc
