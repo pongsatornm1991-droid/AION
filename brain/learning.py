@@ -4108,6 +4108,49 @@ class WebLearningCycle:
             )
         )
 
+        # ----------------------------------------------------
+        # PHASE 6A.1B — READ-ONLY BELIEF INTEGRATION
+        # ----------------------------------------------------
+        #
+        # Phase 5F has already completed successfully here.
+        # This downstream step may propose a belief action,
+        # but it has no authority to mutate belief memory.
+        # Failure here must not change stage='answered'.
+
+        try:
+            from brain.belief_integration import (
+                safely_propose_from_learning,
+            )
+
+            belief_integration = (
+                safely_propose_from_learning(
+                    memory=self.memory,
+                    provider=self.generator.provider,
+                    question_entry=question_entry,
+                    synthesis=synthesis_report["draft"],
+                    evidence=accumulated_evidence,
+                )
+            )
+
+        except Exception as exc:
+            belief_integration = {
+                "stage": "integration-error",
+                "action": "no_change",
+                "relation": "insufficient",
+                "candidate_statement": None,
+                "related_belief_id": None,
+                "proposed_confidence": None,
+                "reason": (
+                    "Belief integration could not start "
+                    "after external learning completed "
+                    "successfully."
+                ),
+                "evidence_ids": [],
+                "error": (
+                    f"{type(exc).__name__}: {exc}"
+                ),
+            }
+
         return {
             **synthesis_report,
             "researched": True,
@@ -4152,5 +4195,8 @@ class WebLearningCycle:
             ),
             "learning_mode": (
                 learning_mode
+            ),
+            "belief_integration": (
+                belief_integration
             ),
         }
