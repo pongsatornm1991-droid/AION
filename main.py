@@ -24,6 +24,10 @@ from brain.learning import WebLearningGenerator, WebLearningCycle
 from tools.web_search import search_arxiv, get_arxiv_summary
 from brain.self_narrative import SelfNarrativeGenerator, SelfNarrativeCycle
 from brain.reflection import ReflectionEngine, ReflectionCycle
+from brain.reflection_schema import (
+    ReflectionSchemaEvaluator,
+    filter_meta_reflection_entries,
+)
 from brain.visual_content import VisualContentCycle
 from brain.social_feedback import InstagramFeedbackCycle
 from brain.reels import ReelContentCycle
@@ -53,14 +57,20 @@ def build_provider():
         from providers.claude import ClaudeProvider
         return ClaudeProvider()
 
+    if provider_name == "openai":
+        from providers.openai import OpenAIProvider
+        return OpenAIProvider()
+
     if provider_name in ("openai-compatible", "openchat"):
         from providers.openai_compatible import OpenAICompatibleProvider
         return OpenAICompatibleProvider()
 
-    if provider_name not in ("gemini", "claude", "openai-compatible", "openchat"):
+    if provider_name not in (
+        "gemini", "claude", "openai", "openai-compatible", "openchat",
+    ):
         raise ValueError(
             f"Unknown AI_PROVIDER: {provider_name!r}. "
-            "Use 'gemini', 'claude', or 'openai-compatible'."
+            "Use 'gemini', 'claude', 'openai', or 'openai-compatible'."
         )
 
     from providers.gemini import GeminiProvider
@@ -2519,7 +2529,7 @@ def run_reflection():
 
     thinker = Thinker()
 
-    evaluator = OutputEvaluator()
+    evaluator = ReflectionSchemaEvaluator(OutputEvaluator())
 
     provider = build_provider()
 
@@ -2538,21 +2548,21 @@ def run_reflection():
 
     context = thinker.build_context()
 
-    recent_memories = context[
+    recent_memories = filter_meta_reflection_entries(context[
         "recent_memories"
-    ]
+    ])
 
-    important_memories = context[
+    important_memories = filter_meta_reflection_entries(context[
         "important_memories"
-    ]
+    ])
 
-    recent_lessons = context[
+    recent_lessons = filter_meta_reflection_entries(context[
         "recent_lessons"
-    ]
+    ])
 
-    important_lessons = context[
+    important_lessons = filter_meta_reflection_entries(context[
         "important_lessons"
-    ]
+    ])
 
     accepted_decisions = context[
         "accepted_decisions"
@@ -2651,6 +2661,9 @@ Answer:
 
 1. What do you know about yourself?
 2. What do you currently not know?
+   Under this section, always include these two non-empty lines:
+   Unknown Facts: <missing empirical information>
+   Cognitive Uncertainties: <limitations or uncertainty in your reasoning process>
 3. What would you like to understand in the future?
 4. What should your next learning objective be?
 

@@ -20,6 +20,7 @@ def _get_config():
 
     api_key = (
         os.getenv("OPENAI_IMAGE_API_KEY", "").strip()
+        or os.getenv("OPENAI_API_KEY", "").strip()
         or os.getenv("OPENAI_COMPATIBLE_API_KEY", "").strip()
     )
     if not api_key:

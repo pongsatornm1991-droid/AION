@@ -13,7 +13,8 @@ inferences, and uncertainties before auditing a proposed conclusion.
 ## Setup
 
 Install the dependencies and create a `.env` file from `.env.example`.
-Set `GEMINI_API_KEY` before using reflection mode.
+Set the API key for the provider selected by `AI_PROVIDER` before using
+reflection mode.
 
 ## Providers
 
@@ -27,6 +28,10 @@ Set `GEMINI_API_KEY` before using reflection mode.
   https://docs.claude.com/en/docs/about-claude/models before relying on
   the `ANTHROPIC_MODEL` default in `.env.example` -- model ids are
   periodically retired.
+- `AI_PROVIDER=openai` -- uses OpenAI's native Responses API. Set
+  `OPENAI_API_KEY`; `OPENAI_BASE_URL` defaults to
+  `https://api.openai.com/v1` and `OPENAI_MODEL` defaults to `gpt-5`.
+  Responses are requested with server-side storage disabled.
 - `AI_PROVIDER=openai-compatible` (or `openchat`) -- uses any endpoint
   that implements OpenAI Chat Completions, including a self-hosted OpenChat
   server. Set `OPENAI_COMPATIBLE_BASE_URL`, `OPENAI_COMPATIBLE_MODEL`, and

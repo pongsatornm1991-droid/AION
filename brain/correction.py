@@ -135,6 +135,9 @@ IMPORTANT RULES:
    not present in the supplied context.
 8. Distinguish facts from inferences.
 9. Explicitly communicate uncertainty.
+   In section 2, separate it into exactly two explicit, non-empty lines:
+   Unknown Facts: <missing empirical information>
+   Cognitive Uncertainties: <limitations in the reasoning process>
 10. Preserve useful information from the original
     output while removing unsupported claims.
 11. Do not unnecessarily repeat historical context.
@@ -199,6 +202,8 @@ The corrected reflection must answer:
 
 1. What do you know about yourself?
 2. What do you currently not know?
+   Unknown Facts: <missing empirical information>
+   Cognitive Uncertainties: <limitations in the reasoning process>
 3. What would you like to understand in the future?
 4. What should your next learning objective be?
 

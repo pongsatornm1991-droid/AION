@@ -5,7 +5,7 @@ import tempfile
 import unittest
 from unittest.mock import patch
 
-from tools.openai_image import build_social_image_prompt, generate_social_image
+from tools.openai_image import _get_config, build_social_image_prompt, generate_social_image
 
 
 class OpenAIImageTests(unittest.TestCase):
@@ -15,6 +15,7 @@ class OpenAIImageTests(unittest.TestCase):
             key: os.environ.get(key)
             for key in (
                 "IMAGE_PROVIDER", "OPENAI_IMAGE_API_KEY",
+                "OPENAI_API_KEY",
                 "OPENAI_COMPATIBLE_API_KEY",
             )
         }
@@ -46,3 +47,11 @@ class OpenAIImageTests(unittest.TestCase):
             with patch("requests.post", side_effect=RuntimeError("offline")):
                 self.assertFalse(generate_social_image("a thought", out_path))
             self.assertFalse(os.path.exists(out_path))
+
+    def test_official_openai_key_can_be_reused_for_opt_in_images(self):
+        os.environ["IMAGE_PROVIDER"] = "openai"
+        os.environ["OPENAI_IMAGE_API_KEY"] = ""
+        os.environ["OPENAI_API_KEY"] = "official-key"
+        os.environ["OPENAI_COMPATIBLE_API_KEY"] = ""
+
+        self.assertEqual(_get_config()["api_key"], "official-key")

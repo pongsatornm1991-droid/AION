@@ -262,6 +262,20 @@ class ReflectOnceTests(BaseReflectionTest):
         self.assertEqual(report["stage"], "bootstrapped")
         self.assertEqual(provider.calls, [])
 
+    def test_evaluator_lessons_are_excluded_from_material(self):
+        self.memory.remember(
+            category="lessons",
+            content="Uncertainty score changed from 4 to 3.",
+            memory_type="lesson",
+            source="evaluator",
+            importance=4,
+        )
+        provider = SafeProvider()
+        report = ReflectionEngine(self.memory, provider).reflect_once()
+
+        self.assertEqual(report["stage"], "bootstrapped")
+        self.assertEqual(provider.calls, [])
+
     def test_second_reflection_only_sees_material_added_after_the_first(self):
         self._seed_material()
         provider = SafeProvider()
