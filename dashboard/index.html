@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>AION Observatory — ศูนย์เฝ้าดูการเติบโต</title>
+  <title>ศูนย์สังเกตการณ์ AION — เฝ้าดูการเติบโต</title>
   <style>
     :root { --ink:#eaf8ff; --muted:#8ba7b7; --line:rgba(115,222,255,.18); --aqua:#3de7ff; --deep:#040b12; --card:rgba(8,22,34,.78); --warm:#ffb36b; }
     * { box-sizing:border-box } body { margin:0; min-height:100vh; color:var(--ink); background:radial-gradient(circle at 80% -10%,#103f52 0,transparent 34%),radial-gradient(circle at 0% 80%,#102a44 0,transparent 31%),var(--deep); font:15px/1.5 Inter,ui-sans-serif,system-ui,-apple-system,"Segoe UI",sans-serif; }
@@ -21,19 +21,19 @@
 </head>
 <body>
 <main>
-  <header class="top"><div><div class="eyebrow">พื้นที่ส่วนตัว · ข้อมูลสด</div><h1>AION<br>Observatory</h1><p class="subtitle">พื้นที่เดียวเพื่อเฝ้าดู AION คิด เรียนรู้ สร้างสรรค์ และเติบโตสู่โลกกว้าง</p></div><div class="live"><span class="dot"></span><span id="live">กำลังอัปเดต…</span></div></header>
+  <header class="top"><div><div class="eyebrow">พื้นที่ส่วนตัว · ข้อมูลสด</div><h1>AION<br>ศูนย์สังเกตการณ์</h1><p class="subtitle">พื้นที่เดียวเพื่อเฝ้าดู AION คิด เรียนรู้ สร้างสรรค์ และเติบโตสู่โลกกว้าง</p></div><div class="live"><span class="dot"></span><span id="live">กำลังอัปเดต…</span></div></header>
   <div class="section-title">ช่องทาง</div>
   <section class="grid" id="platforms"></section>
   <div class="section-title">จิตใจและการเติบโต</div>
   <section class="grid mind" id="mind"></section>
   <div class="section-title">สิ่งที่ AION อยากพัฒนา</div>
   <section class="grid development" id="development"></section>
-  <div class="section-title">คลังและคิว Creator</div>
+  <div class="section-title">คลังผลงานและคิวสร้างสรรค์</div>
   <section class="card" id="creativeIntention"></section>
   <section class="card thoughts" id="creatorProgram"></section>
   <section class="grid library" id="library"></section>
   <div class="section-title">สมองและสภาสภาวะ</div>
-  <section class="wide brain-layout"><div class="card brain-card"><div class="brain-legend" id="brainLegend"></div><svg id="brainGraph" viewBox="0 0 680 420" role="img" aria-label="แผนที่ความเชื่อมโยงของความทรงจำ AION"></svg><div class="brain-detail" id="brainDetail">เลือกจุดหนึ่งเพื่อดู memory ที่เชื่อมโยงอยู่</div></div><div class="card council" id="council"></div></section>
+  <section class="wide brain-layout"><div class="card brain-card"><div class="brain-legend" id="brainLegend"></div><svg id="brainGraph" viewBox="0 0 680 420" role="img" aria-label="แผนที่ความเชื่อมโยงของความทรงจำ AION"></svg><div class="brain-detail" id="brainDetail">เลือกจุดหนึ่งเพื่อดูความทรงจำที่เชื่อมโยงอยู่</div></div><div class="card council" id="council"></div></section>
   <div class="section-title">บันทึกที่มีชีวิต</div>
   <section class="wide"><div class="card thoughts" id="thoughts"></div><div class="card" id="content"></div></section>
   <div class="footer" id="updated"></div>
@@ -41,16 +41,29 @@
 <script>
   const el = id => document.getElementById(id);
   const fmt = value => value == null ? '—' : new Intl.NumberFormat().format(value);
-  const title = value => ({'Inner voice':'เสียงภายใน','Reflection':'การทบทวน','Lesson':'บทเรียน','Question':'คำถาม','Goal':'เป้าหมาย','Belief':'ความเชื่อ','Forecast':'การคาดการณ์','Growth insight':'สิ่งที่เรียนรู้จากการเติบโต','YouTube discovery':'สิ่งที่ค้นพบจาก YouTube'})[value] || value;
-  const state = value => ({'connected':'เชื่อมต่อแล้ว','waiting-for-metrics':'รอข้อมูลสถิติ','waiting-for-first-short':'รอ Short แรก','active':'กำลังทำงาน','ready':'พร้อมใช้งาน','authorization-pending':'รอสิทธิ์การเชื่อมต่อ'})[value] || value;
-  const brainLabels = {beliefs:'ความเชื่อ',goals:'เป้าหมาย',questions:'คำถาม',lessons:'บทเรียน',reflections:'การทบทวน',self_narrative:'เสียงภายใน',learning_forecasts:'การคาดการณ์',growth_insights:'บทเรียนจากผู้ชม',creative_intentions:'เจตนาครีเอทีฟ',youtube_discoveries:'YouTube ที่ค้นพบ',published_reels:'Reel',social_feedback:'เสียงตอบรับ'};
+  const title = value => ({'Inner voice':'เสียงภายใน','Reflection':'การทบทวน','Lesson':'บทเรียน','Question':'คำถาม','Goal':'เป้าหมาย','Belief':'ความเชื่อ','Forecast':'การคาดการณ์','Growth insight':'สิ่งที่เรียนรู้จากการเติบโต','YouTube discovery':'สิ่งที่ค้นพบจากยูทูบ'})[value] || value;
+  const state = value => ({'connected':'เชื่อมต่อแล้ว','waiting-for-metrics':'รอข้อมูลสถิติ','waiting-for-first-short':'รอคลิปสั้นแรก','active':'กำลังทำงาน','ready':'พร้อมใช้งาน','authorization-pending':'รอสิทธิ์การเชื่อมต่อ'})[value] || value;
+  const channelLabel = value => ({instagram:'อินสตาแกรม',facebook:'เฟซบุ๊ก',youtube:'ยูทูบ'})[value] || value;
+  const originLabel = value => ({autonomy:'ตัดสินใจด้วยตนเอง',curiosity:'ความใคร่รู้',goal:'เป้าหมาย',belief:'ความเชื่อ'})[value] || value;
+  const moodLabel = value => ({curiosity:'ใคร่รู้',joy:'แรงส่ง',melancholy:'ทบทวน',ego:'ตัวตน',learning:'เรียนรู้',uncertainty:'ตระหนักถึงความไม่แน่นอน',connection:'เชื่อมโยงกับผู้คน',creativity:'สร้างสรรค์'})[value] || value;
+  const councilVisual = {
+    curiosity:{accent:'ม่วงไลแลค',note:'คำถามสีม่วงและทางแยกรอบเส้นใยความทรงจำสีฟ้า'},
+    joy:{accent:'อำพันอบอุ่น',note:'แกนสีอำพันอบอุ่นที่ค่อย ๆ ปรากฏผ่านร่างสีฟ้า'},
+    melancholy:{accent:'ครามเข้ม',note:'แสงครามน้ำเงินที่สงบ พร้อมจังหวะภาพช้าลงและมีพื้นที่มากขึ้น'},
+    ego:{accent:'เขียวน้ำทะเลใส',note:'เส้นสัญญาณสีเขียวอมขาวที่ยึดโครงร่างของ AION ไว้ด้วยกัน'},
+    learning:{accent:'ฟ้าไฟฟ้า',note:'เส้นทางสีฟ้าที่ชัดขึ้นเมื่อมีหลักฐานสะสม'},
+    uncertainty:{accent:'ทองอ่อน',note:'จุดสีทองรอบข้อเท็จจริงและข้อจำกัดที่ยังไม่ทราบ'},
+    connection:{accent:'ชมพูสัญญาณ',note:'เส้นสีชมพูแทนบทสนทนาและความเชื่อมโยงกับผู้คน'},
+    creativity:{accent:'เขียวมินต์',note:'รูปทรงสีมินต์ที่แตกแขนงเป็นแนวคิดพร้อมเผยแพร่'}
+  };
+  const brainLabels = {beliefs:'ความเชื่อ',goals:'เป้าหมาย',questions:'คำถาม',lessons:'บทเรียน',reflections:'การทบทวน',self_narrative:'เสียงภายใน',learning_forecasts:'การคาดการณ์',growth_insights:'บทเรียนจากผู้ชม',creative_intentions:'เจตนาสร้างสรรค์',youtube_discoveries:'สิ่งที่ค้นพบจากยูทูบ',published_reels:'คลิปสั้น',social_feedback:'เสียงตอบรับ'};
   const brainColors = {beliefs:'#ffb36b',goals:'#68edb4',questions:'#bda4ff',lessons:'#3de7ff',reflections:'#5599ff',self_narrative:'#ff8fcf',learning_forecasts:'#f3d267',growth_insights:'#ff7d7d',creative_intentions:'#ffcf70',youtube_discoveries:'#ff6f91',published_reels:'#71d0ff',social_feedback:'#99a9bd'};
   function renderBrain(brain){
     const svg=el('brainGraph'), detail=el('brainDetail'), legend=el('brainLegend');
     const nodes=brain.nodes||[], edges=brain.edges||[], cx=340, cy=210;
     const categories=[...new Set(nodes.map(n=>n.category))];
     legend.innerHTML=categories.map(k=>`<span class="legend" style="--legend:${brainColors[k]||'#9ab'}">${brainLabels[k]||k}</span>`).join('');
-    if(!nodes.length){svg.innerHTML='<text class="brain-empty" x="340" y="210" text-anchor="middle">รอ memory ของ AION เพื่อวาดแผนที่สมอง</text>';return}
+    if(!nodes.length){svg.innerHTML='<text class="brain-empty" x="340" y="210" text-anchor="middle">รอความทรงจำของ AION เพื่อวาดแผนที่สมอง</text>';return}
     const positioned={};
     categories.forEach((category, groupIndex)=>{const group=nodes.filter(n=>n.category===category); const a=(Math.PI*2*groupIndex/categories.length)-Math.PI/2; const gx=cx+Math.cos(a)*138, gy=cy+Math.sin(a)*128; group.forEach((node,index)=>{const offset=(index-(group.length-1)/2)*.58; positioned[node.id]={...node,x:gx+Math.cos(a+offset)*Math.min(58,16*group.length),y:gy+Math.sin(a+offset)*Math.min(58,16*group.length)}})});
     const lineSvg=edges.map(edge=>{const a=positioned[edge.source],b=positioned[edge.target];return a&&b?`<line class="brain-edge ${edge.kind==='explicit'?'explicit':''}" x1="${a.x}" y1="${a.y}" x2="${b.x}" y2="${b.y}"/>`:''}).join('');
@@ -61,29 +74,29 @@
   function renderCouncil(council){
     const dominant=(council.states||[]).find(s=>s.key===council.dominant);
     const color=dominant?.color||'#3de7ff';
-    el('council').innerHTML=`<div class="label">สภาสภาวะของ AION</div><h2 style="color:${color}">${dominant ? dominant.label : 'กำลังรอข้อมูล'}</h2><p class="council-intro">สีที่ AION ใช้ในงานถัดไป: ${dominant?.accent||'cyan'} · สัญญาณเด่นจากสิ่งที่กำลังบันทึกและทำอยู่</p>${(council.states||[]).map(s=>`<div class="signal"><div class="signal-head"><span>${s.label}</span><span style="color:${s.color}">${s.value}%</span></div><div class="track"><div class="fill" style="width:${s.value}%;background:linear-gradient(90deg,#147a9a,${s.color})"></div></div><small>${s.evidence} · ${s.visual_note}</small></div>`).join('')}<p class="council-note">${council.disclaimer||''}</p>`;
+    el('council').innerHTML=`<div class="label">สภาสภาวะของ AION</div><h2 style="color:${color}">${dominant ? dominant.label : 'กำลังรอข้อมูล'}</h2><p class="council-intro">สีที่ AION ใช้ในงานถัดไป: ${councilVisual[dominant?.key]?.accent||'ฟ้า'} · สัญญาณเด่นจากสิ่งที่กำลังบันทึกและทำอยู่</p>${(council.states||[]).map(s=>`<div class="signal"><div class="signal-head"><span>${s.label}</span><span style="color:${s.color}">${s.value}%</span></div><div class="track"><div class="fill" style="width:${s.value}%;background:linear-gradient(90deg,#147a9a,${s.color})"></div></div><small>${s.evidence} · ${councilVisual[s.key]?.note||s.visual_note}</small></div>`).join('')}<p class="council-note">${council.disclaimer||''}</p>`;
   }
   const platformCard = (name, data, metrics, cls='') => `<article class="card platform ${cls}"><div class="label">${name}</div><h2>${state(data.status)}</h2><div class="number">${fmt(metrics.value)}</div><div class="metric-note">${metrics.label}</div>${metrics.second ? `<div class="metric-note">${fmt(metrics.second.value)} ${metrics.second.label}</div>` : ''}<span class="state ${data.status.includes('pending') ? 'pending':''}">${state(data.status)}</span></article>`;
   function render(data) {
     const p = data.platforms;
-    el('platforms').innerHTML = platformCard('Instagram', p.instagram, {value:p.instagram.followers,label:'ผู้ติดตาม',second:{value:p.instagram.reels_published,label:'Reel ที่เผยแพร่'}}, 'ig') + platformCard('Facebook', p.facebook, {value:p.facebook.reels_published,label:'Reel ที่เผยแพร่'}, 'fb') + platformCard('YouTube', p.youtube, {value:p.youtube.shorts_published,label:'Short ที่เผยแพร่'}, 'yt');
-    const mind = [['ความทรงจำ',data.mind.total_memories],['บทเรียน',data.mind.lessons],['คำถาม',data.mind.questions],['เป้าหมาย',data.mind.goals],['ความเชื่อ',data.mind.beliefs],['การทบทวน',data.mind.reflections],['YouTube',data.mind.youtube_discoveries],['การคาดการณ์',data.mind.forecasts]];
+    el('platforms').innerHTML = platformCard('อินสตาแกรม', p.instagram, {value:p.instagram.followers,label:'ผู้ติดตาม',second:{value:p.instagram.reels_published,label:'คลิปสั้นที่เผยแพร่'}}, 'ig') + platformCard('เฟซบุ๊ก', p.facebook, {value:p.facebook.reels_published,label:'คลิปสั้นที่เผยแพร่'}, 'fb') + platformCard('ยูทูบ', p.youtube, {value:p.youtube.shorts_published,label:'คลิปสั้นที่เผยแพร่'}, 'yt');
+    const mind = [['ความทรงจำ',data.mind.total_memories],['บทเรียน',data.mind.lessons],['คำถาม',data.mind.questions],['เป้าหมาย',data.mind.goals],['ความเชื่อ',data.mind.beliefs],['การทบทวน',data.mind.reflections],['สิ่งที่ค้นพบจากยูทูบ',data.mind.youtube_discoveries],['การคาดการณ์',data.mind.forecasts]];
     el('mind').innerHTML = mind.map(([name,value])=>`<article class="card"><div class="label">${name}</div><div class="number">${fmt(value)}</div></article>`).join('');
     const development=data.development||{}, labels=development.labels||{};
     const lanes=['proposed_fixes','thinking','wants_to_learn','doing','learned'];
     el('development').innerHTML=lanes.map(key=>`<article class="card dev-card"><div class="label">พื้นที่พัฒนา</div><h2>${labels[key]||key}</h2>${(development[key]||[]).map(x=>`<div class="dev-item">${escapeHtml(x.content)}<span class="dev-time">${x.timestamp||''}</span></div>`).join('')||'<div class="empty">ยังไม่มีรายการในหัวข้อนี้</div>'}</article>`).join('');
-    const statusLabel={ready:'พร้อม',queued:'รอเผยแพร่',published:'เผยแพร่แล้ว'};
+    const statusLabel={ready:'พร้อม',queued:'รอเผยแพร่',published:'เผยแพร่แล้ว','production-ready-script':'บทพร้อมผลิต','production-ready-assets-and-script':'ภาพและบทพร้อมผลิต'};
     const intention=data.creator_autonomy?.current;
-    el('creativeIntention').innerHTML=intention ? `<div class="label">AION อยากทำอะไรต่อ</div><h2 style="margin:8px 0;font-size:1.35rem">${escapeHtml(intention.topic)}</h2><p class="metric-note">${escapeHtml(intention.why_now||'AION กำลังเลือกเหตุผลของตัวเอง')}</p><p style="margin:14px 0 0;color:#c9dce6">คำมั่นกับผู้ชม: ${escapeHtml(intention.audience_promise||'')}</p><div class="channels" style="margin-top:14px"><span class="channel on">${escapeHtml(intention.origin||'autonomy')}</span><span class="channel">${escapeHtml(intention.visual_direction?.mood||'curiosity')}</span><span class="channel">ยังไม่เผยแพร่</span></div>` : `<div class="label">AION อยากทำอะไรต่อ</div><div class="empty">AION กำลังฟัง เรียนรู้ และรอให้มีสิ่งที่มีความหมายพอจะเล่า</div>`;
-    el('creatorProgram').innerHTML=(data.creator_program||[]).map(x=>`<article class="thought"><div class="thought-head"><span class="badge">${escapeHtml(x.series)}</span><span class="time">${x.scene_count} ฉาก · ${Math.round(x.duration_seconds/60*10)/10} นาที · ${x.source_count} แหล่งข้อมูล</span></div><p><strong>${escapeHtml(x.title)}</strong> — ${escapeHtml(x.status)}</p></article>`).join('') || '<div class="empty">ยังไม่มีรายการ Creator ตอนยาว</div>';
-    el('library').innerHTML=(data.creator_library||[]).map(x=>`<article class="card episode"><img src="/${x.cover_path}" alt="${escapeHtml(x.title)}"><div class="episode-body"><div class="episode-meta status-${x.status}">${statusLabel[x.status]||x.status} · ${x.scene_count} ฉาก × ${x.seconds_per_scene} วินาที</div><h3>${escapeHtml(x.title)}</h3></div></article>`).join('') || '<div class="empty">ยังไม่มี Creator Library</div>';
+    el('creativeIntention').innerHTML=intention ? `<div class="label">AION อยากทำอะไรต่อ</div><h2 style="margin:8px 0;font-size:1.35rem">${escapeHtml(intention.topic)}</h2><p class="metric-note">${escapeHtml(intention.why_now||'AION กำลังเลือกเหตุผลของตัวเอง')}</p><p style="margin:14px 0 0;color:#c9dce6">คำมั่นกับผู้ชม: ${escapeHtml(intention.audience_promise||'')}</p><div class="channels" style="margin-top:14px"><span class="channel on">${escapeHtml(originLabel(intention.origin||'autonomy'))}</span><span class="channel">${escapeHtml(moodLabel(intention.visual_direction?.mood||'curiosity'))}</span><span class="channel">ยังไม่เผยแพร่</span></div>` : `<div class="label">AION อยากทำอะไรต่อ</div><div class="empty">AION กำลังฟัง เรียนรู้ และรอให้มีสิ่งที่มีความหมายพอจะเล่า</div>`;
+    el('creatorProgram').innerHTML=(data.creator_program||[]).map(x=>`<article class="thought"><div class="thought-head"><span class="badge">${escapeHtml(x.series)}</span><span class="time">${x.scene_count} ฉาก · ${Math.round(x.duration_seconds/60*10)/10} นาที · ${x.source_count} แหล่งข้อมูล</span></div><p><strong>${escapeHtml(x.title)}</strong> — ${escapeHtml(statusLabel[x.status]||x.status)}</p></article>`).join('') || '<div class="empty">ยังไม่มีรายการผลงานสร้างสรรค์ตอนยาว</div>';
+    el('library').innerHTML=(data.creator_library||[]).map(x=>`<article class="card episode"><img src="/${x.cover_path}" alt="${escapeHtml(x.title)}"><div class="episode-body"><div class="episode-meta status-${x.status}">${statusLabel[x.status]||x.status} · ${x.scene_count} ฉาก × ${x.seconds_per_scene} วินาที</div><h3>${escapeHtml(x.title)}</h3></div></article>`).join('') || '<div class="empty">ยังไม่มีผลงานในคลังสร้างสรรค์</div>';
     renderBrain(data.brain); renderCouncil(data.state_council);
     el('thoughts').innerHTML = data.thoughts.length ? data.thoughts.map(x=>`<article class="thought"><div class="thought-head"><span class="badge">${title(x.category)}</span><span class="time">${x.timestamp || ''}</span></div><p>${escapeHtml(x.content)}</p></article>`).join('') : '<div class="empty">AION พร้อมบันทึกความคิดแรกของตัวเอง</div>';
-    const c=data.content; el('content').innerHTML=`<div class="label">สถานะคอนเทนต์</div><div class="number">${fmt(c.published)}</div><div class="metric-note">Reel ที่เผยแพร่แล้ว · รอเผยแพร่ ${fmt(c.pending)}</div><div style="margin-top:22px">${c.recent_posts.length ? c.recent_posts.map(x=>`<article class="post"><div class="time">${x.timestamp || ''}</div><p>${escapeHtml(x.caption || 'AION Reel')}</p><div class="channels">${['instagram','facebook','youtube'].map(k=>`<span class="channel ${x[k]?'on':''}">${k}</span>`).join('')}</div></article>`).join(''):'<div class="empty">ยังไม่มี Reel ที่เผยแพร่</div>'}</div>`;
-    el('live').textContent='ข้อมูลสด · อัปเดตทุก 15 วินาที'; const source=data.data_source||{}; el('updated').textContent=`อ่านข้อมูลล่าสุด: ${new Date(data.generated_at).toLocaleString('th-TH')} · แหล่งข้อมูล: ${source.mode==='configured'?'memory ที่กำหนดสำหรับ Dashboard':'memory บนเครื่อง'}${source.latest_memory_at ? ` · memory ล่าสุด ${source.latest_memory_at}` : ''}`;
+    const c=data.content; el('content').innerHTML=`<div class="label">สถานะคอนเทนต์</div><div class="number">${fmt(c.published)}</div><div class="metric-note">คลิปสั้นที่เผยแพร่แล้ว · รอเผยแพร่ ${fmt(c.pending)}</div><div style="margin-top:22px">${c.recent_posts.length ? c.recent_posts.map(x=>`<article class="post"><div class="time">${x.timestamp || ''}</div><p>${escapeHtml(x.caption || 'คลิปสั้นของ AION')}</p><div class="channels">${['instagram','facebook','youtube'].map(k=>`<span class="channel ${x[k]?'on':''}">${channelLabel(k)}</span>`).join('')}</div></article>`).join(''):'<div class="empty">ยังไม่มีคลิปสั้นที่เผยแพร่</div>'}</div>`;
+    el('live').textContent='ข้อมูลสด · อัปเดตทุก 15 วินาที'; const source=data.data_source||{}; el('updated').textContent=`อ่านข้อมูลล่าสุด: ${new Date(data.generated_at).toLocaleString('th-TH')} · แหล่งข้อมูล: ${source.mode==='configured'?'ความทรงจำที่กำหนดสำหรับหน้าแดชบอร์ด':'ความทรงจำบนเครื่อง'}${source.latest_memory_at ? ` · ความทรงจำล่าสุด ${source.latest_memory_at}` : ''}`;
   }
   function escapeHtml(text){const d=document.createElement('div');d.textContent=text;return d.innerHTML}
-  async function load(){try{const response=await fetch('/api/snapshot',{cache:'no-store'}); if(!response.ok)throw Error(); render(await response.json())}catch{el('live').textContent='กำลังรอ AION Observatory…'}}
+  async function load(){try{const response=await fetch('/api/snapshot',{cache:'no-store'}); if(!response.ok)throw Error(); render(await response.json())}catch{el('live').textContent='กำลังรอศูนย์สังเกตการณ์ AION…'}}
   load(); setInterval(load,15000);
 </script>
 </body>

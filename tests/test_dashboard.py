@@ -36,6 +36,8 @@ class DashboardTests(unittest.TestCase):
             self.assertEqual(1, snapshot["mind"]["lessons"])
             self.assertEqual(1, snapshot["mind"]["questions"])
             self.assertEqual(8, len(snapshot["state_council"]["states"]))
+            self.assertEqual("ความใคร่รู้", snapshot["state_council"]["states"][0]["label"])
+            self.assertNotIn("memory", snapshot["state_council"]["disclaimer"])
             self.assertIn("wants_to_learn", snapshot["development"])
             self.assertTrue(snapshot["brain"]["nodes"])
             self.assertEqual(7, len(snapshot["creator_library"]))

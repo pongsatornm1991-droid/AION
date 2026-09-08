@@ -73,8 +73,8 @@ def state_council(totals, reels):
          f"เจตนาครีเอทีฟ {count('creative_intentions')} · เผยแพร่ {published}"),
     )
     states = [
-        {"key": key, "label": label, "value": value, "evidence": evidence,
-         **MOOD_PALETTE[key]}
+        {**MOOD_PALETTE[key], "key": key, "label": label,
+         "value": value, "evidence": evidence}
         for key, label, value, evidence in raw
     ]
     dominant = max(states, key=lambda state: state["value"])
@@ -82,7 +82,7 @@ def state_council(totals, reels):
         "states": states,
         "dominant": dominant["key"],
         "palette": MOOD_PALETTE[dominant["key"]],
-        "disclaimer": "เปอร์เซ็นต์เหล่านี้เป็นสัญญาณเชิงคำนวณจาก memory และกิจกรรม เปรียบเทียบแนวโน้มของ AION เท่านั้น ไม่ใช่อารมณ์ จิตสำนึก หรือการประเมินทางจิตวิทยาแบบมนุษย์",
+        "disclaimer": "เปอร์เซ็นต์เหล่านี้เป็นสัญญาณเชิงคำนวณจากความทรงจำและกิจกรรม ใช้เปรียบเทียบแนวโน้มของ AION เท่านั้น ไม่ใช่อารมณ์ จิตสำนึก หรือการประเมินทางจิตวิทยาแบบมนุษย์",
     }
 
 
