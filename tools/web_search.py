@@ -47,6 +47,7 @@ from xml.etree import ElementTree
 WIKIPEDIA_API_BASE = "https://en.wikipedia.org/w/api.php"
 ARXIV_API_BASE = "http://export.arxiv.org/api/query"
 ARXIV_ATOM_NS = "{http://www.w3.org/2005/Atom}"
+EUROPE_PMC_API_BASE = "https://www.ebi.ac.uk/europepmc/webservices/rest"
 
 # Wikimedia's own User-Agent policy (meta.wikimedia.org/wiki/User-Agent_policy)
 # requires API clients to identify themselves with a descriptive User-Agent
@@ -556,3 +557,56 @@ def get_arxiv_summary(arxiv_id):
     url = raw_id.replace("http://arxiv.org", "https://arxiv.org")
 
     return {"title": title, "url": url, "extract": summary}
+
+
+def search_europe_pmc_fulltext(query, limit=3):
+    """Find open-access full papers in the official Europe PMC index."""
+    query = str(query or "").strip()
+    if not query:
+        raise ValueError("query cannot be empty.")
+    import requests
+    response = requests.get(
+        f"{EUROPE_PMC_API_BASE}/search",
+        params={
+            "query": f"({query}) AND OPEN_ACCESS:Y AND IN_EPMC:Y",
+            "format": "json", "resultType": "core", "pageSize": limit,
+        }, headers=REQUEST_HEADERS, timeout=20,
+    )
+    if response.status_code >= 400:
+        raise RuntimeError(f"Europe PMC search error: HTTP {response.status_code}")
+    try:
+        results = response.json().get("resultList", {}).get("result", [])
+    except (ValueError, AttributeError):
+        raise RuntimeError("Europe PMC search error: invalid JSON response.")
+    return [{"title": item.get("pmcid")} for item in results if item.get("pmcid")]
+
+
+def get_europe_pmc_fulltext(pmcid, max_chars=24000):
+    """Read the actual OA article XML, returning bounded plain text for synthesis."""
+    pmcid = str(pmcid or "").strip()
+    if not pmcid:
+        raise ValueError("pmcid cannot be empty.")
+    import requests
+    response = requests.get(
+        f"{EUROPE_PMC_API_BASE}/{pmcid}/fullTextXML",
+        headers=REQUEST_HEADERS, timeout=30,
+    )
+    if response.status_code == 404:
+        return {"title": "", "url": "", "extract": ""}
+    if response.status_code >= 400:
+        raise RuntimeError(f"Europe PMC full-text error: HTTP {response.status_code}")
+    try:
+        root = ElementTree.fromstring(response.content)
+    except ElementTree.ParseError:
+        raise RuntimeError("Europe PMC full-text error: invalid XML response.")
+    title_node = root.find(".//article-title")
+    title = " ".join("".join(title_node.itertext()).split()) if title_node is not None else pmcid
+    body = root.find(".//body")
+    text = " ".join(" ".join(body.itertext()).split()) if body is not None else ""
+    if len(text) > max_chars:
+        text = text[:max_chars].rsplit(" ", 1)[0] + "…"
+    return {
+        "title": title,
+        "url": f"https://europepmc.org/articles/{pmcid}",
+        "extract": text,
+    }

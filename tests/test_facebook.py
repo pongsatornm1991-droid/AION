@@ -320,6 +320,27 @@ class GetRecentCommentsTests(unittest.TestCase):
 
         self.assertEqual(comments, [])
 
+    def test_flattens_reply_to_aion_reply_as_a_new_comment(self):
+        payload = {"data": [{"id": "post_1", "comments": {"data": [{
+            "id": "root", "message": "hello", "from": {"id": "u1"},
+            "comments": {"data": [{
+                "id": "aion-reply", "message": "hi", "from": {"id": "test-page-id"},
+                "comments": {"data": [{
+                    "id": "follow-up", "message": "what can you do?",
+                    "from": {"id": "u1", "name": "Alice"},
+                    "created_time": "2026-09-08T02:00:00+0000",
+                }]},
+            }]},
+        }]}}]}
+        with mock.patch("requests.get", return_value=FakeResponse(200, payload)):
+            comments = get_recent_comments()
+
+        self.assertEqual([c["id"] for c in comments], ["root", "aion-reply", "follow-up"])
+        follow_up = comments[-1]
+        self.assertEqual(follow_up["parent_id"], "aion-reply")
+        self.assertEqual(follow_up["root_comment_id"], "root")
+        self.assertEqual(follow_up["depth"], 2)
+
     def test_missing_credentials_raise_before_any_network_call(self):
         with mock.patch.dict(os.environ, {"FACEBOOK_PAGE_ACCESS_TOKEN": ""}):
             with mock.patch("requests.get") as mock_get:

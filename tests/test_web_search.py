@@ -16,6 +16,8 @@ from tools.web_search import (
     get_wikipedia_summary,
     search_arxiv,
     get_arxiv_summary,
+    search_europe_pmc_fulltext,
+    get_europe_pmc_fulltext,
 )
 
 
@@ -38,6 +40,21 @@ def _arxiv_feed(entries):
         for entry in entries
     )
     return f'<?xml version="1.0"?><feed xmlns="http://www.w3.org/2005/Atom">{body}</feed>'.encode("utf-8")
+
+
+class EuropePmcTests(unittest.TestCase):
+    def test_search_returns_only_fulltext_pmc_ids(self):
+        payload = {"resultList": {"result": [{"pmcid": "PMC123"}, {"id": "no-fulltext"}]}}
+        with mock.patch("requests.get", return_value=FakeResponse(200, payload)):
+            self.assertEqual(search_europe_pmc_fulltext("memory"), [{"title": "PMC123"}])
+
+    def test_fetch_reads_article_body_not_only_abstract(self):
+        xml = b"<article><front><article-title>A full paper</article-title></front><body><sec><p>Methods and results from the complete article.</p></sec></body></article>"
+        with mock.patch("requests.get", return_value=FakeResponse(200, content=xml)):
+            item = get_europe_pmc_fulltext("PMC123")
+        self.assertEqual(item["title"], "A full paper")
+        self.assertIn("complete article", item["extract"])
+        self.assertIn("PMC123", item["url"])
 
 
 class SearchWikipediaTests(unittest.TestCase):

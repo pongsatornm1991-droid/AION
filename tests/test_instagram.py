@@ -16,6 +16,8 @@ from tools.instagram import (
     publish_container,
     publish_photo,
     publish_video,
+    get_recent_comments,
+    reply_to_instagram_comment,
 )
 
 
@@ -51,6 +53,30 @@ class InstagramTestCase(unittest.TestCase):
     def tearDown(self):
         self._env_patch.stop()
         self._load_dotenv_patch.stop()
+
+
+class InstagramCommentTests(InstagramTestCase):
+
+    def test_reads_comments_and_replies_in_normalized_shape(self):
+        payload = {"data": [{"id": "media-1", "comments": {"data": [{
+            "id": "ig-c1", "text": "Hello", "username": "alice",
+            "timestamp": "2026-09-08T01:00:00+0000",
+            "replies": {"data": [{
+                "id": "ig-r1", "text": "Tell me more", "username": "alice",
+                "timestamp": "2026-09-08T01:02:00+0000",
+            }]},
+        }]}}]}
+        with mock.patch("requests.get", return_value=FakeResponse(200, payload)):
+            comments = get_recent_comments()
+        self.assertEqual([x["id"] for x in comments], ["ig-c1", "ig-r1"])
+        self.assertEqual(comments[1]["parent_id"], "ig-c1")
+        self.assertEqual(comments[1]["platform"] if "platform" in comments[1] else "instagram", "instagram")
+
+    def test_posts_reply_to_instagram_replies_edge(self):
+        with mock.patch("requests.post", return_value=FakeResponse(200, {"id": "ig-r2"})) as post:
+            result = reply_to_instagram_comment("ig-c1", "Thanks")
+        self.assertEqual(result["id"], "ig-r2")
+        self.assertTrue(post.call_args.args[0].endswith("/ig-c1/replies"))
 
 
 class CreateMediaContainerTests(InstagramTestCase):

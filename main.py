@@ -887,7 +887,8 @@ def _build_social_tool_lifecycle():
         "recorded its approval.",
     )
 
-    from tools.instagram import publish_photo, publish_video
+    from tools.instagram import publish_photo, publish_video, reply_to_instagram_comment
+    from tools.meta_messaging import send_message as send_meta_message
 
     registry.register(
         "post_to_instagram",
@@ -897,6 +898,19 @@ def _build_social_tool_lifecycle():
         "Instagram Business account -- shares post_to_facebook's own "
         "HIGH_RISK budget and autonomous safety/style policy.",
     )
+    registry.register(
+        "reply_to_instagram_comment",
+        lambda comment_id, message: reply_to_instagram_comment(comment_id, message),
+        ActionLevel.COMMENT_REPLY,
+        "Reply to one existing comment on AION's Instagram account.",
+    )
+    for platform in ("facebook", "instagram"):
+        registry.register(
+            f"reply_to_{platform}_message",
+            lambda recipient_id, message, p=platform: send_meta_message(recipient_id, message, p),
+            ActionLevel.COMMENT_REPLY,
+            f"Reply to one incoming {platform} private message.",
+        )
     registry.register(
         "post_photo_to_facebook",
         lambda image_url, caption="": post_photo_to_facebook(image_url, caption=caption),
@@ -1414,7 +1428,7 @@ def run_social_cycle(args):
             print("Telegram notification attempted but failed (see above).")
 
 
-def run_check_comments(args):
+def run_check_comments(args, platform="facebook"):
     """Fetch recent Facebook comments and, if there is exactly one new
     (not-yet-handled) one, draft a reply, gate it, and -- if safe --
     autonomously post the reply.
@@ -1439,15 +1453,17 @@ def run_check_comments(args):
         provider, evaluator=evaluator, min_claim_safety=args.min_claim_safety,
     )
     lifecycle = _build_social_tool_lifecycle()
+    is_instagram = platform == "instagram"
     cycle = CommentAutoReplyCycle(
         memory, generator, lifecycle,
-        tool_name="reply_to_facebook_comment",
-        page_id=os.getenv("FACEBOOK_PAGE_ID"),
+        tool_name=("reply_to_instagram_comment" if is_instagram else "reply_to_facebook_comment"),
+        page_id=(os.getenv("INSTAGRAM_USERNAME") if is_instagram else os.getenv("FACEBOOK_PAGE_ID")),
+        platform=platform,
     )
 
     report = cycle.run_once()
 
-    print("\nAION COMMENT REPLY CYCLE")
+    print(f"\nAION {platform.upper()} COMMENT REPLY CYCLE")
     print(f"Stage: {report['stage']}")
 
     comment = report.get("comment")
@@ -1479,6 +1495,26 @@ def run_check_comments(args):
             print("Notified via Telegram.")
         elif notified is False:
             print("Telegram notification attempted but failed (see above).")
+
+
+def run_check_messages(args, platform):
+    """Answer at most one new Meta inbox message; disabled until App Review is ready."""
+    from brain.direct_message import DirectMessageCycle
+    load_dotenv()
+    memory = Thinker().memory
+    generator = CommentReplyGenerator(
+        build_provider(), evaluator=OutputEvaluator(),
+        min_claim_safety=args.min_claim_safety,
+    )
+    cycle = DirectMessageCycle(
+        memory, generator, _build_social_tool_lifecycle(),
+        f"reply_to_{platform}_message", platform,
+    )
+    report = cycle.run_once()
+    print(f"\nAION {platform.upper()} MESSAGE CYCLE")
+    print(f"Stage: {report['stage']}")
+    if report.get("error"):
+        print(f"Reason: {report['error']}")
 
 
 def run_propose_profile_change(args):
@@ -3410,6 +3446,22 @@ def build_parser():
         help="Minimum claim_safety score (0-5) required to post the "
              "reply (default: 5).",
     )
+    check_instagram_comments_parser = subparsers.add_parser(
+        "check-instagram-comments",
+        help="Fetch Instagram comments/replies and safely answer at most one new message.",
+    )
+    check_instagram_comments_parser.add_argument(
+        "--min-claim-safety", type=int, default=5,
+        help="Minimum claim_safety score (0-5) required to post the reply.",
+    )
+    for command, platform_name in (
+        ("check-facebook-messages", "Facebook Messenger"),
+        ("check-instagram-messages", "Instagram Direct"),
+    ):
+        message_parser = subparsers.add_parser(
+            command, help=f"Safely answer at most one new {platform_name} message.",
+        )
+        message_parser.add_argument("--min-claim-safety", type=int, default=5)
 
     propose_profile_change_parser = subparsers.add_parser(
         "propose-profile-change",
@@ -3723,6 +3775,18 @@ def main():
 
     if args.command == "check-comments":
         run_check_comments(args)
+        return
+
+    if args.command == "check-instagram-comments":
+        run_check_comments(args, platform="instagram")
+        return
+
+    if args.command == "check-facebook-messages":
+        run_check_messages(args, "facebook")
+        return
+
+    if args.command == "check-instagram-messages":
+        run_check_messages(args, "instagram")
         return
 
     if args.command == "propose-profile-change":

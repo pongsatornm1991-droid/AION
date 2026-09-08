@@ -259,10 +259,14 @@ def _graph_error(payload, status_code, response_text=""):
 
 def get_recent_comments(
     post_limit=5, comment_limit=25, access_token=None, page_id=None,
+    reply_depth=3,
 ):
-    """Fetch recent top-level comments on the Page's most recent
-    posts -- the read half of Phase 11a ("two-way engagement":
-    comments).
+    """Fetch recent comments *and replies* on the Page's recent posts.
+
+    ``reply_depth`` is intentionally greater than one: Meta represents a
+    reply to AION's own reply as another nested ``comments`` edge.  The old
+    implementation read only the first edge, which made those follow-up
+    messages invisible to the auto-reply cycle.
 
     Returns a list of dicts: {"id", "message", "post_id", "from_id",
     "from_name", "created_time"}, most recent post first. Comments
@@ -294,8 +298,14 @@ def get_recent_comments(
     import requests  # lazy: only needed when this actually runs
 
     url = f"{GRAPH_API_BASE}/{page_id}/feed"
+    def comment_fields(depth):
+        base = "id,message,from,created_time"
+        if depth <= 0:
+            return base
+        return f"{base},comments.limit({comment_limit}){{{comment_fields(depth - 1)}}}"
+
     params = {
-        "fields": f"comments.limit({comment_limit}){{id,message,from,created_time}}",
+        "fields": f"comments.limit({comment_limit}){{{comment_fields(max(0, int(reply_depth)))}}}",
         "limit": post_limit,
         "access_token": access_token,
     }
@@ -312,20 +322,30 @@ def get_recent_comments(
 
     comments = []
 
-    for post in payload.get("data", []):
-        post_id = post.get("id")
-        post_comments = (post.get("comments") or {}).get("data", [])
-
-        for entry in post_comments:
+    def flatten(entries, post_id, parent_id=None, root_comment_id=None, depth=0):
+        for entry in entries:
+            comment_id = entry.get("id")
             from_field = entry.get("from") or {}
+            root_id = root_comment_id or comment_id
             comments.append({
-                "id": entry.get("id"),
+                "id": comment_id,
                 "message": entry.get("message", ""),
                 "post_id": post_id,
                 "from_id": from_field.get("id"),
                 "from_name": from_field.get("name"),
                 "created_time": entry.get("created_time"),
+                "parent_id": parent_id,
+                "root_comment_id": root_id,
+                "depth": depth,
             })
+            nested = (entry.get("comments") or {}).get("data", [])
+            if nested:
+                flatten(nested, post_id, comment_id, root_id, depth + 1)
+
+    for post in payload.get("data", []):
+        post_id = post.get("id")
+        post_comments = (post.get("comments") or {}).get("data", [])
+        flatten(post_comments, post_id)
 
     return comments
 

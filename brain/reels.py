@@ -154,7 +154,12 @@ class ReelContentCycle:
                 tags=["creator", "story", "english"])
             return {"stage": "drafted", "video_path": creator["video_path"], "caption": caption,
                     "library_asset": creator["id"], "pending_id": record.get("id")}
-        report = self.social_generator.draft_post()
+        try:
+            report = self.social_generator.draft_post(platform="instagram")
+        except TypeError as exc:
+            if "platform" not in str(exc):
+                raise
+            report = self.social_generator.draft_post()
         if report.get("stage") == "no-seed" or report.get("reason_kind") == "no_seed":
             # A new private memory repository is legitimately empty. Record
             # the creator-defined birth statement once, then let the usual

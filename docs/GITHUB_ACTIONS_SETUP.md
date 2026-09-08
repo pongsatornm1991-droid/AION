@@ -60,6 +60,13 @@ Token นี้ให้สิทธิ์ workflow เขียนเข้า 
 | `OPENAI_COMPATIBLE_API_KEY` | ใส่เฉพาะเมื่อ endpoint OpenChat/OpenAI-compatible ของคุณต้องใช้ API key |
 | `FACEBOOK_PAGE_ACCESS_TOKEN` | ค่าเดียวกับที่อยู่ใน `.env` |
 | `FACEBOOK_PAGE_ID` | ค่าเดียวกับที่อยู่ใน `.env` |
+| `INSTAGRAM_ACCESS_TOKEN` | Token ของ Instagram Professional account |
+| `INSTAGRAM_BUSINESS_ACCOUNT_ID` | Instagram Business/Creator account ID |
+
+สำหรับการตอบ Facebook Messenger และ Instagram Direct ให้ผ่าน Meta App Review
+และเปิดสิทธิ์ Messaging ของทั้งสองช่องทางก่อน จากนั้นเพิ่ม Repository variable
+`AION_MESSAGING_ENABLED=true` ระบบจะเริ่มตรวจข้อความใน workflow ทุก 5 นาที
+โดยอัตโนมัติ หากยังเป็น `false` ระบบจะรายงาน `permission-pending` และไม่ส่งข้อความ
 | `TELEGRAM_BOT_TOKEN` | ค่าเดียวกับที่อยู่ใน `.env` (ถ้าอยากได้แจ้งเตือน) |
 | `TELEGRAM_CHAT_ID` | ค่าเดียวกับที่อยู่ใน `.env` (ถ้าอยากได้แจ้งเตือน) |
 

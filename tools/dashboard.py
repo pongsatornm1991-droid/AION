@@ -126,6 +126,34 @@ def _thoughts(memory, categories, limit=6):
     return _recent(entries, limit)
 
 
+def _development_snapshot(memory):
+    """Human-readable lanes showing what AION proposes, thinks and learns."""
+    def lane(categories, limit=4):
+        entries = []
+        for category in categories:
+            for item in _entries(memory, category):
+                entries.append({
+                    "category": category, "timestamp": item.get("timestamp"),
+                    "content": _short(item.get("content"), 340),
+                })
+        return _recent(entries, limit)
+
+    return {
+        "proposed_fixes": lane(["self_improvement"]),
+        "thinking": lane(["self_narrative", "reflections"]),
+        "wants_to_learn": lane(["questions", "learning_forecasts"]),
+        "doing": lane(["goals", "creative_intentions"]),
+        "learned": lane(["lessons", "research_evidence"]),
+        "labels": {
+            "proposed_fixes": "AION เสนอปรับปรุง",
+            "thinking": "AION กำลังคิด",
+            "wants_to_learn": "AION อยากเรียนรู้",
+            "doing": "AION กำลังทำ",
+            "learned": "AION เรียนรู้อะไรแล้ว",
+        },
+    }
+
+
 def _brain_map(memory, limit=30):
     """Return only explicit, inspectable links between real memory records."""
     categories = (
@@ -191,6 +219,8 @@ def build_snapshot(memory_root=None):
         "experiences", "lessons", "questions", "goals", "beliefs", "reflections",
         "self_narrative", "learning_forecasts", "growth_insights",
         "youtube_discoveries",
+        "research_evidence", "comment_replies", "direct_message_replies",
+        "creative_intentions", "self_improvement",
     ]
     totals = {category: len(_entries(memory, category)) for category in categories}
     total_memories = sum(totals.values())
@@ -246,6 +276,7 @@ def build_snapshot(memory_root=None):
         "creator_library": creator_library,
         "creator_program": creator_program,
         "creator_autonomy": creator_autonomy,
+        "development": _development_snapshot(memory),
         "brain": _brain_map(memory),
         "state_council": _state_council(totals, reels),
         "thoughts": _thoughts(memory, [

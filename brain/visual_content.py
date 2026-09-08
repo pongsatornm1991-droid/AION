@@ -84,7 +84,16 @@ class VisualContentCycle:
         """
 
         try:
-            draft_report = self.social_generator.draft_post(seed=seed, rng=rng)
+            try:
+                draft_report = self.social_generator.draft_post(
+                    seed=seed, rng=rng, platform="instagram",
+                )
+            except TypeError as exc:
+                # Compatibility with small test/custom generators that still
+                # expose the older draft_post(seed, rng) interface.
+                if "platform" not in str(exc):
+                    raise
+                draft_report = self.social_generator.draft_post(seed=seed, rng=rng)
         except Exception as exc:
             return {
                 "stage": "draft-failed",

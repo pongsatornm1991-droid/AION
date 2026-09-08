@@ -27,6 +27,19 @@
       "limitations": "A source-specific retrieval adapter is required before this capability becomes usable."
     },
     {
+      "id": "europe_pmc_fulltext",
+      "name": "Europe PMC open-access full papers",
+      "tier": "A",
+      "enabled": true,
+      "capabilities": [
+        "general_external",
+        "official_primary",
+        "research_paper"
+      ],
+      "role": "Official EMBL-EBI literature discovery and full-text XML retrieval for open-access life-science papers.",
+      "limitations": "Life sciences only; full text is available only for the open-access subset and is bounded before synthesis."
+    },
+    {
       "id": "social_signals",
       "name": "Audience and social signals",
       "tier": "C",

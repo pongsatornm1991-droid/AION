@@ -1231,6 +1231,9 @@ class WebLearningCycle:
             "official_primary",
             "research_paper",
         },
+        "europe_pmc_fulltext": {
+            "general_external", "official_primary", "research_paper",
+        },
         "social_signals": {
             "human_perspective",
             "social_signal",
@@ -1402,6 +1405,17 @@ class WebLearningCycle:
             except ImportError:
                 # Capability remains unavailable rather than crashing
                 # the entire learning system.
+                pass
+
+            try:
+                from tools.web_search import (
+                    search_europe_pmc_fulltext, get_europe_pmc_fulltext,
+                )
+                self.adapters["europe_pmc_fulltext"] = {
+                    "search": search_europe_pmc_fulltext,
+                    "fetch": get_europe_pmc_fulltext,
+                }
+            except ImportError:
                 pass
 
         self.evidence_store = (

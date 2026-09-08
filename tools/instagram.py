@@ -66,6 +66,82 @@ def _resolve_credentials(access_token, account_id):
     return access_token, account_id
 
 
+def get_recent_comments(
+    media_limit=8, comment_limit=25, access_token=None, account_id=None,
+):
+    """Return recent Instagram comments and their nested replies.
+
+    The normalized shape intentionally matches ``tools.facebook`` so the
+    same safety-gated reply cycle can serve both platforms.
+    """
+    access_token, account_id = _resolve_credentials(access_token, account_id)
+    import requests
+
+    fields = (
+        f"id,comments.limit({comment_limit})"
+        "{id,text,username,timestamp,replies.limit(25)"
+        "{id,text,username,timestamp}}"
+    )
+    response = requests.get(
+        f"{GRAPH_API_BASE}/{account_id}/media",
+        params={"fields": fields, "limit": media_limit, "access_token": access_token},
+        timeout=15,
+    )
+    try:
+        payload = response.json()
+    except ValueError:
+        payload = {}
+    if response.status_code >= 400 or "error" in payload:
+        raise _graph_error(payload, response.status_code)
+
+    comments = []
+    for media in payload.get("data", []):
+        media_id = media.get("id")
+        for entry in (media.get("comments") or {}).get("data", []):
+            root_id = entry.get("id")
+            comments.append({
+                "id": root_id, "message": entry.get("text", ""),
+                "post_id": media_id, "from_id": entry.get("username"),
+                "from_name": entry.get("username"),
+                "created_time": entry.get("timestamp"), "parent_id": None,
+                "root_comment_id": root_id, "depth": 0, "platform": "instagram",
+            })
+            for reply in (entry.get("replies") or {}).get("data", []):
+                comments.append({
+                    "id": reply.get("id"), "message": reply.get("text", ""),
+                    "post_id": media_id, "from_id": reply.get("username"),
+                    "from_name": reply.get("username"),
+                    "created_time": reply.get("timestamp"), "parent_id": root_id,
+                    "root_comment_id": root_id, "depth": 1, "platform": "instagram",
+                })
+    return comments
+
+
+def reply_to_instagram_comment(comment_id, message, access_token=None):
+    """Reply once to an Instagram comment through its replies edge."""
+    if not comment_id:
+        raise ValueError("comment_id cannot be empty.")
+    if not str(message or "").strip():
+        raise ValueError("message cannot be empty.")
+    load_dotenv()
+    access_token = access_token or os.getenv("INSTAGRAM_ACCESS_TOKEN")
+    if not access_token:
+        raise RuntimeError("INSTAGRAM_ACCESS_TOKEN is not configured.")
+    import requests
+    response = requests.post(
+        f"{GRAPH_API_BASE}/{comment_id}/replies",
+        data={"message": str(message).strip(), "access_token": access_token},
+        timeout=15,
+    )
+    try:
+        payload = response.json()
+    except ValueError:
+        payload = {}
+    if response.status_code >= 400 or "error" in payload:
+        raise _graph_error(payload, response.status_code)
+    return payload
+
+
 def create_media_container(
     image_url=None,
     video_url=None,

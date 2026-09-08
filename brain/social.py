@@ -296,9 +296,11 @@ class SocialContentGenerator:
             return ""
         return entries[-1].get("content", "") if entries else ""
 
-    def _build_prompt(self, seed, style_notes=None, language="th"):
+    def _build_prompt(self, seed, style_notes=None, language="th", platform="facebook"):
+        platform = str(platform or "facebook").lower()
+        platform_name = {"instagram": "Instagram", "youtube": "YouTube"}.get(platform, "Facebook")
         lines = [
-            "คุณกำลังช่วยร่างโพสต์สั้นๆ ลง Facebook ในนามของ AION ซึ่งเป็น "
+            f"คุณกำลังช่วยร่างคอนเทนต์สำหรับ {platform_name} ในนามของ AION ซึ่งเป็น "
             "ระบบ AI ที่กำลังพัฒนาความสามารถในการคิด เรียนรู้ และตั้งคำถาม "
             "ของตัวเอง",
             "",
@@ -342,6 +344,23 @@ class SocialContentGenerator:
             "คำถามหรือคำชวนคุยอย่างเป็นธรรมชาติได้ แต่ห้ามขอไลก์/แชร์/ติดตาม "
             "แบบยัดเยียดหรือใช้ engagement bait",
         ]
+
+        platform_rules = {
+            "facebook": [
+                "- รูปแบบ Facebook: เล่าบริบทให้คนที่เพิ่งพบ AION เข้าใจได้ด้วยตัวเอง "
+                "ใช้ย่อหน้าสั้นและชวนสนทนาด้วยคำถามที่เกี่ยวกับเรื่องนั้นจริงๆ",
+            ],
+            "instagram": [
+                "- รูปแบบ Instagram: เปิดด้วย hook ที่เห็นภาพได้ทันที 1 บรรทัด "
+                "ตามด้วย 2-5 บรรทัดสั้นที่เสริมภาพ ไม่เขียนซ้ำสิ่งที่ภาพบอกอยู่แล้ว",
+                "- ไม่ใส่ hashtag ในร่างนี้ เพราะระบบจะเติม hashtag ที่เฉพาะเจาะจงภายหลัง",
+            ],
+            "youtube": [
+                "- รูปแบบ YouTube: เปิดด้วยประเด็นค้นหาได้ชัดเจน บอกว่าผู้ชมจะได้อะไร "
+                "และหลีกเลี่ยงชื่อคลุมเครือหรือ clickbait",
+            ],
+        }
+        lines.extend(platform_rules.get(platform, platform_rules["facebook"]))
 
         manifesto = self.identity.get("manifesto", "").strip()
         if manifesto:
@@ -394,7 +413,7 @@ class SocialContentGenerator:
             tags=[language, platform],
         )
 
-    def draft_post(self, seed=None, rng=None, language=None):
+    def draft_post(self, seed=None, rng=None, language=None, platform="facebook"):
         """Draft one post. Never raises on an unsafe/robotic draft --
         callers must check report['safe'] before treating anything
         here as postable. report['reason_kind'] distinguishes *why*
@@ -418,7 +437,9 @@ class SocialContentGenerator:
 
         language = language or self._next_language()
         style_notes = self.recent_style_notes()
-        prompt = self._build_prompt(seed, style_notes=style_notes, language=language)
+        prompt = self._build_prompt(
+            seed, style_notes=style_notes, language=language, platform=platform,
+        )
         draft = self.provider.generate(prompt).strip()
         evaluation = self.evaluator.evaluate(draft)
         claim_safety = evaluation["scores"]["claim_safety"]
@@ -437,6 +458,7 @@ class SocialContentGenerator:
                 "evaluation": evaluation,
                 "robotic_terms": [],
                 "language": language,
+                "platform": platform,
             }
 
         robotic_terms = self._detect_robotic_terms(draft)
@@ -455,6 +477,7 @@ class SocialContentGenerator:
                 "evaluation": evaluation,
                 "robotic_terms": robotic_terms,
                 "language": language,
+                "platform": platform,
             }
 
         return {
@@ -466,6 +489,7 @@ class SocialContentGenerator:
             "evaluation": evaluation,
             "robotic_terms": [],
             "language": language,
+            "platform": platform,
         }
 
 

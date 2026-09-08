@@ -15,6 +15,8 @@ class VisualMoodTests(unittest.TestCase):
         self.assertEqual("curiosity", council["dominant"])
         self.assertEqual(MOOD_PALETTE["curiosity"]["color"], council["palette"]["color"])
         self.assertTrue(all(state["color"] for state in council["states"]))
+        self.assertEqual(8, len(council["states"]))
+        self.assertTrue(all(0 <= state["value"] <= 100 for state in council["states"]))
 
     def test_memory_selects_a_repeatable_visual_mood(self):
         with tempfile.TemporaryDirectory() as root:
