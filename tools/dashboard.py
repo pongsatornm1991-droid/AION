@@ -23,6 +23,7 @@ from brain.visual_mood import state_council
 from brain.content_registry import CreatorContentRegistry
 from brain.creator_series import CreatorSeriesRegistry
 from brain.creator_autonomy import CreatorAutonomy
+from brain.research_to_story import ResearchToStory
 
 
 DASHBOARD_DIR = ROOT / "dashboard"
@@ -240,6 +241,10 @@ def build_snapshot(memory_root=None):
         creator_autonomy = CreatorAutonomy(memory).snapshot()
     except (OSError, ValueError, TypeError):
         creator_autonomy = {"status": "unavailable", "current": None, "history_count": 0}
+    try:
+        research_to_story = ResearchToStory(memory).snapshot()
+    except (OSError, ValueError, TypeError):
+        research_to_story = {"status": "unavailable", "current": None, "history_count": 0, "eligible_topics": 0}
     return {
         "generated_at": datetime.now().isoformat(timespec="seconds"),
         "data_source": {
@@ -276,6 +281,7 @@ def build_snapshot(memory_root=None):
         "creator_library": creator_library,
         "creator_program": creator_program,
         "creator_autonomy": creator_autonomy,
+        "research_to_story": research_to_story,
         "development": _development_snapshot(memory),
         "brain": _brain_map(memory),
         "state_council": _state_council(totals, reels),
