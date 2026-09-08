@@ -258,7 +258,7 @@ def _graph_error(payload, status_code, response_text=""):
 
 
 def get_recent_comments(
-    post_limit=5, comment_limit=25, access_token=None, page_id=None,
+    post_limit=25, comment_limit=25, access_token=None, page_id=None,
     reply_depth=3,
 ):
     """Fetch recent comments *and replies* on the Page's recent posts.
