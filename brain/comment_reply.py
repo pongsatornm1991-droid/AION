@@ -242,6 +242,21 @@ class CommentAutoReplyCycle:
     def comment_tag_prefix(self):
         return f"{self.platform}-comment:"
 
+    @property
+    def handled_tag_prefixes(self):
+        """Current prefix plus names used before the cross-platform rename.
+
+        A 2026 migration changed Facebook records from ``fb-comment:`` to
+        ``facebook-comment:``. Reading only the new name made old replies
+        look unanswered, causing a public duplicate. Private memory is durable
+        state rather than disposable cache, so preserve this read bridge.
+        """
+        legacy = {
+            "facebook": ("fb-comment:",),
+            "instagram": ("ig-comment:",),
+        }
+        return (self.comment_tag_prefix, *legacy.get(self.platform, ()))
+
     @classmethod
     def _comment_invites_a_followup(cls, comment_text):
         """A follow-up question only makes sense for a comment that
@@ -275,8 +290,10 @@ class CommentAutoReplyCycle:
 
         for entry in entries:
             for tag in entry.get("tags") or []:
-                if tag.startswith(self.comment_tag_prefix):
-                    handled.add(tag[len(self.comment_tag_prefix):])
+                for prefix in self.handled_tag_prefixes:
+                    if tag.startswith(prefix):
+                        handled.add(tag[len(prefix):])
+                        break
 
         return handled
 

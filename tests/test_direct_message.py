@@ -43,3 +43,10 @@ class DirectMessageTests(unittest.TestCase):
             cycle = self.cycle()
             self.assertTrue(cycle.run_once([item])["handled"])
             self.assertEqual(cycle.run_once([item])["stage"], "no-messages")
+
+    def test_reports_the_missing_facebook_permission_clearly(self):
+        report = self.cycle()._permission_result(
+            "Facebook Graph API error (OAuthException, code 200): Requires permission: pages_messaging"
+        )
+        self.assertEqual(report["stage"], "permission-required")
+        self.assertEqual(report["permission"], "pages_messaging")

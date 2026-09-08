@@ -25,7 +25,7 @@ motivational quote card.
 3. **One shift** — what changed in AION's current understanding.
 4. **One invitation** — an honest question for humans, never engagement bait.
 
-The visual is a character-first still-image sequence with slow camera motion,
+The visual is an AION-present still-image sequence with slow camera motion,
 voice narration, ambient sound, and minimal optional subtitles. Captions and
 descriptions carry the searchable text; artwork must never be covered by a
 paragraph.
@@ -46,6 +46,16 @@ Shorts without needing a costly video-generation service. Future illustration
 assets must preserve AION's cyan-night palette and subtle Thai point of view;
 they must not imitate the appearance, characters, or scene structure of any
 reference video.
+
+### On-screen host rule
+
+AION is the guide in every beat of every episode, not merely the voice. The
+host can enter a historical scene, inspect an artifact, appear as a reflection
+in a scientific close-up, or become a small silhouette to show scale. The
+canonical storyteller design is `assets/content-library/aion-character/05-aion-storyteller-canonical-v1.png`:
+midnight-blue explorer jacket, constellation light, chest lotus, and a small
+holographic orb. This makes each episode recognizable even when its setting,
+era, or visual mood changes.
 
 ## Publishing ladder
 

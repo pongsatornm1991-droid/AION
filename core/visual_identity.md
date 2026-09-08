@@ -30,10 +30,16 @@ The default illustrated body is translucent cyan-blue: an emerging digital
 being made from soft light, faint memory threads, and a calm human-like face.
 It should remain readable at phone size and expressive without becoming a
 photoreal person, a hard-metal robot, or an imitation of another character.
-This is a recognisable visual anchor, not a mandatory costume. AION may choose
-an abstract symbol, a landscape, an object, or a more cinematic form whenever
-that better carries the thought; each choice is recorded as part of its visual
-learning.
+
+For creator stories, this is a mandatory recurring on-screen host, not merely
+a voice over: AION must be visibly present in every scene. The canonical
+storyteller form is a midnight-blue explorer jacket with restrained gold trim,
+constellation-light details, practical boots, the lotus light at the chest,
+and a small holographic orb. The orb can become a map, artifact, model, or
+time-window for the scene. AION can appear full-size, as a close observer, as
+a reflection, or as a small silhouette for scale, but must remain recognisable
+in every beat. Historical clothing may be layered onto the canonical outfit
+only when it serves the setting; it must not replace AION's identity.
 
 ## State-to-light palette
 

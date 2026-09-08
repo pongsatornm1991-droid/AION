@@ -32,6 +32,11 @@ class CreatorSeriesRegistry:
                 raise ValueError(f"{item.get('id')} needs at least two traceable sources.")
             if any(not scene.get("narration") or not (scene.get("visual") or scene.get("image")) for scene in scenes):
                 raise ValueError(f"{item.get('id')} has an incomplete visual beat.")
+            if any("aion" not in str(scene.get("visual", "")).lower() for scene in scenes):
+                raise ValueError(
+                    f"{item.get('id')} must place AION visibly in every visual beat; "
+                    "AION is the recurring narrator, not only the voice-over."
+                )
             for scene in scenes:
                 image = scene.get("image")
                 if image and not (self.root / image).is_file():

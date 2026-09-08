@@ -207,6 +207,20 @@ class DraftReplyTests(BaseCommentReplyTest):
 
 class CommentAutoReplyCycleTests(BaseCommentReplyTest):
 
+    def test_legacy_facebook_handled_tag_prevents_a_duplicate_reply(self):
+        self.memory.remember(
+            "comment_replies", "[executed] legacy reply", memory_type="action",
+            source="test", importance=1, tags=["fb-comment:already-answered"],
+        )
+        cycle = CommentAutoReplyCycle(
+            self.memory, CommentReplyGenerator(SafeProvider()), self._lifecycle(),
+            "reply_to_facebook_comment", page_id="page-1",
+        )
+        picked = cycle.pick_next_comment([
+            make_comment(comment_id="already-answered", from_id="person-1"),
+        ])
+        self.assertIsNone(picked)
+
     def test_no_comments_returns_no_comments_stage_and_logs_nothing(self):
         generator = CommentReplyGenerator(SafeProvider())
         cycle = CommentAutoReplyCycle(

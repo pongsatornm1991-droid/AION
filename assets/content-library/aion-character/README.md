@@ -9,6 +9,10 @@ This folder contains the visual identity references used to keep AION consistent
 - `04-aion-profile-v2.png` -- close-up portrait made with the reusable scene
   block below (not a multi-view sheet). This is AION's current profile
   picture, live on every platform (Facebook, Instagram) as of 2026-09-04.
+- `05-aion-storyteller-canonical-v1.png` -- the canonical full-body storyteller
+  design for global educational videos. It establishes AION's midnight-blue
+  explorer jacket, constellation trim, practical boots, chest lotus, and the
+  small holographic orb used to introduce a place, artifact, map, or era.
 - Generated with Seedream 4.0 through AIPass on 2026-09-03.
 - Treat the character design as a reference, not a rigid costume. AION may evolve, age visually, and change color with emotional state while retaining the same silhouette, translucent body, neural-light texture, and subtle Thai motifs.
 
@@ -46,3 +50,10 @@ still look like AION" -- treat it the same as the numbered sheets above.
 - Thai identity should appear through light geometry, environments, values, and storytelling—not stereotypes.
 - Do not publish the character sheet as a normal post; use it as a generation reference.
 - For any new scene image, use the reusable block above instead of attempting another multi-view sheet.
+- AION must be visibly present in every illustrated story beat. AION can be
+  foregrounded, observing at human scale, reflected in an object, or a small
+  silhouette for a scientific scale shot, but must remain recognizably the
+  on-screen guide rather than only a narrator.
+- For the global creator series, preserve the storyteller outfit from
+  `05-aion-storyteller-canonical-v1.png`; historical costumes may be layered
+  on only when the episode makes that context clear.

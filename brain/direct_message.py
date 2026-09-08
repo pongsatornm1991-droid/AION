@@ -28,6 +28,26 @@ class DirectMessageCycle:
             tags=[f"{self.platform}-dm:{item.get('id')}", self.platform],
         )
 
+    def _permission_result(self, error):
+        """Turn Meta's opaque permission failures into an actionable state."""
+        text = str(error)
+        lowered = text.lower()
+        if self.platform == "facebook" and "pages_messaging" in lowered:
+            return {
+                "handled": False, "stage": "permission-required",
+                "platform": self.platform, "permission": "pages_messaging",
+                "error": text,
+            }
+        if self.platform == "instagram" and (
+            "does not have the capability" in lowered or "messaging" in lowered
+        ):
+            return {
+                "handled": False, "stage": "permission-required",
+                "platform": self.platform, "permission": "instagram_messaging",
+                "error": text,
+            }
+        return None
+
     def run_once(self, messages=None):
         if os.getenv("AION_MESSAGING_ENABLED", "false").lower() not in ("1", "true", "yes"):
             return {"handled": False, "stage": "permission-pending", "platform": self.platform}
@@ -36,6 +56,9 @@ class DirectMessageCycle:
                 from tools.meta_messaging import get_recent_messages
                 messages = get_recent_messages(self.platform)
         except Exception as exc:
+            permission = self._permission_result(exc)
+            if permission:
+                return permission
             return {"handled": False, "stage": "fetch-failed", "error": str(exc)}
         seen = self._seen()
         candidates = [m for m in messages if m.get("id") not in seen and (m.get("message") or "").strip()]
