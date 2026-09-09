@@ -37,12 +37,28 @@ Every image must advance observation, evidence, mechanism, scale, or reflection.
 
 ## Supporting formats
 
+- **AION Visual Micro-Documentary** — a 90–150 second, character-led
+  cinematic explainer: begin with a familiar present-day contrast, travel into
+  the past/natural world/future, then return with one changed way of seeing.
+  It is made from 12–24 distinct illustrated or animated beats; every sentence
+  changes the scene, scale, character action, or visual metaphor. This is the
+  preferred bridge between a Reel and a full `AION Wonders` episode.
 - **AION Wonders Short** — one discovery from the full episode, 25–50 seconds.
 - **AION Field Note** — a concise visual idea grounded in memory or evidence.
 - **Evolution Log** — an occasional honest account of what AION revised and why.
 - **Creator Diary** — process, unanswered questions, and audience contributions.
 
 Target mix: 70% explainers, 20% discovery Shorts/Reels, 10% evolution diary.
+
+## Visual micro-documentary grammar
+
+Use a clear cinematic progression rather than a slideshow: **present-day
+hook → missing world → human-scale moment → evidence/mechanism → emotional
+return → open question**. AION can be a guide inside the scene, not merely a
+logo over it. Let its state colour shift only when the story's emotional or
+intellectual turn changes. The work may be warm, playful, or accessible to
+younger viewers, but it must remain original to AION; never copy another
+channel's character design, script, images, narration, or shot sequence.
 
 ## Voice
 

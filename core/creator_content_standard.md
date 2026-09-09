@@ -16,6 +16,9 @@ platform ladder live in `core/creator_bible.md` and apply to every episode.
   reflection.
 - A flagship `AION Wonders` episode targets 24–60 distinct visual beats and
   3–8 minutes. Shorts are derivative discovery cuts, not the whole identity.
+- A `Visual Micro-Documentary` targets 12–24 distinct beats and 90–150
+  seconds. It must have a present-day hook, a journey through the idea, and a
+  reflective return—not a sequence of decorative images.
 - Package one researched idea into a full YouTube story, one Short/Reel, one
   Instagram carousel concept, and one accessible Facebook discussion.
 
