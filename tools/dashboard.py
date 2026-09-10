@@ -24,6 +24,7 @@ from brain.content_registry import CreatorContentRegistry
 from brain.creator_series import CreatorSeriesRegistry
 from brain.creator_autonomy import CreatorAutonomy
 from brain.research_to_story import ResearchToStory
+from brain.autonomic_drive import AutonomicDrive
 
 
 DASHBOARD_DIR = ROOT / "dashboard"
@@ -143,7 +144,7 @@ def _development_snapshot(memory):
         "proposed_fixes": lane(["self_improvement", "evolution_proposals"]),
         "thinking": lane(["self_narrative", "reflections"]),
         "wants_to_learn": lane(["questions", "learning_forecasts"]),
-        "doing": lane(["goals", "creative_intentions", "autonomous_inquiries"]),
+        "doing": lane(["goals", "creative_intentions", "autonomous_inquiries", "autonomic_drive"]),
         "learned": lane(["lessons", "research_evidence"]),
         "labels": {
             "proposed_fixes": "AION เสนอปรับปรุง",
@@ -347,6 +348,7 @@ def build_snapshot(memory_root=None):
     capabilities = _capability_snapshot(
         memory, reels, creator_autonomy, research_to_story,
     )
+    autonomic_drive = AutonomicDrive(memory).snapshot()
     return {
         "generated_at": datetime.now().isoformat(timespec="seconds"),
         "data_source": {
@@ -387,6 +389,7 @@ def build_snapshot(memory_root=None):
         "capabilities": capabilities,
         "growth_roadmap": _growth_roadmap(capabilities),
         "autonomy": _autonomy_snapshot(memory, creator_autonomy),
+        "autonomic_drive": autonomic_drive,
         "development": _development_snapshot(memory),
         "brain": _brain_map(memory),
         "state_council": _state_council(totals, reels),

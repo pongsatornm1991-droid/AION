@@ -2,7 +2,10 @@ name: AION - audience-independent inquiry
 
 on:
   schedule:
-    - cron: "45 */6 * * *"
+    # The scheduler is a lightweight heartbeat. The cycle calls the model
+    # only when every live question is exhausted, so AION can pivot soon
+    # after evidence changes without manufacturing repeated questions.
+    - cron: "45 * * * *"
   workflow_dispatch: {}
 
 concurrency:
