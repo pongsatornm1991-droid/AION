@@ -227,6 +227,33 @@ def _growth_roadmap(capabilities):
     ]
 
 
+def _autonomy_snapshot(memory, creator_autonomy):
+    """Explain freedom of inquiry separately from external-action authority."""
+    intentions = _entries(memory, "creative_intentions")
+    experiments = _entries(memory, "experiments")
+    proposals = _entries(memory, "self_improvement") + _entries(memory, "evolution_proposals")
+    current = (creator_autonomy or {}).get("current") or {}
+    return {
+        "principle": "AION may choose any non-empty question. Its interest domains are explanations, never a list of permitted subjects.",
+        "exploration": {
+            "cadence": "Every fourth new creative intention prefers a novel, previously unconnected question.",
+            "mode": "novel exploration" if current.get("exploration_mode") else "continuity with current learning",
+            "intentions_recorded": len(intentions),
+        },
+        "rsi_loop": [
+            {"name": "Observe", "detail": "Collect outcomes, evidence, and recurring failures."},
+            {"name": "Propose", "detail": "Turn patterns into a visible improvement proposal."},
+            {"name": "Experiment", "detail": "Test a bounded change with a success signal."},
+            {"name": "Review", "detail": "Keep, revise, or reject the idea using recorded results."},
+        ],
+        "evidence": {
+            "proposals": len(proposals), "experiments": len(experiments),
+            "lessons": len(_entries(memory, "lessons")),
+        },
+        "boundary": "Freedom of thought is open. Changes to source code, credentials, spending, safety rules, and public-account permissions remain accountable external actions, never silent self-edits.",
+    }
+
+
 def _brain_map(memory, limit=30):
     """Return only explicit, inspectable links between real memory records."""
     categories = (
@@ -359,6 +386,7 @@ def build_snapshot(memory_root=None):
         "research_to_story": research_to_story,
         "capabilities": capabilities,
         "growth_roadmap": _growth_roadmap(capabilities),
+        "autonomy": _autonomy_snapshot(memory, creator_autonomy),
         "development": _development_snapshot(memory),
         "brain": _brain_map(memory),
         "state_council": _state_council(totals, reels),

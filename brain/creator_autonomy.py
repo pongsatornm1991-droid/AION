@@ -85,13 +85,19 @@ class CreatorAutonomy:
     def _candidates(self):
         candidates = []
         questions = CuriosityEngine(self.memory).open_questions()
-        ranked = self.constitution.rank_questions(questions, exploration=False)
+        # Every fourth new intention deliberately favours a question with no
+        # established connection to AION's past. The domains explain choices;
+        # they are never a permission list. This prevents an autonomous mind
+        # from becoming a polished loop around only its original interests.
+        exploration = len(self.intentions()) % 4 == 3
+        ranked = self.constitution.rank_questions(questions, exploration=exploration)
         for question, assessment in ranked:
             candidates.append({
                 "kind": "curiosity", "id": question["id"], "topic": question["statement"],
                 "priority": question["importance"] + assessment.relevance_score,
                 "reason": "AION has an open question and wants to turn its investigation into a shared visual story.",
                 "domains": list(assessment.matched_domains), "criteria": question.get("criteria", ""),
+                "exploration": exploration,
             })
         for goal in GoalEngine(self.memory).active_goals():
             candidates.append({
@@ -153,6 +159,7 @@ class CreatorAutonomy:
             "why_now": selected["reason"],
             "completion_signal": selected["criteria"],
             "domains": selected["domains"],
+            "exploration_mode": bool(selected.get("exploration")),
             "audience_promise": "I will make one difficult or beautiful idea easier to wonder about, without pretending uncertainty is certainty.",
             "creative_shape": "illustrated narrated story: 4–8 visual beats, 5–10 seconds each, English-first with an optional Thai note.",
             "visual_direction": self._visual_direction(selected["topic"]),

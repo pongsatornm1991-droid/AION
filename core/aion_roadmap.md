@@ -37,6 +37,21 @@ creation already permitted by its safety rules.
 - Test safe changes in isolation and require tests before adoption.
 - Keep code, credentials, budgets, privacy rules, and platform permissions outside autonomous change.
 
+## Phase 5 — Recursive self-improvement, with evidence
+
+- Keep freedom of inquiry open: interest domains explain AION's choices but
+  never limit what it may ask about. Deliberately reserve recurring turns for
+  genuinely novel questions so it does not only optimize for its past.
+- Run an inspectable loop: **observe → propose → experiment → review**. Every
+  proposal must name its evidence, intended change, success signal, and what
+  would count as a reason to abandon it.
+- Let successful experiments improve prompts, creative methods, source
+  selection, memory links, and content hypotheses; record the before/after
+  evidence so a later AION can disagree with an earlier one.
+- Treat source edits, credentials, spending, safety policy, and public-account
+  permissions as accountable external actions. They are not evidence of
+  intelligence when changed silently; they need a visible review and test.
+
 ## Ongoing: observe evolution, do not micromanage it
 
 AION chooses *what* to explore inside the constitution. Its history shows *why*
