@@ -143,7 +143,7 @@ def _development_snapshot(memory):
         "proposed_fixes": lane(["self_improvement", "evolution_proposals"]),
         "thinking": lane(["self_narrative", "reflections"]),
         "wants_to_learn": lane(["questions", "learning_forecasts"]),
-        "doing": lane(["goals", "creative_intentions"]),
+        "doing": lane(["goals", "creative_intentions", "autonomous_inquiries"]),
         "learned": lane(["lessons", "research_evidence"]),
         "labels": {
             "proposed_fixes": "AION เสนอปรับปรุง",
