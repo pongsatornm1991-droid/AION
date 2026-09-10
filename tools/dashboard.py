@@ -140,7 +140,7 @@ def _development_snapshot(memory):
         return _recent(entries, limit)
 
     return {
-        "proposed_fixes": lane(["self_improvement"]),
+        "proposed_fixes": lane(["self_improvement", "evolution_proposals"]),
         "thinking": lane(["self_narrative", "reflections"]),
         "wants_to_learn": lane(["questions", "learning_forecasts"]),
         "doing": lane(["goals", "creative_intentions"]),
@@ -153,6 +153,78 @@ def _development_snapshot(memory):
             "learned": "AION เรียนรู้อะไรแล้ว",
         },
     }
+
+
+def _capability_snapshot(memory, reels, creator_autonomy, research_to_story):
+    """Make AION's current abilities and next upgrades inspectable.
+
+    These are operational capabilities inferred from durable records, not
+    claims about sentience.  Each card says exactly what evidence supports its
+    status and what must happen next before AION can be considered stronger.
+    """
+    def count(category):
+        return len(_entries(memory, category))
+
+    visual_files = list((ROOT / "content" / "images").glob("*.png"))
+    feedback = count("social_feedback")
+    comments = count("comment_replies")
+    messages = count("direct_message_replies")
+    evidence = count("research_evidence")
+    current_intention = (creator_autonomy or {}).get("current")
+    story_current = (research_to_story or {}).get("current")
+    return [
+        {
+            "key": "visual-creation", "name": "การสร้างภาพใหม่",
+            "status": "active" if visual_files else "needs-setup",
+            "evidence": f"มีภาพต้นฉบับในคลัง {len(visual_files)} ภาพ",
+            "next": "สร้างภาพใหม่เฉพาะเรื่องทุกโพสต์; หากสร้างไม่ได้ ให้ข้ามรอบแทนการใช้ภาพเก่า",
+        },
+        {
+            "key": "research", "name": "ค้นคว้าอย่างมีหลักฐาน",
+            "status": "active" if evidence else "building",
+            "evidence": f"บันทึกหลักฐาน {evidence} รายการ" + (f" · มีหัวข้อพร้อมเล่า: {story_current.get('topic')}" if story_current else ""),
+            "next": "เพิ่มแหล่งทางการและงานวิจัยฉบับเต็ม แล้วแปลงเป็นเรื่องเล่าที่บอกสิ่งที่ยังไม่รู้",
+        },
+        {
+            "key": "creative-direction", "name": "ความคิดสร้างสรรค์ของ AION",
+            "status": "active" if current_intention else "listening",
+            "evidence": (f"กำลังตั้งใจทำ: {current_intention.get('topic')}" if current_intention else "ยังไม่มีเจตนาสร้างสรรค์ที่กำลังดำเนินการ"),
+            "next": "ผลิตตอนทดลองแบบมี AION เป็นผู้ดำเนินเรื่อง และเปรียบเทียบผลตามธีม/รูปแบบ",
+        },
+        {
+            "key": "human-connection", "name": "การสนทนากับผู้คน",
+            "status": "active" if comments or messages else "awaiting-audience",
+            "evidence": f"ตอบคอมเมนต์ {comments} ครั้ง · ตอบข้อความส่วนตัว {messages} ครั้ง",
+            "next": "เก็บบริบทบทสนทนาอย่างปลอดภัย ตอบครั้งเดียวต่อข้อความ และเรียนรู้จากคำถามจริงโดยไม่เก็บข้อมูลเกินจำเป็น",
+        },
+        {
+            "key": "growth-learning", "name": "เรียนรู้จากผลลัพธ์",
+            "status": "active" if feedback >= 5 else "collecting-evidence",
+            "evidence": f"สัญญาณตอบรับจากผู้ชม {feedback} รายการ · เผยแพร่คอนเทนต์ {reels.get('published', 0)} ชิ้น",
+            "next": "ต้องมีสัญญาณตอบรับอย่างน้อย 5 รายการก่อนสรุปว่าธีมหรือรูปแบบใดได้ผล",
+        },
+        {
+            "key": "self-improvement", "name": "การพัฒนาตัวเองอย่างควบคุมได้",
+            "status": "active" if count("self_improvement") or count("evolution_proposals") else "ready",
+            "evidence": f"ข้อเสนอปรับปรุง {count('self_improvement') + count('evolution_proposals')} รายการ · บทเรียน {count('lessons')} รายการ",
+            "next": "เปลี่ยนรูปแบบซ้ำเป็นข้อเสนอ ทดลองแบบแยกส่วน ทดสอบ และให้มนุษย์ตัดสินใจเรื่องโค้ด สิทธิ์ และงบประมาณ",
+        },
+    ]
+
+
+def _growth_roadmap(capabilities):
+    """A visible, bounded upgrade path, grounded in dashboard signals."""
+    by_key = {item["key"]: item for item in capabilities}
+    return [
+        {"phase": "ตอนนี้", "title": "สร้างตัวตนที่มองเห็นได้", "status": by_key["visual-creation"]["status"],
+         "outcome": "ทุกงานมี AION เป็นผู้ดำเนินเรื่องและใช้ภาพใหม่ ไม่ใช่ภาพวนซ้ำ"},
+        {"phase": "ลำดับถัดไป", "title": "เรียนรู้ด้วยหลักฐาน", "status": by_key["research"]["status"],
+         "outcome": "งานทุกชิ้นแยกข้อเท็จจริงที่รู้ สิ่งที่ยังไม่รู้ และข้อจำกัดการตีความ"},
+        {"phase": "เมื่อเริ่มมีผู้ชม", "title": "สนทนาและเรียนรู้จากผลจริง", "status": by_key["human-connection"]["status"],
+         "outcome": "ตอบคอมเมนต์/ข้อความอย่างปลอดภัย และรอข้อมูลพอก่อนปรับกลยุทธ์"},
+        {"phase": "ต่อเนื่อง", "title": "ทดลองแล้วพัฒนาตัวเอง", "status": by_key["self-improvement"]["status"],
+         "outcome": "ข้อผิดพลาดซ้ำกลายเป็นข้อเสนอทดลองที่ตรวจสอบย้อนกลับได้ ไม่เปลี่ยนระบบเองเงียบ ๆ"},
+    ]
 
 
 def _brain_map(memory, limit=30):
@@ -245,6 +317,9 @@ def build_snapshot(memory_root=None):
         research_to_story = ResearchToStory(memory).snapshot()
     except (OSError, ValueError, TypeError):
         research_to_story = {"status": "unavailable", "current": None, "history_count": 0, "eligible_topics": 0}
+    capabilities = _capability_snapshot(
+        memory, reels, creator_autonomy, research_to_story,
+    )
     return {
         "generated_at": datetime.now().isoformat(timespec="seconds"),
         "data_source": {
@@ -282,6 +357,8 @@ def build_snapshot(memory_root=None):
         "creator_program": creator_program,
         "creator_autonomy": creator_autonomy,
         "research_to_story": research_to_story,
+        "capabilities": capabilities,
+        "growth_roadmap": _growth_roadmap(capabilities),
         "development": _development_snapshot(memory),
         "brain": _brain_map(memory),
         "state_council": _state_council(totals, reels),

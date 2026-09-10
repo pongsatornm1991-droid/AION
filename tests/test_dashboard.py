@@ -44,6 +44,9 @@ class DashboardTests(unittest.TestCase):
             self.assertEqual("ready", snapshot["creator_library"][0]["status"])
             self.assertEqual("AION Wonders", snapshot["creator_program"][0]["series"])
             self.assertEqual("ready-to-listen", snapshot["creator_autonomy"]["status"])
+            self.assertEqual(6, len(snapshot["capabilities"]))
+            self.assertEqual(4, len(snapshot["growth_roadmap"]))
+            self.assertEqual("การสร้างภาพใหม่", snapshot["capabilities"][0]["name"])
 
     def test_a_legacy_string_action_record_never_crashes_the_dashboard(self):
         # Real production bug (found 2026-09-04): tools/dashboard.py's
