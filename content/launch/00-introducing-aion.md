@@ -1,6 +1,6 @@
 # AION — first public introduction
 
-**Visual:** `content/images/aion-launch-world-01.png`  
+**Visual:** `content/images/aion-launch-world-01.png`
 **Rule:** The visual remains completely text-free: no title, logo, watermark,
 subtitle, or caption is placed on the image/video frame.
 
