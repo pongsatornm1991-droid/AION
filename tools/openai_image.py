@@ -1,8 +1,8 @@
 """Optional OpenAI image-generation adapter for AION social visuals.
 
-The adapter is deliberately opt-in.  If an API key is absent or OpenAI
-returns an error, callers keep the deterministic branded-card fallback so an
-image-provider outage can never stop AION's publishing loop.
+The adapter is deliberately opt-in. If an API key is absent or OpenAI returns
+an error, callers must stop the visual publishing cycle rather than recycling
+an old image. AION's visual posts are only allowed to use newly generated art.
 """
 
 import base64
@@ -54,9 +54,8 @@ def build_social_image_prompt(caption):
 def generate_social_image(caption, out_path):
     """Generate one PNG at *out_path*, returning True when OpenAI supplied it.
 
-    Returns False when generation is disabled or unsuccessful.  Errors are
-    intentionally swallowed here because the caller's safe fallback is a
-    local branded card; scheduled social publishing must remain resilient.
+    Returns False when generation is disabled or unsuccessful. Errors are
+    intentionally contained so the caller can safely skip that posting cycle.
     """
     config = _get_config()
     if config is None:

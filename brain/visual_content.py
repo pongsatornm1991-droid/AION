@@ -10,8 +10,8 @@ Phase 12's propose/draft-then-approve/publish split:
    SocialContentGenerator's existing seed-pick + claim-safety +
    robotic-style gates verbatim, so a caption goes through exactly
    the same scrutiny as a Facebook post; no new drafting logic to
-   duplicate or accidentally under-gate), then render it as a PNG
-   card via tools/image_render.py, save it under content/images/ in
+   duplicate or accidentally under-gate), then ask the configured
+   image model for a new, original PNG, save it under content/images/ in
    THIS repo (the public code repo, not the private memory_data
    repo), and record a "pending_visual_content" memory entry
    describing what was drawn and where. No Instagram API call
@@ -70,15 +70,18 @@ class VisualContentCycle:
 
     def draft_once(self, seed=None, rng=None, repo_root=None):
         """Draft a caption (via the same gates SocialContentGenerator
-        uses for Facebook posts) and, if it passes, render it into a
-        PNG card under content/images/ in this repo. Returns a report
+        uses for Facebook posts) and, if it passes, generate a fresh,
+        original PNG under content/images/ in this repo. Returns a report
         dict with a "stage" key, matching every other cycle's
         run_once() convention in this codebase:
 
         - "no-seed" / "safety-gate" / "style-gate" / "draft-failed":
           no image was produced, same meaning as SocialAutoCycle's
           identically-named stages.
-        - "drafted": an image was produced and a pending record was
+        - "image-generation-unavailable": no image was produced. This is
+          deliberately a safe stop: AION must never substitute a previously
+          used library image just to keep a posting schedule.
+        - "drafted": a fresh image was produced and a pending record was
           saved; report["image_path"] is repo-relative (safe to git
           add), report["caption"] is the text drawn on it.
         """
@@ -144,15 +147,27 @@ class VisualContentCycle:
             repo_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
         absolute_path = os.path.join(repo_root, relative_path)
 
-        # OpenAI image generation is opt-in and may fail transiently.  The
-        # deterministic fallback keeps every scheduled run publishable
-        # without spending a retry or losing AION's visual identity.  It must
-        # remain visual-only: captions are platform metadata, never artwork.
+        # AION's visual-first promise is "new art for each post", not a
+        # recycled stock/library fallback. If image generation is unavailable,
+        # stop this draft before it creates a publishable pending record.
+        os.makedirs(os.path.dirname(absolute_path), exist_ok=True)
         from tools.openai_image import generate_social_image
-        generated_by = "openai" if generate_social_image(caption, absolute_path) else "library-visual"
-        if generated_by == "library-visual":
-            from tools.image_render import render_visual_only
-            render_visual_only(caption, absolute_path)
+        if not generate_social_image(caption, absolute_path):
+            # A failed provider must not leave an empty/corrupt candidate in
+            # the public image directory.
+            if os.path.exists(absolute_path):
+                os.remove(absolute_path)
+            return {
+                "stage": "image-generation-unavailable",
+                "seed": draft_report.get("seed"),
+                "caption": caption,
+                "image_path": None,
+                "reason": (
+                    "No new AI image was generated, so this cycle will not "
+                    "reuse a library or previous image."
+                ),
+            }
+        generated_by = "openai"
 
         from brain.hashtags import append_hashtags
 
@@ -272,6 +287,27 @@ class VisualContentCycle:
                 importance=2,
             )
             return {"stage": "no-pending", "caption": None, "image_path": None}
+
+        # Versions before the visual-first policy could queue a recycled
+        # library image. Retire those records rather than unexpectedly posting
+        # an old visual after this policy has been enabled.
+        if payload.get("image_provider") == "library-visual":
+            self.memory.move(
+                PENDING_CATEGORY,
+                "skipped_visual_content",
+                pending["id"],
+            )
+            self.memory.remember(
+                category="lessons",
+                content=(
+                    "Skipped a queued recycled library visual: AION now "
+                    "publishes only newly generated artwork."
+                ),
+                memory_type="lesson",
+                source="visual-content-freshness-policy",
+                importance=3,
+            )
+            return {"stage": "stale-visual-skipped", "caption": None, "image_path": None}
 
         image_path = payload.get("image_path")
         caption = payload.get("caption", "")

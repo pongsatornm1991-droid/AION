@@ -16,6 +16,9 @@ import os
 import shutil
 import tempfile
 import unittest
+from unittest.mock import patch
+
+from PIL import Image
 
 from brain.visual_content import (
     PENDING_CATEGORY,
@@ -89,10 +92,22 @@ class BaseVisualContentTest(unittest.TestCase):
         self.tmpdir = tempfile.mkdtemp()
         self.memory = MemoryEngine(root=self.tmpdir)
         self.repo_root = tempfile.mkdtemp()
+        self.image_generation = patch(
+            "tools.openai_image.generate_social_image",
+            side_effect=self._generate_fresh_test_image,
+        )
+        self.image_generation.start()
 
     def tearDown(self):
+        self.image_generation.stop()
         shutil.rmtree(self.tmpdir, ignore_errors=True)
         shutil.rmtree(self.repo_root, ignore_errors=True)
+
+    @staticmethod
+    def _generate_fresh_test_image(caption, out_path):
+        os.makedirs(os.path.dirname(out_path), exist_ok=True)
+        Image.new("RGB", (16, 16), (15, 35, 55)).save(out_path, "PNG")
+        return True
 
     def _lifecycle(self, publish_func=None, fb_publish_func=None, level=ActionLevel.HIGH_RISK):
         self.published = []
@@ -143,8 +158,21 @@ class DraftOnceTests(BaseVisualContentTest):
         payload = json.loads(pending[0]["content"])
         self.assertEqual(payload["image_path"], report["image_path"])
         self.assertEqual(payload["caption"], report["caption"])
-        self.assertEqual(report["image_provider"], "library-visual")
-        self.assertEqual(payload["image_provider"], "library-visual")
+        self.assertEqual(report["image_provider"], "openai")
+        self.assertEqual(payload["image_provider"], "openai")
+
+    def test_generation_failure_does_not_queue_or_substitute_an_old_visual(self):
+        generator = StubSocialGenerator(SAFE_REPORT)
+        cycle = VisualContentCycle(self.memory, generator, self._lifecycle())
+
+        with patch("tools.openai_image.generate_social_image", return_value=False):
+            report = cycle.draft_once(repo_root=self.repo_root)
+
+        self.assertEqual(report["stage"], "image-generation-unavailable")
+        self.assertIsNone(report["image_path"])
+        self.assertEqual(self.memory.all(PENDING_CATEGORY), [])
+        image_dir = os.path.join(self.repo_root, "content", "images")
+        self.assertEqual(os.listdir(image_dir), [])
 
     def test_no_seed_is_a_safe_no_op(self):
         generator = StubSocialGenerator(NO_SEED_REPORT)
@@ -232,6 +260,29 @@ class PublishOnceTests(BaseVisualContentTest):
         report = cycle.publish_once(repo="owner/repo")
 
         self.assertEqual(report["stage"], "no-pending")
+
+    def test_a_queued_library_visual_is_retired_not_published(self):
+        self.memory.remember(
+            category=PENDING_CATEGORY,
+            content=json.dumps({
+                "image_path": "content/images/old-library-image.png",
+                "caption": "old caption",
+                "ig_caption": "old caption #AI",
+                "image_provider": "library-visual",
+            }),
+            memory_type="action",
+            source="aion-visual-draft",
+            importance=3,
+        )
+        cycle = VisualContentCycle(self.memory, None, self._lifecycle())
+
+        report = cycle.publish_once(repo="owner/repo")
+
+        self.assertEqual(report["stage"], "stale-visual-skipped")
+        self.assertEqual(self.published, [])
+        self.assertEqual(self.fb_published, [])
+        self.assertEqual(self.memory.all(PENDING_CATEGORY), [])
+        self.assertEqual(len(self.memory.all("skipped_visual_content")), 1)
 
     def test_a_successful_publish_moves_the_record_and_returns_the_url(self):
         drafted = self._draft_one_pending()

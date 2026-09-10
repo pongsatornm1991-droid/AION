@@ -80,7 +80,7 @@ jobs:
       - name: Verify deterministic safeguards
         run: python run_tests.py
 
-      - name: Draft caption + render image
+      - name: Draft caption + generate a fresh image
         env:
           AION_MEMORY_ROOT: memory_data
           AI_PROVIDER: ${{ vars.AI_PROVIDER || 'gemini' }}
@@ -91,10 +91,9 @@ jobs:
           OPENAI_COMPATIBLE_BASE_URL: ${{ vars.OPENAI_COMPATIBLE_BASE_URL }}
           OPENAI_COMPATIBLE_MODEL: ${{ vars.OPENAI_COMPATIBLE_MODEL }}
           OPENAI_COMPATIBLE_API_KEY: ${{ secrets.OPENAI_COMPATIBLE_API_KEY }}
-          # Visual-first creator policy: try an original AI illustration for
-          # every Instagram post.  If the image key is unavailable or the
-          # provider fails, brain/visual_content.py falls back to a text-free
-          # library visual rather than a caption card.
+          # Visual-first creator policy: every post needs original AI art. If
+          # generation is unavailable, the cycle safely skips that new post;
+          # it never reuses a library image to fill the schedule.
           IMAGE_PROVIDER: ${{ vars.IMAGE_PROVIDER || 'openai' }}
           OPENAI_IMAGE_API_KEY: ${{ secrets.OPENAI_IMAGE_API_KEY }}
           OPENAI_IMAGE_BASE_URL: ${{ vars.OPENAI_IMAGE_BASE_URL }}
