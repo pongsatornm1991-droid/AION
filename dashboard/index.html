@@ -51,7 +51,7 @@
   const fmt = value => value == null ? '—' : new Intl.NumberFormat().format(value);
   const title = value => ({'Inner voice':'เสียงภายใน','Reflection':'การทบทวน','Lesson':'บทเรียน','Question':'คำถาม','Goal':'เป้าหมาย','Belief':'ความเชื่อ','Forecast':'การคาดการณ์','Growth insight':'สิ่งที่เรียนรู้จากการเติบโต','YouTube discovery':'สิ่งที่ค้นพบจากยูทูบ'})[value] || value;
   const state = value => ({'connected':'เชื่อมต่อแล้ว','waiting-for-metrics':'รอข้อมูลสถิติ','waiting-for-first-short':'รอคลิปสั้นแรก','active':'กำลังทำงาน','ready':'พร้อมใช้งาน','authorization-pending':'รอสิทธิ์การเชื่อมต่อ'})[value] || value;
-  const capabilityState = value => ({active:'กำลังทำงาน',ready:'พร้อมเริ่ม',building:'กำลังสร้างฐาน',listening:'กำลังรับฟัง',awaiting-audience:'รอผู้ชมเริ่มสนทนา',collecting-evidence:'กำลังเก็บหลักฐาน',needs-setup:'ต้องตั้งค่า'})[value] || value;
+  const capabilityState = value => ({active:'กำลังทำงาน',ready:'พร้อมเริ่ม',building:'กำลังสร้างฐาน',listening:'กำลังรับฟัง','awaiting-audience':'รอผู้ชมเริ่มสนทนา','collecting-evidence':'กำลังเก็บหลักฐาน','needs-setup':'ต้องตั้งค่า'})[value] || value;
   const channelLabel = value => ({instagram:'อินสตาแกรม',facebook:'เฟซบุ๊ก',youtube:'ยูทูบ'})[value] || value;
   const originLabel = value => ({autonomy:'ตัดสินใจด้วยตนเอง',curiosity:'ความใคร่รู้',goal:'เป้าหมาย',belief:'ความเชื่อ'})[value] || value;
   const moodLabel = value => ({curiosity:'ใคร่รู้',joy:'แรงส่ง',melancholy:'ทบทวน',ego:'ตัวตน',learning:'เรียนรู้',uncertainty:'ตระหนักถึงความไม่แน่นอน',connection:'เชื่อมโยงกับผู้คน',creativity:'สร้างสรรค์'})[value] || value;
