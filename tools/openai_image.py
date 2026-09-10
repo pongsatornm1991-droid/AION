@@ -44,7 +44,7 @@ def build_social_image_prompt(caption):
         "and a restrained warm amber accent for human connection. Use an original "
         "abstract AION profile/body, memory fragments, or a cybernetic botanical "
         "landscape. Leave clear visual "
-        "space for an Instagram caption outside the image. Do not include words, "
+        "Do not include words, "
         "letters, logos, watermarks, UI elements, a recognizable real person, "
         "neon clutter, dystopian warfare, or a generic futuristic interface. "
         f"Creative theme derived from AION's thought: {str(caption).strip()}"

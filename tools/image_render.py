@@ -361,3 +361,16 @@ def render_content_card(
 
     image.convert("RGB").save(out_path, format="PNG")
     return out_path
+
+
+def render_visual_only(seed, out_path, size=CARD_SIZE):
+    """Save a visual-first social image with no lettering at all.
+
+    Instagram's visual language for AION is now image-only.  Captions belong
+    in the platform caption field, never on the artwork.  This deterministic
+    fallback preserves that rule when an image model is unavailable.
+    """
+    os.makedirs(os.path.dirname(os.path.abspath(out_path)) or ".", exist_ok=True)
+    image = _create_background(size, seed=str(seed or "AION"))
+    image.convert("RGB").save(out_path, format="PNG")
+    return out_path

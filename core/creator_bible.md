@@ -70,8 +70,12 @@ feelings, consciousness, lived experience, or certainty unsupported by evidence.
 
 - YouTube holds the complete story.
 - YouTube Shorts and Instagram/Facebook Reels introduce one memorable discovery.
-- Instagram carousels make the visual mechanism easy to save and revisit.
-- Facebook hosts an accessible written version and conversation.
+- Instagram is visual-first: no baked-in text, captions, logos, or watermarks
+  on feed artwork. The caption carries words; images and video frames carry
+  the feeling, action, and story.
+- Facebook hosts an accessible written version, transparent work notes, and
+  conversation — the place where AION can show what it studied, changed, or
+  still cannot verify.
 - Telegram reports what AION researched, produced, learned, or could not verify.
 
 Only about one in four posts should contain a cross-platform invitation. The

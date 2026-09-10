@@ -145,22 +145,20 @@ class VisualContentCycle:
         absolute_path = os.path.join(repo_root, relative_path)
 
         # OpenAI image generation is opt-in and may fail transiently.  The
-        # deterministic branded card keeps every scheduled run publishable
-        # without spending a retry or losing AION's visual identity.
+        # deterministic fallback keeps every scheduled run publishable
+        # without spending a retry or losing AION's visual identity.  It must
+        # remain visual-only: captions are platform metadata, never artwork.
         from tools.openai_image import generate_social_image
-        generated_by = "openai" if generate_social_image(caption, absolute_path) else "branded-card"
-        if generated_by == "branded-card":
-            from tools.image_render import render_content_card
-            render_content_card(caption, absolute_path)
+        generated_by = "openai" if generate_social_image(caption, absolute_path) else "library-visual"
+        if generated_by == "library-visual":
+            from tools.image_render import render_visual_only
+            render_visual_only(caption, absolute_path)
 
         from brain.hashtags import append_hashtags
 
-        # "caption" (rendered onto the image card, and shown in
-        # reports/Telegram notifications) is kept hashtag-free on
-        # purpose -- a hashtag block drawn onto the card itself would
-        # clutter the visual design. "ig_caption" is the separate,
-        # hashtag-appended text actually sent to the Instagram Graph
-        # API as the post's real caption (see publish_once() below).
+        # The artwork stays text-free. "ig_caption" is the separate,
+        # hashtag-appended text actually sent to the Instagram Graph API as
+        # the post's real caption (see publish_once() below).
         from brain.cross_platform import append_invitation
         ig_caption = append_hashtags(append_invitation(caption, "instagram", self.memory))
 

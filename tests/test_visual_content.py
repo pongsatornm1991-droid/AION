@@ -143,8 +143,8 @@ class DraftOnceTests(BaseVisualContentTest):
         payload = json.loads(pending[0]["content"])
         self.assertEqual(payload["image_path"], report["image_path"])
         self.assertEqual(payload["caption"], report["caption"])
-        self.assertEqual(report["image_provider"], "branded-card")
-        self.assertEqual(payload["image_provider"], "branded-card")
+        self.assertEqual(report["image_provider"], "library-visual")
+        self.assertEqual(payload["image_provider"], "library-visual")
 
     def test_no_seed_is_a_safe_no_op(self):
         generator = StubSocialGenerator(NO_SEED_REPORT)
