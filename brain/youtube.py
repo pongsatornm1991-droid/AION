@@ -56,10 +56,10 @@ class YouTubeShortsCycle:
         if not quality["eligible"]:
             return {"stage": "quality-review-required", "entry_id": entry.get("id"), **quality}
         from brain.cross_platform import append_invitation
+        routed_youtube = (payload.get("platform_captions") or {}).get("youtube") or caption
         description = "\n\n".join(
             part for part in (
-                append_invitation(caption, "youtube", self.memory),
-                f"Viewer value: {quality['viewer_value']}",
+                append_invitation(routed_youtube, "youtube", self.memory),
                 "Original illustrated AION story. AI disclosure reviewed before publication.",
                 "#Shorts #AION #AI",
             ) if part

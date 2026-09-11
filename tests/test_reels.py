@@ -13,9 +13,11 @@ from tools.reel_render import render_reel
 class _Lifecycle:
     def __init__(self):
         self.params = None
+        self.all_params = []
 
     def propose(self, _tool, params, source):
         self.params = params
+        self.all_params.append(params)
         return {"id": "proposal"}
 
     def auto_approve(self, _id, policy):
@@ -95,7 +97,8 @@ class ReelCycleTests(unittest.TestCase):
             self.assertEqual(report["stage"], "published")
             self.assertEqual(memory.all("pending_reels"), [])
             self.assertEqual(len(memory.all("published_reels")), 1)
-            self.assertIn("#ArtificialIntelligence", lifecycle.params["caption"])
+            self.assertIn("#ArtificialIntelligence", lifecycle.all_params[0]["caption"])
+            self.assertEqual("A thought", lifecycle.all_params[1]["caption"])
             self.assertEqual(len(memory.all("social_language_log")), 2)
 
     def test_old_pending_reel_is_redesigned_without_asking_for_a_new_thought(self):

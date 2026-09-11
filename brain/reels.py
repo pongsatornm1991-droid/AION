@@ -71,6 +71,12 @@ class ReelContentCycle:
             f"grounded in {source}, and an honest note about what remains uncertain."
         )
 
+    @classmethod
+    def _platform_captions(cls, caption, seed):
+        from brain.content_router import ContentRouter
+        value = cls._viewer_value(seed)
+        return ContentRouter().route(caption, value), value
+
     def _used_library_assets(self):
         """Return curated video ids already queued or published.
 
@@ -152,12 +158,13 @@ class ReelContentCycle:
         creator = CreatorContentRegistry(self.memory, path=registry_path, root=creator_root).next_ready() if registry_path.is_file() else None
         if creator is not None:
             caption = creator["caption"]
+            routes, viewer_value = self._platform_captions(caption, {"kind": "creator-library"})
             record = self.memory.remember(
                 category=self.PENDING,
                 content=json.dumps({"video_path": creator["video_path"], "caption": caption,
                     "ig_caption": append_hashtags(append_invitation(caption, "instagram", self.memory)), "language": "en",
                     "seed": {"kind": "creator-library", "text": creator["title"]},
-                    "viewer_value": self._viewer_value({"kind": "creator-library"}),
+                    "viewer_value": viewer_value, "platform_captions": routes,
                     "library_asset": creator["id"], "source_url": creator.get("source_url"),
                     "visual_style": self.VISUAL_STYLE}, ensure_ascii=False),
                 memory_type="action", source="aion-creator-library", importance=3,
@@ -212,12 +219,13 @@ class ReelContentCycle:
         from brain.hashtags import append_hashtags
         from brain.cross_platform import append_invitation
         ig_caption = append_hashtags(append_invitation(report["draft"], "instagram", self.memory))
+        routes, viewer_value = self._platform_captions(report["draft"], report.get("seed"))
         record = self.memory.remember(
             category=self.PENDING,
             content=json.dumps({"video_path": relative, "caption": report["draft"],
                                 "ig_caption": ig_caption,
                                 "language": report.get("language", "en"), "seed": report.get("seed"),
-                                "viewer_value": self._viewer_value(report.get("seed")),
+                                "viewer_value": viewer_value, "platform_captions": routes,
                                 "library_asset": library_video["id"] if library_video else None,
                                 "visual_mood": mood if not library_video else None,
                                 "visual_style": self.VISUAL_STYLE},
@@ -261,7 +269,10 @@ class ReelContentCycle:
             if actions.get(platform):
                 continue
             try:
-                proposed = self.lifecycle.propose(tool_name, params={"video_url": url, "caption": publish_caption}, source="aion")
+                platform_caption = publish_caption if platform == "instagram" else (
+                    (payload.get("platform_captions") or {}).get("facebook") or caption
+                )
+                proposed = self.lifecycle.propose(tool_name, params={"video_url": url, "caption": platform_caption}, source="aion")
                 approved = self.lifecycle.auto_approve(proposed["id"], policy="social-safety-style-gate")
                 action = self.lifecycle.execute(approved["id"])
             except Exception as exc:
