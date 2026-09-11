@@ -12,6 +12,7 @@ from pathlib import Path
 
 from brain.autonomy_policy import AutonomyPolicy
 from brain.company_operations import CompanyOperations
+from brain.company_work_registry import CompanyWorkRegistry
 
 
 class AionCompany:
@@ -45,6 +46,7 @@ class AionCompany:
                 "protected": policy.data.get("chair_approval_required", []),
             },
             "operations": operations,
+            "work_registry": CompanyWorkRegistry(self.root).snapshot(),
             "boundary": "AION และทีมเผยแพร่ผลงานสาธารณะที่ผ่าน Quality Gate ได้เอง แต่ห้ามเปลี่ยนสิทธิ์หรือข้อมูลรับรอง ใช้/รับเงิน ทำสัญญา หรือแก้กฎความปลอดภัยเอง",
             "departments": [
                 {"id": "research", "name": "ฝ่ายวิจัย", "lead": "Research Agent", "room": "ห้องค้นคว้า",
