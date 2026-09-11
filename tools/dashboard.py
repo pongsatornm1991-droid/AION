@@ -310,6 +310,20 @@ def _state_council(totals, reels):
     return state_council(totals, reels)
 
 
+def _creator_references():
+    path = ROOT / "assets" / "creator-reference-videos.json"
+    try:
+        payload = json.loads(path.read_text(encoding="utf-8"))
+        references = payload.get("references") or []
+        return {
+            "count": len(references),
+            "protocol": payload.get("analysis_protocol") or [],
+            "references": references,
+        }
+    except (OSError, ValueError, TypeError):
+        return {"count": 0, "protocol": [], "references": []}
+
+
 def build_snapshot(memory_root=None):
     """Build the dashboard data without a network call or write operation."""
     configured_root = memory_root or os.getenv("AION_DASHBOARD_MEMORY_ROOT") or os.getenv("AION_MEMORY_ROOT", "memory")
@@ -384,6 +398,7 @@ def build_snapshot(memory_root=None):
         "content": reels,
         "creator_library": creator_library,
         "creator_program": creator_program,
+        "creator_references": _creator_references(),
         "creator_autonomy": creator_autonomy,
         "research_to_story": research_to_story,
         "capabilities": capabilities,

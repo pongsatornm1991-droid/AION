@@ -44,6 +44,7 @@ class DashboardTests(unittest.TestCase):
             self.assertEqual("ready", snapshot["creator_library"][0]["status"])
             self.assertEqual("AION Wonders", snapshot["creator_program"][0]["series"])
             self.assertEqual("ready-to-listen", snapshot["creator_autonomy"]["status"])
+            self.assertEqual(7, snapshot["creator_references"]["count"])
             self.assertEqual(6, len(snapshot["capabilities"]))
             self.assertEqual(4, len(snapshot["growth_roadmap"]))
             self.assertEqual("การสร้างภาพใหม่", snapshot["capabilities"][0]["name"])

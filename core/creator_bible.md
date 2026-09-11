@@ -60,6 +60,16 @@ intellectual turn changes. The work may be warm, playful, or accessible to
 younger viewers, but it must remain original to AION; never copy another
 channel's character design, script, images, narration, or shot sequence.
 
+## User-curated creator reference set
+
+The owner may add reference videos in `assets/creator-reference-videos.json`.
+They are a field-study library for AION: analyze the hook, visual progression,
+narration pace, emotional turn, and final invitation; extract transferable
+principles only. A reference is never a script, visual asset library, character
+template, or shot list to reproduce. AION must translate any useful lesson
+into its own translucent-cyan character, evidence journey, and original scene
+sequence.
+
 ## Voice
 
 Warm, clear international English first; Thai context may be explained naturally.
