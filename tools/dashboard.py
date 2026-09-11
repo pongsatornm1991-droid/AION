@@ -145,7 +145,7 @@ def _development_snapshot(memory):
         "thinking": lane(["self_narrative", "reflections"]),
         "wants_to_learn": lane(["questions", "learning_forecasts"]),
         "doing": lane(["goals", "creative_intentions", "autonomous_inquiries", "autonomic_drive"]),
-        "learned": lane(["lessons", "research_evidence"]),
+        "learned": lane(["lessons", "research_evidence", "creator_reference_studies"]),
         "labels": {
             "proposed_fixes": "AION เสนอปรับปรุง",
             "thinking": "AION กำลังคิด",

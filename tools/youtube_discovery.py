@@ -7,6 +7,7 @@ download captions/transcripts, comments, media, or perform any account action.
 import os
 
 YOUTUBE_SEARCH_URL = "https://www.googleapis.com/youtube/v3/search"
+YOUTUBE_VIDEOS_URL = "https://www.googleapis.com/youtube/v3/videos"
 
 
 def search_youtube_videos(query, limit=3, api_key=None):
@@ -42,3 +43,36 @@ def search_youtube_videos(query, limit=3, api_key=None):
             "description": str(snippet.get("description") or "")[:800],
         })
     return results
+
+
+def get_youtube_video_metadata(video_ids, api_key=None):
+    """Return public metadata for user-provided reference videos only.
+
+    This deliberately excludes captions, comments, downloads, and media. The
+    creator study uses metadata as a lead for craft analysis, never as a source
+    to reproduce a video's protected expression.
+    """
+    video_ids = [str(video_id).strip() for video_id in (video_ids or []) if str(video_id).strip()]
+    if not video_ids:
+        return []
+    api_key = api_key or os.getenv("YOUTUBE_DATA_API_KEY")
+    if not api_key:
+        raise RuntimeError("YOUTUBE_DATA_API_KEY is required for YouTube discovery")
+    import requests
+    response = requests.get(YOUTUBE_VIDEOS_URL, params={
+        "part": "snippet,contentDetails", "id": ",".join(video_ids[:50]), "key": api_key,
+    }, timeout=15)
+    if response.status_code >= 400:
+        raise RuntimeError(f"YouTube metadata error: HTTP {response.status_code}")
+    try:
+        items = response.json().get("items", [])
+    except ValueError as exc:
+        raise RuntimeError("YouTube metadata error: invalid JSON") from exc
+    return [{
+        "video_id": str(item.get("id") or ""),
+        "title": str((item.get("snippet") or {}).get("title") or "")[:240],
+        "channel": str((item.get("snippet") or {}).get("channelTitle") or "")[:160],
+        "description": str((item.get("snippet") or {}).get("description") or "")[:1200],
+        "published_at": (item.get("snippet") or {}).get("publishedAt"),
+        "duration": (item.get("contentDetails") or {}).get("duration"),
+    } for item in items if item.get("id")]
