@@ -2197,6 +2197,9 @@ def run_learning_cycle(args):
         )
 
     return report
+
+
+def _format_self_improvement_telegram_report(report):
     """Turn a SelfImprovementCycle.propose_fix() report dict into a
     short Thai summary -- the Telegram notification body, and also
     what is printed for stages that produce no new proposal."""
@@ -2205,7 +2208,9 @@ def run_learning_cycle(args):
 
     stage = report.get("stage")
 
-    if stage == "no-recurring-pattern":
+    if stage == "provider-unavailable":
+        lines.append("รอบนี้รอระบบผู้ให้บริการโมเดลก่อน แล้วจะลองใหม่ในรอบถัดไป")
+    elif stage == "no-recurring-pattern":
         lines.append("ยังไม่มีรูปแบบข้อผิดพลาดที่เกิดซ้ำมากพอให้วิเคราะห์ตอนนี้")
     elif stage == "no-new-pattern":
         sources = ", ".join(
@@ -2249,7 +2254,16 @@ def run_self_improvement_cycle(args):
     load_dotenv()
 
     memory = Thinker().memory
-    provider = build_provider()
+    try:
+        provider = build_provider()
+    except Exception as exc:
+        # A provider/configuration outage is a retriable dependency state,
+        # not a reason for a scheduled self-improvement cycle to crash.
+        report = {"stage": "provider-unavailable", "error_type": type(exc).__name__}
+        print("\nAION SELF-IMPROVEMENT CYCLE")
+        print(f"Stage: {report['stage']}")
+        _notify_report(report, formatter=_format_self_improvement_telegram_report)
+        return report
     evaluator = OutputEvaluator()
     metacognition = MetacognitionEngine(memory)
 
@@ -2258,7 +2272,10 @@ def run_self_improvement_cycle(args):
         min_claim_safety=args.min_claim_safety,
     )
 
-    report = cycle.propose_fix(min_occurrences=args.min_occurrences)
+    try:
+        report = cycle.propose_fix(min_occurrences=args.min_occurrences)
+    except Exception as exc:
+        report = {"stage": "provider-unavailable", "error_type": type(exc).__name__}
 
     print("\nAION SELF-IMPROVEMENT CYCLE")
     print(f"Stage: {report['stage']}")
