@@ -27,6 +27,7 @@ from brain.research_to_story import ResearchToStory
 from brain.autonomic_drive import AutonomicDrive
 from brain.revenue_brain import RevenueBrain
 from brain.community_campaign import CommunityCampaignRegistry
+from brain.youtube_creator_queue import YouTubeCreatorQueue
 
 
 DASHBOARD_DIR = ROOT / "dashboard"
@@ -369,6 +370,10 @@ def build_snapshot(memory_root=None):
     except (OSError, ValueError, TypeError):
         creator_program = []
     try:
+        youtube_creator_queue = YouTubeCreatorQueue(memory, ROOT).candidates()
+    except (OSError, ValueError, TypeError):
+        youtube_creator_queue = []
+    try:
         creator_autonomy = CreatorAutonomy(memory).snapshot()
     except (OSError, ValueError, TypeError):
         creator_autonomy = {"status": "unavailable", "current": None, "history_count": 0}
@@ -415,6 +420,7 @@ def build_snapshot(memory_root=None):
         "content": reels,
         "creator_library": creator_library,
         "creator_program": creator_program,
+        "youtube_creator_queue": youtube_creator_queue,
         "creator_references": _creator_references(),
         "creator_autonomy": creator_autonomy,
         "research_to_story": research_to_story,

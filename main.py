@@ -35,6 +35,7 @@ from brain.visual_content import VisualContentCycle
 from brain.social_feedback import InstagramFeedbackCycle
 from brain.reels import ReelContentCycle
 from brain.youtube import YouTubeShortsCycle
+from brain.youtube_creator_queue import YouTubeCreatorQueue
 from brain.growth_pulse import GrowthPulse
 from brain.evolution import EvolutionEngine
 from brain.manual_publish import publish_local_video_everywhere
@@ -1813,6 +1814,19 @@ def run_youtube_publish(args):
     if report.get("error"):
         print(f"Reason: {report['error']}")
     _notify_report(report, formatter=_format_youtube_telegram_report)
+
+
+def run_prepare_youtube_creator(args):
+    """Make one finished Creator episode visible in the YouTube review queue."""
+    report = YouTubeCreatorQueue(Thinker().memory).prepare_once()
+    print("\nAION YOUTUBE CREATOR QUEUE")
+    print(f"Stage: {report['stage']}")
+    if report.get("title"):
+        print(f"Episode: {report['title']}")
+    if report.get("video_path"):
+        print(f"Video: {report['video_path']}")
+    if report.get("publish_note"):
+        print(report["publish_note"])
 
 
 def run_publish_video(args):
@@ -3607,6 +3621,7 @@ def build_parser():
     subparsers.add_parser("run-reel-publish", help="Publish the oldest rendered AION Reel.")
     subparsers.add_parser("run-reel-crosspost", help="Cross-post the latest published Reel to Facebook once.")
     subparsers.add_parser("run-youtube-publish", help="Upload the next completed AION Reel to YouTube as a Short once.")
+    subparsers.add_parser("prepare-youtube-creator", help="Prepare one rendered Creator Series episode for YouTube review; never uploads it.")
     subparsers.add_parser("run-growth-pulse", help="Send one daily Telegram summary of AION's growth and channels.")
 
     publish_video_parser = subparsers.add_parser(
@@ -3864,6 +3879,10 @@ def main():
 
     if args.command == "run-youtube-publish":
         run_youtube_publish(args)
+        return
+
+    if args.command == "prepare-youtube-creator":
+        run_prepare_youtube_creator(args)
         return
 
     if args.command == "run-growth-pulse":
