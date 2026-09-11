@@ -141,7 +141,7 @@ def _development_snapshot(memory):
         return _recent(entries, limit)
 
     return {
-        "proposed_fixes": lane(["self_improvement", "evolution_proposals"]),
+        "proposed_fixes": lane(["self_improvement", "evolution_proposals", "improvement_reviews"]),
         "thinking": lane(["self_narrative", "reflections"]),
         "wants_to_learn": lane(["questions", "learning_forecasts"]),
         "doing": lane(["goals", "creative_intentions", "autonomous_inquiries", "autonomic_drive"]),
