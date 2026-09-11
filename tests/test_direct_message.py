@@ -2,6 +2,7 @@ import os
 import shutil
 import tempfile
 import unittest
+from datetime import datetime, timezone
 from unittest import mock
 
 from brain.comment_reply import CommentReplyGenerator
@@ -41,7 +42,8 @@ class DirectMessageTests(unittest.TestCase):
                 "from_id": "u1", "created_time": "2026-09-08T01:00:00+0000"}
         with mock.patch.dict(os.environ, {"AION_MESSAGING_ENABLED": "true"}):
             cycle = self.cycle()
-            self.assertTrue(cycle.run_once([item])["handled"])
+            now = datetime(2026, 9, 8, 1, 1, tzinfo=timezone.utc)
+            self.assertTrue(cycle.run_once([item], now=now)["handled"])
             self.assertEqual(cycle.run_once([item])["stage"], "no-messages")
 
     def test_reports_the_missing_facebook_permission_clearly(self):
@@ -50,3 +52,22 @@ class DirectMessageTests(unittest.TestCase):
         )
         self.assertEqual(report["stage"], "permission-required")
         self.assertEqual(report["permission"], "pages_messaging")
+
+    def test_never_answers_an_expired_message(self):
+        item = {"id": "old", "message": "hello", "recipient_id": "u1",
+                "from_id": "u1", "created_time": "2026-09-08T01:00:00+00:00"}
+        with mock.patch.dict(os.environ, {"AION_MESSAGING_ENABLED": "true"}):
+            report = self.cycle().run_once(
+                [item], now=datetime(2026, 9, 10, 1, 1, tzinfo=timezone.utc),
+            )
+        self.assertEqual("response-window-expired", report["stage"])
+        self.assertEqual([], self.memory.all("direct_message_replies"))
+
+    def test_answers_a_message_inside_the_response_window(self):
+        item = {"id": "fresh", "message": "hello", "recipient_id": "u1",
+                "from_id": "u1", "created_time": "2026-09-10T00:30:00+00:00"}
+        with mock.patch.dict(os.environ, {"AION_MESSAGING_ENABLED": "true"}):
+            report = self.cycle().run_once(
+                [item], now=datetime(2026, 9, 10, 1, 1, tzinfo=timezone.utc),
+            )
+        self.assertTrue(report["handled"])

@@ -1,10 +1,15 @@
 """Safety-gated, durable direct-message reply cycle for Meta inboxes."""
 
 import os
+from datetime import datetime, timedelta, timezone
 
 
 class DirectMessageCycle:
     CATEGORY = "direct_message_replies"
+    # Meta's standard response window is time-bound.  Treat a missing or
+    # malformed timestamp as ineligible rather than guessing and risking an
+    # unauthorized outbound message.
+    RESPONSE_WINDOW = timedelta(hours=24)
 
     def __init__(self, memory, generator, lifecycle, tool_name, platform):
         self.memory = memory
@@ -48,7 +53,25 @@ class DirectMessageCycle:
             }
         return None
 
-    def run_once(self, messages=None):
+    @classmethod
+    def _within_response_window(cls, item, now=None):
+        """Return true only for an incoming message safely inside 24 hours."""
+        created = str(item.get("created_time") or "").strip()
+        if not created:
+            return False
+        try:
+            timestamp = datetime.fromisoformat(created.replace("Z", "+00:00"))
+        except ValueError:
+            return False
+        if timestamp.tzinfo is None:
+            return False
+        now = now or datetime.now(timezone.utc)
+        if now.tzinfo is None:
+            now = now.replace(tzinfo=timezone.utc)
+        age = now.astimezone(timezone.utc) - timestamp.astimezone(timezone.utc)
+        return timedelta(0) <= age <= cls.RESPONSE_WINDOW
+
+    def run_once(self, messages=None, now=None):
         if os.getenv("AION_MESSAGING_ENABLED", "false").lower() not in ("1", "true", "yes"):
             return {"handled": False, "stage": "permission-pending", "platform": self.platform}
         try:
@@ -61,9 +84,22 @@ class DirectMessageCycle:
                 return permission
             return {"handled": False, "stage": "fetch-failed", "error": str(exc)}
         seen = self._seen()
-        candidates = [m for m in messages if m.get("id") not in seen and (m.get("message") or "").strip()]
+        candidates = [
+            m for m in messages
+            if m.get("id") not in seen
+            and (m.get("message") or "").strip()
+            and self._within_response_window(m, now=now)
+        ]
         if not candidates:
-            return {"handled": False, "stage": "no-messages", "platform": self.platform}
+            has_unseen = any(
+                m.get("id") not in seen and (m.get("message") or "").strip()
+                for m in messages
+            )
+            return {
+                "handled": False,
+                "stage": "response-window-expired" if has_unseen else "no-messages",
+                "platform": self.platform,
+            }
         item = sorted(candidates, key=lambda x: x.get("created_time") or "")[0]
         item = {**item, "platform": self.platform}
         try:
