@@ -12,6 +12,9 @@ import uuid
 class ImprovementReview:
     CATEGORY = "improvement_reviews"
     PROPOSAL_CATEGORIES = ("self_improvement", "evolution_proposals")
+    # The owner has authorized bounded internal experiments to proceed without
+    # a button.  This does not authorize source changes or external actions.
+    AUTONOMOUS_INTERNAL_EXPERIMENTS = True
 
     def __init__(self, memory):
         self.memory = memory
@@ -39,15 +42,16 @@ class ImprovementReview:
         _, category, proposal = max(candidates)
         review = {
             "review_id": uuid.uuid4().hex[:12], "proposal_id": proposal["id"],
-            "proposal_category": category, "status": "awaiting-owner",
+            "proposal_category": category,
+            "status": "approved-for-experiment" if self.AUTONOMOUS_INTERNAL_EXPERIMENTS else "awaiting-owner",
             "proposal": str(proposal.get("content") or "")[:1800],
             "boundary": "Approval authorizes a bounded experiment only; it cannot change code, secrets, permissions, spending, or publish content.",
         }
         saved = self.memory.remember(self.CATEGORY, json.dumps(review, ensure_ascii=False, sort_keys=True),
                                      memory_type="decision", source="aion-improvement-review", importance=4,
-                                     tags=["improvement-review", "awaiting-owner"], related=[proposal["id"]])
+                                     tags=["improvement-review", review["status"]], related=[proposal["id"]])
         review["memory_id"] = saved.get("id")
-        return {"stage": "awaiting-owner", "review": review}
+        return {"stage": review["status"], "review": review}
 
     def decide(self, review_id, approved, actor="owner"):
         review = next((item for item in self._reviews() if item["review_id"] == review_id), None)
@@ -62,6 +66,21 @@ class ImprovementReview:
         return {"stage": updated["status"], "review": updated}
 
     def send_pending_once(self):
+        """Start an internal experiment and leave its Thai report for the dashboard.
+
+        Kept under the old method name so existing workflows remain compatible.
+        There is deliberately no Telegram approval button in the autonomous
+        policy: the record is still auditable, but no external change occurs.
+        """
+        queued = self.queue_once()
+        if queued["stage"] != "approved-for-experiment":
+            return queued
+        from brain.experiment_runner import ExperimentRunner
+        plan = ExperimentRunner(self.memory).queue_once()
+        return {"stage": "experiment-queued", "review": queued["review"], "plan": plan}
+
+    def send_legacy_pending_once(self):
+        """Legacy explicit-button path retained only for a policy rollback."""
         queued = self.queue_once()
         if queued["stage"] != "awaiting-owner":
             return queued

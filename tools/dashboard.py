@@ -258,6 +258,31 @@ def _autonomy_snapshot(memory, creator_autonomy):
     }
 
 
+def _autonomous_improvement_activity(memory):
+    """Summarize AION's self-directed internal experiments in Thai."""
+    activities = []
+    for entry in _entries(memory, "improvement_reviews"):
+        payload = _safe_json(entry.get("content"))
+        if not isinstance(payload, dict) or payload.get("status") != "approved-for-experiment":
+            continue
+        proposal = _short(payload.get("proposal"), 220)
+        activities.append({
+            "timestamp": entry.get("timestamp"), "kind": "เริ่มการทดลองพัฒนา",
+            "detail": proposal or "AION เริ่มการทดลองแบบจำกัดขอบเขต",
+            "boundary": "ไม่แก้โค้ด ไม่แตะสิทธิ์/รหัสลับ/เงิน และไม่เผยแพร่สาธารณะ",
+        })
+    for entry in _entries(memory, "content_experiment_plans"):
+        payload = _safe_json(entry.get("content"))
+        if not isinstance(payload, dict):
+            continue
+        activities.append({
+            "timestamp": entry.get("timestamp"), "kind": "แผนที่กำลังดำเนินการ",
+            "detail": f"ทดลองกับผลงาน {payload.get('sample_size', 4)} ชิ้น แล้วประเมินจากผลตอบรับจริง ไม่ตัดสินจากโพสต์เดียว",
+            "boundary": payload.get("stop_rule") or "หยุดทันทีเมื่อความปลอดภัยหรือคุณภาพลดลง",
+        })
+    return _recent(activities, 6)
+
+
 def _revenue_snapshot(memory):
     """Expose revenue readiness without presenting a plan as earned money."""
     try:
@@ -344,7 +369,13 @@ def _creator_references():
 
 def build_snapshot(memory_root=None):
     """Build the dashboard data without a network call or write operation."""
-    configured_root = memory_root or os.getenv("AION_DASHBOARD_MEMORY_ROOT") or os.getenv("AION_MEMORY_ROOT", "memory")
+    synced_memory = ROOT / "aion-memory-data-sync"
+    configured_root = (
+        memory_root
+        or os.getenv("AION_DASHBOARD_MEMORY_ROOT")
+        or os.getenv("AION_MEMORY_ROOT")
+        or (str(synced_memory) if (synced_memory / ".git").is_dir() else "memory")
+    )
     memory = MemoryEngine(configured_root)
     reels = _reel_summary(memory)
     instagram = _instagram_snapshot(memory)
@@ -388,7 +419,7 @@ def build_snapshot(memory_root=None):
     return {
         "generated_at": datetime.now().isoformat(timespec="seconds"),
         "data_source": {
-            "mode": "configured" if os.getenv("AION_DASHBOARD_MEMORY_ROOT") else "local-default",
+            "mode": "configured" if (os.getenv("AION_DASHBOARD_MEMORY_ROOT") or (synced_memory / ".git").is_dir()) else "local-default",
             "latest_memory_at": latest_memory.get("timestamp"),
         },
         "platforms": {
@@ -427,6 +458,7 @@ def build_snapshot(memory_root=None):
         "capabilities": capabilities,
         "growth_roadmap": _growth_roadmap(capabilities),
         "autonomy": _autonomy_snapshot(memory, creator_autonomy),
+        "autonomous_improvements": _autonomous_improvement_activity(memory),
         "autonomic_drive": autonomic_drive,
         "revenue": _revenue_snapshot(memory),
         "community_campaigns": _community_campaign_snapshot(),

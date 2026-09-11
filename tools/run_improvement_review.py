@@ -1,4 +1,4 @@
-"""Queue one new AION improvement proposal for the owner's Telegram review."""
+"""Turn one new AION improvement proposal into a bounded internal experiment."""
 import json
 import os
 import sys

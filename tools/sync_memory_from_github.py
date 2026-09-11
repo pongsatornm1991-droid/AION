@@ -83,7 +83,9 @@ def sync_once(token):
     a background loop meant to keep running through a transient
     network hiccup)."""
 
-    remote_url = f"https://{token}@github.com/{REPO}.git"
+    # A configured fine-grained token is preferred.  When it is absent, Git's
+    # credential manager can still authenticate this already-linked computer.
+    remote_url = f"https://{token}@github.com/{REPO}.git" if token else f"https://github.com/{REPO}.git"
 
     if not (CLONE_DIR / ".git").exists():
         print(f"[{_timestamp()}] Cloning {REPO} for the first time...")
@@ -103,17 +105,9 @@ def sync_once(token):
 
 def main():
     token = _load_token()
-    if not token:
-        print(
-            "MEMORY_REPO_PAT not found.\n"
-            "Copy tools/.env.memory_sync.example to .env.memory_sync "
-            "(project root) and paste in your token, or set the "
-            "MEMORY_REPO_PAT environment variable yourself."
-        )
-        sys.exit(1)
-
     interval = int(os.getenv("MEMORY_SYNC_INTERVAL_SECONDS", DEFAULT_INTERVAL_SECONDS))
-    print(f"AION memory sync loop started (every {interval}s). Ctrl+C to stop.")
+    access = "MEMORY_REPO_PAT" if token else "GitHub credentials on this computer"
+    print(f"AION memory sync loop started (every {interval}s; access: {access}). Ctrl+C to stop.")
 
     while True:
         sync_once(token)

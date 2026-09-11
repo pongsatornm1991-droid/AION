@@ -1,4 +1,4 @@
-name: AION - improvement proposal review
+name: AION - autonomous internal improvement cycle
 on:
   schedule:
     - cron: "10 */6 * * *"
@@ -9,7 +9,7 @@ concurrency:
 permissions:
   contents: read
 jobs:
-  notify-owner:
+  start-bounded-experiment:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -23,8 +23,6 @@ jobs:
       - run: pip install -r requirements.txt
       - env:
           AION_MEMORY_ROOT: memory_data
-          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
-          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
         run: python tools/run_improvement_review.py
       - working-directory: memory_data
         run: |
