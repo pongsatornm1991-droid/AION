@@ -8,7 +8,11 @@ from brain.memory import MemoryEngine
 
 
 class Provider:
+    def __init__(self):
+        self.calls = 0
+
     def generate(self, prompt):
+        self.calls += 1
         return "1. Open with one visual question.\n2. Change the scene with each idea.\n3. End with an original AION reflection."
 
 
@@ -37,9 +41,15 @@ class CreatorReferenceStudyTests(unittest.TestCase):
                 {"id": "one", "url": "https://www.youtube.com/watch?v=one"},
                 {"id": "two", "url": "https://www.youtube.com/watch?v=two"},
             ]}), encoding="utf-8")
-            metadata = lambda ids: [{"video_id": video_id, "title": video_id} for video_id in ids]
+            calls = []
+            def metadata(ids):
+                calls.append(ids)
+                return [{"video_id": video_id, "title": video_id} for video_id in ids]
             memory = MemoryEngine(root)
-            report = CreatorReferenceStudy(memory, Provider(), metadata_fn=metadata, reference_path=path).study_all_pending()
+            provider = Provider()
+            report = CreatorReferenceStudy(memory, provider, metadata_fn=metadata, reference_path=path).study_all_pending()
             self.assertEqual("batch-complete", report["stage"])
             self.assertEqual(2, report["studied"])
-            self.assertEqual(2, len(memory.all("creator_reference_studies")))
+            self.assertEqual([["one", "two"]], calls)
+            self.assertEqual(1, provider.calls)
+            self.assertEqual(1, len(memory.all("creator_reference_studies")))

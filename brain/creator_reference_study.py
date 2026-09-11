@@ -31,6 +31,22 @@ class CreatorReferenceStudy:
         except (OSError, ValueError, TypeError):
             return []
 
+    def _studied_reference_ids(self):
+        """Return ids represented by either legacy single or batch studies."""
+        studied = set()
+        for entry in self.memory.all(self.CATEGORY):
+            try:
+                record = json.loads(entry.get("content") or "{}")
+            except (TypeError, ValueError):
+                continue
+            reference = record.get("reference") or {}
+            if reference.get("id"):
+                studied.add(reference["id"])
+            for reference in record.get("references") or []:
+                if reference.get("id"):
+                    studied.add(reference["id"])
+        return studied
+
     def study_once(self):
         references = self._references()
         done = {entry.get("source") for entry in self.memory.all(self.CATEGORY)}
@@ -67,20 +83,82 @@ class CreatorReferenceStudy:
         return {"stage": "studied", "studied": bool(saved.get("saved")), "reference": target.get("id"), "principles": principles}
 
     def study_all_pending(self, limit=7):
-        """Study the complete small user-curated set in one workflow run.
+        """Synthesize all pending references with one metadata and one model call.
 
-        A single reference can still fail independently without hiding results
-        from the others. Already-recorded references are skipped, so rerunning
-        this is inexpensive and never creates duplicate craft lessons.
+        This is intentionally a comparative, metadata-only pass. It avoids a
+        costly model call per link while preserving an auditable record of the
+        references that informed the resulting original AION craft rules.
         """
-        reports = []
-        for _ in range(max(1, int(limit))):
-            report = self.study_once()
-            reports.append(report)
-            if report["stage"] in {"all-studied", "configuration-needed", "metadata-failed", "draft-failed"}:
-                break
-        studied = [report for report in reports if report.get("studied")]
+        limit = max(1, int(limit))
+        studied_ids = self._studied_reference_ids()
+        targets = [item for item in self._references() if item.get("id") not in studied_ids][:limit]
+        if not targets:
+            return {"stage": "all-studied", "studied": 0, "reports": []}
+
+        target_video_ids = []
+        invalid = []
+        for target in targets:
+            video_id = self._video_id(target.get("url"))
+            if video_id:
+                target_video_ids.append((target, video_id))
+            else:
+                invalid.append(target.get("id"))
+        if not target_video_ids:
+            return {"stage": "invalid-reference", "studied": 0, "references": invalid, "reports": []}
+
+        try:
+            metadata = self.metadata_fn([video_id for _, video_id in target_video_ids])
+        except RuntimeError as exc:
+            stage = "configuration-needed" if "YOUTUBE_DATA_API_KEY" in str(exc) else "metadata-failed"
+            return {"stage": stage, "studied": 0, "references": [item.get("id") for item in targets], "error": str(exc), "reports": []}
+
+        metadata_by_id = {item.get("video_id"): item for item in metadata}
+        available = []
+        unavailable = list(invalid)
+        for target, video_id in target_video_ids:
+            item = metadata_by_id.get(video_id)
+            if item:
+                # Keep the model input deliberately compact and predictable.
+                available.append({
+                    "reference": target,
+                    "metadata": {
+                        "title": item.get("title", ""),
+                        "channel": item.get("channel", ""),
+                        "description": str(item.get("description", ""))[:400],
+                        "duration": item.get("duration", ""),
+                    },
+                })
+            else:
+                unavailable.append(target.get("id"))
+        if not available:
+            return {"stage": "metadata-unavailable", "studied": 0, "references": unavailable, "reports": []}
+
+        prompt = "\n".join([
+            "Study this user-curated set of creator references for AION's ORIGINAL work.",
+            "Use only the supplied public metadata. Do not infer unseen scenes, quote, summarize, copy, imitate, or identify individual creators.",
+            "Synthesize exactly five concise, transferable AION production principles. Each must be an original instruction usable across many stories.",
+            "Public metadata set:", json.dumps(available, ensure_ascii=False),
+        ])
+        try:
+            principles = self.provider.generate(prompt).strip()
+        except Exception as exc:
+            return {"stage": "draft-failed", "studied": 0, "references": [item["reference"].get("id") for item in available], "error": str(exc), "reports": []}
+
+        references = [item["reference"] for item in available]
+        source = f"{self.SOURCE_PREFIX}batch:{','.join(item.get('id', '') for item in references)}"
+        record = {
+            "references": references,
+            "metadata": available,
+            "principles": principles,
+            "epistemic_status": "Batch craft notes derived from public metadata only; they are not a reconstruction, summary, or imitation of any reference video.",
+        }
+        saved = self.memory.remember(
+            self.CATEGORY, json.dumps(record, ensure_ascii=False, sort_keys=True),
+            memory_type="lesson", source=source, importance=3,
+            tags=["creator", "craft-study", "originality", "batch"],
+        )
         return {
-            "stage": "batch-complete" if studied else reports[-1]["stage"],
-            "studied": len(studied), "reports": reports,
+            "stage": "batch-complete", "studied": len(references) if saved.get("saved") else 0,
+            "references": [item.get("id") for item in references], "unavailable": unavailable,
+            "principles": principles, "reports": [],
         }
