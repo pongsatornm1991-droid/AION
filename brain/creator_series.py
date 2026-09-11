@@ -7,6 +7,7 @@ ROOT = Path(__file__).resolve().parents[1]
 
 
 class CreatorSeriesRegistry:
+    CREATIVE_DEVICES = {"time-window", "scale-shift", "visual-metaphor", "mystery-reveal", "journey"}
     def __init__(self, root=None):
         self.root = Path(root or ROOT)
         self.directory = self.root / "content" / "creator_series"
@@ -31,6 +32,14 @@ class CreatorSeriesRegistry:
             promise = str(item.get("audience_promise") or "").strip()
             if len(promise) < 20:
                 raise ValueError(f"{item.get('id')} needs a clear audience promise, not a posting-only description.")
+            hook = str(item.get("wonder_hook") or "").strip()
+            if len(hook) < 12:
+                raise ValueError(f"{item.get('id')} needs a concrete wonder hook for the opening beat.")
+            if item.get("creative_device") not in self.CREATIVE_DEVICES:
+                raise ValueError(f"{item.get('id')} needs one declared creative device.")
+            age_layers = item.get("age_layers") or {}
+            if not isinstance(age_layers, dict) or any(not str(age_layers.get(key) or "").strip() for key in ("children", "family", "deeper")):
+                raise ValueError(f"{item.get('id')} needs children, family, and deeper viewing layers.")
             if len(item.get("sources") or []) < 2 or any(not source.get("url") for source in item["sources"]):
                 raise ValueError(f"{item.get('id')} needs at least two traceable sources.")
             if any(not scene.get("narration") or not (scene.get("visual") or scene.get("image")) for scene in scenes):
@@ -63,4 +72,6 @@ class CreatorSeriesRegistry:
             "source_count": len(item["sources"]), "file": item["file"],
             "audience_promise": item["audience_promise"],
             "has_uncertainty_boundary": True,
+            "wonder_hook": item["wonder_hook"],
+            "creative_device": item["creative_device"],
         } for item in self.episodes()]

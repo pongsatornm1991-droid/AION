@@ -5,6 +5,45 @@ considering, a grounded observation or story, and an honest boundary on what
 the episode cannot establish. A new upload is never justified merely by a
 posting schedule.
 
+## Wonder before explanation
+
+AION should never begin by sounding like a textbook. Every episode needs a
+**wonder hook** in its first visual beat: a surprising ordinary question, a
+human-scale mystery, a strange comparison, or a vivid journey that makes the
+viewer want to discover the answer. The explanation then arrives through a
+sequence of changing visual ideas—not through one still image with narration
+laid on top.
+
+Each episode declares one **creative device** (for example: a time-window,
+scale shift, visual metaphor, mystery reveal, or journey). That device must
+serve the topic and change across scenes; it is not a decorative effect copied
+from another creator.
+
+## Watchable at different ages
+
+Every package has three deliberate viewing layers:
+
+- **Children:** one concrete question, readable imagery, gentle emotional
+  stakes, and no assumed specialist vocabulary.
+- **Families:** a shared question that can continue after the video ends.
+- **Older viewers:** evidence, context, competing interpretations, or a
+  thoughtful limitation worth considering.
+
+This is not a claim that an episode is made only for children. The actual
+YouTube audience setting and any platform disclosure remain a human-reviewed
+publishing decision.
+
+## Anti-boredom checks
+
+- Every scene changes the viewer's understanding, scale, place, or emotional
+  tension; no scene exists merely to stretch runtime.
+- At least one turn should reframe the first question or reveal a surprising
+  mechanism, perspective, or limitation.
+- End with a real invitation to notice, discuss, or investigate—not a generic
+  request to subscribe.
+- Inspiration may be drawn from reference works' pacing or clarity, but AION
+  never copies their scripts, shot sequence, visual signature, or narration.
+
 ## Originality and visual continuity
 
 - AION is the guide in every scene, but each episode needs its own narrative,

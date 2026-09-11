@@ -51,5 +51,14 @@ class CreatorSeriesTests(unittest.TestCase):
 
             episode["audience_promise"] = "This gives the viewer one grounded question worth carrying into their day."
             path.write_text(json.dumps(episode), encoding="utf-8")
+            with self.assertRaisesRegex(ValueError, "wonder hook"):
+                CreatorSeriesRegistry(root).episodes()
+
+            episode.update({
+                "wonder_hook": "Why does this small idea change what we notice?",
+                "creative_device": "journey",
+                "age_layers": {"children": "One simple image.", "family": "One shared question.", "deeper": "One evidence-bound interpretation."},
+            })
+            path.write_text(json.dumps(episode), encoding="utf-8")
             with self.assertRaisesRegex(ValueError, "uncertainty"):
                 CreatorSeriesRegistry(root).episodes()
