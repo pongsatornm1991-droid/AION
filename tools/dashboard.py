@@ -6,6 +6,7 @@ Then open: http://127.0.0.1:8787
 
 import json
 import os
+import re
 import sys
 from collections import Counter
 from datetime import datetime
@@ -144,7 +145,7 @@ def _development_snapshot(memory):
         return _recent(entries, limit)
 
     return {
-        "proposed_fixes": lane(["self_improvement", "evolution_proposals"]),
+        "proposed_fixes": lane(["evolution_proposals"]),
         "thinking": lane(["self_narrative", "reflections"]),
         "wants_to_learn": lane(["questions", "learning_forecasts"]),
         "doing": lane(["goals", "creative_intentions", "autonomous_inquiries", "autonomic_drive"]),
@@ -157,6 +158,44 @@ def _development_snapshot(memory):
             "learned": "AION เรียนรู้อะไรแล้ว",
         },
     }
+
+
+def _quality_percentages(memory):
+    """Present evaluator diagnostics as readable percentages, not a score chase."""
+    labels = {
+        "structure": "ความชัดเจนของโครงสร้าง",
+        "uncertainty": "การบอกสิ่งที่ยังไม่แน่ชัด",
+        "evidence": "การใช้หลักฐาน",
+        "claim_safety": "ความระมัดระวังของข้อสรุป",
+    }
+    patterns = {
+        "structure": r"Structure:\s*([0-5](?:\.\d+)?)",
+        "uncertainty": r"Uncertainty:\s*([0-5](?:\.\d+)?)",
+        "evidence": r"Evidence:\s*([0-5](?:\.\d+)?)",
+        "claim_safety": r"Claim safety:\s*([0-5](?:\.\d+)?)",
+    }
+    for entry in _recent(_entries(memory, "lessons"), 40):
+        text = str(entry.get("content") or "")
+        values = {key: re.search(pattern, text, re.IGNORECASE) for key, pattern in patterns.items()}
+        if not any(values.values()):
+            continue
+        return {
+            "timestamp": entry.get("timestamp"),
+            "measures": [
+                {"key": key, "label": labels[key], "percent": round(float(match.group(1)) * 20)}
+                for key, match in values.items() if match
+            ],
+            "note": "เป็นตัวชี้วัดคุณภาพของบันทึกล่าสุด ใช้หาจุดที่ควรพัฒนา ไม่ใช่เป้าหมายให้ AION ไล่ตาม",
+        }
+    return {"timestamp": None, "measures": [], "note": "ยังไม่มีบันทึกคุณภาพที่แปลงเป็นเปอร์เซ็นต์ได้"}
+
+
+def _improvement_summary(proposal):
+    """Keep the dashboard actionable without repeating legacy score language."""
+    text = str(proposal or "")
+    if "Uncertainty" in text or "uncertainty" in text.lower() or "คะแนน" in text:
+        return "กำลังทำให้ AION แยก “ข้อมูลที่ยังขาด” ออกจาก “ข้อจำกัดของเหตุผล” ได้สม่ำเสมอ และหยุดวนทบทวนผลประเมินเก่าเมื่อไม่มีงานใหม่"
+    return _short(text, 340)
 
 
 def _links_in(value):
@@ -248,7 +287,7 @@ def _improvement_lifecycle(memory):
         else:
             state, label = "quiet", "บันทึกไว้เป็นประวัติ"
         items.append({"timestamp": review.get("timestamp"), "state": state, "label": label,
-                      "proposal": _short(review.get("proposal"), 340),
+                      "proposal": _improvement_summary(review.get("proposal")),
                       "detail": "ผลที่จบแล้วจะอยู่เป็นประวัติตรวจสอบได้ และไม่แสดงเป็นงานค้าง"})
     return _recent(items, 8)
 
@@ -562,6 +601,7 @@ def build_snapshot(memory_root=None):
             "youtube_discoveries": totals["youtube_discoveries"],
         },
         "mind_details": _mind_details(memory),
+        "quality_percentages": _quality_percentages(memory),
         "content": reels,
         "creator_library": creator_library,
         "creator_program": creator_program,

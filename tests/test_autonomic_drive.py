@@ -32,3 +32,12 @@ class AutonomicDriveTests(unittest.TestCase):
             AutonomicDrive(memory).decide_once()
             again = AutonomicDrive(memory).decide_once()
             self.assertEqual("unchanged", again["stage"])
+
+    def test_avoids_researching_old_self_evaluation_when_external_question_exists(self):
+        with tempfile.TemporaryDirectory() as root:
+            memory = MemoryEngine(root)
+            curiosity = CuriosityEngine(memory)
+            curiosity.raise_question("Why did my uncertainty score change?", "Find a source", priority=5)
+            external = curiosity.raise_question("How do volcanoes make new islands?", "Find a source", priority=3)
+            report = AutonomicDrive(memory).decide_once()
+            self.assertEqual(external["id"], report["decision"]["related"])

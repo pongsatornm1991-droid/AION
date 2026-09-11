@@ -33,8 +33,13 @@ class AutonomicDrive:
         questions = self.curiosity.open_questions()
         viable = [q for q in questions if int(q.get("attempts", 0)) < int(q.get("budget", 0))]
         viable.sort(key=lambda q: (q.get("importance", 1), q.get("timestamp", "")), reverse=True)
-        if viable:
-            question = viable[0]
+        # An old evaluator score is a quality signal, not a topic worthy of
+        # repeated autonomous research.  Prefer an outward-facing question
+        # whenever one exists; otherwise renew direction rather than turning
+        # an absence of audience input into endless self-grading.
+        external = [q for q in viable if not self._is_self_evaluation_loop(q.get("statement", ""))]
+        if external:
+            question = external[0]
             return {
                 "mode": "research", "focus": question["statement"], "related": question["id"],
                 "reason": "AION has an unanswered question with research capacity remaining.",
@@ -55,6 +60,16 @@ class AutonomicDrive:
             "related": None, "reason": "No immediately executable research item exists; synthesis may reveal the next direction.",
         }
 
+    @staticmethod
+    def _is_self_evaluation_loop(statement):
+        normalized = str(statement or "").lower()
+        markers = (
+            "คะแนน", "evaluation", "evaluator", "overall score", "score is", "uncertainty score",
+            "uncertainty และ evidence", "คะแนนในหมวด", "เกณฑ์การให้คะแนน",
+            "ตอนนี้อยากให้ aion ช่วย", "what would you like aion to help",
+        )
+        return any(marker in normalized for marker in markers)
+
     def decide_once(self):
         decision = self._decision()
         signature = json.dumps({key: decision.get(key) for key in ("mode", "focus", "related")}, ensure_ascii=False, sort_keys=True)
@@ -72,9 +87,8 @@ class AutonomicDrive:
         return {"stage": "decided", "decision": decision, "action": saved}
 
     def snapshot(self):
-        entries = []
-        for entry in self.memory.all(self.CATEGORY):
-            payload = self._payload(entry)
-            if payload and payload.get("decision"):
-                entries.append({**payload["decision"], "timestamp": entry.get("timestamp")})
-        return max(entries, key=lambda item: item.get("timestamp", ""), default=self._decision())
+        # A dashboard is an observation surface, not a replay of the last
+        # scheduler heartbeat.  Recompute the best next act from current
+        # memory so an obsolete self-evaluation task cannot look "active"
+        # merely because it was recorded earlier.
+        return self._decision()

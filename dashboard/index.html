@@ -23,6 +23,7 @@
     .campaign { padding:22px }.campaign h2 { margin:8px 0; font-size:1.25rem }.campaign-list { margin-top:16px }.campaign-item{border-top:1px solid var(--line);padding:13px 0;color:#c9dce6}.campaign-item h3{margin:4px 0;font-size:.96rem}.campaign-status{color:var(--warm);font-size:.72rem}.campaign-status.ready{color:var(--aqua)}
     @media(max-width:1100px){.development,.capabilities{grid-template-columns:repeat(2,1fr)}.rsi-loop{grid-template-columns:repeat(2,1fr)}} @media(max-width:850px){ main{padding:30px 16px}.top{display:block}.live{display:inline-block;margin-top:20px}.grid{grid-template-columns:1fr}.mind{grid-template-columns:repeat(3,1fr)}.library{grid-template-columns:repeat(2,1fr)}.wide,.brain-layout{grid-template-columns:1fr}.roadmap-step{grid-template-columns:1fr;gap:8px}} @media(max-width:460px){.mind,.library,.development,.capabilities,.rsi-loop{grid-template-columns:1fr}}
     .mind-card{width:100%;color:inherit;text-align:left;cursor:pointer;font:inherit}.mind-card:hover,.mind-card:focus-visible{transform:translateY(-2px);border-color:var(--aqua);outline:2px solid rgba(61,231,255,.35);outline-offset:2px}.mind-hint{display:block;color:var(--muted);font-size:.7rem;margin-top:8px}.mind-inspector{margin-top:14px;min-height:130px}.mind-inspector h2{margin:5px 0 8px;font-size:1.2rem}.mind-inspector p{color:#c9dce6;margin:6px 0 14px}.detail-entry{border-top:1px solid var(--line);padding:13px 0}.detail-entry:first-of-type{border-top:0}.detail-entry p{font-size:.85rem;margin:5px 0}.detail-links{display:flex;gap:8px;flex-wrap:wrap}.detail-links a{font-size:.76rem;color:var(--aqua)}.status-explainer{color:var(--muted);font-size:.78rem;margin:-4px 0 14px;max-width:900px}.lifecycle{grid-template-columns:repeat(3,1fr)}.lifecycle-card{min-height:150px;border-left:4px solid var(--tone)}.lifecycle-card h3{margin:8px 0;font-size:1rem}.lifecycle-card p{color:#c9dce6;font-size:.84rem;margin:8px 0}
+    .quality{padding:20px}.quality-row{display:grid;grid-template-columns:220px 1fr 52px;align-items:center;gap:12px;margin:12px 0}.quality-track{height:10px;border-radius:999px;background:rgba(255,255,255,.08);overflow:hidden}.quality-fill{height:100%;border-radius:inherit;background:linear-gradient(90deg,#177c9e,var(--aqua))}.quality-percent{color:var(--aqua);font-weight:750;text-align:right}
   </style>
 </head>
 <body>
@@ -33,6 +34,8 @@
   <div class="section-title">จิตใจและการเติบโต</div>
   <section class="grid mind" id="mind"></section>
   <section class="card mind-inspector" id="mindInspector"><div class="empty">กดการ์ดใดก็ได้ เพื่อดูรายการจริงที่อยู่เบื้องหลังตัวเลข</div></section>
+  <div class="section-title">คุณภาพการทำงานล่าสุด</div>
+  <section class="card quality" id="qualityPercentages"></section>
   <div class="section-title">สถานะการทำงานตอนนี้</div>
   <div class="legend-row"><span class="legend-chip tone-done"><i class="legend-dot"></i>ทำเสร็จแล้ว</span><span class="legend-chip tone-active"><i class="legend-dot"></i>กำลังทำ</span><span class="legend-chip tone-waiting"><i class="legend-dot"></i>รอข้อมูลหรือการตัดสินใจ</span><span class="legend-chip tone-alert"><i class="legend-dot"></i>ต้องแก้ไข</span></div>
   <p class="status-explainer"><strong>ความหมายของ “กำลังดำเนินการ”:</strong> พื้นที่นั้นมีงานหรือวงจรทำงานต่อเนื่อง ไม่ได้แปลว่ากำลังโพสต์สู่สาธารณะในวินาทีนั้น ส่วน “พร้อมตรวจ” หมายถึงสร้างไฟล์งานเสร็จแล้ว แต่ยังรอการตรวจ/ยืนยันก่อนการเผยแพร่</p>
@@ -119,6 +122,8 @@
       el('mindInspector').innerHTML=`<div class="label">ดูหลักฐานของตัวเลข</div><h2>${escapeHtml(detail.title)}</h2><p>${escapeHtml(detail.explanation)}</p>${entries.length?entries.map(x=>`<article class="detail-entry"><span class="time">${escapeHtml(x.timestamp||'')} · ${escapeHtml(x.category||'')}</span><p>${escapeHtml(x.content||'')}</p>${(x.links||[]).length?`<div class="detail-links">${x.links.map((link,index)=>`<a href="${escapeHtml(link)}" target="_blank" rel="noopener">เปิดแหล่งอ้างอิง ${index+1}</a>`).join('')}</div>`:''}</article>`).join(''):'<div class="empty">ยังไม่มีรายการในหัวข้อนี้</div>'}`;
     };
     el('mind').querySelectorAll('[data-mind-key]').forEach(button=>button.addEventListener('click',()=>renderMindDetail(button.dataset.mindKey)));
+    const quality=data.quality_percentages||{};
+    el('qualityPercentages').innerHTML=`<div class="label">แนวโน้มคุณภาพ · แสดงเป็นเปอร์เซ็นต์</div><p class="metric-note">${escapeHtml(quality.note||'')}</p>${(quality.measures||[]).map(x=>`<div class="quality-row"><span>${escapeHtml(x.label)}</span><div class="quality-track"><div class="quality-fill" style="width:${Math.max(0,Math.min(100,Number(x.percent)||0))}%"></div></div><strong class="quality-percent">${fmt(x.percent)}%</strong></div>`).join('')||'<div class="empty">ยังไม่มีข้อมูลคุณภาพล่าสุด</div>'}${quality.timestamp?`<span class="time">บันทึกล่าสุด ${escapeHtml(quality.timestamp)}</span>`:''}`;
     const development=data.development||{}, labels=development.labels||{};
     const lanes=['proposed_fixes','thinking','wants_to_learn','doing','learned'];
     const operations=data.operations?.signals||[];
