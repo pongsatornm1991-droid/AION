@@ -1,10 +1,10 @@
 {
-  "generated_at": "2026-09-11T09:48:55.393833+00:00",
+  "generated_at": "2026-09-11T14:29:13.347576+00:00",
   "tiles": {
-    "total": 21,
-    "ok": 18,
+    "total": 23,
+    "ok": 19,
     "attn": 1,
-    "running": 1
+    "running": 2
   },
   "groups": [
     {
@@ -54,24 +54,24 @@
           "file": "youtube-learning.yml",
           "status_class": "success",
           "status_label": "สำเร็จ",
-          "html_url": "https://github.com/pongsatornm1991-droid/AION/actions/runs/34564835582",
-          "created_at": "2026-09-11T05:08:54Z"
+          "html_url": "https://github.com/pongsatornm1991-droid/AION/actions/runs/34595492569",
+          "created_at": "2026-09-11T11:44:39Z"
         },
         {
           "name": "AION - external learning cycle",
           "file": "learning-cycle.yml",
-          "status_class": "success",
-          "status_label": "สำเร็จ",
-          "html_url": "https://github.com/pongsatornm1991-droid/AION/actions/runs/34586023358",
-          "created_at": "2026-09-11T09:48:00Z"
+          "status_class": "running",
+          "status_label": "กำลังรัน",
+          "html_url": "https://github.com/pongsatornm1991-droid/AION/actions/runs/34610349522",
+          "created_at": "2026-09-11T14:28:39Z"
         },
         {
           "name": "AION - reflection cycle",
           "file": "reflection-cycle.yml",
           "status_class": "success",
           "status_label": "สำเร็จ",
-          "html_url": "https://github.com/pongsatornm1991-droid/AION/actions/runs/34584700413",
-          "created_at": "2026-09-11T09:32:12Z"
+          "html_url": "https://github.com/pongsatornm1991-droid/AION/actions/runs/34609229162",
+          "created_at": "2026-09-11T14:17:17Z"
         },
         {
           "name": "AION - self-narrative",
@@ -92,16 +92,16 @@
           "file": "check-comments.yml",
           "status_class": "success",
           "status_label": "สำเร็จ",
-          "html_url": "https://github.com/pongsatornm1991-droid/AION/actions/runs/34570401069",
-          "created_at": "2026-09-11T06:33:01Z"
+          "html_url": "https://github.com/pongsatornm1991-droid/AION/actions/runs/34595507137",
+          "created_at": "2026-09-11T11:44:51Z"
         },
         {
           "name": "AION - propose profile change",
           "file": "propose-profile-change.yml",
           "status_class": "success",
           "status_label": "สำเร็จ",
-          "html_url": "https://github.com/pongsatornm1991-droid/AION/actions/runs/34562206899",
-          "created_at": "2026-09-11T04:26:30Z"
+          "html_url": "https://github.com/pongsatornm1991-droid/AION/actions/runs/34592567609",
+          "created_at": "2026-09-11T11:08:22Z"
         }
       ]
     },
@@ -128,32 +128,32 @@
           "file": "automation-health.yml",
           "status_class": "unknown",
           "status_label": "skipped",
-          "html_url": "https://github.com/pongsatornm1991-droid/AION/actions/runs/34584753667",
-          "created_at": "2026-09-11T09:32:50Z"
+          "html_url": "https://github.com/pongsatornm1991-droid/AION/actions/runs/34609710648",
+          "created_at": "2026-09-11T14:22:16Z"
         },
         {
           "name": "AION - Obsidian brain dashboard",
           "file": "obsidian-brain.yml",
           "status_class": "success",
           "status_label": "สำเร็จ",
-          "html_url": "https://github.com/pongsatornm1991-droid/AION/actions/runs/34565398852",
-          "created_at": "2026-09-11T05:17:36Z"
+          "html_url": "https://github.com/pongsatornm1991-droid/AION/actions/runs/34595917300",
+          "created_at": "2026-09-11T11:49:54Z"
         },
         {
           "name": "AION - Publish public brain summary",
           "file": "publish-public-summary.yml",
           "status_class": "running",
           "status_label": "กำลังรัน",
-          "html_url": "https://github.com/pongsatornm1991-droid/AION/actions/runs/34586066366",
-          "created_at": "2026-09-11T09:48:29Z"
+          "html_url": "https://github.com/pongsatornm1991-droid/AION/actions/runs/34610356205",
+          "created_at": "2026-09-11T14:28:43Z"
         },
         {
           "name": "AION - deterministic tests",
           "file": "tests.yml",
           "status_class": "success",
           "status_label": "สำเร็จ",
-          "html_url": "https://github.com/pongsatornm1991-droid/AION/actions/runs/34584315463",
-          "created_at": "2026-09-11T09:27:46Z"
+          "html_url": "https://github.com/pongsatornm1991-droid/AION/actions/runs/34609650294",
+          "created_at": "2026-09-11T14:21:37Z"
         }
       ]
     },
@@ -166,48 +166,64 @@
           "file": "creator-autonomy.yml",
           "status_class": "success",
           "status_label": "สำเร็จ",
-          "html_url": "https://github.com/pongsatornm1991-droid/AION/actions/runs/34562343328",
-          "created_at": "2026-09-11T04:28:42Z"
+          "html_url": "https://github.com/pongsatornm1991-droid/AION/actions/runs/34592701724",
+          "created_at": "2026-09-11T11:10:05Z"
         },
         {
           "name": "AION - Instagram feedback",
           "file": "instagram-feedback.yml",
           "status_class": "success",
           "status_label": "สำเร็จ",
-          "html_url": "https://github.com/pongsatornm1991-droid/AION/actions/runs/34564339577",
-          "created_at": "2026-09-11T05:01:01Z"
+          "html_url": "https://github.com/pongsatornm1991-droid/AION/actions/runs/34595273048",
+          "created_at": "2026-09-11T11:41:48Z"
         },
         {
           "name": "AION - Research to story brief",
           "file": "research-to-story.yml",
           "status_class": "success",
           "status_label": "สำเร็จ",
-          "html_url": "https://github.com/pongsatornm1991-droid/AION/actions/runs/34564789708",
-          "created_at": "2026-09-11T05:08:10Z"
+          "html_url": "https://github.com/pongsatornm1991-droid/AION/actions/runs/34595470585",
+          "created_at": "2026-09-11T11:44:20Z"
         },
         {
           "name": "AION - audience-independent inquiry",
           "file": "autonomous-inquiry.yml",
           "status_class": "success",
           "status_label": "สำเร็จ",
-          "html_url": "https://github.com/pongsatornm1991-droid/AION/actions/runs/34565280184",
-          "created_at": "2026-09-11T05:15:46Z"
+          "html_url": "https://github.com/pongsatornm1991-droid/AION/actions/runs/34586988445",
+          "created_at": "2026-09-11T09:59:47Z"
+        },
+        {
+          "name": "AION - creator reference study",
+          "file": "creator-reference-study.yml",
+          "status_class": "success",
+          "status_label": "สำเร็จ",
+          "html_url": "https://github.com/pongsatornm1991-droid/AION/actions/runs/34594475503",
+          "created_at": "2026-09-11T11:31:51Z"
         },
         {
           "name": "AION - event-aware cognitive drive",
           "file": "autonomic-drive.yml",
           "status_class": "success",
           "status_label": "สำเร็จ",
-          "html_url": "https://github.com/pongsatornm1991-droid/AION/actions/runs/34565555186",
-          "created_at": "2026-09-11T05:20:03Z"
+          "html_url": "https://github.com/pongsatornm1991-droid/AION/actions/runs/34587172574",
+          "created_at": "2026-09-11T10:01:54Z"
+        },
+        {
+          "name": "AION - improvement approval check",
+          "file": "improvement-approvals.yml",
+          "status_class": "success",
+          "status_label": "สำเร็จ",
+          "html_url": "https://github.com/pongsatornm1991-droid/AION/actions/runs/34609941207",
+          "created_at": "2026-09-11T14:24:34Z"
         },
         {
           "name": "AION - self-improvement proposals",
           "file": "self-improvement.yml",
           "status_class": "failure",
           "status_label": "ล้มเหลว",
-          "html_url": "https://github.com/pongsatornm1991-droid/AION/actions/runs/34564972496",
-          "created_at": "2026-09-11T05:10:59Z"
+          "html_url": "https://github.com/pongsatornm1991-droid/AION/actions/runs/34595596948",
+          "created_at": "2026-09-11T11:45:55Z"
         }
       ]
     }
