@@ -21,6 +21,8 @@ class CreatorReferenceStudy:
     @staticmethod
     def _video_id(url):
         parsed = urlparse(str(url))
+        if parsed.netloc.lower() in {"youtu.be", "www.youtu.be"}:
+            return parsed.path.strip("/").split("/", 1)[0]
         if parsed.path.startswith("/shorts/"):
             return parsed.path.split("/shorts/", 1)[1].split("/", 1)[0]
         return (parse_qs(parsed.query).get("v") or [""])[0]

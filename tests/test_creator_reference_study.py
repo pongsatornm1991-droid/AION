@@ -17,6 +17,9 @@ class Provider:
 
 
 class CreatorReferenceStudyTests(unittest.TestCase):
+    def test_extracts_video_id_from_short_youtu_be_url(self):
+        self.assertEqual("S2SwjlMNMFs", CreatorReferenceStudy._video_id("https://youtu.be/S2SwjlMNMFs?si=example"))
+
     def test_studies_one_reference_as_original_craft_notes(self):
         with tempfile.TemporaryDirectory() as root:
             path = Path(root) / "refs.json"
