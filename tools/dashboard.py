@@ -132,12 +132,23 @@ def _thoughts(memory, categories, limit=6):
     return _recent(entries, limit)
 
 
+def _is_score_loop_record(content):
+    normalized = str(content or "").lower()
+    markers = (
+        "คะแนน", "evaluation scores", "overall score", "evaluator",
+        "uncertainty score", "เกณฑ์การให้คะแนน",
+    )
+    return any(marker in normalized for marker in markers)
+
+
 def _development_snapshot(memory):
     """Human-readable lanes showing what AION proposes, thinks and learns."""
     def lane(categories, limit=4):
         entries = []
         for category in categories:
             for item in _entries(memory, category):
+                if _is_score_loop_record(item.get("content")):
+                    continue
                 entries.append({
                     "category": category, "timestamp": item.get("timestamp"),
                     "content": _short(item.get("content"), 340),
@@ -401,7 +412,7 @@ def _autonomous_improvement_activity(memory):
         proposal = _short(payload.get("proposal"), 220)
         activities.append({
             "timestamp": entry.get("timestamp"), "kind": "เริ่มการทดลองพัฒนา",
-            "detail": proposal or "AION เริ่มการทดลองแบบจำกัดขอบเขต",
+            "detail": _improvement_summary(proposal) if proposal else "AION เริ่มการทดลองแบบจำกัดขอบเขต",
             "boundary": "ไม่แก้โค้ด ไม่แตะสิทธิ์/รหัสลับ/เงิน และไม่เผยแพร่สาธารณะ",
         })
     for entry in _entries(memory, "content_experiment_plans"):
