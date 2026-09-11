@@ -529,6 +529,35 @@ def _creator_references():
         return {"count": 0, "protocol": [], "references": []}
 
 
+def build_studio_snapshot(memory_root=None):
+    """A dedicated, read-only creator workspace separate from the observatory."""
+    snapshot = build_snapshot(memory_root)
+    episodes = snapshot.get("creator_program") or []
+    queue = snapshot.get("youtube_creator_queue") or []
+    image_dir = ROOT / "content" / "images"
+    reel_dir = ROOT / "content" / "reels"
+    images = list(image_dir.glob("*.png")) if image_dir.is_dir() else []
+    audio = list(reel_dir.glob("*.mp3")) if reel_dir.is_dir() else []
+    video = list(reel_dir.glob("*.mp4")) if reel_dir.is_dir() else []
+    return {
+        "generated_at": snapshot["generated_at"],
+        "rooms": [
+            {"id": "identity", "name": "ห้องตัวตน AION", "purpose": "รักษาคาแรกเตอร์ ภาพลักษณ์ และบทบาทของ AION ให้ต่อเนื่องทุกตอน", "count": len(images), "unit": "ภาพต้นฉบับ", "state": "ready"},
+            {"id": "research", "name": "ห้องค้นคว้า", "purpose": "เก็บแหล่งอ้างอิงและขอบเขตข้อเท็จจริงก่อนเขียนเรื่อง", "count": sum(item.get("source_count", 0) for item in episodes), "unit": "แหล่งอ้างอิงในซีรีส์", "state": "active"},
+            {"id": "story", "name": "ห้องเรื่องเล่า", "purpose": "เปลี่ยนคำถามให้เป็น hook, บทพูด และ storyboard ที่ AION อยู่ในทุกฉาก", "count": len(episodes), "unit": "ตอนที่ออกแบบแล้ว", "state": "active"},
+            {"id": "visual", "name": "ห้องภาพและฉาก", "purpose": "สร้างภาพใหม่เป็นรายฉาก ไม่ใช้ภาพเดิมวนซ้ำเป็นทางลัด", "count": len(images), "unit": "ภาพในคลัง", "state": "active"},
+            {"id": "audio", "name": "ห้องเสียง", "purpose": "จัดเสียงบรรยายและเสียงประกอบหลังเรื่องและภาพผ่านการตรวจแล้ว", "count": len(audio), "unit": "ไฟล์เสียง", "state": "ready"},
+            {"id": "review", "name": "ห้องตรวจและส่งออก", "purpose": "ตรวจหลักฐาน คุณค่าต่อผู้ชม และความพร้อมก่อนส่งเข้าคิวเผยแพร่", "count": len(video), "unit": "วิดีโอที่สร้างแล้ว", "state": "waiting" if any(item.get("status") == "upload-ready" for item in queue) else "active"},
+        ],
+        "episodes": episodes,
+        "queue": queue,
+        "references": snapshot.get("creator_references", {}),
+        "workflow": [
+            "คำถามและหลักฐาน", "เรื่องเล่าและ storyboard", "ภาพใหม่รายฉาก", "เสียงและการประกอบ", "ตรวจคุณค่า/ข้อจำกัด", "คิวเผยแพร่",
+        ],
+    }
+
+
 def build_snapshot(memory_root=None):
     """Build the dashboard data without a network call or write operation."""
     synced_memory = ROOT / "aion-memory-data-sync"
@@ -663,6 +692,12 @@ class DashboardHandler(BaseHTTPRequestHandler):
         path = urlparse(self.path).path
         if path == "/api/snapshot":
             self._send(json.dumps(build_snapshot(), ensure_ascii=False), "application/json; charset=utf-8")
+            return
+        if path == "/api/studio":
+            self._send(json.dumps(build_studio_snapshot(), ensure_ascii=False), "application/json; charset=utf-8")
+            return
+        if path in ("/studio", "/studio/"):
+            self._send((DASHBOARD_DIR / "studio.html").read_text(encoding="utf-8"), "text/html; charset=utf-8")
             return
         if path in ("/", "/index.html"):
             self._send((DASHBOARD_DIR / "index.html").read_text(encoding="utf-8"), "text/html; charset=utf-8")

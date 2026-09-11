@@ -3,10 +3,17 @@ import tempfile
 import unittest
 
 from brain.memory import MemoryEngine
-from tools.dashboard import build_snapshot
+from tools.dashboard import build_snapshot, build_studio_snapshot
 
 
 class DashboardTests(unittest.TestCase):
+    def test_studio_snapshot_separates_creator_rooms(self):
+        snapshot = build_studio_snapshot()
+        self.assertEqual(6, len(snapshot["rooms"]))
+        self.assertEqual("ห้องตัวตน AION", snapshot["rooms"][0]["name"])
+        self.assertEqual("ห้องตรวจและส่งออก", snapshot["rooms"][-1]["name"])
+        self.assertTrue(snapshot["workflow"])
+
     def test_snapshot_combines_platforms_and_mind(self):
         with tempfile.TemporaryDirectory() as root:
             memory = MemoryEngine(root)
