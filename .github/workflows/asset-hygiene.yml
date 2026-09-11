@@ -1,0 +1,40 @@
+name: AION - recoverable media housekeeping
+
+on:
+  schedule:
+    - cron: "15 3 * * 0"
+  workflow_dispatch: {}
+
+concurrency:
+  group: aion-asset-hygiene
+  cancel-in-progress: false
+
+permissions:
+  contents: write
+
+jobs:
+  quarantine-old-orphans:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/checkout@v4
+        with:
+          repository: pongsatornm1991-droid/aion-memory-data
+          token: ${{ secrets.MEMORY_REPO_PAT }}
+          path: memory_data
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Move only unreferenced media older than 30 days to quarantine
+        env:
+          AION_MEMORY_ROOT: memory_data
+        run: python tools/asset_hygiene.py --retention-days 30 --quarantine
+      - name: Commit recoverable moves only when needed
+        run: |
+          git config user.name "aion-bot"
+          git config user.email "aion-bot@users.noreply.github.com"
+          git add content/images content/reels content/quarantine
+          if ! git diff --cached --quiet; then
+            git commit -m "AION: quarantine unreferenced generated media"
+            git push
+          fi

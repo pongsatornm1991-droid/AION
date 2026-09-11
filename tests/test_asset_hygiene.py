@@ -28,3 +28,19 @@ class AssetHygieneTests(unittest.TestCase):
             by_path = {item["path"]: item["status"] for item in report["files"]}
             self.assertEqual("active", by_path["content/images/active.png"])
             self.assertEqual("review", by_path["content/images/orphan.png"])
+
+    def test_quarantine_moves_only_old_unreferenced_files(self):
+        with tempfile.TemporaryDirectory() as root:
+            base = Path(root)
+            images = base / "content" / "images"
+            images.mkdir(parents=True)
+            orphan = images / "orphan.png"
+            orphan.write_bytes(b"old")
+            old = datetime(2026, 1, 1, tzinfo=timezone.utc).timestamp()
+            os.utime(orphan, (old, old))
+            result = AssetHygiene(base, retention_days=30).quarantine_review_files(
+                now=datetime(2026, 3, 1, tzinfo=timezone.utc),
+            )
+            self.assertEqual(1, result["count"])
+            self.assertFalse(orphan.exists())
+            self.assertTrue((base / "content" / "quarantine" / "images" / "orphan.png").is_file())

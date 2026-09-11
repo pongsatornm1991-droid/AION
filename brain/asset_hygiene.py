@@ -2,6 +2,7 @@
 
 import json
 import re
+import shutil
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
 
@@ -61,3 +62,30 @@ class AssetHygiene:
                 "review_bytes": sum(item["bytes"] for item in items if item["status"] == "review"),
             },
         }
+
+    def quarantine_review_files(self, now=None):
+        """Recoverably move only confirmed old, unreferenced media.
+
+        The destination stays inside the repository so Git retains the full
+        history and a file can be restored with a normal move. Nothing is
+        deleted, and files are re-scanned immediately before each move.
+        """
+        report = self.scan(now=now)
+        moved = []
+        for item in report["files"]:
+            if item["status"] != "review":
+                continue
+            source = (self.root / item["path"]).resolve()
+            media_root = (self.root / "content").resolve()
+            if not source.is_file() or media_root not in source.parents:
+                continue
+            relative_under_content = source.relative_to(media_root)
+            destination = self.root / "content" / "quarantine" / relative_under_content
+            destination.parent.mkdir(parents=True, exist_ok=True)
+            if destination.exists():
+                destination = destination.with_name(
+                    f"{destination.stem}-{source.stat().st_mtime_ns}{destination.suffix}"
+                )
+            shutil.move(str(source), str(destination))
+            moved.append({"from": item["path"], "to": destination.relative_to(self.root).as_posix()})
+        return {"moved": moved, "count": len(moved), "scan": report["summary"]}
