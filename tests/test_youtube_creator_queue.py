@@ -57,3 +57,16 @@ class YouTubeCreatorQueueTests(unittest.TestCase):
             self.assertEqual("published", result["stage"])
             self.assertEqual("published", queue.candidates()[0]["status"])
             self.assertEqual("no-authorized-creator-episode", queue.publish_once()["stage"])
+
+    def test_migrates_old_confirmation_record_when_policy_is_delegated(self):
+        with tempfile.TemporaryDirectory() as root:
+            self._episode(root)
+            (Path(root) / "content" / "reels" / "episode.mp4").write_bytes(b"video")
+            memory = MemoryEngine(Path(root) / "memory")
+            queue = YouTubeCreatorQueue(memory, root)
+            self.assertEqual("prepared-for-review", queue.prepare_once()["stage"])
+            policy = Path(root) / "config"; policy.mkdir()
+            (policy / "aion_authority.json").write_text('{"public_publishing":{"enabled":true}}', encoding="utf-8")
+            migrated = queue.prepare_once()
+            self.assertTrue(migrated["migrated"])
+            self.assertEqual("authorized-for-aion-publish", migrated["upload_status"])

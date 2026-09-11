@@ -91,10 +91,26 @@ class YouTubeCreatorQueue:
         """Record one upload-ready episode; never calls YouTube directly."""
         if self.memory is None:
             raise ValueError("Memory is required to prepare a creator episode.")
+        policy = AutonomyPolicy(self.root)
+        # Records created before public publishing was delegated must not be
+        # stranded behind the former per-item confirmation rule.  Promote the
+        # durable record in place; this changes no credentials and performs no
+        # upload, but leaves a clear audit trail for the later publish step.
+        if policy.public_publishing_enabled:
+            legacy = next((item for item in self._records_by_episode().values()
+                           if item[1].get("upload_status") == "awaiting-human-confirmation"), None)
+            if legacy is not None:
+                entry, payload = legacy
+                updated = {
+                    **payload,
+                    "upload_status": "authorized-for-aion-publish",
+                    "publish_note": "Authorization migrated from the former owner-confirmation policy; quality and channel checks still apply.",
+                }
+                self.memory.update(self.CATEGORY, entry["id"], content=json.dumps(updated, ensure_ascii=False))
+                return {"stage": "authorized-for-publishing", "migrated": True, **updated}
         candidate = next((item for item in self.candidates() if item["status"] == "upload-ready"), None)
         if candidate is None:
             return {"stage": "no-upload-ready-creator-episode"}
-        policy = AutonomyPolicy(self.root)
         autonomous = policy.public_publishing_enabled
         payload = {
             **candidate,

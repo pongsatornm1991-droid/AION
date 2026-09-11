@@ -31,7 +31,7 @@ jobs:
       - name: Queue one finished AION Studio episode
         env:
           AION_MEMORY_ROOT: memory_data
-        run: python main.py run-prepare-youtube-creator
+        run: python main.py prepare-youtube-creator
       - name: Publish one authorized Creator episode
         env:
           AION_MEMORY_ROOT: memory_data
