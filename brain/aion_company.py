@@ -11,6 +11,7 @@ gate, under the project policy.
 from pathlib import Path
 
 from brain.autonomy_policy import AutonomyPolicy
+from brain.company_operations import CompanyOperations
 
 
 class AionCompany:
@@ -31,6 +32,7 @@ class AionCompany:
         rendered = sum(1 for item in queue if item.get("video_exists"))
         ready = sum(1 for item in queue if item.get("status") == "upload-ready")
         policy = AutonomyPolicy(self.root)
+        operations = CompanyOperations(self.root).audit()
         published = self._count("published_reels")
         return {
             "leadership": {
@@ -42,6 +44,7 @@ class AionCompany:
                 "mode": policy.publishing_mode,
                 "protected": policy.data.get("chair_approval_required", []),
             },
+            "operations": operations,
             "boundary": "AION และทีมเผยแพร่ผลงานสาธารณะที่ผ่าน Quality Gate ได้เอง แต่ห้ามเปลี่ยนสิทธิ์หรือข้อมูลรับรอง ใช้/รับเงิน ทำสัญญา หรือแก้กฎความปลอดภัยเอง",
             "departments": [
                 {"id": "research", "name": "ฝ่ายวิจัย", "lead": "Research Agent", "room": "ห้องค้นคว้า",

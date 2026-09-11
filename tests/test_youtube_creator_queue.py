@@ -43,3 +43,17 @@ class YouTubeCreatorQueueTests(unittest.TestCase):
             self.assertEqual("awaiting-human-confirmation", report["upload_status"])
             self.assertEqual("already-prepared", queue.candidates()[0]["status"])
             self.assertEqual("no-upload-ready-creator-episode", queue.prepare_once()["stage"])
+
+    def test_publishes_authorized_episode_once_when_project_policy_delegates_it(self):
+        with tempfile.TemporaryDirectory() as root:
+            self._episode(root)
+            (Path(root) / "content" / "reels" / "episode.mp4").write_bytes(b"video")
+            policy = Path(root) / "config"; policy.mkdir()
+            (policy / "aion_authority.json").write_text('{"public_publishing":{"enabled":true}}', encoding="utf-8")
+            memory = MemoryEngine(Path(root) / "memory")
+            queue = YouTubeCreatorQueue(memory, root)
+            self.assertEqual("authorized-for-publishing", queue.prepare_once()["stage"])
+            result = queue.publish_once(lambda path, title, description: {"video_id": "abc", "url": "https://youtu.be/abc", "privacy_status": "public"})
+            self.assertEqual("published", result["stage"])
+            self.assertEqual("published", queue.candidates()[0]["status"])
+            self.assertEqual("no-authorized-creator-episode", queue.publish_once()["stage"])

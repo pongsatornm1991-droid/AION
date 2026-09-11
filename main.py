@@ -1829,6 +1829,20 @@ def run_prepare_youtube_creator(args):
         print(report["publish_note"])
 
 
+def run_publish_youtube_creator(args):
+    """Upload one quality-gated, authorized AION Studio Creator episode."""
+    load_dotenv()
+    report = YouTubeCreatorQueue(Thinker().memory).publish_once()
+    print("\nAION YOUTUBE CREATOR PUBLISH")
+    print(f"Stage: {report['stage']}")
+    if report.get("episode_id"):
+        print(f"Episode: {report['episode_id']}")
+    if report.get("url"):
+        print(f"Video: {report['url']}")
+    if report.get("error"):
+        print(f"Reason: {report['error']}")
+
+
 def run_publish_video(args):
     """Upload a human-supplied local video (not an AION-generated Reel)
     to YouTube, then post the link to Facebook and Instagram. Manual,
@@ -3638,6 +3652,7 @@ def build_parser():
     subparsers.add_parser("run-reel-publish", help="Publish the oldest rendered AION Reel.")
     subparsers.add_parser("run-reel-crosspost", help="Cross-post the latest published Reel to Facebook once.")
     subparsers.add_parser("run-youtube-publish", help="Upload the next completed AION Reel to YouTube as a Short once.")
+    subparsers.add_parser("run-youtube-creator-publish", help="Upload one authorized, quality-gated AION Studio Creator episode.")
     subparsers.add_parser("prepare-youtube-creator", help="Prepare one rendered Creator Series episode for YouTube review; never uploads it.")
     subparsers.add_parser("run-growth-pulse", help="Send one daily Telegram summary of AION's growth and channels.")
 
@@ -3896,6 +3911,9 @@ def main():
 
     if args.command == "run-youtube-publish":
         run_youtube_publish(args)
+        return
+    if args.command == "run-youtube-creator-publish":
+        run_publish_youtube_creator(args)
         return
 
     if args.command == "prepare-youtube-creator":
