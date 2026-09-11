@@ -298,6 +298,23 @@ def _community_campaign_snapshot():
     return CommunityCampaignRegistry().snapshot()
 
 
+def _operational_snapshot(reels, creator_queue, campaigns):
+    """Give the dashboard an at-a-glance, colour-ready activity summary."""
+    ready_video = next((item for item in creator_queue if item.get("status") == "upload-ready"), None)
+    return {"signals": [
+        {"state": "done" if reels.get("published") else "waiting", "title": "ผลงานที่เผยแพร่แล้ว",
+         "value": f"{reels.get('published', 0)} ชิ้น", "detail": "บันทึกการเผยแพร่จากช่องทางจริง"},
+        {"state": "active" if reels.get("pending") else "done", "title": "คิวคอนเทนต์",
+         "value": f"รอ {reels.get('pending', 0)} ชิ้น", "detail": "ไม่มีงานค้าง" if not reels.get("pending") else "กำลังรอรอบเผยแพร่"},
+        {"state": "waiting" if ready_video else "active", "title": "YouTube Creator",
+         "value": "พร้อมตรวจ 1 ตอน" if ready_video else "กำลังผลิตตอนถัดไป",
+         "detail": ready_video.get("title") if ready_video else "AION กำลังพัฒนาเนื้อหา"},
+        {"state": "waiting" if campaigns.get("waiting_admin_count") else "active", "title": "ชุมชน Facebook",
+         "value": f"รอผู้ดูแล {campaigns.get('waiting_admin_count', 0)}",
+         "detail": "ยังไม่ส่งโพสต์ซ้ำ" if campaigns.get("waiting_admin_count") else "พร้อมเลือกงานที่ให้คุณค่า"},
+    ]}
+
+
 def _brain_map(memory, limit=30):
     """Return only explicit, inspectable links between real memory records."""
     categories = (
@@ -416,6 +433,7 @@ def build_snapshot(memory_root=None):
         memory, reels, creator_autonomy, research_to_story,
     )
     autonomic_drive = AutonomicDrive(memory).snapshot()
+    community_campaigns = _community_campaign_snapshot()
     return {
         "generated_at": datetime.now().isoformat(timespec="seconds"),
         "data_source": {
@@ -461,7 +479,8 @@ def build_snapshot(memory_root=None):
         "autonomous_improvements": _autonomous_improvement_activity(memory),
         "autonomic_drive": autonomic_drive,
         "revenue": _revenue_snapshot(memory),
-        "community_campaigns": _community_campaign_snapshot(),
+        "community_campaigns": community_campaigns,
+        "operations": _operational_snapshot(reels, youtube_creator_queue, community_campaigns),
         "development": _development_snapshot(memory),
         "brain": _brain_map(memory),
         "state_council": _state_council(totals, reels),
