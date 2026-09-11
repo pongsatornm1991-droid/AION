@@ -32,6 +32,9 @@
   <nav class="hub-nav" aria-label="หมวดศูนย์สังเกตการณ์"><button type="button" data-view="overview" class="active">ภาพรวม</button><button type="button" data-view="mind">จิตใจและการเรียนรู้</button><button type="button" data-view="operations">งานและบริษัท</button><button type="button" data-view="creator">ครีเอเตอร์</button><button type="button" data-view="brain">สมองและประวัติ</button><a class="studio-link" href="/studio">✦ เปิด AION Studio</a></nav>
   <div class="section-title" id="overview">ช่องทาง</div>
   <section class="grid" id="platforms"></section>
+  <div class="section-title">ภาพรวมที่ควรรู้ตอนนี้</div>
+  <section class="grid operations" id="executiveSummary"></section>
+  <section class="card" id="executiveNext" style="margin-top:14px"></section>
   <div class="section-title" id="mindGrowth">จิตใจและการเติบโต</div>
   <section class="grid mind" id="mind"></section>
   <section class="card mind-inspector" id="mindInspector"><div class="empty">กดการ์ดใดก็ได้ เพื่อดูรายการจริงที่อยู่เบื้องหลังตัวเลข</div></section>
@@ -129,6 +132,10 @@
     const lanes=['proposed_fixes','thinking','wants_to_learn','doing','learned'];
     const operations=data.operations?.signals||[];
     el('operations').innerHTML=operations.map(x=>`<article class="card operation tone-${escapeHtml(x.state||'quiet')}"><div class="label">${escapeHtml(x.title)}</div><h3>${escapeHtml(({done:'ทำเสร็จแล้ว',active:'กำลังดำเนินการ',waiting:'กำลังรอ',alert:'ต้องแก้ไข'})[x.state]||'ติดตาม')}</h3><div class="operation-value">${escapeHtml(x.value||'—')}</div><p class="metric-note">${escapeHtml(x.detail||'')}</p></article>`).join('');
+    el('executiveSummary').innerHTML=operations.map(x=>`<article class="card operation tone-${escapeHtml(x.state||'quiet')}"><div class="label">${escapeHtml(x.title)}</div><h3>${escapeHtml(({done:'เสร็จแล้ว',active:'กำลังเดินหน้า',waiting:'ต้องจับตา',alert:'ต้องแก้ไข'})[x.state]||'ติดตาม')}</h3><div class="operation-value">${escapeHtml(x.value||'—')}</div><p class="metric-note">${escapeHtml(x.detail||'')}</p></article>`).join('');
+    const creatorReady=(data.youtube_creator_queue||[]).find(x=>x.status==='upload-ready'||x.status==='already-prepared');
+    const current=data.creator_autonomy?.current;
+    el('executiveNext').innerHTML=`<div class="label">AION กำลังมุ่งหน้าไปทางไหน</div><h2 style="margin:8px 0;font-size:1.28rem">${escapeHtml(current?.topic||creatorReady?.title||'กำลังรวบรวมสิ่งที่มีความหมายพอจะเล่า')}</h2><p class="metric-note">${escapeHtml(creatorReady?'มี Creator episode ที่อยู่ในสายการผลิต/เผยแพร่ — ดูรายละเอียดที่แท็บ “ครีเอเตอร์”':'ดูงานเชิงลึก แผนบริษัท และความพร้อมของแต่ละฝ่ายได้ที่แท็บ “งานและบริษัท”')}</p>`;
     el('development').innerHTML=lanes.map(key=>`<article class="card dev-card" data-lane="${key}"><div class="label">พื้นที่พัฒนา</div><h2>${labels[key]||key}</h2>${(development[key]||[]).map(x=>`<div class="dev-item">${escapeHtml(x.content)}<span class="dev-time">${x.timestamp||''}</span></div>`).join('')||'<div class="empty">ยังไม่มีรายการในหัวข้อนี้</div>'}</article>`).join('');
     const lifecycleLabel={done:'ประเมินเสร็จแล้ว',active:'กำลังทดลอง',waiting:'รอสร้างแผนทดลอง',quiet:'บันทึกไว้เป็นประวัติ'};
     el('improvementLifecycle').innerHTML=(data.improvement_lifecycle||[]).map(x=>`<article class="card lifecycle-card tone-${escapeHtml(x.state||'quiet')}"><div class="label">${escapeHtml(lifecycleLabel[x.state]||x.label||'ติดตาม')}</div><h3>${escapeHtml(x.label||'')}</h3><p>${escapeHtml(x.proposal||'ไม่มีรายละเอียดข้อเสนอ')}</p><span class="metric-note">${escapeHtml(x.detail||'')}</span></article>`).join('')||'<div class="empty">ยังไม่มีวงจรการทดลองที่ต้องติดตาม</div>';
