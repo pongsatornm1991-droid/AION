@@ -220,12 +220,15 @@ class ReelContentCycle:
         from brain.cross_platform import append_invitation
         ig_caption = append_hashtags(append_invitation(report["draft"], "instagram", self.memory))
         routes, viewer_value = self._platform_captions(report["draft"], report.get("seed"))
+        from brain.content_experiment import ContentExperimentExecutor
+        experiment = ContentExperimentExecutor(self.memory).assign_next(routes["content_id"])
         record = self.memory.remember(
             category=self.PENDING,
             content=json.dumps({"video_path": relative, "caption": report["draft"],
                                 "ig_caption": ig_caption,
                                 "language": report.get("language", "en"), "seed": report.get("seed"),
                                 "viewer_value": viewer_value, "platform_captions": routes,
+                                "content_experiment": experiment,
                                 "library_asset": library_video["id"] if library_video else None,
                                 "visual_mood": mood if not library_video else None,
                                 "visual_style": self.VISUAL_STYLE},
