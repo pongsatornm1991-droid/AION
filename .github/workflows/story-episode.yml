@@ -6,6 +6,10 @@ on:
 permissions:
   contents: write
 
+concurrency:
+  group: aion-creator-render
+  cancel-in-progress: false
+
 jobs:
   render-story:
     runs-on: ubuntu-latest

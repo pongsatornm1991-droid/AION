@@ -3,6 +3,11 @@ on:
   workflow_dispatch: {}
 permissions:
   contents: read
+concurrency:
+  # This workflow mutates the same private memory repo as the other
+  # cognitive/publishing cycles. Queue rather than race a checkpoint.
+  group: aion-memory-data
+  cancel-in-progress: false
 jobs:
   crosspost:
     runs-on: ubuntu-latest
