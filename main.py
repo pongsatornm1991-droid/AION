@@ -2021,10 +2021,17 @@ def run_learning_cycle(args):
     load_dotenv()
 
     memory = Thinker().memory
+    curiosity = CuriosityEngine(memory)
+
+    # When no human has spoken and the question queue is empty, AION still
+    # needs a concrete, evidence-bound next move. This planner is pure local
+    # logic and therefore adds no model-token cost; the normal learning cycle
+    # below remains responsible for any external research and generation.
+    from brain.initiative import AutonomousInitiative
+    initiative = AutonomousInitiative(memory, curiosity).initiate_once()
+
     provider = build_provider()
     evaluator = OutputEvaluator()
-
-    curiosity = CuriosityEngine(memory)
 
     generator = WebLearningGenerator(
         provider,
@@ -2045,6 +2052,7 @@ def run_learning_cycle(args):
     report = cycle.research_once()
 
     print("\nAION LEARNING CYCLE")
+    print(f"Initiative: {initiative['stage']}")
     print(f"Stage: {report['stage']}")
 
     question = report.get("question")
