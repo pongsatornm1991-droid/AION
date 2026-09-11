@@ -43,10 +43,24 @@ class YouTubeShortsCycle:
         root = repo_root or os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
         absolute_video_path = os.path.join(root, video_path)
         caption = str(payload.get("caption", "")).strip()
+        from brain.youtube_quality import YouTubeQualityGate
+        prior = []
+        for previous in self.memory.all(self.PUBLISHED):
+            try:
+                previous_payload = json.loads(previous.get("content") or "{}")
+            except (TypeError, ValueError):
+                continue
+            if previous.get("id") != entry.get("id") and (previous_payload.get("youtube") or {}).get("video_id"):
+                prior.append(previous_payload)
+        quality = YouTubeQualityGate().assess(payload, prior)
+        if not quality["eligible"]:
+            return {"stage": "quality-review-required", "entry_id": entry.get("id"), **quality}
         from brain.cross_platform import append_invitation
         description = "\n\n".join(
             part for part in (
                 append_invitation(caption, "youtube", self.memory),
+                f"Viewer value: {quality['viewer_value']}",
+                "Original illustrated AION story. AI disclosure reviewed before publication.",
                 "#Shorts #AION #AI",
             ) if part
         )
@@ -60,7 +74,7 @@ class YouTubeShortsCycle:
         except Exception as exc:
             return {"stage": "upload-failed", "error": str(exc), "entry_id": entry.get("id")}
 
-        payload["youtube"] = result
+        payload["youtube"] = {**result, "quality": quality}
         self.memory.update(self.PUBLISHED, entry["id"], content=json.dumps(payload, ensure_ascii=False))
         self.memory.remember(
             category="social_language_log",

@@ -62,6 +62,15 @@ class ReelContentCycle:
         first = str(text).strip().split(".")[0].strip()
         return first[:90] or "AION is wondering..."
 
+    @staticmethod
+    def _viewer_value(seed):
+        """A visible promise that each video gives the viewer more than a loop."""
+        source = str((seed or {}).get("kind") or "AION's recorded question")
+        return (
+            f"Viewers receive an original AION-guided question, a meaningful narrative "
+            f"grounded in {source}, and an honest note about what remains uncertain."
+        )
+
     def _used_library_assets(self):
         """Return curated video ids already queued or published.
 
@@ -148,6 +157,7 @@ class ReelContentCycle:
                 content=json.dumps({"video_path": creator["video_path"], "caption": caption,
                     "ig_caption": append_hashtags(append_invitation(caption, "instagram", self.memory)), "language": "en",
                     "seed": {"kind": "creator-library", "text": creator["title"]},
+                    "viewer_value": self._viewer_value({"kind": "creator-library"}),
                     "library_asset": creator["id"], "source_url": creator.get("source_url"),
                     "visual_style": self.VISUAL_STYLE}, ensure_ascii=False),
                 memory_type="action", source="aion-creator-library", importance=3,
@@ -207,6 +217,7 @@ class ReelContentCycle:
             content=json.dumps({"video_path": relative, "caption": report["draft"],
                                 "ig_caption": ig_caption,
                                 "language": report.get("language", "en"), "seed": report.get("seed"),
+                                "viewer_value": self._viewer_value(report.get("seed")),
                                 "library_asset": library_video["id"] if library_video else None,
                                 "visual_mood": mood if not library_video else None,
                                 "visual_style": self.VISUAL_STYLE},
