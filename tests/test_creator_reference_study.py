@@ -29,3 +29,17 @@ class CreatorReferenceStudyTests(unittest.TestCase):
             path.write_text(json.dumps({"references": [{"id": "sample", "url": "https://www.youtube.com/watch?v=abc123"}]}), encoding="utf-8")
             report = CreatorReferenceStudy(MemoryEngine(root), Provider(), metadata_fn=lambda ids: (_ for _ in ()).throw(RuntimeError("YOUTUBE_DATA_API_KEY is required")), reference_path=path).study_once()
             self.assertEqual("configuration-needed", report["stage"])
+
+    def test_studies_the_small_reference_set_in_one_run(self):
+        with tempfile.TemporaryDirectory() as root:
+            path = Path(root) / "refs.json"
+            path.write_text(json.dumps({"references": [
+                {"id": "one", "url": "https://www.youtube.com/watch?v=one"},
+                {"id": "two", "url": "https://www.youtube.com/watch?v=two"},
+            ]}), encoding="utf-8")
+            metadata = lambda ids: [{"video_id": video_id, "title": video_id} for video_id in ids]
+            memory = MemoryEngine(root)
+            report = CreatorReferenceStudy(memory, Provider(), metadata_fn=metadata, reference_path=path).study_all_pending()
+            self.assertEqual("batch-complete", report["stage"])
+            self.assertEqual(2, report["studied"])
+            self.assertEqual(2, len(memory.all("creator_reference_studies")))

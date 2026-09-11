@@ -65,3 +65,22 @@ class CreatorReferenceStudy:
                                      memory_type="lesson", source=source, importance=3,
                                      tags=["creator", "craft-study", "originality"])
         return {"stage": "studied", "studied": bool(saved.get("saved")), "reference": target.get("id"), "principles": principles}
+
+    def study_all_pending(self, limit=7):
+        """Study the complete small user-curated set in one workflow run.
+
+        A single reference can still fail independently without hiding results
+        from the others. Already-recorded references are skipped, so rerunning
+        this is inexpensive and never creates duplicate craft lessons.
+        """
+        reports = []
+        for _ in range(max(1, int(limit))):
+            report = self.study_once()
+            reports.append(report)
+            if report["stage"] in {"all-studied", "configuration-needed", "metadata-failed", "draft-failed"}:
+                break
+        studied = [report for report in reports if report.get("studied")]
+        return {
+            "stage": "batch-complete" if studied else reports[-1]["stage"],
+            "studied": len(studied), "reports": reports,
+        }
