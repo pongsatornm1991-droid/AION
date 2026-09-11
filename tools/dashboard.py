@@ -26,6 +26,7 @@ from brain.creator_autonomy import CreatorAutonomy
 from brain.research_to_story import ResearchToStory
 from brain.autonomic_drive import AutonomicDrive
 from brain.revenue_brain import RevenueBrain
+from brain.community_campaign import CommunityCampaignRegistry
 
 
 DASHBOARD_DIR = ROOT / "dashboard"
@@ -266,6 +267,11 @@ def _revenue_snapshot(memory):
                 "next": "ยังอ่านข้อมูลความพร้อมด้านรายได้ไม่ได้"}
 
 
+def _community_campaign_snapshot():
+    """Expose group work without pretending Groups are API-controlled."""
+    return CommunityCampaignRegistry().snapshot()
+
+
 def _brain_map(memory, limit=30):
     """Return only explicit, inspectable links between real memory records."""
     categories = (
@@ -417,6 +423,7 @@ def build_snapshot(memory_root=None):
         "autonomy": _autonomy_snapshot(memory, creator_autonomy),
         "autonomic_drive": autonomic_drive,
         "revenue": _revenue_snapshot(memory),
+        "community_campaigns": _community_campaign_snapshot(),
         "development": _development_snapshot(memory),
         "brain": _brain_map(memory),
         "state_council": _state_council(totals, reels),

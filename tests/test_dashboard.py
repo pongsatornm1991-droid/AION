@@ -50,6 +50,8 @@ class DashboardTests(unittest.TestCase):
             self.assertEqual("การสร้างภาพใหม่", snapshot["capabilities"][0]["name"])
             self.assertEqual(4, len(snapshot["autonomy"]["rsi_loop"]))
             self.assertIn("any non-empty question", snapshot["autonomy"]["principle"])
+            self.assertEqual(1, snapshot["community_campaigns"]["waiting_admin_count"])
+            self.assertEqual(3, snapshot["community_campaigns"]["ready_count"])
 
     def test_a_legacy_string_action_record_never_crashes_the_dashboard(self):
         # Real production bug (found 2026-09-04): tools/dashboard.py's
