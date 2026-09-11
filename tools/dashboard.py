@@ -25,6 +25,7 @@ from brain.creator_series import CreatorSeriesRegistry
 from brain.creator_autonomy import CreatorAutonomy
 from brain.research_to_story import ResearchToStory
 from brain.autonomic_drive import AutonomicDrive
+from brain.revenue_brain import RevenueBrain
 
 
 DASHBOARD_DIR = ROOT / "dashboard"
@@ -255,6 +256,16 @@ def _autonomy_snapshot(memory, creator_autonomy):
     }
 
 
+def _revenue_snapshot(memory):
+    """Expose revenue readiness without presenting a plan as earned money."""
+    try:
+        return RevenueBrain(memory).snapshot()
+    except (OSError, ValueError, TypeError):
+        return {"stage": "unavailable", "published_work": 0, "audience_signals": 0,
+                "opportunities": [], "guardrails": [],
+                "next": "ยังอ่านข้อมูลความพร้อมด้านรายได้ไม่ได้"}
+
+
 def _brain_map(memory, limit=30):
     """Return only explicit, inspectable links between real memory records."""
     categories = (
@@ -405,6 +416,7 @@ def build_snapshot(memory_root=None):
         "growth_roadmap": _growth_roadmap(capabilities),
         "autonomy": _autonomy_snapshot(memory, creator_autonomy),
         "autonomic_drive": autonomic_drive,
+        "revenue": _revenue_snapshot(memory),
         "development": _development_snapshot(memory),
         "brain": _brain_map(memory),
         "state_council": _state_council(totals, reels),
