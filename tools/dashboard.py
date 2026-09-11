@@ -29,6 +29,7 @@ from brain.autonomic_drive import AutonomicDrive
 from brain.revenue_brain import RevenueBrain
 from brain.community_campaign import CommunityCampaignRegistry
 from brain.youtube_creator_queue import YouTubeCreatorQueue
+from brain.aion_company import AionCompany
 
 
 DASHBOARD_DIR = ROOT / "dashboard"
@@ -539,6 +540,13 @@ def build_studio_snapshot(memory_root=None):
     images = list(image_dir.glob("*.png")) if image_dir.is_dir() else []
     audio = list(reel_dir.glob("*.mp3")) if reel_dir.is_dir() else []
     video = list(reel_dir.glob("*.mp4")) if reel_dir.is_dir() else []
+    configured_root = (
+        memory_root
+        or os.getenv("AION_DASHBOARD_MEMORY_ROOT")
+        or os.getenv("AION_MEMORY_ROOT")
+        or (str(ROOT / "aion-memory-data-sync") if (ROOT / "aion-memory-data-sync" / ".git").is_dir() else "memory")
+    )
+    company = AionCompany(MemoryEngine(configured_root), ROOT).board(episodes, queue)
     return {
         "generated_at": snapshot["generated_at"],
         "rooms": [
@@ -552,6 +560,7 @@ def build_studio_snapshot(memory_root=None):
         "episodes": episodes,
         "queue": queue,
         "references": snapshot.get("creator_references", {}),
+        "company": company,
         "workflow": [
             "คำถามและหลักฐาน", "เรื่องเล่าและ storyboard", "ภาพใหม่รายฉาก", "เสียงและการประกอบ", "ตรวจคุณค่า/ข้อจำกัด", "คิวเผยแพร่",
         ],
