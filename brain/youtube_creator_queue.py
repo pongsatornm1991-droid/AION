@@ -1,13 +1,9 @@
-"""Prepare finished AION Creator episodes for a deliberate YouTube upload.
-
-Creator episodes are not silently published.  This queue makes a completed
-storyboard and its rendered video visible to the operator, so the last
-representational action (an external upload) can be reviewed separately.
-"""
+"""Prepare finished AION Creator episodes for an auditable YouTube upload."""
 
 import json
 from pathlib import Path
 
+from brain.autonomy_policy import AutonomyPolicy
 from brain.creator_series import CreatorSeriesRegistry
 
 
@@ -74,20 +70,26 @@ class YouTubeCreatorQueue:
         return result
 
     def prepare_once(self):
-        """Record one upload-ready episode; never calls YouTube."""
+        """Record one upload-ready episode; never calls YouTube directly."""
         if self.memory is None:
             raise ValueError("Memory is required to prepare a creator episode.")
         candidate = next((item for item in self.candidates() if item["status"] == "upload-ready"), None)
         if candidate is None:
             return {"stage": "no-upload-ready-creator-episode"}
+        policy = AutonomyPolicy(self.root)
+        autonomous = policy.public_publishing_enabled
         payload = {
             **candidate,
-            "upload_status": "awaiting-human-confirmation",
-            "publish_note": "The video is ready, but an external YouTube upload has not been performed.",
+            "upload_status": "authorized-for-aion-publish" if autonomous else "awaiting-human-confirmation",
+            "publish_note": (
+                "AION is authorized to publish after the quality gate and channel checks pass. "
+                "This record is an audit trail; it does not itself upload to YouTube."
+                if autonomous else "The video is ready, but an external YouTube upload has not been performed."
+            ),
         }
         record = self.memory.remember(
             self.CATEGORY, json.dumps(payload, ensure_ascii=False),
             memory_type="action", source="aion-youtube-creator-queue", importance=3,
             tags=["youtube", "creator-series", candidate["episode_id"]],
         )
-        return {"stage": "prepared-for-review", "record": record, **payload}
+        return {"stage": "authorized-for-publishing" if autonomous else "prepared-for-review", "record": record, **payload}

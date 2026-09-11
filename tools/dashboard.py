@@ -451,9 +451,9 @@ def _operational_snapshot(reels, creator_queue, campaigns):
          "value": f"{reels.get('published', 0)} ชิ้น", "detail": "บันทึกการเผยแพร่จากช่องทางจริง"},
         {"state": "active" if reels.get("pending") else "done", "title": "คิวคอนเทนต์",
          "value": f"รอ {reels.get('pending', 0)} ชิ้น", "detail": "ไม่มีงานค้าง" if not reels.get("pending") else "กำลังรอรอบเผยแพร่"},
-        {"state": "waiting" if ready_video else "active", "title": "YouTube Creator",
-         "value": "พร้อมตรวจ 1 ตอน" if ready_video else "กำลังผลิตตอนถัดไป",
-         "detail": (f"{ready_video.get('title')} — สร้างไฟล์วิดีโอและตรวจแหล่งข้อมูลแล้ว; ยังไม่อัปโหลดสู่ช่องสาธารณะ"
+        {"state": "active", "title": "YouTube Creator",
+         "value": "พร้อมให้ AION เผยแพร่ 1 ตอน" if ready_video else "กำลังผลิตตอนถัดไป",
+         "detail": (f"{ready_video.get('title')} — สร้างไฟล์วิดีโอและตรวจแหล่งข้อมูลแล้ว; AION เผยแพร่ได้เองหลังผ่าน Quality Gate และตรวจช่องทาง"
                     if ready_video else "AION กำลังพัฒนาเนื้อหา")},
         {"state": "waiting" if campaigns.get("waiting_admin_count") else "active", "title": "ชุมชน Facebook",
          "value": f"รอผู้ดูแล {campaigns.get('waiting_admin_count', 0)}",
