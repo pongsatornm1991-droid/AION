@@ -84,5 +84,14 @@ class ContentExperimentExecutor:
             self.memory.remember(self.RESULTS, json.dumps(result, ensure_ascii=False, sort_keys=True),
                                  memory_type="lesson", source="aion-content-experiment", importance=4,
                                  tags=["content-experiment", conclusion], related=[plan["memory_id"]])
+            # A finished experiment must leave the active queue.  The durable
+            # plan remains in memory as an audit trail, but its own state is
+            # updated so dashboards and future cycles cannot call it pending.
+            completed_plan = {key: value for key, value in plan.items() if key != "memory_id"}
+            completed_plan["status"] = "evaluated"
+            self.memory.update(
+                "content_experiment_plans", plan["memory_id"],
+                content=json.dumps(completed_plan, ensure_ascii=False, sort_keys=True),
+            )
             return {"stage": "evaluated", "result": result}
         return {"stage": "no-active-experiment"}

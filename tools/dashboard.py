@@ -144,7 +144,7 @@ def _development_snapshot(memory):
         return _recent(entries, limit)
 
     return {
-        "proposed_fixes": lane(["self_improvement", "evolution_proposals", "improvement_reviews"]),
+        "proposed_fixes": lane(["self_improvement", "evolution_proposals"]),
         "thinking": lane(["self_narrative", "reflections"]),
         "wants_to_learn": lane(["questions", "learning_forecasts"]),
         "doing": lane(["goals", "creative_intentions", "autonomous_inquiries", "autonomic_drive"]),
@@ -157,6 +157,100 @@ def _development_snapshot(memory):
             "learned": "AION เรียนรู้อะไรแล้ว",
         },
     }
+
+
+def _links_in(value):
+    """Extract only explicit http(s) source links from a memory payload."""
+    links = []
+    if isinstance(value, dict):
+        for key, item in value.items():
+            if key in {"url", "source_url", "link"} and isinstance(item, str) and item.startswith(("https://", "http://")):
+                links.append(item)
+            else:
+                links.extend(_links_in(item))
+    elif isinstance(value, list):
+        for item in value:
+            links.extend(_links_in(item))
+    return list(dict.fromkeys(links))[:6]
+
+
+def _mind_details(memory):
+    """Small, inspectable evidence lists behind every mind-and-growth number."""
+    definitions = {
+        "memories": ("ความทรงจำ", "บันทึกเหตุการณ์ ความรู้ และการทบทวนที่ตรวจย้อนหลังได้", [
+            "experiences", "lessons", "questions", "goals", "beliefs", "reflections", "self_narrative", "learning_forecasts", "youtube_discoveries",
+        ]),
+        "lessons": ("บทเรียน", "สิ่งที่ AION บันทึกว่าเรียนรู้แล้ว", ["lessons"]),
+        "questions": ("คำถาม", "คำถามที่ยังอยากหาคำตอบ ไม่ใช่ข้อเท็จจริงที่ยืนยันแล้ว", ["questions"]),
+        "goals": ("เป้าหมาย", "สิ่งที่ AION ตั้งใจทำและตรวจสอบความคืบหน้าได้", ["goals"]),
+        "beliefs": ("ความเชื่อ", "สมมติฐานหรือหลักยึดที่ยังเปลี่ยนได้เมื่อมีหลักฐานใหม่", ["beliefs"]),
+        "reflections": ("การทบทวน", "การสะท้อนสิ่งที่ทำและข้อจำกัดของการคิด", ["reflections", "self_narrative"]),
+        "forecasts": ("การคาดการณ์", "สิ่งที่คาดไว้เพื่อกลับมาตรวจผลภายหลัง", ["learning_forecasts"]),
+        "youtube_discoveries": ("สิ่งที่ค้นพบจากยูทูบ", "เป็นเพียงเบาะแสจากคลิป ไม่ถือเป็นข้อเท็จจริงจนกว่าจะตรวจแหล่งอ้างอิงอื่น", ["youtube_discoveries"]),
+    }
+    result = {}
+    for key, (heading, explanation, categories) in definitions.items():
+        entries = []
+        for category in categories:
+            for entry in _entries(memory, category):
+                payload = _safe_json(entry.get("content"))
+                if category == "youtube_discoveries" and isinstance(payload, dict):
+                    videos = payload.get("videos") or []
+                    video_text = "; ".join(
+                        f"{item.get('title', 'วิดีโอ')} — {item.get('channel', 'ไม่ระบุช่อง')}"
+                        for item in videos[:3] if isinstance(item, dict)
+                    )
+                    content = f"คำถามที่ค้นหา: {payload.get('question', '')}. พบ: {video_text}"
+                else:
+                    content = entry.get("content")
+                entries.append({
+                    "timestamp": entry.get("timestamp"), "category": category,
+                    "content": _short(content, 500),
+                    "links": _links_in(payload) if isinstance(payload, (dict, list)) else [],
+                })
+        result[key] = {"title": heading, "explanation": explanation, "entries": _recent(entries, 8)}
+    return result
+
+
+def _improvement_lifecycle(memory):
+    """Show proposals as a lifecycle, so completed work never masquerades as pending."""
+    plans = {}
+    for entry in _entries(memory, "content_experiment_plans"):
+        payload = _safe_json(entry.get("content"))
+        if isinstance(payload, dict) and payload.get("review_id"):
+            payload = {**payload, "timestamp": entry.get("timestamp")}
+            old = plans.get(payload["review_id"])
+            if not old or payload.get("timestamp", "") >= old.get("timestamp", ""):
+                plans[payload["review_id"]] = payload
+    results = set()
+    for entry in _entries(memory, "content_experiment_results"):
+        payload = _safe_json(entry.get("content"))
+        if isinstance(payload, dict) and payload.get("review_id") and payload.get("status") == "evaluated":
+            results.add(payload["review_id"])
+    reviews = {}
+    for entry in _entries(memory, "improvement_reviews"):
+        payload = _safe_json(entry.get("content"))
+        if isinstance(payload, dict) and payload.get("review_id"):
+            payload = {**payload, "timestamp": entry.get("timestamp")}
+            old = reviews.get(payload["review_id"])
+            if not old or payload.get("timestamp", "") >= old.get("timestamp", ""):
+                reviews[payload["review_id"]] = payload
+    items = []
+    for review_id, review in reviews.items():
+        plan = plans.get(review_id, {})
+        plan_status = plan.get("status")
+        if review_id in results or plan_status == "evaluated":
+            state, label = "done", "ประเมินเสร็จแล้ว"
+        elif plan_status in {"queued", "active"}:
+            state, label = "active", "กำลังทดลอง"
+        elif review.get("status") == "approved-for-experiment":
+            state, label = "waiting", "รอสร้างแผนทดลอง"
+        else:
+            state, label = "quiet", "บันทึกไว้เป็นประวัติ"
+        items.append({"timestamp": review.get("timestamp"), "state": state, "label": label,
+                      "proposal": _short(review.get("proposal"), 340),
+                      "detail": "ผลที่จบแล้วจะอยู่เป็นประวัติตรวจสอบได้ และไม่แสดงเป็นงานค้าง"})
+    return _recent(items, 8)
 
 
 def _capability_snapshot(memory, reels, creator_autonomy, research_to_story):
@@ -273,7 +367,7 @@ def _autonomous_improvement_activity(memory):
         })
     for entry in _entries(memory, "content_experiment_plans"):
         payload = _safe_json(entry.get("content"))
-        if not isinstance(payload, dict):
+        if not isinstance(payload, dict) or payload.get("status") not in {"queued", "active"}:
             continue
         activities.append({
             "timestamp": entry.get("timestamp"), "kind": "แผนที่กำลังดำเนินการ",
@@ -308,7 +402,8 @@ def _operational_snapshot(reels, creator_queue, campaigns):
          "value": f"รอ {reels.get('pending', 0)} ชิ้น", "detail": "ไม่มีงานค้าง" if not reels.get("pending") else "กำลังรอรอบเผยแพร่"},
         {"state": "waiting" if ready_video else "active", "title": "YouTube Creator",
          "value": "พร้อมตรวจ 1 ตอน" if ready_video else "กำลังผลิตตอนถัดไป",
-         "detail": ready_video.get("title") if ready_video else "AION กำลังพัฒนาเนื้อหา"},
+         "detail": (f"{ready_video.get('title')} — สร้างไฟล์วิดีโอและตรวจแหล่งข้อมูลแล้ว; ยังไม่อัปโหลดสู่ช่องสาธารณะ"
+                    if ready_video else "AION กำลังพัฒนาเนื้อหา")},
         {"state": "waiting" if campaigns.get("waiting_admin_count") else "active", "title": "ชุมชน Facebook",
          "value": f"รอผู้ดูแล {campaigns.get('waiting_admin_count', 0)}",
          "detail": "ยังไม่ส่งโพสต์ซ้ำ" if campaigns.get("waiting_admin_count") else "พร้อมเลือกงานที่ให้คุณค่า"},
@@ -466,6 +561,7 @@ def build_snapshot(memory_root=None):
             "forecasts": totals["learning_forecasts"],
             "youtube_discoveries": totals["youtube_discoveries"],
         },
+        "mind_details": _mind_details(memory),
         "content": reels,
         "creator_library": creator_library,
         "creator_program": creator_program,
@@ -477,6 +573,7 @@ def build_snapshot(memory_root=None):
         "growth_roadmap": _growth_roadmap(capabilities),
         "autonomy": _autonomy_snapshot(memory, creator_autonomy),
         "autonomous_improvements": _autonomous_improvement_activity(memory),
+        "improvement_lifecycle": _improvement_lifecycle(memory),
         "autonomic_drive": autonomic_drive,
         "revenue": _revenue_snapshot(memory),
         "community_campaigns": community_campaigns,

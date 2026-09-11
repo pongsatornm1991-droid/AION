@@ -24,3 +24,6 @@ class ContentExperimentTests(unittest.TestCase):
                 cycle.assign_next(content_id)
                 memory.remember("content_attribution", json.dumps({"content_id":content_id, "like_count":idx, "comments_count":idx}), memory_type="observation", source="test", importance=3)
             self.assertEqual("evaluated", cycle.evaluate_once()["stage"])
+            plan = json.loads(memory.all("content_experiment_plans")[0]["content"])
+            self.assertEqual("evaluated", plan["status"])
+            self.assertEqual("no-active-experiment", cycle.evaluate_once()["stage"])

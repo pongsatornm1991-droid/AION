@@ -22,6 +22,7 @@
     .revenue { padding:22px }.revenue h2 { margin:8px 0; font-size:1.25rem }.revenue-grid { display:grid; grid-template-columns:repeat(2,1fr); gap:10px; margin:16px 0 }.revenue-metric { border:1px solid var(--line); border-radius:12px; padding:13px }.revenue-metric strong{display:block;color:var(--aqua);font-size:1.5rem}.revenue-item{border-top:1px solid var(--line);padding:13px 0;color:#c9dce6}.revenue-item h3{margin:0 0 5px;font-size:.95rem}.guardrail{color:var(--muted);font-size:.78rem;margin:5px 0}
     .campaign { padding:22px }.campaign h2 { margin:8px 0; font-size:1.25rem }.campaign-list { margin-top:16px }.campaign-item{border-top:1px solid var(--line);padding:13px 0;color:#c9dce6}.campaign-item h3{margin:4px 0;font-size:.96rem}.campaign-status{color:var(--warm);font-size:.72rem}.campaign-status.ready{color:var(--aqua)}
     @media(max-width:1100px){.development,.capabilities{grid-template-columns:repeat(2,1fr)}.rsi-loop{grid-template-columns:repeat(2,1fr)}} @media(max-width:850px){ main{padding:30px 16px}.top{display:block}.live{display:inline-block;margin-top:20px}.grid{grid-template-columns:1fr}.mind{grid-template-columns:repeat(3,1fr)}.library{grid-template-columns:repeat(2,1fr)}.wide,.brain-layout{grid-template-columns:1fr}.roadmap-step{grid-template-columns:1fr;gap:8px}} @media(max-width:460px){.mind,.library,.development,.capabilities,.rsi-loop{grid-template-columns:1fr}}
+    .mind-card{width:100%;color:inherit;text-align:left;cursor:pointer;font:inherit}.mind-card:hover,.mind-card:focus-visible{transform:translateY(-2px);border-color:var(--aqua);outline:2px solid rgba(61,231,255,.35);outline-offset:2px}.mind-hint{display:block;color:var(--muted);font-size:.7rem;margin-top:8px}.mind-inspector{margin-top:14px;min-height:130px}.mind-inspector h2{margin:5px 0 8px;font-size:1.2rem}.mind-inspector p{color:#c9dce6;margin:6px 0 14px}.detail-entry{border-top:1px solid var(--line);padding:13px 0}.detail-entry:first-of-type{border-top:0}.detail-entry p{font-size:.85rem;margin:5px 0}.detail-links{display:flex;gap:8px;flex-wrap:wrap}.detail-links a{font-size:.76rem;color:var(--aqua)}.status-explainer{color:var(--muted);font-size:.78rem;margin:-4px 0 14px;max-width:900px}.lifecycle{grid-template-columns:repeat(3,1fr)}.lifecycle-card{min-height:150px;border-left:4px solid var(--tone)}.lifecycle-card h3{margin:8px 0;font-size:1rem}.lifecycle-card p{color:#c9dce6;font-size:.84rem;margin:8px 0}
   </style>
 </head>
 <body>
@@ -31,11 +32,15 @@
   <section class="grid" id="platforms"></section>
   <div class="section-title">จิตใจและการเติบโต</div>
   <section class="grid mind" id="mind"></section>
+  <section class="card mind-inspector" id="mindInspector"><div class="empty">กดการ์ดใดก็ได้ เพื่อดูรายการจริงที่อยู่เบื้องหลังตัวเลข</div></section>
   <div class="section-title">สถานะการทำงานตอนนี้</div>
   <div class="legend-row"><span class="legend-chip tone-done"><i class="legend-dot"></i>ทำเสร็จแล้ว</span><span class="legend-chip tone-active"><i class="legend-dot"></i>กำลังทำ</span><span class="legend-chip tone-waiting"><i class="legend-dot"></i>รอข้อมูลหรือการตัดสินใจ</span><span class="legend-chip tone-alert"><i class="legend-dot"></i>ต้องแก้ไข</span></div>
+  <p class="status-explainer"><strong>ความหมายของ “กำลังดำเนินการ”:</strong> พื้นที่นั้นมีงานหรือวงจรทำงานต่อเนื่อง ไม่ได้แปลว่ากำลังโพสต์สู่สาธารณะในวินาทีนั้น ส่วน “พร้อมตรวจ” หมายถึงสร้างไฟล์งานเสร็จแล้ว แต่ยังรอการตรวจ/ยืนยันก่อนการเผยแพร่</p>
   <section class="grid operations" id="operations"></section>
   <div class="section-title">สิ่งที่ AION อยากพัฒนา</div>
   <section class="grid development" id="development"></section>
+  <div class="section-title">วงจรข้อเสนอปรับปรุง</div>
+  <section class="grid lifecycle" id="improvementLifecycle"></section>
   <div class="section-title">ความพร้อมจริงและงานถัดไป</div>
   <section class="grid capabilities" id="capabilities"></section>
   <div class="section-title">เส้นทางการยกระดับ AION</div>
@@ -103,13 +108,24 @@
   function render(data) {
     const p = data.platforms;
     el('platforms').innerHTML = platformCard('อินสตาแกรม', p.instagram, {value:p.instagram.followers,label:'ผู้ติดตาม',second:{value:p.instagram.reels_published,label:'คลิปสั้นที่เผยแพร่'}}, 'ig') + platformCard('เฟซบุ๊ก', p.facebook, {value:p.facebook.reels_published,label:'คลิปสั้นที่เผยแพร่'}, 'fb') + platformCard('ยูทูบ', p.youtube, {value:p.youtube.shorts_published,label:'คลิปสั้นที่เผยแพร่'}, 'yt');
-    const mind = [['ความทรงจำ',data.mind.total_memories],['บทเรียน',data.mind.lessons],['คำถาม',data.mind.questions],['เป้าหมาย',data.mind.goals],['ความเชื่อ',data.mind.beliefs],['การทบทวน',data.mind.reflections],['สิ่งที่ค้นพบจากยูทูบ',data.mind.youtube_discoveries],['การคาดการณ์',data.mind.forecasts]];
-    el('mind').innerHTML = mind.map(([name,value])=>`<article class="card"><div class="label">${name}</div><div class="number">${fmt(value)}</div></article>`).join('');
+    const mind = [
+      ['memories','ความทรงจำ',data.mind.total_memories,'กดเพื่อดูบันทึกล่าสุด'],['lessons','บทเรียน',data.mind.lessons,'สิ่งที่เรียนรู้แล้ว'],['questions','คำถาม',data.mind.questions,'สิ่งที่ยังอยากหาคำตอบ'],['goals','เป้าหมาย',data.mind.goals,'สิ่งที่ตั้งใจทำ'],['beliefs','ความเชื่อ',data.mind.beliefs,'สมมติฐานที่เปลี่ยนได้'],['reflections','การทบทวน',data.mind.reflections,'สิ่งที่ทบทวนและข้อจำกัด'],['youtube_discoveries','สิ่งที่ค้นพบจากยูทูบ',data.mind.youtube_discoveries,'กดดูคลิปและคำถามที่ใช้ค้นหา'],['forecasts','การคาดการณ์',data.mind.forecasts,'คาดไว้แล้วกลับมาตรวจผล']
+    ];
+    el('mind').innerHTML = mind.map(([key,name,value,hint])=>`<button type="button" class="card mind-card" data-mind-key="${key}"><div class="label">${name}</div><div class="number">${fmt(value)}</div><span class="mind-hint">${hint}</span></button>`).join('');
+    const renderMindDetail = key => {
+      const detail=data.mind_details?.[key];
+      if(!detail){el('mindInspector').innerHTML='<div class="empty">ยังอ่านรายละเอียดหัวข้อนี้ไม่ได้</div>';return}
+      const entries=detail.entries||[];
+      el('mindInspector').innerHTML=`<div class="label">ดูหลักฐานของตัวเลข</div><h2>${escapeHtml(detail.title)}</h2><p>${escapeHtml(detail.explanation)}</p>${entries.length?entries.map(x=>`<article class="detail-entry"><span class="time">${escapeHtml(x.timestamp||'')} · ${escapeHtml(x.category||'')}</span><p>${escapeHtml(x.content||'')}</p>${(x.links||[]).length?`<div class="detail-links">${x.links.map((link,index)=>`<a href="${escapeHtml(link)}" target="_blank" rel="noopener">เปิดแหล่งอ้างอิง ${index+1}</a>`).join('')}</div>`:''}</article>`).join(''):'<div class="empty">ยังไม่มีรายการในหัวข้อนี้</div>'}`;
+    };
+    el('mind').querySelectorAll('[data-mind-key]').forEach(button=>button.addEventListener('click',()=>renderMindDetail(button.dataset.mindKey)));
     const development=data.development||{}, labels=development.labels||{};
     const lanes=['proposed_fixes','thinking','wants_to_learn','doing','learned'];
     const operations=data.operations?.signals||[];
     el('operations').innerHTML=operations.map(x=>`<article class="card operation tone-${escapeHtml(x.state||'quiet')}"><div class="label">${escapeHtml(x.title)}</div><h3>${escapeHtml(({done:'ทำเสร็จแล้ว',active:'กำลังดำเนินการ',waiting:'กำลังรอ',alert:'ต้องแก้ไข'})[x.state]||'ติดตาม')}</h3><div class="operation-value">${escapeHtml(x.value||'—')}</div><p class="metric-note">${escapeHtml(x.detail||'')}</p></article>`).join('');
     el('development').innerHTML=lanes.map(key=>`<article class="card dev-card" data-lane="${key}"><div class="label">พื้นที่พัฒนา</div><h2>${labels[key]||key}</h2>${(development[key]||[]).map(x=>`<div class="dev-item">${escapeHtml(x.content)}<span class="dev-time">${x.timestamp||''}</span></div>`).join('')||'<div class="empty">ยังไม่มีรายการในหัวข้อนี้</div>'}</article>`).join('');
+    const lifecycleLabel={done:'ประเมินเสร็จแล้ว',active:'กำลังทดลอง',waiting:'รอสร้างแผนทดลอง',quiet:'บันทึกไว้เป็นประวัติ'};
+    el('improvementLifecycle').innerHTML=(data.improvement_lifecycle||[]).map(x=>`<article class="card lifecycle-card tone-${escapeHtml(x.state||'quiet')}"><div class="label">${escapeHtml(lifecycleLabel[x.state]||x.label||'ติดตาม')}</div><h3>${escapeHtml(x.label||'')}</h3><p>${escapeHtml(x.proposal||'ไม่มีรายละเอียดข้อเสนอ')}</p><span class="metric-note">${escapeHtml(x.detail||'')}</span></article>`).join('')||'<div class="empty">ยังไม่มีวงจรการทดลองที่ต้องติดตาม</div>';
     el('capabilities').innerHTML=(data.capabilities||[]).map(x=>`<article class="card capability"><div class="label">ความสามารถ</div><h2>${escapeHtml(x.name)}</h2><span class="state">${capabilityState(x.status)}</span><p>${escapeHtml(x.evidence)}</p><p class="next"><strong>ต่อไป:</strong> ${escapeHtml(x.next)}</p></article>`).join('') || '<div class="empty">กำลังอ่านความพร้อมของ AION</div>';
     el('roadmap').innerHTML=(data.growth_roadmap||[]).map(x=>`<article class="roadmap-step"><span class="badge">${escapeHtml(x.phase)}</span><div><h3>${escapeHtml(x.title)}</h3><p>${escapeHtml(x.outcome)}</p></div><span class="state">${capabilityState(x.status)}</span></article>`).join('') || '<div class="empty">กำลังจัดเส้นทางการเติบโต</div>';
     const autonomy=data.autonomy||{}, autonomyEvidence=autonomy.evidence||{}, drive=data.autonomic_drive||{};
