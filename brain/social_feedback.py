@@ -92,10 +92,13 @@ class InstagramFeedbackCycle:
 
         from brain.growth import GrowthEngine
         growth = GrowthEngine(self.memory).reflect_once()
+        from brain.content_attribution import ContentAttributionEngine
+        attribution = ContentAttributionEngine(self.memory).capture_instagram_once()
 
         return {
             "stage": "captured" if recorded else "no-changes",
             "recorded": len(recorded),
             "overview": account,
             "growth": growth,
+            "attribution": attribution,
         }
