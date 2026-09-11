@@ -21,7 +21,10 @@ from brain.social import SocialContentGenerator, SocialAutoCycle
 from brain.comment_reply import CommentReplyGenerator, CommentAutoReplyCycle
 from brain.profile_change import ProfileChangeGenerator, ProfileChangeCycle
 from brain.learning import WebLearningGenerator, WebLearningCycle
-from tools.web_search import search_arxiv, get_arxiv_summary
+from tools.web_search import (
+    search_arxiv, get_arxiv_summary,
+    search_europe_pmc_fulltext, get_europe_pmc_fulltext,
+)
 from brain.self_narrative import SelfNarrativeGenerator, SelfNarrativeCycle
 from brain.reflection import ReflectionEngine, ReflectionCycle
 from brain.reflection_schema import (
@@ -2047,6 +2050,12 @@ def run_learning_cycle(args):
         generator,
         fallback_search_fn=search_arxiv,
         fallback_fetch_fn=get_arxiv_summary,
+        additional_adapters={
+            "europe_pmc_fulltext": {
+                "search": search_europe_pmc_fulltext,
+                "fetch": get_europe_pmc_fulltext,
+            },
+        },
     )
 
     report = cycle.research_once()

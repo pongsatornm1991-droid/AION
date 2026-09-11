@@ -1255,6 +1255,7 @@ class WebLearningCycle:
         fallback_search_fn=None,
         fallback_fetch_fn=None,
         fallback_source_id="arxiv",
+        additional_adapters=None,
     ):
         self.memory = memory
         self.curiosity = curiosity
@@ -1373,6 +1374,16 @@ class WebLearningCycle:
                 "search": self.fallback_search_fn,
                 "fetch": self.fallback_fetch_fn,
             }
+
+        # Optional, source-specific adapters extend research breadth without
+        # changing the default Wikipedia path or granting arbitrary web access.
+        for source_id, adapter in (additional_adapters or {}).items():
+            if not isinstance(adapter, dict):
+                continue
+            if callable(adapter.get("search")) and callable(adapter.get("fetch")):
+                self.adapters[str(source_id)] = {
+                    "search": adapter["search"], "fetch": adapter["fetch"],
+                }
 
         # Only auto-register production discovery adapters when
         # the supplied registry has the richer Phase 5F capability
