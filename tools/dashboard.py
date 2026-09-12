@@ -4,6 +4,9 @@ Run with: python tools/dashboard.py
 Then open: http://127.0.0.1:8787
 """
 
+# Route revision 2026-09-13: invalidate any obsolete bytecode cache that
+# predates the dedicated Learning, Cyber Guard, and Evolution Lab pages.
+
 import json
 import os
 import re
