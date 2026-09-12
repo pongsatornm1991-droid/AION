@@ -2276,7 +2276,8 @@ def run_self_improvement_cycle(args):
         report = {"stage": "provider-unavailable", "error_type": type(exc).__name__}
         print("\nAION SELF-IMPROVEMENT CYCLE")
         print(f"Stage: {report['stage']}")
-        _notify_report(report, formatter=_format_self_improvement_telegram_report)
+        # This internal result is visible in the Company dashboard. It is
+        # not an approval request and should not interrupt the chair.
         return report
     evaluator = OutputEvaluator()
     metacognition = MetacognitionEngine(memory)
@@ -2302,11 +2303,7 @@ def run_self_improvement_cycle(args):
         print(report["draft"])
         print("-" * 60)
 
-    notified = _notify_report(report, formatter=_format_self_improvement_telegram_report)
-    if notified is True:
-        print("Notified via Telegram.")
-    elif notified is False:
-        print("Telegram notification attempted but failed (see above).")
+    print("Recorded for AION Company dashboard; no Telegram approval is required.")
 
 
 def _format_reflection_telegram_report(report):
@@ -2476,7 +2473,7 @@ def run_evolution_cycle(args):
         print(f"Proposals: {len(report['proposals'])}")
         for proposal in report["proposals"]:
             print(f"- [{proposal['priority']}] {proposal['area']}: {proposal['experiment']}")
-    _notify_report(report, formatter=_format_evolution_telegram_report)
+    print("Recorded for AION Company dashboard; no Telegram approval is required.")
 
 
 def _format_evolution_telegram_report(report):

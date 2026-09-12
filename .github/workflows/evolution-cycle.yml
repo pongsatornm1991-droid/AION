@@ -31,8 +31,6 @@ jobs:
       - name: Produce evidence-backed evolution proposal
         env:
           AION_MEMORY_ROOT: memory_data
-          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
-          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
         run: python main.py run-evolution-cycle
       - name: Persist private evolution record
         working-directory: memory_data

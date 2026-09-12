@@ -10,7 +10,7 @@ from tools.dashboard import _operational_snapshot
 class DashboardTests(unittest.TestCase):
     def test_studio_snapshot_separates_creator_rooms(self):
         snapshot = build_studio_snapshot()
-        self.assertEqual(6, len(snapshot["rooms"]))
+        self.assertEqual(7, len(snapshot["rooms"]))
         self.assertEqual("ห้องตัวตน AION", snapshot["rooms"][0]["name"])
         self.assertEqual("ห้องตรวจและส่งออก", snapshot["rooms"][-1]["name"])
         self.assertTrue(snapshot["workflow"])

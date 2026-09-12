@@ -553,6 +553,7 @@ def build_studio_snapshot(memory_root=None):
         "rooms": [
             {"id": "identity", "name": "ห้องตัวตน AION", "purpose": "รักษาคาแรกเตอร์ ภาพลักษณ์ และบทบาทของ AION ให้ต่อเนื่องทุกตอน", "count": len(images), "unit": "ภาพต้นฉบับ", "state": "ready"},
             {"id": "research", "name": "ห้องค้นคว้า", "purpose": "เก็บแหล่งอ้างอิงและขอบเขตข้อเท็จจริงก่อนเขียนเรื่อง", "count": sum(item.get("source_count", 0) for item in episodes), "unit": "แหล่งอ้างอิงในซีรีส์", "state": "active"},
+            {"id": "research-lab", "name": "ห้องวิจัยและหลักฐาน", "purpose": "ให้ Inquiry Scout และ Evidence Analyst เปลี่ยนคำถามเป็น research brief ที่ตรวจย้อนกลับได้ ก่อนส่งต่อไปเขียนเรื่อง", "count": snapshot.get("research_to_story", {}).get("eligible_topics", 0), "unit": "หัวข้อที่มีหลักฐานพร้อมต่อยอด", "state": "active"},
             {"id": "story", "name": "ห้องเรื่องเล่า", "purpose": "เปลี่ยนคำถามให้เป็น hook, บทพูด และ storyboard ที่ AION อยู่ในทุกฉาก", "count": len(episodes), "unit": "ตอนที่ออกแบบแล้ว", "state": "active"},
             {"id": "visual", "name": "ห้องภาพและฉาก", "purpose": "สร้างภาพใหม่เป็นรายฉาก ไม่ใช้ภาพเดิมวนซ้ำเป็นทางลัด", "count": len(images), "unit": "ภาพในคลัง", "state": "active"},
             {"id": "audio", "name": "ห้องเสียง", "purpose": "จัดเสียงบรรยายและเสียงประกอบหลังเรื่องและภาพผ่านการตรวจแล้ว", "count": len(audio), "unit": "ไฟล์เสียง", "state": "ready"},
