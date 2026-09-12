@@ -34,3 +34,14 @@ class AutonomousInquiryTests(unittest.TestCase):
             self.assertEqual("learning-already-active", report["stage"])
             self.assertFalse(report["originated"])
 
+    def test_ignores_legacy_score_loop_when_choosing_research_direction(self):
+        with tempfile.TemporaryDirectory() as root:
+            memory = MemoryEngine(root)
+            memory.remember("lessons", "AION learned to preserve evidence.", "lesson")
+            CuriosityEngine(memory).raise_question(
+                "Why did AION's Uncertainty score change?", "Explain the evaluator score"
+            )
+            report = AutonomousInquiryCycle(memory, Provider(), OutputEvaluator()).run_once()
+            self.assertEqual("originated", report["stage"])
+            self.assertEqual(1, len(report["retired"]))
+            self.assertFalse(CuriosityEngine(memory).open_questions(topic=None)[0].get("statement", "").startswith("Why did AION"))

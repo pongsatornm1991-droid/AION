@@ -29,6 +29,10 @@ jobs:
         env:
           AION_MEMORY_ROOT: memory_data
         run: python tools/run_research_to_story.py
+      - name: Hand the qualified brief to the Story Agent
+        env:
+          AION_MEMORY_ROOT: memory_data
+        run: python tools/run_research_story_handoff.py
       - name: Persist the private brief
         working-directory: memory_data
         run: |

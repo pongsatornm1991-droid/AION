@@ -25,6 +25,7 @@ from brain.content_registry import CreatorContentRegistry
 from brain.creator_series import CreatorSeriesRegistry
 from brain.creator_autonomy import CreatorAutonomy
 from brain.research_to_story import ResearchToStory
+from brain.research_story_handoff import ResearchStoryHandoff
 from brain.autonomic_drive import AutonomicDrive
 from brain.revenue_brain import RevenueBrain
 from brain.community_campaign import CommunityCampaignRegistry
@@ -614,6 +615,10 @@ def build_snapshot(memory_root=None):
         research_to_story = ResearchToStory(memory).snapshot()
     except (OSError, ValueError, TypeError):
         research_to_story = {"status": "unavailable", "current": None, "history_count": 0, "eligible_topics": 0}
+    try:
+        story_handoff = ResearchStoryHandoff(memory).snapshot()
+    except (OSError, ValueError, TypeError):
+        story_handoff = {"current": None, "count": 0}
     capabilities = _capability_snapshot(
         memory, reels, creator_autonomy, research_to_story,
     )
@@ -660,6 +665,7 @@ def build_snapshot(memory_root=None):
         "creator_references": _creator_references(),
         "creator_autonomy": creator_autonomy,
         "research_to_story": research_to_story,
+        "story_handoff": story_handoff,
         "capabilities": capabilities,
         "growth_roadmap": _growth_roadmap(capabilities),
         "autonomy": _autonomy_snapshot(memory, creator_autonomy),
