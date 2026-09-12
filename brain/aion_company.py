@@ -75,6 +75,10 @@ class AionCompany:
                  "does": "จัดบทเรียน ความทรงจำ เวอร์ชัน และสินทรัพย์ ป้องกันความซ้ำซ้อนและไฟล์ค้าง", "evidence": f"บทเรียน {self._count('lessons')} รายการ", "handoff": "เก็บร่องรอยให้ทุกฝ่ายตรวจย้อนหลังได้", "state": "active"},
                 {"id": "engineering", "name": "ฝ่ายพัฒนาและความน่าเชื่อถือ", "lead": "Engineering Lead", "room": "ห้องวิศวกรรมระบบ",
                  "does": "ตรวจความพร้อมของโค้ด รันทดสอบ ติดตามข้อผิดพลาด และปล่อยการแก้ไขเฉพาะที่ผ่านการตรวจ", "evidence": "ตรวจโค้ดและ workflow แบบอ่านอย่างเดียว", "handoff": "ส่งผลตรวจให้ AION และส่งชุดแก้ไขที่ผ่าน QA เข้าสู่ release", "state": workflow_states.get("engineering", "unknown")},
+                {"id": "cyber-guard", "name": "ฝ่าย Cyber Guard", "lead": "Cyber Guard Lead", "room": "ห้อง Cyber Guard",
+                 "does": "ตรวจเชิงป้องกันเรื่องไฟล์สำคัญ การกัน secrets และความพร้อม release แล้วส่งข้อผิดปกติให้วิศวกรรม", "evidence": "รายงาน defensive audit ที่ตรวจย้อนกลับได้", "handoff": "ส่งเฉพาะรายงาน/หลักฐานให้ฝ่ายวิศวกรรมแก้", "state": workflow_states.get("cyber-guard", "unknown")},
+                {"id": "evolution-lab", "name": "ฝ่าย Evolution Lab", "lead": "Experiment Lead", "room": "ห้อง Evolution Lab",
+                 "does": "เปลี่ยนบทเรียนและปัญหาซ้ำเป็นการทดลองที่วัดผลได้ โดยคุมขอบเขตการเปลี่ยนแปลง", "evidence": f"ข้อเสนอพัฒนา {self._count('evolution_proposals')} รายการ", "handoff": "ส่งผลทดลองให้ AION, Quality และ Engineering", "state": workflow_states.get("evolution-lab", "unknown")},
             ],
             "agents": [
                 {"name": "Inquiry Scout", "department": "ฝ่ายวิจัย", "does": "เลือกคำถามที่มีหลักฐานพอให้ค้นต่อ", "handoff": "ส่งคำถามให้ Evidence Analyst", "state": workflow_states.get("research", "unknown")},

@@ -1,0 +1,21 @@
+name: AION - Cyber Guard defensive audit
+on:
+  push:
+    paths: ["brain/cyber_guard.py", "brain/system_reliability.py", ".gitignore", "tools/run_cyber_guard.py"]
+  schedule: [{cron: "20 2 * * *"}]
+  workflow_dispatch: {}
+permissions: {contents: write}
+jobs:
+  audit:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: {python-version: "3.11"}
+      - run: python tools/run_cyber_guard.py
+      - run: python -m unittest tests.test_new_workspaces
+      - run: |
+          git config user.name aion-bot
+          git config user.email aion-bot@users.noreply.github.com
+          git add public/aion-cyber-guard.json
+          if ! git diff --cached --quiet; then git commit -m "AION: refresh defensive audit"; git push; fi

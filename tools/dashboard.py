@@ -581,6 +581,7 @@ def build_studio_snapshot(memory_root=None):
         "detail": ("สร้างภาพใหม่ได้ในเครื่องนี้" if image_provider_ready
                    else "เครื่องนี้ยังไม่เห็นการตั้งค่าผู้ให้บริการภาพ; งานจะไม่ใช้ภาพเก่ามาแทนหรือแสดงว่าผลิตสำเร็จ"),
     }
+
     return {
         "generated_at": snapshot["generated_at"],
         "rooms": [
@@ -607,6 +608,31 @@ def build_studio_snapshot(memory_root=None):
             "คำถามและหลักฐาน", "เรื่องเล่าและ storyboard", "ภาพใหม่รายฉาก", "เสียงและการประกอบ", "ตรวจคุณค่า/ข้อจำกัด", "คิวเผยแพร่",
         ],
     }
+
+
+def build_learning_lab_snapshot(memory_root=None):
+    """Separate learning evidence from Studio's production workspace."""
+    snapshot = build_snapshot(memory_root)
+    details = snapshot.get("mind_details") or {}
+    return {"title": "AION Learning Lab", "purpose": "คำถาม → หลักฐาน → บทเรียน → ความเชื่อที่ตรวจสอบได้",
+            "mind": snapshot.get("mind", {}), "research": snapshot.get("research_to_story", {}),
+            "details": {key: details.get(key, []) for key in ("questions", "lessons", "beliefs", "youtube_discoveries")},
+            "boundary": "ห้องนี้ไม่ผลิตหรือเผยแพร่คอนเทนต์โดยตรง; ส่งต่อเฉพาะ research brief และบทเรียนที่มีร่องรอย"}
+
+
+def build_cyber_guard_snapshot(memory_root=None):
+    from brain.cyber_guard import CyberGuard
+    from brain.company_quality_audit import CompanyQualityAudit
+    return {"title": "AION Cyber Guard", "purpose": "ตรวจเชิงป้องกัน: ความน่าเชื่อถือ การตั้งค่า และขอบเขตความปลอดภัย",
+            "guard": CyberGuard(ROOT).snapshot(), "quality": CompanyQualityAudit(ROOT).snapshot(),
+            "boundary": "ไม่โจมตีระบบ ไม่เจาะบัญชี ไม่อ่านหรือแสดงรหัสลับ และไม่แก้สิทธิ์เอง"}
+
+
+def build_evolution_lab_snapshot(memory_root=None):
+    from brain.evolution_lab import EvolutionLab
+    configured = memory_root or os.getenv("AION_DASHBOARD_MEMORY_ROOT") or os.getenv("AION_MEMORY_ROOT") or (str(ROOT / "aion-memory-data-sync") if (ROOT / "aion-memory-data-sync" / ".git").is_dir() else "memory")
+    lab = EvolutionLab(MemoryEngine(configured)).snapshot()
+    return {"title": "AION Evolution Lab", "purpose": lab["purpose"], "lab": lab, "boundary": lab["boundary"]}
 
 
 def build_snapshot(memory_root=None):
@@ -752,8 +778,20 @@ class DashboardHandler(BaseHTTPRequestHandler):
         if path == "/api/studio":
             self._send(json.dumps(build_studio_snapshot(), ensure_ascii=False), "application/json; charset=utf-8")
             return
+        if path == "/api/learning-lab":
+            self._send(json.dumps(build_learning_lab_snapshot(), ensure_ascii=False), "application/json; charset=utf-8")
+            return
+        if path == "/api/cyber-guard":
+            self._send(json.dumps(build_cyber_guard_snapshot(), ensure_ascii=False), "application/json; charset=utf-8")
+            return
+        if path == "/api/evolution-lab":
+            self._send(json.dumps(build_evolution_lab_snapshot(), ensure_ascii=False), "application/json; charset=utf-8")
+            return
         if path in ("/studio", "/studio/"):
             self._send((DASHBOARD_DIR / "studio.html").read_text(encoding="utf-8"), "text/html; charset=utf-8")
+            return
+        if path in ("/learning", "/cyber", "/lab"):
+            self._send((DASHBOARD_DIR / "workspace.html").read_text(encoding="utf-8"), "text/html; charset=utf-8")
             return
         if path in ("/", "/index.html"):
             self._send((DASHBOARD_DIR / "index.html").read_text(encoding="utf-8"), "text/html; charset=utf-8")

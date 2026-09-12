@@ -31,6 +31,10 @@ class CompanyOperations:
          (".github/workflows/asset-hygiene.yml", ".github/workflows/obsidian-brain.yml")),
         ("engineering", ("brain/system_reliability.py", "brain/company_quality_audit.py"),
          (".github/workflows/system-reliability.yml", ".github/workflows/tests.yml")),
+        ("cyber-guard", ("brain/cyber_guard.py", "tools/run_cyber_guard.py"),
+         (".github/workflows/cyber-guard.yml",)),
+        ("evolution-lab", ("brain/evolution_lab.py", "brain/evolution.py", "brain/experiment_runner.py"),
+         (".github/workflows/evolution-cycle.yml", ".github/workflows/experiment-runner.yml")),
     )
 
     def __init__(self, root=None):
