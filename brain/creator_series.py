@@ -55,8 +55,8 @@ class CreatorSeriesRegistry:
                 raise ValueError(f"{item.get('id')} has an incomplete visual beat.")
             if any("aion" not in str(scene.get("visual", "")).lower() for scene in scenes):
                 raise ValueError(
-                    f"{item.get('id')} must place AION visibly in every visual beat; "
-                    "AION is the recurring narrator, not only the voice-over."
+                    f"{item.get('id')} must place AION in every visual beat; "
+                    "AION is the recurring guide, not only the voice-over."
                 )
             boundary = any(
                 str(item.get(key) or "").strip()

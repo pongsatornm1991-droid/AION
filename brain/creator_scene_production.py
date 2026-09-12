@@ -46,6 +46,7 @@ class CreatorSceneProduction:
         else:
             generator = self.generator
         made, failed = [], []
+        changed = False
         folder = self.root / "assets" / "content-library" / "aion-stories" / episode["id"]
         folder.mkdir(parents=True, exist_ok=True)
         for scene in episode.get("scenes") or []:
@@ -57,14 +58,19 @@ class CreatorSceneProduction:
             destination = folder / name
             if destination.is_file():
                 scene["image"] = str(destination.relative_to(self.root)).replace("\\", "/")
+                changed = True
                 continue
             if generator(self._prompt(episode, scene), str(destination)):
                 scene["image"] = str(destination.relative_to(self.root)).replace("\\", "/")
                 made.append(scene["n"])
+                changed = True
             else:
                 failed.append(scene["n"])
                 break
-        source = self.root / episode["file"]
-        source.write_text(json.dumps({key: value for key, value in episode.items() if key != "file"}, ensure_ascii=False, indent=2), encoding="utf-8")
+        # A missing provider must leave the storyboard byte-for-byte untouched.
+        # That makes a failed scheduled run observable instead of looking like work happened.
+        if changed:
+            source = self.root / episode["file"]
+            source.write_text(json.dumps({key: value for key, value in episode.items() if key != "file"}, ensure_ascii=False, indent=2), encoding="utf-8")
         return {"stage": "scene-assets-produced" if made else "scene-generation-unavailable",
                 "episode_id": episode["id"], "produced": made, "failed": failed}
