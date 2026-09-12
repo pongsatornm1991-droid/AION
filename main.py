@@ -2330,8 +2330,8 @@ def _format_reflection_telegram_report(report):
         )
         if report.get("criteria"):
             lines.append(f"เกณฑ์สำเร็จ: {report.get('criteria')}")
-        if report.get("confidence") is not None:
-            lines.append(f"ความมั่นใจ: {report.get('confidence'):.2f}")
+        if report.get("originated_type") == "belief":
+            lines.append("สถานะหลักฐาน: เป็นข้อสรุปชั่วคราว ต้องตรวจและปรับได้เมื่อมีหลักฐานใหม่")
     elif stage == "safety-gate":
         lines.append(
             f"ร่างคำถามขึ้นมาแล้วแต่ถูกบล็อกที่ตัวกรองความปลอดภัย: "
