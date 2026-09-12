@@ -27,6 +27,8 @@ class CompanyOperations:
          (".github/workflows/instagram-feedback.yml", ".github/workflows/growth-pulse.yml")),
         ("memory", ("brain/memory.py", "brain/asset_hygiene.py"),
          (".github/workflows/asset-hygiene.yml", ".github/workflows/obsidian-brain.yml")),
+        ("engineering", ("brain/system_reliability.py", "brain/company_quality_audit.py"),
+         (".github/workflows/system-reliability.yml", ".github/workflows/tests.yml")),
     )
 
     def __init__(self, root=None):

@@ -71,6 +71,8 @@ class AionCompany:
                  "does": "อ่านผลตอบรับจริง ค้นหาคำถามที่คนสนใจ และเสนอการทดลองคอนเทนต์อย่างมีขอบเขต", "evidence": f"บันทึกเสียงตอบรับ {self._count('social_feedback')} รายการ", "handoff": "ส่ง insight ให้ AION เลือกทิศทางถัดไป", "state": "active"},
                 {"id": "memory", "name": "ฝ่ายความทรงจำและคลังงาน", "lead": "Memory Agent", "room": "คลัง AION",
                  "does": "จัดบทเรียน ความทรงจำ เวอร์ชัน และสินทรัพย์ ป้องกันความซ้ำซ้อนและไฟล์ค้าง", "evidence": f"บทเรียน {self._count('lessons')} รายการ", "handoff": "เก็บร่องรอยให้ทุกฝ่ายตรวจย้อนหลังได้", "state": "active"},
+                {"id": "engineering", "name": "ฝ่ายพัฒนาและความน่าเชื่อถือ", "lead": "Engineering Lead", "room": "ห้องวิศวกรรมระบบ",
+                 "does": "ตรวจความพร้อมของโค้ด รันทดสอบ ติดตามข้อผิดพลาด และปล่อยการแก้ไขเฉพาะที่ผ่านการตรวจ", "evidence": "ตรวจโค้ดและ workflow แบบอ่านอย่างเดียว", "handoff": "ส่งผลตรวจให้ AION และส่งชุดแก้ไขที่ผ่าน QA เข้าสู่ release", "state": workflow_states.get("engineering", "unknown")},
             ],
             "agents": [
                 {"name": "Inquiry Scout", "department": "ฝ่ายวิจัย", "does": "เลือกคำถามที่มีหลักฐานพอให้ค้นต่อ", "handoff": "ส่งคำถามให้ Evidence Analyst", "state": workflow_states.get("research", "unknown")},
@@ -79,5 +81,8 @@ class AionCompany:
                 {"name": "Visual Director", "department": "ฝ่ายภาพ", "does": "สร้างภาพใหม่รายฉากและตรวจไม่ให้ใช้ภาพเดิมซ้ำเป็นทางลัด", "handoff": "ส่งฉากให้ Audio Producer และ Quality Gate", "state": workflow_states.get("visual", "unknown")},
                 {"name": "Quality Guardian", "department": "ฝ่ายคุณภาพ", "does": "ตรวจประโยชน์ต่อผู้ชม หลักฐาน ความไม่แน่นอน และข้อกำหนดแพลตฟอร์ม", "handoff": "ปล่อยเฉพาะงานที่ผ่านให้ Publishing Agent", "state": workflow_states.get("quality", "unknown")},
                 {"name": "Publishing Agent", "department": "ฝ่ายเผยแพร่", "does": "เผยแพร่งานผ่านเกณฑ์และบันทึกผลจริงจากช่องทาง", "handoff": "ส่งผลให้ Growth Analyst", "state": workflow_states.get("publishing", "unknown")},
+                {"name": "Dev Agent", "department": "ฝ่ายพัฒนาและความน่าเชื่อถือ", "does": "วิเคราะห์บั๊กและสร้างชุดแก้ไขที่มีขอบเขต", "handoff": "ส่ง patch ให้ QA Agent ตรวจ", "state": workflow_states.get("engineering", "unknown")},
+                {"name": "QA Agent", "department": "ฝ่ายพัฒนาและความน่าเชื่อถือ", "does": "รันทดสอบและกัน regression ก่อน release", "handoff": "ส่งเฉพาะผลที่ผ่านให้ Release Agent", "state": workflow_states.get("engineering", "unknown")},
+                {"name": "Reliability Monitor", "department": "ฝ่ายพัฒนาและความน่าเชื่อถือ", "does": "ตรวจ workflow และส่วนประกอบหลักโดยไม่แตะบัญชีหรือ secrets", "handoff": "แจ้ง Dev Agent เมื่อพบหลักฐานความผิดปกติ", "state": workflow_states.get("engineering", "unknown")},
             ],
         }

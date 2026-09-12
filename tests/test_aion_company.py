@@ -10,6 +10,7 @@ class AionCompanyTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as root:
             board = AionCompany(MemoryEngine(root), root).board([], [])
             self.assertIn("AION", board["leadership"]["ceo"])
-            self.assertGreaterEqual(len(board["departments"]), 8)
+            self.assertGreaterEqual(len(board["departments"]), 9)
             self.assertTrue(all(item["handoff"] for item in board["departments"]))
             self.assertIn("เผยแพร่ผลงานสาธารณะ", board["boundary"])
+            self.assertTrue(any(item["name"] == "Dev Agent" for item in board["agents"]))
