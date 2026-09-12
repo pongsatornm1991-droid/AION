@@ -534,6 +534,10 @@ def _creator_references():
 
 def build_studio_snapshot(memory_root=None):
     """A dedicated, read-only creator workspace separate from the observatory."""
+    # Match AION's other entry points: local, ignored .env settings are
+    # available without exposing their value in the dashboard response.
+    from dotenv import load_dotenv
+    load_dotenv()
     snapshot = build_snapshot(memory_root)
     episodes = snapshot.get("creator_program") or []
     queue = snapshot.get("youtube_creator_queue") or []

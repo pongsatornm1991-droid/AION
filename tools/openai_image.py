@@ -8,12 +8,17 @@ an old image. AION's visual posts are only allowed to use newly generated art.
 import base64
 import os
 
+from dotenv import load_dotenv
+
 
 DEFAULT_MODEL = "gpt-image-2"
 
 
 def _get_config():
     """Read only the credentials needed for image generation."""
+    # Scheduled jobs pass secrets as environment variables; local AION runs
+    # may use the ignored .env file.  Never log either credential.
+    load_dotenv()
     enabled = os.getenv("IMAGE_PROVIDER", "branded-card").strip().lower()
     if enabled != "openai":
         return None
