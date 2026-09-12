@@ -16,9 +16,12 @@ class EvolutionLab:
         proposals = self._records("evolution_proposals") + self._records("self_improvement")
         reviews = self._records("improvement_reviews")
         experiments = self._records("experiments") + self._records("content_experiment_plans")
+        from brain.scientific_discovery import ScientificDiscoveryLab
+        science = ScientificDiscoveryLab(self.memory).snapshot()
         return {
             "status": "active" if proposals or experiments else "ready",
             "proposals": len(proposals), "reviews": len(reviews), "experiments": len(experiments),
             "purpose": "แปลงบทเรียนและปัญหาซ้ำเป็นการทดลองที่วัดผลได้",
+            "science": science,
             "boundary": "Lab ออกแบบและทดสอบกระบวนการ/ต้นแบบแบบจำกัดขอบเขตได้ แต่ห้ามสร้างหรือปล่อย AI อิสระใหม่ แก้โค้ด สิทธิ์ รหัสลับ เงิน หรือกฎความปลอดภัยเอง",
         }

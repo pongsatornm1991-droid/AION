@@ -79,6 +79,8 @@ class AionCompany:
                  "does": "ตรวจเชิงป้องกันเรื่องไฟล์สำคัญ การกัน secrets และความพร้อม release แล้วส่งข้อผิดปกติให้วิศวกรรม", "evidence": "รายงาน defensive audit ที่ตรวจย้อนกลับได้", "handoff": "ส่งเฉพาะรายงาน/หลักฐานให้ฝ่ายวิศวกรรมแก้", "state": workflow_states.get("cyber-guard", "unknown")},
                 {"id": "evolution-lab", "name": "ฝ่าย Evolution Lab", "lead": "Experiment Lead", "room": "ห้อง Evolution Lab",
                  "does": "เปลี่ยนบทเรียนและปัญหาซ้ำเป็นการทดลองที่วัดผลได้ โดยคุมขอบเขตการเปลี่ยนแปลง", "evidence": f"ข้อเสนอพัฒนา {self._count('evolution_proposals')} รายการ", "handoff": "ส่งผลทดลองให้ AION, Quality และ Engineering", "state": workflow_states.get("evolution-lab", "unknown")},
+                {"id": "science-lab", "name": "ฝ่าย Scientific Discovery Lab", "lead": "Scientific Director", "room": "ห้องวิทยาศาสตร์",
+                 "does": "ตั้งสมมติฐาน ค้นหลักฐาน ออกแบบการทดลอง ตรวจทำซ้ำ และสรุปเฉพาะสิ่งที่หลักฐานรองรับ", "evidence": f"คำถามวิทยาศาสตร์ {self._count('scientific_protocols')} โปรโตคอล", "handoff": "ส่งผลที่มีหลักฐานให้ฝ่ายวิจัยและ Evolution Lab", "state": workflow_states.get("science-lab", "unknown")},
             ],
             "agents": [
                 {"name": "Inquiry Scout", "department": "ฝ่ายวิจัย", "does": "เลือกคำถามที่มีหลักฐานพอให้ค้นต่อ", "handoff": "ส่งคำถามให้ Evidence Analyst", "state": workflow_states.get("research", "unknown")},

@@ -632,7 +632,7 @@ def build_evolution_lab_snapshot(memory_root=None):
     from brain.evolution_lab import EvolutionLab
     configured = memory_root or os.getenv("AION_DASHBOARD_MEMORY_ROOT") or os.getenv("AION_MEMORY_ROOT") or (str(ROOT / "aion-memory-data-sync") if (ROOT / "aion-memory-data-sync" / ".git").is_dir() else "memory")
     lab = EvolutionLab(MemoryEngine(configured)).snapshot()
-    return {"title": "AION Evolution Lab", "purpose": lab["purpose"], "lab": lab, "boundary": lab["boundary"]}
+    return {"title": "AION Evolution & Science Lab", "purpose": lab["purpose"] + " · " + lab["science"]["purpose"], "lab": lab, "boundary": lab["boundary"]}
 
 
 def build_snapshot(memory_root=None):

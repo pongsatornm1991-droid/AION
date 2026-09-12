@@ -35,6 +35,8 @@ class CompanyOperations:
          (".github/workflows/cyber-guard.yml",)),
         ("evolution-lab", ("brain/evolution_lab.py", "brain/evolution.py", "brain/experiment_runner.py"),
          (".github/workflows/evolution-cycle.yml", ".github/workflows/experiment-runner.yml")),
+        ("science-lab", ("brain/scientific_discovery.py", "tools/run_scientific_discovery.py"),
+         (".github/workflows/scientific-discovery.yml",)),
     )
 
     def __init__(self, root=None):
