@@ -69,27 +69,6 @@ def generate_scene_image(prompt, out_path):
         return False
     try:
         import requests
-        response = requests.post(
-            f"{config['base_url']}/images/generations",
-            headers={"Authorization": f"Bearer {config['api_key']}", "Content-Type": "application/json"},
-            json={"model": config["model"], "prompt": str(prompt), "size": "1024x1536",
-                  "quality": config["quality"], "output_format": "png"}, timeout=120,
-        )
-        response.raise_for_status()
-        encoded = (response.json().get("data") or [{}])[0].get("b64_json")
-        if not encoded:
-            return False
-        image_bytes = base64.b64decode(encoded, validate=True)
-        if not image_bytes:
-            return False
-        with open(out_path, "wb") as output:
-            output.write(image_bytes)
-        return True
-    except Exception:
-        return False
-
-    try:
-        import requests
 
         response = requests.post(
             f"{config['base_url']}/images/generations",
@@ -119,3 +98,24 @@ def generate_scene_image(prompt, out_path):
         return True
     except Exception:
         return False
+    try:
+        import requests
+        response = requests.post(
+            f"{config['base_url']}/images/generations",
+            headers={"Authorization": f"Bearer {config['api_key']}", "Content-Type": "application/json"},
+            json={"model": config["model"], "prompt": str(prompt), "size": "1024x1536",
+                  "quality": config["quality"], "output_format": "png"}, timeout=120,
+        )
+        response.raise_for_status()
+        encoded = (response.json().get("data") or [{}])[0].get("b64_json")
+        if not encoded:
+            return False
+        image_bytes = base64.b64decode(encoded, validate=True)
+        if not image_bytes:
+            return False
+        with open(out_path, "wb") as output:
+            output.write(image_bytes)
+        return True
+    except Exception:
+        return False
+
