@@ -1,0 +1,30 @@
+name: AION - subject-first scene production
+on:
+  schedule:
+    - cron: "0 2 * * *"
+  workflow_dispatch: {}
+permissions: {contents: write}
+concurrency:
+  group: aion-creator-scenes
+  cancel-in-progress: false
+jobs:
+  produce:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: {python-version: "3.11"}
+      - run: pip install -r requirements.txt
+      - name: Create up to three fresh subject-first scene images
+        env:
+          IMAGE_PROVIDER: openai
+          OPENAI_IMAGE_API_KEY: ${{ secrets.OPENAI_IMAGE_API_KEY }}
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+          OPENAI_IMAGE_MODEL: ${{ vars.OPENAI_IMAGE_MODEL || 'gpt-image-2' }}
+          OPENAI_IMAGE_QUALITY: ${{ vars.OPENAI_IMAGE_QUALITY || 'medium' }}
+        run: python tools/produce_creator_scenes.py --limit 3
+      - run: |
+          git config user.name aion-bot
+          git config user.email aion-bot@users.noreply.github.com
+          git add assets/content-library/aion-stories/ content/creator_series/
+          if ! git diff --cached --quiet; then git commit -m "AION: produce subject-first scenes"; git push; fi
