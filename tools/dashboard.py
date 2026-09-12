@@ -579,6 +579,8 @@ def build_studio_snapshot(memory_root=None):
         "completed_scenes": completed_scenes,
         "required_scenes": required_scenes,
         "workflow_scheduled": (ROOT / ".github" / "workflows" / "creator-scene-production.yml").is_file(),
+        "batch_size": 25,
+        "episode_ceiling": 120,
         "provider_ready": image_provider_ready,
         "status": "ready" if image_provider_ready else "waiting",
         "detail": ("สร้างภาพใหม่ได้ในเครื่องนี้" if image_provider_ready

@@ -29,3 +29,21 @@ class CreatorSceneProductionTests(unittest.TestCase):
             result = CreatorSceneProduction(root, lambda *_: False).produce_once(limit=1)
             self.assertEqual("scene-generation-unavailable", result["stage"])
             self.assertEqual(original, source.read_text(encoding="utf-8"))
+
+    def test_completes_an_episode_in_multiple_batches_without_daily_wait(self):
+        with tempfile.TemporaryDirectory() as root:
+            root = Path(root)
+            episode_dir = root / "content" / "creator_series"; episode_dir.mkdir(parents=True)
+            source = episode_dir / "episode.json"
+            source.write_text('''{"id":"episode","series":"AION Wonders","title":"Test story","audience_promise":"A useful evidence-led story for every age.","wonder_hook":"Could this work?","creative_device":"journey","age_layers":{"children":"Ask.","family":"Talk.","deeper":"Test."},"target_duration_seconds":15,"scene_seconds":5,"format":"illustrated-narrated-short","pacing_policy":"fast-cut-subject-first-v1","visual_direction":{"focus":"subject-first","aion_role":"contextual-guide","aion_frame_share_max":0.28},"history_boundary":"A boundary.","sources":[{"url":"https://one.test"},{"url":"https://two.test"}],"status":"storyboard-ready-needs-assets","scenes":[{"n":1,"beat":"hook","visual":"AION explores a historical place.","narration":"One."},{"n":2,"beat":"reveal","visual":"AION observes the subject.","narration":"Two."},{"n":3,"beat":"end","visual":"AION shares a question.","narration":"Three."}]}''', encoding="utf-8")
+
+            def generator(_, destination):
+                Path(destination).write_bytes(b"png")
+                return True
+
+            result = CreatorSceneProduction(root, generator).produce_episode(batch_size=2, max_scenes=25)
+            updated = source.read_text(encoding="utf-8")
+            self.assertEqual("episode-assets-complete", result["stage"])
+            self.assertEqual([1, 2, 3], result["produced"])
+            self.assertEqual(2, result["batches"])
+            self.assertIn('"status": "assets-ready-for-assembly"', updated)

@@ -11,6 +11,9 @@ from brain.visual_story_policy import VisualStoryPolicy
 class CreatorSceneProduction:
     """Produce a bounded number of missing scene assets per run."""
 
+    DEFAULT_BATCH_SIZE = 25
+    MAX_SCENES_PER_EPISODE_RUN = 120
+
     def __init__(self, root=None, generator=None):
         self.root = Path(root or Path(__file__).resolve().parents[1])
         self.generator = generator
@@ -37,7 +40,7 @@ class CreatorSceneProduction:
             "No words, captions, logos, watermark, UI, or named-studio imitation.",
         ))
 
-    def produce_once(self, limit=3):
+    def produce_once(self, limit=DEFAULT_BATCH_SIZE):
         episode = self._episode()
         if episode is None:
             return {"stage": "no-subject-first-storyboard-ready"}
@@ -68,10 +71,42 @@ class CreatorSceneProduction:
             else:
                 failed.append(scene["n"])
                 break
+        completed = all(scene.get("image") for scene in episode.get("scenes") or [])
+        if completed and episode.get("status") != "assets-ready-for-assembly":
+            episode["status"] = "assets-ready-for-assembly"
+            changed = True
         # A missing provider must leave the storyboard byte-for-byte untouched.
         # That makes a failed scheduled run observable instead of looking like work happened.
         if changed:
             source = self.root / episode["file"]
             source.write_text(json.dumps({key: value for key, value in episode.items() if key != "file"}, ensure_ascii=False, indent=2), encoding="utf-8")
-        return {"stage": "scene-assets-produced" if made else "scene-generation-unavailable",
+        return {"stage": ("scene-assets-complete" if completed else
+                          "scene-assets-produced" if made else "scene-generation-unavailable"),
                 "episode_id": episode["id"], "produced": made, "failed": failed}
+
+    def produce_episode(self, batch_size=DEFAULT_BATCH_SIZE,
+                        max_scenes=MAX_SCENES_PER_EPISODE_RUN):
+        """Finish one approved storyboard in the same run, in recoverable batches.
+
+        Batches limit the blast radius of a provider error; they are not a
+        daily throttle. A successful batch immediately starts the next one
+        until the storyboard is complete or its declared production ceiling is
+        reached. The ceiling prevents an unexpectedly huge storyboard from
+        creating unbounded API use.
+        """
+        batch_size = max(1, int(batch_size))
+        max_scenes = max(1, int(max_scenes))
+        produced, failures, batches = [], [], 0
+        while len(produced) < max_scenes:
+            result = self.produce_once(limit=min(batch_size, max_scenes - len(produced)))
+            batches += 1
+            produced.extend(result.get("produced") or [])
+            failures.extend(result.get("failed") or [])
+            if result["stage"] == "scene-assets-complete":
+                return {"stage": "episode-assets-complete", "episode_id": result.get("episode_id"),
+                        "produced": produced, "failed": failures, "batches": batches}
+            if not result.get("produced"):
+                return {"stage": result["stage"], "episode_id": result.get("episode_id"),
+                        "produced": produced, "failed": failures, "batches": batches}
+        return {"stage": "episode-production-ceiling-reached", "produced": produced,
+                "failed": failures, "batches": batches, "ceiling": max_scenes}

@@ -8,6 +8,11 @@ if str(ROOT) not in sys.path: sys.path.insert(0, str(ROOT))
 from brain.creator_scene_production import CreatorSceneProduction
 
 parser = argparse.ArgumentParser()
-parser.add_argument("--limit", type=int, default=3)
+parser.add_argument("--batch-size", type=int, default=25)
+parser.add_argument("--max-scenes", type=int, default=120)
 args = parser.parse_args()
-print(json.dumps(CreatorSceneProduction(ROOT).produce_once(args.limit), ensure_ascii=False, indent=2))
+print(json.dumps(
+    CreatorSceneProduction(ROOT).produce_episode(args.batch_size, args.max_scenes),
+    ensure_ascii=False,
+    indent=2,
+))

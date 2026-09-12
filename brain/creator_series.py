@@ -21,7 +21,7 @@ class CreatorSeriesRegistry:
             scenes = item.get("scenes") or []
             seconds = int(item.get("scene_seconds") or 0)
             episode_format = item.get("format", "long-form-illustrated")
-            scene_range = (3, 12) if episode_format == "illustrated-narrated-short" else (24, 60)
+            scene_range = (3, 36) if episode_format == "illustrated-narrated-short" else (24, 120)
             if not scene_range[0] <= len(scenes) <= scene_range[1]:
                 raise ValueError(
                     f"{item.get('id')} must contain {scene_range[0]}–{scene_range[1]} visual beats "
