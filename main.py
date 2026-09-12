@@ -1818,7 +1818,7 @@ def run_youtube_publish(args):
 
 def run_prepare_youtube_creator(args):
     """Make one finished Creator episode visible in the YouTube review queue."""
-    report = YouTubeCreatorQueue(Thinker().memory).prepare_once()
+    report = YouTubeCreatorQueue(Thinker().memory).prepare_once(getattr(args, "content_kind", None))
     print("\nAION YOUTUBE CREATOR QUEUE")
     print(f"Stage: {report['stage']}")
     if report.get("title"):
@@ -1832,7 +1832,7 @@ def run_prepare_youtube_creator(args):
 def run_publish_youtube_creator(args):
     """Upload one quality-gated, authorized AION Studio Creator episode."""
     load_dotenv()
-    report = YouTubeCreatorQueue(Thinker().memory).publish_once()
+    report = YouTubeCreatorQueue(Thinker().memory).publish_once(content_kind=getattr(args, "content_kind", None))
     print("\nAION YOUTUBE CREATOR PUBLISH")
     print(f"Stage: {report['stage']}")
     if report.get("episode_id"):
@@ -3649,8 +3649,10 @@ def build_parser():
     subparsers.add_parser("run-reel-publish", help="Publish the oldest rendered AION Reel.")
     subparsers.add_parser("run-reel-crosspost", help="Cross-post the latest published Reel to Facebook once.")
     subparsers.add_parser("run-youtube-publish", help="Upload the next completed AION Reel to YouTube as a Short once.")
-    subparsers.add_parser("run-youtube-creator-publish", help="Upload one authorized, quality-gated AION Studio Creator episode.")
-    subparsers.add_parser("prepare-youtube-creator", help="Prepare one rendered Creator Series episode for YouTube review; never uploads it.")
+    youtube_creator_publish_parser = subparsers.add_parser("run-youtube-creator-publish", help="Upload one authorized, quality-gated AION Studio Creator episode.")
+    youtube_creator_publish_parser.add_argument("--content-kind", choices=("short", "long-form"), help="Publish only the selected YouTube format.")
+    youtube_creator_prepare_parser = subparsers.add_parser("prepare-youtube-creator", help="Prepare one rendered Creator Series episode for YouTube review; never uploads it.")
+    youtube_creator_prepare_parser.add_argument("--content-kind", choices=("short", "long-form"), help="Prepare only the selected YouTube format.")
     subparsers.add_parser("run-growth-pulse", help="Send one daily Telegram summary of AION's growth and channels.")
 
     publish_video_parser = subparsers.add_parser(

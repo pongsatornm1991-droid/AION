@@ -102,3 +102,18 @@ class YouTubeCreatorQueueTests(unittest.TestCase):
                 result = queue.audit_existing()
             self.assertEqual("video-qa-recorded", result["stage"])
             self.assertEqual(True, queue.candidates()[0]["video_qa"]["eligible"])
+
+    def test_short_filter_never_selects_a_long_form_episode(self):
+        with tempfile.TemporaryDirectory() as root:
+            self._episode(root)
+            episode = Path(root) / "content" / "creator_series" / "episode.json"
+            payload = __import__("json").loads(episode.read_text(encoding="utf-8"))
+            payload["format"] = "long-form-illustrated"
+            payload["scenes"] = payload["scenes"] * 8
+            for index, scene in enumerate(payload["scenes"]): scene["n"] = index + 1
+            payload["target_duration_seconds"] = len(payload["scenes"]) * payload["scene_seconds"]
+            episode.write_text(__import__("json").dumps(payload), encoding="utf-8")
+            (Path(root) / "content" / "reels" / "episode.mp4").write_bytes(b"video")
+            queue = YouTubeCreatorQueue(MemoryEngine(Path(root) / "memory"), root)
+            self.assertEqual("no-upload-ready-creator-episode", queue.prepare_once("short")["stage"])
+            self.assertEqual("prepared-for-review", queue.prepare_once("long-form")["stage"])

@@ -1,10 +1,11 @@
-name: AION - YouTube Creator Studio
+name: AION - YouTube long-form Sunday
 
 on:
+  # Sunday 17:00 Asia/Bangkok.  Review after 28 days using YouTube Audience
+  # analytics; this is an initial family-friendly appointment, not a universal
+  # optimum time.
   schedule:
-    # 20:15 Asia/Bangkok: consistent daily Shorts slot.  It is a starting
-    # experiment, not a claim that one universal time is always best.
-    - cron: "15 13 * * *"
+    - cron: "0 10 * * 0"
   workflow_dispatch: {}
 
 concurrency:
@@ -15,7 +16,7 @@ permissions:
   contents: write
 
 jobs:
-  youtube-creator:
+  youtube-longform:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -27,25 +28,27 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: "3.11"
+      - name: Install video inspection tools
+        run: sudo apt-get update && sudo apt-get install -y ffmpeg
       - run: pip install -r requirements.txt
-      - name: Verify deterministic safeguards
+      - name: Verify safeguards
         run: python run_tests.py
-      - name: Queue one finished AION Studio episode
+      - name: Queue one finished long-form AION episode
         env:
           AION_MEMORY_ROOT: memory_data
-        run: python main.py prepare-youtube-creator --content-kind short
-      - name: Publish one authorized Creator episode
+        run: python main.py prepare-youtube-creator --content-kind long-form
+      - name: Publish one authorized long-form episode after all quality gates
         env:
           AION_MEMORY_ROOT: memory_data
           YOUTUBE_CLIENT_ID: ${{ secrets.YOUTUBE_CLIENT_ID }}
           YOUTUBE_CLIENT_SECRET: ${{ secrets.YOUTUBE_CLIENT_SECRET }}
           YOUTUBE_REFRESH_TOKEN: ${{ secrets.YOUTUBE_REFRESH_TOKEN }}
           YOUTUBE_PRIVACY_STATUS: ${{ vars.YOUTUBE_PRIVACY_STATUS || 'public' }}
-        run: python main.py run-youtube-creator-publish --content-kind short
+        run: python main.py run-youtube-creator-publish --content-kind long-form
       - name: Persist private memory
         working-directory: memory_data
         run: |
           git config user.name "aion-bot"
           git config user.email "aion-bot@users.noreply.github.com"
           git add -A
-          if ! git diff --cached --quiet; then git commit -m "AION Creator YouTube update"; git push; fi
+          if ! git diff --cached --quiet; then git commit -m "AION long-form YouTube update"; git push; fi

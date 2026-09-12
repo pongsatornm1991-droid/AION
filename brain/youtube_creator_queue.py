@@ -13,6 +13,10 @@ class YouTubeCreatorQueue:
     CATEGORY = "youtube_creator_queue"
     READY_STATUS = "production-ready-assets-and-script"
 
+    @staticmethod
+    def _content_kind(episode):
+        return "short" if episode.get("format") == "illustrated-narrated-short" else "long-form"
+
     def __init__(self, memory=None, root=None):
         self.memory = memory
         self.root = Path(root or Path(__file__).resolve().parents[1])
@@ -68,6 +72,8 @@ class YouTubeCreatorQueue:
             previous = recorded.get(episode["id"])
             result.append({
                 "episode_id": episode["id"],
+                "content_kind": self._content_kind(episode),
+                "format": episode.get("format", "long-form-illustrated"),
                 "title": episode["title"],
                 "status": "published" if previous and (previous[1].get("youtube") or {}).get("video_id") else "already-prepared" if previous else (
                     "upload-ready" if ready else "needs-production"
@@ -92,7 +98,7 @@ class YouTubeCreatorQueue:
             })
         return result
 
-    def prepare_once(self):
+    def prepare_once(self, content_kind=None):
         """Record one upload-ready episode; never calls YouTube directly."""
         if self.memory is None:
             raise ValueError("Memory is required to prepare a creator episode.")
@@ -113,7 +119,9 @@ class YouTubeCreatorQueue:
                 }
                 self.memory.update(self.CATEGORY, entry["id"], content=json.dumps(updated, ensure_ascii=False))
                 return {"stage": "authorized-for-publishing", "migrated": True, **updated}
-        candidate = next((item for item in self.candidates() if item["status"] == "upload-ready"), None)
+        candidate = next((item for item in self.candidates()
+                          if item["status"] == "upload-ready"
+                          and (not content_kind or item.get("content_kind") == content_kind)), None)
         if candidate is None:
             return {"stage": "no-upload-ready-creator-episode"}
         autonomous = policy.public_publishing_enabled
@@ -133,7 +141,7 @@ class YouTubeCreatorQueue:
         )
         return {"stage": "authorized-for-publishing" if autonomous else "prepared-for-review", "record": record, **payload}
 
-    def publish_once(self, uploader=None):
+    def publish_once(self, uploader=None, content_kind=None):
         """Upload one authorized Creator episode exactly once."""
         if self.memory is None:
             raise ValueError("Memory is required to publish a creator episode.")
@@ -141,6 +149,7 @@ class YouTubeCreatorQueue:
             return {"stage": "owner-policy-required"}
         target = next((item for item in self._records_by_episode().values()
                        if item[1].get("upload_status") == "authorized-for-aion-publish"
+                       and (not content_kind or item[1].get("content_kind") == content_kind)
                        and not (item[1].get("youtube") or {}).get("video_id")), None)
         if target is None:
             return {"stage": "no-authorized-creator-episode"}
