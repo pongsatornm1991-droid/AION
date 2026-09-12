@@ -1,0 +1,32 @@
+{
+  "id": "aion-wonders-004-yakhchal",
+  "series": "AION Wonders",
+  "title": "How Did Ancient Persia Keep Ice in the Desert?",
+  "audience_promise": "AION gives viewers a short, evidence-based explanation of how yakhchal structures used cold nights, shade and deep earthen storage.",
+  "wonder_hook": "How could people keep ice in a desert before electricity?",
+  "creative_device": "mystery-reveal",
+  "language": "en",
+  "age_layers": {
+    "children": "Solve the ice-in-the-desert mystery with AION.",
+    "family": "Notice how shade, water and a deep room work together.",
+    "deeper": "Keep the reconstruction boundary in mind: yakhchal designs differed by place and period."
+  },
+  "target_duration_seconds": 27,
+  "scene_seconds": 9,
+  "format": "illustrated-narrated-short",
+  "character": "AION, a translucent cyan AI storyteller, visibly present in every scene.",
+  "history_boundary": "Yakhchal designs and practices differed across places and periods. This short explains documented principles, not one universal reconstruction.",
+  "sources": [
+    {"title": "UCL Discovery: New insight on passive ice making and seasonal storage of the Iranian Yakhchal", "url": "https://discovery.ucl.ac.uk/id/eprint/10087896/"},
+    {"title": "Encyclopaedia Iranica: Yakhchal", "url": "https://www.iranicaonline.org/articles/yakcal/"}
+  ],
+  "scenes": [
+    {"n":1,"beat":"hook","image":"assets/content-library/aion-stories/yakhchal-short/01-moonlit-question.png","visual":"AION stands in a moonlit Persian desert holding a glowing piece of ice beside a yakhchal.","narration":"In a desert summer, ice sounds impossible. So how did people keep it before electricity?"},
+    {"n":2,"beat":"reveal","image":"assets/content-library/aion-stories/yakhchal-short/02-underground-store.png","visual":"AION guides viewers through a cutaway yakhchal dome and its deep underground ice store.","narration":"A yakhchal used cold nights, shaded water and a deep earthen chamber to slow heat down."},
+    {"n":3,"beat":"boundary","image":"assets/content-library/aion-stories/yakhchal-short/03-sunrise-invitation.png","visual":"AION holds ice beside the yakhchal at sunrise and invites the viewer to keep wondering.","narration":"The details varied across time and place, but the design shows how many small ideas can work together."}
+  ],
+  "motion": {"scene_1":"slow push through moonlit sand","scene_2":"gentle vertical reveal through the cutaway chamber","scene_3":"slow pull back into sunrise"},
+  "audio":"Warm English narration with desert night ambience; no music that overwhelms the explanation.",
+  "thumbnail_concept":"AION holding one shining piece of ice beside a desert yakhchal; no text inside the image.",
+  "status":"production-ready-assets-and-script"
+}
