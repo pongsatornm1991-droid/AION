@@ -19,3 +19,10 @@ class CostumeDirectionTests(unittest.TestCase):
             {"visual": "AION compares a source map."},
         )
         self.assertIn("archival satchel", brief)
+
+    def test_episode_brief_is_a_complete_visual_handoff(self):
+        brief = CostumeDirection.episode_brief({"id": "demo", "scenes": [
+            {"n": 1, "beat": "hook", "visual": "AION walks through a desert."},
+        ]})
+        self.assertEqual("approved-for-visual-production", brief["status"])
+        self.assertTrue(CostumeDirection.validate(brief)["eligible"])

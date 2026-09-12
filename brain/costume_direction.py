@@ -10,6 +10,7 @@ class CostumeDirection:
     """
 
     DEPARTMENT = "ฝ่ายคอสตูมและความต่อเนื่อง"
+    FORBIDDEN = ("logo", "cape", "armour", "fashion-pose")
 
     @classmethod
     def brief_for(cls, episode, scene):
@@ -27,3 +28,29 @@ class CostumeDirection:
             return base + "; add a compact archival satchel, used only as a practical research prop"
         return base
 
+    @classmethod
+    def episode_brief(cls, episode):
+        """Return the traceable costume handoff consumed by Visual Director."""
+        entries = []
+        for scene in episode.get("scenes") or []:
+            brief = cls.brief_for(episode, scene)
+            entries.append({"scene": scene.get("n"), "beat": scene.get("beat"), "brief": brief})
+        return {
+            "episode_id": episode.get("id"),
+            "department": cls.DEPARTMENT,
+            "status": "approved-for-visual-production" if entries else "needs-storyboard",
+            "scene_count": len(entries),
+            "entries": entries,
+        }
+
+    @classmethod
+    def validate(cls, brief):
+        entries = brief.get("entries") or []
+        missing = [str(item.get("scene")) for item in entries if not str(item.get("brief") or "").strip()]
+        forbidden = [str(item.get("scene")) for item in entries
+                     if any(word not in str(item.get("brief") or "") for word in cls.FORBIDDEN)]
+        return {
+            "eligible": bool(entries) and not missing and not forbidden,
+            "missing": missing,
+            "missing_safety_terms": forbidden,
+        }
