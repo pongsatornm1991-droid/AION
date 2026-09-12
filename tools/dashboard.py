@@ -563,6 +563,11 @@ def build_studio_snapshot(memory_root=None):
         "episodes": episodes,
         "queue": queue,
         "references": snapshot.get("creator_references", {}),
+        # Keep the research-to-production chain visible inside Studio.  The
+        # observatory has the full activity log, while Studio needs the
+        # current handoff that its Story Agent can act on.
+        "research_to_story": snapshot.get("research_to_story", {}),
+        "story_handoff": snapshot.get("story_handoff", {"current": None, "count": 0}),
         "company": company,
         "workflow": [
             "คำถามและหลักฐาน", "เรื่องเล่าและ storyboard", "ภาพใหม่รายฉาก", "เสียงและการประกอบ", "ตรวจคุณค่า/ข้อจำกัด", "คิวเผยแพร่",
