@@ -1,5 +1,6 @@
 import tempfile
 import unittest
+from unittest.mock import patch
 from pathlib import Path
 
 from brain.memory import MemoryEngine
@@ -54,7 +55,8 @@ class YouTubeCreatorQueueTests(unittest.TestCase):
             queue = YouTubeCreatorQueue(memory, root)
             self.assertEqual("authorized-for-publishing", queue.prepare_once()["stage"])
             self.assertEqual("authorized-for-aion-publish", queue.candidates()[0]["publication_status"])
-            result = queue.publish_once(lambda path, title, description: {"video_id": "abc", "url": "https://youtu.be/abc", "privacy_status": "public"})
+            with patch("brain.video_quality.VideoQualityGate.assess", return_value={"eligible": True, "reasons": []}):
+                result = queue.publish_once(lambda path, title, description: {"video_id": "abc", "url": "https://youtu.be/abc", "privacy_status": "public"})
             self.assertEqual("published", result["stage"])
             self.assertEqual("published", queue.candidates()[0]["status"])
             self.assertEqual("no-authorized-creator-episode", queue.publish_once()["stage"])
@@ -71,3 +73,32 @@ class YouTubeCreatorQueueTests(unittest.TestCase):
             migrated = queue.prepare_once()
             self.assertTrue(migrated["migrated"])
             self.assertEqual("authorized-for-aion-publish", migrated["upload_status"])
+
+    def test_video_qa_can_block_an_authorized_upload(self):
+        with tempfile.TemporaryDirectory() as root:
+            self._episode(root)
+            (Path(root) / "content" / "reels" / "episode.mp4").write_bytes(b"video")
+            policy = Path(root) / "config"; policy.mkdir()
+            (policy / "aion_authority.json").write_text('{"public_publishing":{"enabled":true}}', encoding="utf-8")
+            queue = YouTubeCreatorQueue(MemoryEngine(Path(root) / "memory"), root)
+            queue.prepare_once()
+            with patch("brain.video_quality.VideoQualityGate.assess", return_value={"eligible": False, "reasons": ["missing-audio-stream"]}):
+                result = queue.publish_once(lambda *_: {"video_id": "should-not-upload"})
+            self.assertEqual("quality-review-required", result["stage"])
+            self.assertIn("video-qa:missing-audio-stream", result["reasons"])
+
+    def test_audits_published_episode_without_uploading_again(self):
+        with tempfile.TemporaryDirectory() as root:
+            self._episode(root)
+            (Path(root) / "content" / "reels" / "episode.mp4").write_bytes(b"video")
+            memory = MemoryEngine(Path(root) / "memory")
+            queue = YouTubeCreatorQueue(memory, root)
+            queue.prepare_once()
+            entry = memory.all(queue.CATEGORY)[0]
+            payload = __import__("json").loads(entry["content"])
+            payload.update({"upload_status": "published", "youtube": {"video_id": "abc"}})
+            memory.update(queue.CATEGORY, entry["id"], content=__import__("json").dumps(payload))
+            with patch("brain.video_quality.VideoQualityGate.assess", return_value={"eligible": True, "reasons": []}):
+                result = queue.audit_existing()
+            self.assertEqual("video-qa-recorded", result["stage"])
+            self.assertEqual(True, queue.candidates()[0]["video_qa"]["eligible"])

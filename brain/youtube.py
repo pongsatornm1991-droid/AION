@@ -53,6 +53,12 @@ class YouTubeShortsCycle:
             if previous.get("id") != entry.get("id") and (previous_payload.get("youtube") or {}).get("video_id"):
                 prior.append(previous_payload)
         quality = YouTubeQualityGate().assess(payload, prior)
+        from brain.video_quality import VideoQualityGate
+        video_quality = VideoQualityGate(root).assess(video_path)
+        quality["video_qa"] = video_quality
+        if not video_quality["eligible"]:
+            quality["eligible"] = False
+            quality["reasons"] = list(quality.get("reasons") or []) + [f"video-qa:{item}" for item in video_quality["reasons"]]
         if not quality["eligible"]:
             return {"stage": "quality-review-required", "entry_id": entry.get("id"), **quality}
         from brain.cross_platform import append_invitation

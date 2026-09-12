@@ -2,6 +2,7 @@ import json
 import os
 import tempfile
 import unittest
+from unittest.mock import patch
 
 from brain.memory import MemoryEngine
 from brain.youtube import YouTubeShortsCycle
@@ -26,7 +27,8 @@ class YouTubeShortsCycleTests(unittest.TestCase):
             )
             calls = []
             cycle = YouTubeShortsCycle(memory, uploader=lambda *args: calls.append(args) or {"video_id": "abc", "url": "https://youtu.be/abc", "privacy_status": "private"})
-            report = cycle.publish_once(repo_root=root)
+            with patch("brain.video_quality.VideoQualityGate.assess", return_value={"eligible": True, "reasons": []}):
+                report = cycle.publish_once(repo_root=root)
             self.assertEqual(report["stage"], "published")
             self.assertEqual(len(calls), 1)
             payload = json.loads(memory.all("published_reels")[0]["content"])
@@ -46,5 +48,5 @@ class YouTubeShortsCycleTests(unittest.TestCase):
                 memory_type="action", source="test", importance=1,
             )
             report = YouTubeShortsCycle(memory, uploader=lambda *args: (_ for _ in ()).throw(RuntimeError("no access"))).publish_once(repo_root=root)
-            self.assertEqual(report["stage"], "upload-failed")
+            self.assertEqual(report["stage"], "quality-review-required")
             self.assertNotIn("youtube", json.loads(memory.all("published_reels")[0]["content"]))

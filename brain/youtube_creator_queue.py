@@ -88,6 +88,7 @@ class YouTubeCreatorQueue:
                 # UI.  Keep the friendly display status above for legacy
                 # screens, but never discard the authorization state.
                 "publication_status": previous[1].get("upload_status") if previous else None,
+                "video_qa": (((previous[1].get("youtube") or {}).get("quality") or {}).get("video_qa") if previous else None),
             })
         return result
 
@@ -151,6 +152,12 @@ class YouTubeCreatorQueue:
         prior = [record for _, record in self._records_by_episode().values()
                  if (record.get("youtube") or {}).get("video_id")]
         quality = YouTubeQualityGate().assess(payload, prior)
+        from brain.video_quality import VideoQualityGate
+        video_quality = VideoQualityGate(self.root).assess(payload.get("video_path"))
+        quality["video_qa"] = video_quality
+        if not video_quality["eligible"]:
+            quality["eligible"] = False
+            quality["reasons"] = list(quality.get("reasons") or []) + [f"video-qa:{item}" for item in video_quality["reasons"]]
         if not quality["eligible"]:
             return {"stage": "quality-review-required", "episode_id": payload.get("episode_id"), **quality}
         description = "\n\n".join(part for part in (
@@ -174,3 +181,27 @@ class YouTubeCreatorQueue:
             tags=["youtube", "creator-series", updated.get("episode_id", "unknown")],
         )
         return {"stage": "published", "episode_id": updated.get("episode_id"), **result}
+
+    def audit_existing(self, episode_id=None):
+        """Attach a retrospective Video QA report to one already-published episode.
+
+        This only updates AION's local audit record; it never edits the remote
+        YouTube upload or contacts an external account.
+        """
+        if self.memory is None:
+            raise ValueError("Memory is required to audit a creator episode.")
+        candidates = self._records_by_episode().values()
+        target = next((item for item in candidates
+                       if (not episode_id or item[1].get("episode_id") == episode_id)
+                       and (item[1].get("youtube") or {}).get("video_id")), None)
+        if target is None:
+            return {"stage": "no-published-creator-episode"}
+        entry, payload = target
+        from brain.video_quality import VideoQualityGate
+        report = VideoQualityGate(self.root).assess(payload.get("video_path"))
+        youtube = dict(payload.get("youtube") or {})
+        quality = dict(youtube.get("quality") or {})
+        quality["video_qa"] = report
+        updated = {**payload, "youtube": {**youtube, "quality": quality}}
+        self.memory.update(self.CATEGORY, entry["id"], content=json.dumps(updated, ensure_ascii=False))
+        return {"stage": "video-qa-recorded", "episode_id": payload.get("episode_id"), "video_qa": report}
