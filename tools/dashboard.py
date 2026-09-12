@@ -540,6 +540,8 @@ def build_studio_snapshot(memory_root=None):
     image_dir = ROOT / "content" / "images"
     reel_dir = ROOT / "content" / "reels"
     images = list(image_dir.glob("*.png")) if image_dir.is_dir() else []
+    generated_scene_dir = ROOT / "assets" / "content-library" / "aion-stories"
+    generated_scenes = list(generated_scene_dir.rglob("*.png")) if generated_scene_dir.is_dir() else []
     audio = list(reel_dir.glob("*.mp3")) if reel_dir.is_dir() else []
     video = list(reel_dir.glob("*.mp4")) if reel_dir.is_dir() else []
     configured_root = (
@@ -549,6 +551,32 @@ def build_studio_snapshot(memory_root=None):
         or (str(ROOT / "aion-memory-data-sync") if (ROOT / "aion-memory-data-sync" / ".git").is_dir() else "memory")
     )
     company = AionCompany(MemoryEngine(configured_root), ROOT).board(episodes, queue)
+    try:
+        episode_details = CreatorSeriesRegistry().episodes()
+    except (OSError, ValueError, TypeError):
+        episode_details = []
+    active_episode = next(
+        (item for item in episode_details if item.get("status") == "storyboard-ready-needs-assets"
+         and item.get("pacing_policy") == "fast-cut-subject-first-v1"),
+        None,
+    )
+    required_scenes = len((active_episode or {}).get("scenes") or [])
+    completed_scenes = sum(1 for scene in (active_episode or {}).get("scenes") or [] if scene.get("image"))
+    image_provider_ready = (
+        os.getenv("IMAGE_PROVIDER") == "openai"
+        and bool(os.getenv("OPENAI_IMAGE_API_KEY") or os.getenv("OPENAI_API_KEY"))
+    )
+    scene_production = {
+        "episode_id": (active_episode or {}).get("id"),
+        "title": (active_episode or {}).get("title"),
+        "completed_scenes": completed_scenes,
+        "required_scenes": required_scenes,
+        "workflow_scheduled": (ROOT / ".github" / "workflows" / "creator-scene-production.yml").is_file(),
+        "provider_ready": image_provider_ready,
+        "status": "ready" if image_provider_ready else "waiting",
+        "detail": ("สร้างภาพใหม่ได้ในเครื่องนี้" if image_provider_ready
+                   else "เครื่องนี้ยังไม่เห็นการตั้งค่าผู้ให้บริการภาพ; งานจะไม่ใช้ภาพเก่ามาแทนหรือแสดงว่าผลิตสำเร็จ"),
+    }
     return {
         "generated_at": snapshot["generated_at"],
         "rooms": [
@@ -556,11 +584,12 @@ def build_studio_snapshot(memory_root=None):
             {"id": "research", "name": "ห้องค้นคว้า", "purpose": "เก็บแหล่งอ้างอิงและขอบเขตข้อเท็จจริงก่อนเขียนเรื่อง", "count": sum(item.get("source_count", 0) for item in episodes), "unit": "แหล่งอ้างอิงในซีรีส์", "state": "active"},
             {"id": "research-lab", "name": "ห้องวิจัยและหลักฐาน", "purpose": "ให้ Inquiry Scout และ Evidence Analyst เปลี่ยนคำถามเป็น research brief ที่ตรวจย้อนกลับได้ ก่อนส่งต่อไปเขียนเรื่อง", "count": snapshot.get("research_to_story", {}).get("eligible_topics", 0), "unit": "หัวข้อที่มีหลักฐานพร้อมต่อยอด", "state": "active"},
             {"id": "story", "name": "ห้องเรื่องเล่า", "purpose": "เปลี่ยนคำถามให้เป็น hook, บทพูด และ storyboard ที่ AION อยู่ในทุกฉาก", "count": len(episodes), "unit": "ตอนที่ออกแบบแล้ว", "state": "active"},
-            {"id": "visual", "name": "ห้องภาพและฉาก", "purpose": "สร้างภาพใหม่เป็นรายฉาก ไม่ใช้ภาพเดิมวนซ้ำเป็นทางลัด", "count": len(images), "unit": "ภาพในคลัง", "state": "active"},
+            {"id": "visual", "name": "ห้องภาพและฉาก", "purpose": "สร้างภาพใหม่เป็นรายฉาก ไม่ใช้ภาพเดิมวนซ้ำเป็นทางลัด", "count": len(generated_scenes), "unit": "ภาพฉากที่ผลิตใหม่", "state": scene_production["status"]},
             {"id": "audio", "name": "ห้องเสียง", "purpose": "จัดเสียงบรรยายและเสียงประกอบหลังเรื่องและภาพผ่านการตรวจแล้ว", "count": len(audio), "unit": "ไฟล์เสียง", "state": "ready"},
             {"id": "review", "name": "ห้องตรวจและส่งออก", "purpose": "ตรวจหลักฐาน คุณค่าต่อผู้ชม และความพร้อมก่อนส่งเข้าคิวเผยแพร่", "count": len(video), "unit": "วิดีโอที่สร้างแล้ว", "state": "waiting" if any(item.get("publication_status") == "authorized-for-aion-publish" or item.get("status") == "upload-ready" for item in queue) else "active"},
         ],
         "episodes": episodes,
+        "scene_production": scene_production,
         "queue": queue,
         "references": snapshot.get("creator_references", {}),
         # Keep the research-to-production chain visible inside Studio.  The
