@@ -4,6 +4,7 @@ import json
 from pathlib import Path
 
 from brain.creator_series import CreatorSeriesRegistry
+from brain.costume_direction import CostumeDirection
 from brain.visual_story_policy import VisualStoryPolicy
 
 
@@ -25,7 +26,7 @@ class CreatorSceneProduction:
 
     def _prompt(self, episode, scene):
         direction = episode.get("visual_direction") or {}
-        wardrobe = direction.get("wardrobe") or "context-appropriate practical explorer clothing with subtle cyan details"
+        wardrobe = CostumeDirection.brief_for(episode, scene)
         return " ".join((
             "Use case: historical-scene. Asset type: vertical educational video scene.",
             f"Scene: {scene.get('visual')}",
