@@ -139,7 +139,7 @@ def render_reel_cover(hook, thought, output_path, mood=None, still_paths=None):
     return output_path
 
 
-def render_reel(hook, thought, output_path, duration=18, mood=None, still_paths=None):
+def render_reel(hook, thought, output_path, duration=18, mood=None, still_paths=None, max_scene_seconds=10):
     """Create a 9:16, paced multi-scene AION narration Reel."""
     ffmpeg = shutil.which("ffmpeg")
     if not ffmpeg:
@@ -157,9 +157,9 @@ def render_reel(hook, thought, output_path, duration=18, mood=None, still_paths=
     stills = [str(path) for path in (still_paths or []) if os.path.isfile(path)]
     stills = stills or _story_still_paths(hook, thought) or [output_path]
     seconds_per_scene = duration / len(stills)
-    if not 5 <= seconds_per_scene <= 10:
+    if not 5 <= seconds_per_scene <= max_scene_seconds:
         raise ValueError(
-            "AION Creator scenes must last 5–10 seconds each; "
+            f"AION Creator scenes must last 5–{max_scene_seconds} seconds each; "
             f"received {len(stills)} scenes across {duration} seconds."
         )
     cover = os.path.splitext(output_path)[0] + "-cover.png"

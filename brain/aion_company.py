@@ -60,7 +60,7 @@ class AionCompany:
                 {"id": "story", "name": "ฝ่ายเรื่องเล่า", "lead": "Story Agent", "room": "ห้องเรื่องเล่า",
                  "does": "ออกแบบ hook, คุณค่าต่อผู้ชม, บท และ storyboard ที่ AION อยู่ในทุกฉาก", "evidence": f"{len(episodes)} ตอนที่ออกแบบแล้ว", "handoff": "ส่ง storyboard ให้ฝ่ายภาพและเสียง", "state": "active"},
                 {"id": "visual", "name": "ฝ่ายภาพ", "lead": "Visual Agent", "room": "ห้องภาพและฉาก",
-                 "does": "ผลิตภาพใหม่ตามฉาก รักษาตัวตน AION และจัดการสินทรัพย์ภาพ", "evidence": f"{images} ภาพต้นฉบับ", "handoff": "ส่งฉากที่ตรวจความต่อเนื่องแล้วให้ฝ่ายประกอบ", "state": "active"},
+                 "does": "ผลิตภาพใหม่ตามฉาก ให้เนื้อเรื่องและสถานที่เป็นจุดเด่น ส่วน AION เป็นผู้นำทางตามบริบท", "evidence": f"{images} ภาพต้นฉบับ", "handoff": "ส่งฉากที่ตรวจความต่อเนื่องและสัดส่วนตัวละครแล้วให้ฝ่ายประกอบ", "state": "active"},
                 {"id": "audio", "name": "ฝ่ายเสียงและประกอบ", "lead": "Audio Agent", "room": "ห้องเสียง",
                  "does": "จัดบรรยาย จังหวะ และไฟล์ประกอบหลังภาพและเรื่องผ่านการตรวจ", "evidence": f"{rendered} วิดีโอมีไฟล์พร้อมตรวจ", "handoff": "ส่งวิดีโอร่างให้ฝ่ายคุณภาพ", "state": "ready"},
                 {"id": "quality", "name": "ฝ่ายคุณภาพ", "lead": "Quality Agent", "room": "ห้องตรวจและส่งออก",

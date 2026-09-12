@@ -7,6 +7,7 @@ ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
 
 from brain.creator_series import CreatorSeriesRegistry
+from brain.visual_story_policy import VisualStoryPolicy
 from tools.reel_render import render_reel
 
 
@@ -27,6 +28,8 @@ def render_episode(episode_id, output=None):
         duration=episode["target_duration_seconds"],
         mood={"color": "#22d3ee"},
         still_paths=[str(path) for path in stills],
+        max_scene_seconds=(VisualStoryPolicy.MAX_SCENE_SECONDS
+                           if episode.get("pacing_policy") == VisualStoryPolicy.VERSION else 10),
     )
     return destination
 

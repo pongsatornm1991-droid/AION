@@ -2,6 +2,8 @@
 import json
 from pathlib import Path
 
+from brain.visual_story_policy import VisualStoryPolicy
+
 
 ROOT = Path(__file__).resolve().parents[1]
 
@@ -25,8 +27,15 @@ class CreatorSeriesRegistry:
                     f"{item.get('id')} must contain {scene_range[0]}–{scene_range[1]} visual beats "
                     f"for format {episode_format}."
                 )
-            if not 5 <= seconds <= 10:
-                raise ValueError(f"{item.get('id')} violates the 5–10 second scene policy.")
+            current_policy = item.get("pacing_policy") == VisualStoryPolicy.VERSION
+            min_seconds = VisualStoryPolicy.MIN_SCENE_SECONDS if current_policy else 5
+            max_seconds = VisualStoryPolicy.MAX_SCENE_SECONDS if current_policy else 10
+            if not min_seconds <= seconds <= max_seconds:
+                raise ValueError(f"{item.get('id')} violates the {min_seconds}–{max_seconds} second scene policy.")
+            if current_policy:
+                visual_check = VisualStoryPolicy.validate_episode(item)
+                if not visual_check["eligible"]:
+                    raise ValueError(f"{item.get('id')} violates current visual policy: {', '.join(visual_check['reasons'])}")
             if int(item.get("target_duration_seconds") or 0) != len(scenes) * seconds:
                 raise ValueError(f"{item.get('id')} duration does not match its storyboard.")
             promise = str(item.get("audience_promise") or "").strip()
@@ -74,4 +83,7 @@ class CreatorSeriesRegistry:
             "has_uncertainty_boundary": True,
             "wonder_hook": item["wonder_hook"],
             "creative_device": item["creative_device"],
+            "scene_seconds": item["scene_seconds"],
+            "pacing_policy": item.get("pacing_policy", "legacy-v1"),
+            "visual_direction": item.get("visual_direction", {}),
         } for item in self.episodes()]

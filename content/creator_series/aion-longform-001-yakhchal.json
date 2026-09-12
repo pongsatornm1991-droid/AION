@@ -11,9 +11,16 @@
     "family": "Pause to guess which design choice helped the ice last, then compare it with the evidence.",
     "deeper": "Separate architectural evidence and heat-transfer modelling from details that remain uncertain across locations and periods."
   },
-  "target_duration_seconds": 168,
-  "scene_seconds": 7,
+  "target_duration_seconds": 120,
+  "scene_seconds": 5,
   "format": "long-form-illustrated",
+  "pacing_policy": "fast-cut-subject-first-v1",
+  "visual_direction": {
+    "focus": "subject-first",
+    "aion_role": "contextual-guide",
+    "aion_frame_share_max": 0.28,
+    "wardrobe": "contextual field-explorer attire: practical sand-toned travel layer with subtle cyan details, never a fashion focal point"
+  },
   "character": "AION, a translucent cyan AI storyteller, visibly present in every scene as investigator and guide.",
   "history_boundary": "The episode reconstructs documented yakhchal principles. Exact practices differed by place and period; visual reconstructions must never claim a single universal design.",
   "sources": [
