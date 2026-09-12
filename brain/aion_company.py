@@ -13,6 +13,7 @@ from pathlib import Path
 from brain.autonomy_policy import AutonomyPolicy
 from brain.company_operations import CompanyOperations
 from brain.company_work_registry import CompanyWorkRegistry
+from brain.company_quality_audit import CompanyQualityAudit
 
 
 class AionCompany:
@@ -31,7 +32,7 @@ class AionCompany:
     def board(self, episodes, queue):
         images = len(list((self.root / "content" / "images").glob("*.png")))
         rendered = sum(1 for item in queue if item.get("video_exists"))
-        ready = sum(1 for item in queue if item.get("status") == "upload-ready")
+        ready = sum(1 for item in queue if item.get("publication_status") == "authorized-for-aion-publish" or item.get("status") == "upload-ready")
         policy = AutonomyPolicy(self.root)
         operations = CompanyOperations(self.root).audit()
         published = self._count("published_reels")
@@ -47,6 +48,7 @@ class AionCompany:
             },
             "operations": operations,
             "work_registry": CompanyWorkRegistry(self.root).snapshot(),
+            "quality_audit": CompanyQualityAudit(self.root).snapshot(),
             "boundary": "AION และทีมเผยแพร่ผลงานสาธารณะที่ผ่าน Quality Gate ได้เอง แต่ห้ามเปลี่ยนสิทธิ์หรือข้อมูลรับรอง ใช้/รับเงิน ทำสัญญา หรือแก้กฎความปลอดภัยเอง",
             "departments": [
                 {"id": "research", "name": "ฝ่ายวิจัย", "lead": "Research Agent", "room": "ห้องค้นคว้า",

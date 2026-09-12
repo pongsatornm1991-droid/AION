@@ -53,6 +53,7 @@ class YouTubeCreatorQueueTests(unittest.TestCase):
             memory = MemoryEngine(Path(root) / "memory")
             queue = YouTubeCreatorQueue(memory, root)
             self.assertEqual("authorized-for-publishing", queue.prepare_once()["stage"])
+            self.assertEqual("authorized-for-aion-publish", queue.candidates()[0]["publication_status"])
             result = queue.publish_once(lambda path, title, description: {"video_id": "abc", "url": "https://youtu.be/abc", "privacy_status": "public"})
             self.assertEqual("published", result["stage"])
             self.assertEqual("published", queue.candidates()[0]["status"])

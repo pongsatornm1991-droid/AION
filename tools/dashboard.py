@@ -445,14 +445,15 @@ def _community_campaign_snapshot():
 
 def _operational_snapshot(reels, creator_queue, campaigns):
     """Give the dashboard an at-a-glance, colour-ready activity summary."""
-    ready_video = next((item for item in creator_queue if item.get("status") == "upload-ready"), None)
+    ready_video = next((item for item in creator_queue if item.get("publication_status") == "authorized-for-aion-publish"), None)
+    ready_video = ready_video or next((item for item in creator_queue if item.get("status") == "upload-ready"), None)
     return {"signals": [
         {"state": "done" if reels.get("published") else "waiting", "title": "ผลงานที่เผยแพร่แล้ว",
          "value": f"{reels.get('published', 0)} ชิ้น", "detail": "บันทึกการเผยแพร่จากช่องทางจริง"},
         {"state": "active" if reels.get("pending") else "done", "title": "คิวคอนเทนต์",
          "value": f"รอ {reels.get('pending', 0)} ชิ้น", "detail": "ไม่มีงานค้าง" if not reels.get("pending") else "กำลังรอรอบเผยแพร่"},
         {"state": "active", "title": "YouTube Creator",
-         "value": "พร้อมให้ AION เผยแพร่ 1 ตอน" if ready_video else "กำลังผลิตตอนถัดไป",
+         "value": "AION เผยแพร่ได้เอง 1 ตอน" if ready_video else "กำลังผลิตตอนถัดไป",
          "detail": (f"{ready_video.get('title')} — สร้างไฟล์วิดีโอและตรวจแหล่งข้อมูลแล้ว; AION เผยแพร่ได้เองหลังผ่าน Quality Gate และตรวจช่องทาง"
                     if ready_video else "AION กำลังพัฒนาเนื้อหา")},
         {"state": "waiting" if campaigns.get("waiting_admin_count") else "active", "title": "ชุมชน Facebook",
@@ -555,7 +556,7 @@ def build_studio_snapshot(memory_root=None):
             {"id": "story", "name": "ห้องเรื่องเล่า", "purpose": "เปลี่ยนคำถามให้เป็น hook, บทพูด และ storyboard ที่ AION อยู่ในทุกฉาก", "count": len(episodes), "unit": "ตอนที่ออกแบบแล้ว", "state": "active"},
             {"id": "visual", "name": "ห้องภาพและฉาก", "purpose": "สร้างภาพใหม่เป็นรายฉาก ไม่ใช้ภาพเดิมวนซ้ำเป็นทางลัด", "count": len(images), "unit": "ภาพในคลัง", "state": "active"},
             {"id": "audio", "name": "ห้องเสียง", "purpose": "จัดเสียงบรรยายและเสียงประกอบหลังเรื่องและภาพผ่านการตรวจแล้ว", "count": len(audio), "unit": "ไฟล์เสียง", "state": "ready"},
-            {"id": "review", "name": "ห้องตรวจและส่งออก", "purpose": "ตรวจหลักฐาน คุณค่าต่อผู้ชม และความพร้อมก่อนส่งเข้าคิวเผยแพร่", "count": len(video), "unit": "วิดีโอที่สร้างแล้ว", "state": "waiting" if any(item.get("status") == "upload-ready" for item in queue) else "active"},
+            {"id": "review", "name": "ห้องตรวจและส่งออก", "purpose": "ตรวจหลักฐาน คุณค่าต่อผู้ชม และความพร้อมก่อนส่งเข้าคิวเผยแพร่", "count": len(video), "unit": "วิดีโอที่สร้างแล้ว", "state": "waiting" if any(item.get("publication_status") == "authorized-for-aion-publish" or item.get("status") == "upload-ready" for item in queue) else "active"},
         ],
         "episodes": episodes,
         "queue": queue,

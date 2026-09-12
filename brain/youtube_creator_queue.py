@@ -84,6 +84,10 @@ class YouTubeCreatorQueue:
                 "caption": self._caption(episode),
                 "viewer_value": episode["audience_promise"],
                 "visual_style": "illustrated-aion-storyboard-v4",
+                # Queue state is durable and is the source of truth for the
+                # UI.  Keep the friendly display status above for legacy
+                # screens, but never discard the authorization state.
+                "publication_status": previous[1].get("upload_status") if previous else None,
             })
         return result
 

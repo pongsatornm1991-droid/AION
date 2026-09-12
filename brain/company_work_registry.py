@@ -19,6 +19,7 @@ class CompanyWorkRegistry:
         "running": "กำลังทำงาน",
         "failure": "ต้องตรวจสอบ",
         "cancelled": "ยกเลิก",
+        "partial": "ทำงานได้บางส่วน — ยังมีงานรอยืนยัน",
         "unknown": "ยังไม่มีผลยืนยัน",
     }
 
@@ -55,7 +56,18 @@ class CompanyWorkRegistry:
                     "updated_at": item.get("created_at"),
                 })
             states = {item["state"] for item in items}
-            overall = "failure" if "failure" in states else "running" if "running" in states else "success" if "success" in states else "unknown"
+            # A department must not be reported as fully successful merely
+            # because one of its workflows succeeded while another has never
+            # reported a result.  This is especially important for new
+            # workflows, where an absent run is operationally meaningful.
+            overall = (
+                "failure" if "failure" in states else
+                "running" if "running" in states else
+                "partial" if "success" in states and "unknown" in states else
+                "success" if "success" in states else
+                "cancelled" if "cancelled" in states else
+                "unknown"
+            )
             work.append({
                 "department": department,
                 "state": overall,

@@ -4,6 +4,7 @@ import unittest
 
 from brain.memory import MemoryEngine
 from tools.dashboard import build_snapshot, build_studio_snapshot
+from tools.dashboard import _operational_snapshot
 
 
 class DashboardTests(unittest.TestCase):
@@ -107,3 +108,12 @@ class DashboardTests(unittest.TestCase):
                 {"instagram": 2, "facebook": 1, "youtube": 1},
                 snapshot["content"]["platform_counts"],
             )
+
+    def test_creator_signal_uses_durable_publication_authorization(self):
+        signals = _operational_snapshot(
+            {"published": 0, "pending": 0},
+            [{"title": "AION episode", "status": "already-prepared", "publication_status": "authorized-for-aion-publish"}],
+            {"waiting_admin_count": 0},
+        )["signals"]
+        creator = next(item for item in signals if item["title"] == "YouTube Creator")
+        self.assertEqual("AION เผยแพร่ได้เอง 1 ตอน", creator["value"])
