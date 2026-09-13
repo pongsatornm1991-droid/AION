@@ -5,7 +5,8 @@ Then open: http://127.0.0.1:8787
 """
 
 # Route revision 2026-09-13: invalidate any obsolete bytecode cache that
-# predates the dedicated Learning, Cyber Guard, and Evolution Lab pages.
+# predates the dedicated Learning, Cyber Guard, Evolution Lab, and audience
+# accessibility control-panel views.
 
 import json
 import os
