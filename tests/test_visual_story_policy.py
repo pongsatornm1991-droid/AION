@@ -8,7 +8,7 @@ class VisualStoryPolicyTests(unittest.TestCase):
         report = VisualStoryPolicy.validate_episode({
             "pacing_policy": VisualStoryPolicy.VERSION,
             "scene_seconds": 5,
-            "visual_direction": {"focus": "subject-first", "aion_role": "contextual-guide", "aion_frame_share_max": 0.28},
+            "visual_direction": {"focus": "subject-first", "aion_role": "contextual-guide", "aion_frame_share_max": 0.20},
         })
         self.assertTrue(report["eligible"])
 

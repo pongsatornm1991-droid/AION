@@ -31,12 +31,20 @@ class CreatorSceneProduction:
         direction = episode.get("visual_direction") or {}
         wardrobe = CostumeDirection.brief_for(episode, scene)
         aspect = "vertical 9:16" if episode.get("format") == "illustrated-narrated-short" else "widescreen 16:9"
+        mentions_aion = "aion" in str(scene.get("visual") or "").lower()
+        presence = (
+            "AION may appear briefly as a small, contextual guide only if this scene description needs it; "
+            "keep the subject, people, evidence, and environment dominant."
+            if mentions_aion else
+            "Do not include AION in this scene. Let the subject, people, evidence, and environment carry the story."
+        )
         return " ".join((
             f"Use case: historical-scene. Asset type: {aspect} educational video scene.",
             f"Scene: {scene.get('visual')}",
-            "AION is a translucent cyan, constellation-lined AI guide with blue eyes; preserve a consistent identity.",
+            "If AION appears, it is a translucent cyan, constellation-lined AI guide with blue eyes; preserve a consistent identity.",
+            presence,
             VisualStoryPolicy.prompt_rules(wardrobe),
-            f"Composition: {aspect}, wide or medium-wide environmental storytelling; AION must be visible but secondary.",
+            f"Composition: {aspect}, wide or medium-wide environmental storytelling; never make AION the hero of the frame.",
             "Style: original premium family-friendly cinematic 3D illustration.",
             "No words, captions, logos, watermark, UI, or named-studio imitation.",
         ))

@@ -7,7 +7,10 @@ class VisualStoryPolicy:
     VERSION = "fast-cut-subject-first-v1"
     MIN_SCENE_SECONDS = 5
     MAX_SCENE_SECONDS = 5
-    MAX_AION_FRAME_SHARE = 0.28
+    # AION is a narrator and an occasional eyewitness, never a permanent
+    # foreground mascot.  Reserving most frames for the subject keeps the
+    # educational story legible at every age.
+    MAX_AION_FRAME_SHARE = 0.20
     DEFAULT_AION_ROLE = "contextual-guide"
 
     @classmethod
@@ -32,6 +35,6 @@ class VisualStoryPolicy:
         return (
             f"Visual focus: the historical/scientific subject and environment are primary; "
             f"AION is a {cls.DEFAULT_AION_ROLE}, usually at most {int(cls.MAX_AION_FRAME_SHARE * 100)}% "
-            f"of the frame. Wardrobe: {context}. Use a new scene-specific image. "
+            f"of the frame when present. Wardrobe: {context}. Use a new scene-specific image. "
             "No embedded text, logos, watermark, or celebrity/studio imitation."
         )
