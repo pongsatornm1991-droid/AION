@@ -68,6 +68,7 @@ class YouTubeCreatorQueue:
         result = []
         for episode in CreatorSeriesRegistry(self.root).episodes():
             video_path = self.root / "content" / "reels" / f"{episode['id']}.mp4"
+            subtitle_path = self.root / "content" / "reels" / f"{episode['id']}.srt"
             ready = episode.get("status") == self.READY_STATUS and video_path.is_file()
             previous = recorded.get(episode["id"])
             result.append({
@@ -80,6 +81,8 @@ class YouTubeCreatorQueue:
                 ),
                 "video_path": str(video_path.relative_to(self.root)).replace("\\", "/"),
                 "video_exists": video_path.is_file(),
+                "subtitle_path": str(subtitle_path.relative_to(self.root)).replace("\\", "/"),
+                "subtitle_exists": subtitle_path.is_file(),
                 "audience_promise": episode["audience_promise"],
                 "uncertainty_boundary": (
                     episode.get("science_boundary")
@@ -162,7 +165,10 @@ class YouTubeCreatorQueue:
                  if (record.get("youtube") or {}).get("video_id")]
         quality = YouTubeQualityGate().assess(payload, prior)
         from brain.video_quality import VideoQualityGate
-        video_quality = VideoQualityGate(self.root).assess(payload.get("video_path"))
+        video_quality = VideoQualityGate(self.root).assess(payload.get("video_path"), payload.get("content_kind") or "short")
+        if payload.get("content_kind") == "long-form" and not (self.root / str(payload.get("subtitle_path") or "")).is_file():
+            video_quality["eligible"] = False
+            video_quality["reasons"] = list(video_quality.get("reasons") or []) + ["missing-caption-track"]
         quality["video_qa"] = video_quality
         if not video_quality["eligible"]:
             quality["eligible"] = False

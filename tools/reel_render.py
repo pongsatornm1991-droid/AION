@@ -19,6 +19,7 @@ from tools.image_render import (
 )
 
 REEL_SIZE = (1080, 1920)
+WIDESCREEN_SIZE = (1920, 1080)
 
 # AION is a recurring character, not an interchangeable abstract background.
 # These scenes give each narration a recognisable visual presence while still
@@ -139,8 +140,9 @@ def render_reel_cover(hook, thought, output_path, mood=None, still_paths=None):
     return output_path
 
 
-def render_reel(hook, thought, output_path, duration=18, mood=None, still_paths=None, max_scene_seconds=10):
-    """Create a 9:16, paced multi-scene AION narration Reel."""
+def render_reel(hook, thought, output_path, duration=18, mood=None, still_paths=None,
+                max_scene_seconds=10, frame_size=REEL_SIZE):
+    """Create a paced AION video in vertical or true widescreen format."""
     ffmpeg = shutil.which("ffmpeg")
     if not ffmpeg:
         try:
@@ -162,6 +164,9 @@ def render_reel(hook, thought, output_path, duration=18, mood=None, still_paths=
             f"AION Creator scenes must last 5–{max_scene_seconds} seconds each; "
             f"received {len(stills)} scenes across {duration} seconds."
         )
+    width, height = frame_size
+    if (width, height) not in {REEL_SIZE, WIDESCREEN_SIZE}:
+        raise ValueError("AION videos must be 9:16 or 16:9")
     cover = os.path.splitext(output_path)[0] + "-cover.png"
     render_reel_cover(hook, thought, cover, mood=mood, still_paths=stills)
     audio = os.path.splitext(output_path)[0] + ".mp3"
@@ -176,7 +181,7 @@ def render_reel(hook, thought, output_path, duration=18, mood=None, still_paths=
         # first scene and make a whole episode appear to be one static image.
         command.extend(["-loop", "1", "-framerate", "1", "-t", "1", "-i", still])
     scene_filters = [
-        f"[{index}:v]zoompan=z='min(zoom+0.00045,1.05)':d={scene_frames}:s=1080x1920:fps=30,format=yuv420p[v{index}]"
+        f"[{index}:v]zoompan=z='min(zoom+0.00045,1.05)':d={scene_frames}:s={width}x{height}:fps=30,format=yuv420p[v{index}]"
         for index in range(len(stills))
     ]
     joined = "".join(f"[v{index}]" for index in range(len(stills)))

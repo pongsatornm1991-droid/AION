@@ -108,7 +108,7 @@ class VideoQualityGate:
             return [], "frame-sampling-failed"
         return samples, None
 
-    def assess(self, video_path):
+    def assess(self, video_path, content_kind="short"):
         path = Path(video_path)
         if not path.is_absolute():
             path = self.root / path
@@ -132,11 +132,21 @@ class VideoQualityGate:
             reasons.append("missing-video-stream")
         if not has_audio:
             reasons.append("missing-audio-stream")
-        if width < self.MIN_WIDTH or height < self.MIN_HEIGHT:
-            reasons.append("resolution-too-low")
-        if ratio and abs(ratio - (9 / 16)) > 0.04:
-            reasons.append("not-vertical-9x16")
-        if not self.MIN_DURATION <= duration <= self.MAX_DURATION:
+        if content_kind == "long-form":
+            if width < 1280 or height < 720:
+                reasons.append("resolution-too-low-for-longform")
+            if ratio and abs(ratio - (16 / 9)) > 0.04:
+                reasons.append("not-widescreen-16x9")
+            if duration <= self.MAX_DURATION:
+                reasons.append("longform-must-exceed-three-minutes")
+        else:
+            if width < self.MIN_WIDTH or height < self.MIN_HEIGHT:
+                reasons.append("resolution-too-low")
+            if ratio and abs(ratio - (9 / 16)) > 0.04:
+                reasons.append("not-vertical-9x16")
+            if not self.MIN_DURATION <= duration <= self.MAX_DURATION:
+                reasons.append("duration-out-of-range")
+        if duration < self.MIN_DURATION:
             reasons.append("duration-out-of-range")
 
         frames, frame_error = self._sample_frames(path, duration) if duration else ([], "no-duration")

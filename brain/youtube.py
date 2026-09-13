@@ -54,7 +54,7 @@ class YouTubeShortsCycle:
                 prior.append(previous_payload)
         quality = YouTubeQualityGate().assess(payload, prior)
         from brain.video_quality import VideoQualityGate
-        video_quality = VideoQualityGate(root).assess(video_path)
+        video_quality = VideoQualityGate(root).assess(video_path, "short")
         quality["video_qa"] = video_quality
         if not video_quality["eligible"]:
             quality["eligible"] = False

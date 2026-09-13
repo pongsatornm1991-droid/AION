@@ -17,9 +17,12 @@ class AssembleCreatorEpisodeTests(unittest.TestCase):
             source = episode_dir / "episode.json"; source.write_text(json.dumps(payload), encoding="utf-8")
             def renderer(_, __, output, **kwargs):
                 self.assertEqual(15, kwargs["duration"]); self.assertEqual(3, len(kwargs["still_paths"]))
+                self.assertEqual((1080, 1920), kwargs["frame_size"])
                 Path(output).parent.mkdir(parents=True, exist_ok=True); Path(output).write_bytes(b"mp4")
             result = assemble_once(root, renderer=renderer)
             self.assertEqual("episode-rendered-for-quality", result["stage"])
+            self.assertTrue((root / result["subtitle_path"]).is_file())
+            self.assertIn("00:00:00,000 --> 00:00:05,000", (root / result["subtitle_path"]).read_text(encoding="utf-8"))
             self.assertEqual("production-ready-assets-and-script", json.loads(source.read_text(encoding="utf-8"))["status"])
 
     def test_does_not_claim_a_video_when_no_episode_is_ready(self):
