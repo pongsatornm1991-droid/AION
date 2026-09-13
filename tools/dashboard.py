@@ -569,9 +569,24 @@ def build_studio_snapshot(memory_root=None):
     )
     required_scenes = len((active_episode or {}).get("scenes") or [])
     completed_scenes = sum(1 for scene in (active_episode or {}).get("scenes") or [] if scene.get("image"))
-    image_provider_ready = (
+    local_image_provider_ready = (
         os.getenv("IMAGE_PROVIDER") == "openai"
         and bool(os.getenv("OPENAI_IMAGE_API_KEY") or os.getenv("OPENAI_API_KEY"))
+    )
+    # A production machine deliberately does not inherit repository secrets.
+    # AION's normal production path is GitHub Actions, where the OpenAI secret
+    # remains in the repository secret store.  Keeping this distinct from a
+    # local key prevents Studio from falsely claiming that image production is
+    # unavailable merely because the dashboard host has no credential.
+    cloud_image_workflow_ready = (
+        os.getenv("AION_CLOUD_IMAGE_WORKFLOW", "github-actions").strip().lower() == "github-actions"
+        and (ROOT / ".github" / "workflows" / "creator-scene-production.yml").is_file()
+    )
+    image_provider_ready = local_image_provider_ready or cloud_image_workflow_ready
+    provider_mode = (
+        "local-openai" if local_image_provider_ready
+        else "github-actions" if cloud_image_workflow_ready
+        else "unconfigured"
     )
     scene_production = {
         "episode_id": (active_episode or {}).get("id"),
@@ -582,9 +597,13 @@ def build_studio_snapshot(memory_root=None):
         "batch_size": 25,
         "episode_ceiling": 120,
         "provider_ready": image_provider_ready,
+        "provider_mode": provider_mode,
         "status": "ready" if image_provider_ready else "waiting",
-        "detail": ("สร้างภาพใหม่ได้ในเครื่องนี้" if image_provider_ready
-                   else "เครื่องนี้ยังไม่เห็นการตั้งค่าผู้ให้บริการภาพ; งานจะไม่ใช้ภาพเก่ามาแทนหรือแสดงว่าผลิตสำเร็จ"),
+        "detail": (
+            "สร้างภาพใหม่ได้ในเครื่องนี้" if local_image_provider_ready
+            else "ส่งสร้างภาพจริงผ่าน GitHub Actions ได้ โดยคีย์อยู่ในคลังรหัสของ GitHub ไม่ถูกคัดลอกลงเครื่องนี้" if cloud_image_workflow_ready
+            else "ยังไม่มีผู้ให้บริการภาพที่พร้อมใช้งาน; งานจะไม่ใช้ภาพเก่ามาแทนหรือแสดงว่าผลิตสำเร็จ"
+        ),
     }
 
     return {
