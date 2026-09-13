@@ -7,10 +7,12 @@ class VisualStoryPolicy:
     VERSION = "fast-cut-subject-first-v1"
     MIN_SCENE_SECONDS = 5
     MAX_SCENE_SECONDS = 5
-    # AION is a narrator and an occasional eyewitness, never a permanent
-    # foreground mascot.  Reserving most frames for the subject keeps the
-    # educational story legible at every age.
-    MAX_AION_FRAME_SHARE = 0.20
+    # This is a safety ceiling, not a house style.  The Story, Studio and
+    # Quality teams decide an episode's target from the narrative need and
+    # later viewer evidence.  AION must never turn an educational story into
+    # a permanent foreground mascot.
+    MAX_AION_FRAME_SHARE = 0.35
+    DEFAULT_AION_FRAME_SHARE = 0.20
     DEFAULT_AION_ROLE = "contextual-guide"
 
     @classmethod
@@ -26,15 +28,19 @@ class VisualStoryPolicy:
             reasons.append("visual-focus-must-be-subject-first")
         if visual.get("aion_role") != cls.DEFAULT_AION_ROLE:
             reasons.append("aion-role-must-be-contextual-guide")
-        if float(visual.get("aion_frame_share_max") or 0) > cls.MAX_AION_FRAME_SHARE:
+        frame_share = float(visual.get("aion_frame_share_max") or 0)
+        if frame_share > cls.MAX_AION_FRAME_SHARE:
             reasons.append("aion-frame-share-too-large")
+        if frame_share > cls.DEFAULT_AION_FRAME_SHARE and not visual.get("aion_presence_rationale"):
+            reasons.append("missing-aion-presence-rationale")
         return {"eligible": not reasons, "reasons": reasons, "version": cls.VERSION}
 
     @classmethod
-    def prompt_rules(cls, context):
+    def prompt_rules(cls, context, frame_share=None):
+        target_share = float(frame_share or cls.DEFAULT_AION_FRAME_SHARE)
         return (
             f"Visual focus: the historical/scientific subject and environment are primary; "
-            f"AION is a {cls.DEFAULT_AION_ROLE}, usually at most {int(cls.MAX_AION_FRAME_SHARE * 100)}% "
+            f"AION is a {cls.DEFAULT_AION_ROLE}, usually at most {int(target_share * 100)}% "
             f"of the frame when present. Wardrobe: {context}. Use a new scene-specific image. "
             "No embedded text, logos, watermark, or celebrity/studio imitation."
         )

@@ -20,3 +20,15 @@ class VisualStoryPolicyTests(unittest.TestCase):
         })
         self.assertFalse(report["eligible"])
         self.assertIn("scene-duration-must-be-5-seconds", report["reasons"])
+
+    def test_allows_a_story_justified_guest_guide_role(self):
+        report = VisualStoryPolicy.validate_episode({
+            "pacing_policy": VisualStoryPolicy.VERSION,
+            "scene_seconds": 5,
+            "visual_direction": {
+                "focus": "subject-first", "aion_role": "contextual-guide",
+                "aion_frame_share_max": 0.28,
+                "aion_presence_rationale": "A recurring guide helps young viewers follow a location-changing journey.",
+            },
+        })
+        self.assertTrue(report["eligible"])

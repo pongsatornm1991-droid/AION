@@ -43,7 +43,7 @@ class CreatorSceneProduction:
             f"Scene: {scene.get('visual')}",
             "If AION appears, it is a translucent cyan, constellation-lined AI guide with blue eyes; preserve a consistent identity.",
             presence,
-            VisualStoryPolicy.prompt_rules(wardrobe),
+            VisualStoryPolicy.prompt_rules(wardrobe, direction.get("aion_frame_share_max")),
             f"Composition: {aspect}, wide or medium-wide environmental storytelling; never make AION the hero of the frame.",
             "Style: original premium family-friendly cinematic 3D illustration.",
             "No words, captions, logos, watermark, UI, or named-studio imitation.",
