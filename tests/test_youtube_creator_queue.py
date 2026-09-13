@@ -56,8 +56,13 @@ class YouTubeCreatorQueueTests(unittest.TestCase):
             self.assertEqual("authorized-for-publishing", queue.prepare_once()["stage"])
             self.assertEqual("authorized-for-aion-publish", queue.candidates()[0]["publication_status"])
             with patch("brain.video_quality.VideoQualityGate.assess", return_value={"eligible": True, "reasons": []}):
-                result = queue.publish_once(lambda path, title, description: {"video_id": "abc", "url": "https://youtu.be/abc", "privacy_status": "public"})
+                captured = {}
+                def uploader(path, title, description):
+                    captured["description"] = description
+                    return {"video_id": "abc", "url": "https://youtu.be/abc", "privacy_status": "public"}
+                result = queue.publish_once(uploader)
             self.assertEqual("published", result["stage"])
+            self.assertIn("#Shorts", captured["description"])
             self.assertEqual("published", queue.candidates()[0]["status"])
             self.assertEqual("no-authorized-creator-episode", queue.publish_once()["stage"])
 

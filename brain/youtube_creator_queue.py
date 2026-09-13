@@ -169,10 +169,11 @@ class YouTubeCreatorQueue:
             quality["reasons"] = list(quality.get("reasons") or []) + [f"video-qa:{item}" for item in video_quality["reasons"]]
         if not quality["eligible"]:
             return {"stage": "quality-review-required", "episode_id": payload.get("episode_id"), **quality}
+        format_tags = "#Shorts #AION #AI" if payload.get("content_kind") == "short" else "#AION #AI"
         description = "\n\n".join(part for part in (
             payload.get("caption"),
             "Original illustrated AION story. AI disclosure reviewed before publication.",
-            "#Shorts #AION #AI",
+            format_tags,
         ) if part)
         try:
             if uploader is None:

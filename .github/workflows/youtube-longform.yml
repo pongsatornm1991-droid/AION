@@ -44,7 +44,13 @@ jobs:
           YOUTUBE_CLIENT_SECRET: ${{ secrets.YOUTUBE_CLIENT_SECRET }}
           YOUTUBE_REFRESH_TOKEN: ${{ secrets.YOUTUBE_REFRESH_TOKEN }}
           YOUTUBE_PRIVACY_STATUS: ${{ vars.YOUTUBE_PRIVACY_STATUS || 'public' }}
-        run: python main.py run-youtube-creator-publish --content-kind long-form
+        run: |
+          output="$(python main.py run-youtube-creator-publish --content-kind long-form)"
+          printf '%s\n' "$output"
+          # A green workflow must mean a durable YouTube upload record was
+          # written.  "No authorized episode" is useful information, but it
+          # must be visible as attention instead of looking like publication.
+          printf '%s' "$output" | grep -Fq 'Stage: published' || exit 1
       - name: Persist private memory
         working-directory: memory_data
         run: |
