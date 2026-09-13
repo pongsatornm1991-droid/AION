@@ -1,0 +1,42 @@
+name: AION - assemble illustrated Creator episode
+
+on:
+  workflow_run:
+    workflows: [AION - subject-first scene production]
+    types: [completed]
+  schedule:
+    - cron: "15 * * * *"
+  workflow_dispatch: {}
+
+permissions:
+  contents: write
+
+concurrency:
+  group: aion-creator-assembly
+  cancel-in-progress: false
+
+jobs:
+  assemble:
+    if: ${{ github.event_name != 'workflow_run' || github.event.workflow_run.conclusion == 'success' }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: {python-version: "3.11"}
+      - run: sudo apt-get update && sudo apt-get install -y ffmpeg
+      - run: pip install -r requirements.txt
+      - name: Assemble only an asset-complete episode
+        env:
+          REEL_VOICE_PROVIDER: ${{ vars.REEL_VOICE_PROVIDER || 'edge-tts' }}
+          REEL_VOICE: ${{ vars.REEL_VOICE || 'en-US-AvaMultilingualNeural' }}
+        run: python tools/assemble_creator_episode.py
+      - name: Commit only a verified assembly result
+        run: |
+          git config user.name aion-bot
+          git config user.email aion-bot@users.noreply.github.com
+          git add content/reels/ content/creator_series/
+          if ! git diff --cached --quiet; then
+            git commit -m "AION: assemble illustrated Creator episode"
+            git pull --rebase origin main
+            git push
+          fi

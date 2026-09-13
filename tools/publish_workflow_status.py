@@ -50,20 +50,23 @@ DEFAULT_REPO = "pongsatornm1991-droid/AION"
 CATEGORIES = [
     ("post", "เนื้อหา & โพสต์", {
         "social-cycle.yml", "instagram-cycle.yml", "reel-cycle.yml",
-        "crosspost-latest-reel.yml", "youtube-shorts.yml",
+        "crosspost-latest-reel.yml", "youtube-shorts.yml", "creator-scene-production.yml",
+        "assemble-creator-episode.yml", "youtube-longform.yml", "youtube-creator.yml",
     }),
     ("think", "ความคิด & การเรียนรู้", {
         "reflection-cycle.yml", "learning-cycle.yml",
-        "youtube-learning.yml", "self-narrative.yml",
+        "youtube-learning.yml", "self-narrative.yml", "autonomous-inquiry.yml",
+        "research-to-story.yml", "scientific-discovery.yml",
     }),
     ("approve", "การอนุมัติ & ความปลอดภัย", {
         "check-comments.yml", "check-profile-approvals.yml",
         "propose-profile-change.yml",
     }),
-    ("growth", "การเติบโต", {"growth-pulse.yml", "evolution-cycle.yml"}),
+    ("growth", "การเติบโต", {"growth-pulse.yml", "evolution-cycle.yml", "experiment-runner.yml"}),
     ("infra", "โครงสร้างพื้นฐาน", {
         "tests.yml", "automation-health.yml", "obsidian-brain.yml",
-        "publish-public-summary.yml", "publish-workflow-status.yml",
+        "publish-public-summary.yml", "publish-workflow-status.yml", "asset-hygiene.yml",
+        "system-reliability.yml", "cyber-guard.yml",
     }),
 ]
 OTHER_KEY, OTHER_LABEL = "other", "อื่นๆ"

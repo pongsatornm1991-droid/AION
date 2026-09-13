@@ -562,9 +562,13 @@ def build_studio_snapshot(memory_root=None):
         episode_details = CreatorSeriesRegistry().episodes()
     except (OSError, ValueError, TypeError):
         episode_details = []
+    # Keep the current production visible through every handoff.  Previously
+    # this only selected the pre-image status, so Studio became blank at the
+    # exact moment a complete set of scene assets was ready for assembly.
     active_episode = next(
-        (item for item in episode_details if item.get("status") == "storyboard-ready-needs-assets"
-         and item.get("pacing_policy") == "fast-cut-subject-first-v1"),
+        (item for item in episode_details
+         if item.get("pacing_policy") == "fast-cut-subject-first-v1"
+         and item.get("status") in {"storyboard-ready-needs-assets", "assets-ready-for-assembly", "production-ready-assets-and-script"}),
         None,
     )
     required_scenes = len((active_episode or {}).get("scenes") or [])
@@ -598,9 +602,15 @@ def build_studio_snapshot(memory_root=None):
         "episode_ceiling": 120,
         "provider_ready": image_provider_ready,
         "provider_mode": provider_mode,
-        "status": "ready" if image_provider_ready else "waiting",
+        "status": (
+            "ready-for-assembly" if (active_episode or {}).get("status") == "assets-ready-for-assembly"
+            else "rendered-for-quality" if (active_episode or {}).get("status") == "production-ready-assets-and-script"
+            else "ready" if image_provider_ready else "waiting"
+        ),
         "detail": (
-            "สร้างภาพใหม่ได้ในเครื่องนี้" if local_image_provider_ready
+            "ภาพครบแล้ว กำลังรอประกอบเป็นวิดีโอและตรวจคุณภาพ" if (active_episode or {}).get("status") == "assets-ready-for-assembly"
+            else "วิดีโอประกอบแล้ว กำลังรอ Quality Gate และคิวเผยแพร่" if (active_episode or {}).get("status") == "production-ready-assets-and-script"
+            else "สร้างภาพใหม่ได้ในเครื่องนี้" if local_image_provider_ready
             else "ส่งสร้างภาพจริงผ่าน GitHub Actions ได้ โดยคีย์อยู่ในคลังรหัสของ GitHub ไม่ถูกคัดลอกลงเครื่องนี้" if cloud_image_workflow_ready
             else "ยังไม่มีผู้ให้บริการภาพที่พร้อมใช้งาน; งานจะไม่ใช้ภาพเก่ามาแทนหรือแสดงว่าผลิตสำเร็จ"
         ),
