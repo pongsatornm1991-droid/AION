@@ -30,12 +30,13 @@ class CreatorSceneProduction:
     def _prompt(self, episode, scene):
         direction = episode.get("visual_direction") or {}
         wardrobe = CostumeDirection.brief_for(episode, scene)
+        aspect = "vertical 9:16" if episode.get("format") == "illustrated-narrated-short" else "widescreen 16:9"
         return " ".join((
-            "Use case: historical-scene. Asset type: vertical educational video scene.",
+            f"Use case: historical-scene. Asset type: {aspect} educational video scene.",
             f"Scene: {scene.get('visual')}",
             "AION is a translucent cyan, constellation-lined AI guide with blue eyes; preserve a consistent identity.",
             VisualStoryPolicy.prompt_rules(wardrobe),
-            "Composition: vertical 9:16, wide or medium-wide environmental storytelling; AION must be visible but secondary.",
+            f"Composition: {aspect}, wide or medium-wide environmental storytelling; AION must be visible but secondary.",
             "Style: original premium family-friendly cinematic 3D illustration.",
             "No words, captions, logos, watermark, UI, or named-studio imitation.",
         ))

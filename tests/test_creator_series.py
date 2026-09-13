@@ -29,6 +29,13 @@ class CreatorSeriesTests(unittest.TestCase):
         self.assertEqual(36, episode["target_duration_seconds"])
         self.assertEqual(2, len(episode["sources"]))
 
+    def test_roman_longform_is_a_true_widescreen_length_storyboard(self):
+        episode = next(item for item in CreatorSeriesRegistry().episodes() if item["id"] == "aion-wonders-003")
+        self.assertEqual(40, len(episode["scenes"]))
+        self.assertEqual(200, episode["target_duration_seconds"])
+        self.assertEqual(5, episode["scene_seconds"])
+        self.assertEqual("fast-cut-subject-first-v1", episode["pacing_policy"])
+
     def test_rejects_a_story_without_audience_benefit_or_uncertainty_boundary(self):
         with tempfile.TemporaryDirectory() as root:
             directory = Path(root) / "content" / "creator_series"

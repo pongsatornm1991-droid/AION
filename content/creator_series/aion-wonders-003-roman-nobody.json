@@ -11,9 +11,16 @@
     "deeper": "Examine whose experience survives in archaeology and why one reconstruction cannot stand for every Roman life."
   },
   "language": "en",
-  "target_duration_seconds": 192,
-  "scene_seconds": 8,
+  "target_duration_seconds": 200,
+  "scene_seconds": 5,
   "format": "long-form-illustrated",
+  "pacing_policy": "fast-cut-subject-first-v1",
+  "visual_direction": {
+    "focus": "subject-first",
+    "aion_role": "contextual-guide",
+    "aion_frame_share_max": 0.28,
+    "wardrobe": "practical Roman field-explorer layer with subtle cyan details, never the focal point"
+  },
   "character": "AION, the recurring cyan storyteller in the canonical midnight-blue explorer jacket, chest lotus, and holographic orb.",
   "history_boundary": "This is a composite reconstruction, not the biography of one documented person. Status, gender, legal freedom, wealth, and town all changed daily life profoundly; AION does not treat one routine as universal Roman experience.",
   "sources": [
@@ -58,16 +65,32 @@
     {"n": 21, "beat": "vesuvius", "visual": "AION sees a distant Vesuvius beyond the ordinary evening street, with no disaster imagery.", "narration": "In 79 CE, Pompeii's ordinary routines ended under Vesuvius. Ash would preserve traces of lives that were never meant to be exhibits."},
     {"n": 22, "beat": "connection", "visual": "AION closes the time-window and holds a Roman lamp beside a modern phone screen glowing in the dark.", "narration": "Their world had no screens, no electric lights, and no weekends. Yet the rhythm of earning, eating, worrying, and returning home still feels close."},
     {"n": 23, "beat": "reflection", "visual": "AION stands between the reconstructed street and excavated stone ruins, its chest lotus glowing softly.", "narration": "History becomes more than monuments when we ask who carried the bread, opened the shop, waited for wages, and went home unseen."},
-    {"n": 24, "beat": "invitation", "visual": "AION faces the viewer with the holographic orb transforming into a question-mark-shaped constellation above an ancient street.", "narration": "Whose ordinary day should AION visit next?"}
+    {"n": 24, "beat": "water", "visual": "AION follows a water carrier past a street fountain while worn stone channels lead toward small homes.", "narration": "Water arrived through fountains, pipes, wells, and labor. Access was practical, public, and unequal."},
+    {"n": 25, "beat": "waste", "visual": "AION studies stepping stones above a wet street while carts and pedestrians share the narrow route.", "narration": "Streets also carried waste, animals, carts, and rain. Daily life was crowded, noisy, and physical."},
+    {"n": 26, "beat": "craft", "visual": "AION observes hands dyeing cloth in a workshop, with colored fabric catching sun through an open doorway.", "narration": "Crafts left traces in tools, walls, and debris. Archaeology can show workspaces, even when workers' names disappear."},
+    {"n": 27, "beat": "children", "visual": "AION watches children play with small objects at the edge of a busy courtyard while adults work nearby.", "narration": "Children lived in this world too, learning routines shaped by family, class, freedom, and chance."},
+    {"n": 28, "beat": "religion", "visual": "AION pauses at a small household shrine with lamps and offerings, keeping people and architecture in quiet balance.", "narration": "Religion was woven into streets and homes, from household rituals to public festivals and temples."},
+    {"n": 29, "beat": "weather", "visual": "AION pulls a cloak closer as summer light turns to sudden rain over tiled roofs and market awnings.", "narration": "Weather shaped every errand. Heat, rain, dust, and daylight changed how people moved through a town."},
+    {"n": 30, "beat": "letters", "visual": "AION studies scratched writing on a wall beside a merchant marking a wax tablet at a counter.", "narration": "Writing appeared in ads, notes, accounts, and graffiti, but literacy and leisure were not shared equally."},
+    {"n": 31, "beat": "risk", "visual": "AION notices a small workshop fire being contained by neighbors with buckets, without turning danger into spectacle.", "narration": "A lost job, illness, fire, or debt could reshape a household quickly. Ordinary life was never guaranteed."},
+    {"n": 32, "beat": "migration", "visual": "AION's orb maps roads and sea routes as travelers enter a gate with goods from different parts of the empire.", "narration": "Roman towns connected local lives to wider roads, sea routes, armies, and trade across the Mediterranean."},
+    {"n": 33, "beat": "evidence-limit", "visual": "AION lays a reconstructed market scene beside broken pottery, graffiti fragments, and an excavation plan.", "narration": "Objects can tell us where people worked. They cannot give us every voice, fear, joke, or private hope."},
+    {"n": 34, "beat": "night", "visual": "AION walks beneath small oil lamps as shutters close and the town grows quieter after work.", "narration": "Night did not end the city, but it changed its rhythm. Light was scarce, and tomorrow's work waited."},
+    {"n": 35, "beat": "comparison", "visual": "AION holds a Roman lamp beside a modern apartment window, with neither era visually overpowering the other.", "narration": "The details are distant, yet many questions remain familiar: Who has time, safety, food, and a place to return to?"},
+    {"n": 36, "beat": "care", "visual": "AION gently closes the time-window around the ordinary resident, leaving the person unnamed and dignified.", "narration": "Calling someone ordinary must never mean unimportant. History was built by lives that monuments often ignore."},
+    {"n": 37, "beat": "recap", "visual": "AION gathers bread, tools, water, sandals, lamps, and street stones into one quiet constellation.", "narration": "One day held labor, neighbors, inequality, routine, and uncertainty—just as every careful reconstruction does."},
+    {"n": 38, "beat": "boundary", "visual": "AION stands between faded imagined figures and clearly lit archaeological fragments as the time-window becomes transparent.", "narration": "This is a composite story built from evidence, not a recovered diary. The gaps remain part of the truth."},
+    {"n": 39, "beat": "wonder", "visual": "AION watches dawn return over Roman ruins and a modern city beyond the horizon.", "narration": "When we look past famous names, the past becomes fuller—and our questions become kinder."},
+    {"n": 40, "beat": "invitation", "visual": "AION faces the viewer with the holographic orb transforming into a question-shaped constellation above an ancient street.", "narration": "Whose ordinary day should AION visit next?"}
   ],
   "motion": {
-    "global": "Slow parallax across illustrated stills, gentle 3D camera drift, clear scene changes every eight seconds, AION remains visibly present in every beat.",
+    "global": "Slow parallax across illustrated stills, gentle 3D camera drift, clear scene changes every five seconds, AION remains visibly present in every beat.",
     "scene_1": "Push through the time-window into pre-dawn blue.",
     "scene_11": "Dissolve from illustration to archaeological overlay.",
     "scene_20": "Let the reconstruction fade back into evidence fragments.",
-    "scene_24": "Slow pull back from AION's open hand to the constellation."
+    "scene_40": "Slow pull back from AION's open hand to the constellation."
   },
   "audio": "Warm, natural English narration; low city ambience, footsteps, market texture, restrained lyre-like tonal accents; no triumphant empire music.",
   "thumbnail_concept": "AION in the canonical explorer jacket opening a bright Roman street through a cyan-and-gold time-window; one ordinary person in silhouette; no text.",
-  "status": "script-ready-needs-scenes"
+  "status": "storyboard-ready-needs-assets"
 }
