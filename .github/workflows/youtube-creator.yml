@@ -2,9 +2,9 @@ name: AION - YouTube Creator Studio
 
 on:
   schedule:
-    # 20:15 Asia/Bangkok: consistent daily Shorts slot.  It is a starting
+    # 20:00 Asia/Bangkok: the sole automatic daily Shorts slot.  It is a starting
     # experiment, not a claim that one universal time is always best.
-    - cron: "15 13 * * *"
+    - cron: "0 13 * * *"
   workflow_dispatch: {}
 
 concurrency:

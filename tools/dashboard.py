@@ -34,6 +34,8 @@ from brain.revenue_brain import RevenueBrain
 from brain.community_campaign import CommunityCampaignRegistry
 from brain.youtube_creator_queue import YouTubeCreatorQueue
 from brain.aion_company import AionCompany
+from brain.social_intelligence import SocialIntelligence
+from brain.admin_operations import AdminOperations
 
 
 DASHBOARD_DIR = ROOT / "dashboard"
@@ -466,6 +468,22 @@ def _operational_snapshot(reels, creator_queue, campaigns):
     ]}
 
 
+def _platform_operations_snapshot(memory, reels):
+    """One factual control panel per public platform, never credentials."""
+    social = SocialIntelligence(memory).snapshot()
+    admin = AdminOperations(ROOT).snapshot()
+    return {
+        "platforms": [
+            {"id": "instagram", "name": "Instagram", "color": "#ff5db1", "purpose": "ภาพใหม่และ Reels ที่เข้าใจเร็ว", "cadence": "ภาพ 19:00 · Reel 18:00", "automation": "สร้างภาพใหม่ → ตรวจ → Instagram + Facebook", "community": "ตรวจคอมเมนต์ทุก 5 นาที", "messages": "รอ Meta Messaging เปิดใช้งาน", "published": reels["platform_counts"].get("instagram", 0)},
+            {"id": "facebook", "name": "Facebook", "color": "#4e8cff", "purpose": "บทสนทนา ชุมชน และเรื่องเล่าที่ชวนคุย", "cadence": "โพสต์สนทนา 21:00 · รับภาพ/รีลจาก Instagram", "automation": "Social Agent เผยแพร่หลัง Claim Safety Gate", "community": "ตรวจคอมเมนต์ทุก 5 นาที · กันตอบซ้ำด้วยความจำ", "messages": "รอ Meta Messaging เปิดใช้งาน", "published": reels["platform_counts"].get("facebook", 0)},
+            {"id": "youtube", "name": "YouTube", "color": "#ff5a63", "purpose": "Shorts เพื่อการค้นพบ และ 16:9 เพื่อการเล่าเรื่องลึก", "cadence": "Shorts อัตโนมัติไม่เกิน 1 ชิ้น/วัน 20:00 · 16:9 วันอาทิตย์เมื่อพร้อม", "automation": "Studio → Video QA → Publishing Agent", "community": "วิเคราะห์ retention และคำถามผู้ชมเมื่อมีข้อมูล", "messages": "ไม่มี DM ใน workflow", "published": reels["platform_counts"].get("youtube", 0)},
+        ],
+        "social_team": social,
+        "admin_team": admin,
+        "rule": "หนึ่งเรื่องสร้างได้หลายเวอร์ชัน แต่คิวเผยแพร่ต่อแพลตฟอร์มมีเพดานและห้ามงานซ้ำ",
+    }
+
+
 def _brain_map(memory, limit=30):
     """Return only explicit, inspectable links between real memory records."""
     categories = (
@@ -774,6 +792,7 @@ def build_snapshot(memory_root=None):
         "revenue": _revenue_snapshot(memory),
         "community_campaigns": community_campaigns,
         "operations": _operational_snapshot(reels, youtube_creator_queue, community_campaigns),
+        "platform_operations": _platform_operations_snapshot(memory, reels),
         "development": _development_snapshot(memory),
         "brain": _brain_map(memory),
         "state_council": _state_council(totals, reels),

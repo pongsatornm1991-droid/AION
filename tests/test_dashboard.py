@@ -1,10 +1,12 @@
 import json
 import tempfile
 import unittest
+from pathlib import Path
 
 from brain.memory import MemoryEngine
 from tools.dashboard import build_snapshot, build_studio_snapshot
 from tools.dashboard import _operational_snapshot
+from brain.admin_operations import AdminOperations
 
 
 class DashboardTests(unittest.TestCase):
@@ -61,6 +63,9 @@ class DashboardTests(unittest.TestCase):
             self.assertIn("any non-empty question", snapshot["autonomy"]["principle"])
             self.assertEqual(1, snapshot["community_campaigns"]["waiting_admin_count"])
             self.assertEqual(3, snapshot["community_campaigns"]["ready_count"])
+            self.assertEqual(3, len(snapshot["platform_operations"]["platforms"]))
+            self.assertEqual("Social Intelligence Team", snapshot["platform_operations"]["social_team"]["name"])
+            self.assertTrue(snapshot["platform_operations"]["admin_team"]["checks"])
 
     def test_a_legacy_string_action_record_never_crashes_the_dashboard(self):
         # Real production bug (found 2026-09-04): tools/dashboard.py's
@@ -118,3 +123,11 @@ class DashboardTests(unittest.TestCase):
         )["signals"]
         creator = next(item for item in signals if item["title"] == "YouTube Creator")
         self.assertEqual("AION เผยแพร่ได้เอง 1 ตอน", creator["value"])
+
+    def test_admin_operations_detects_a_second_scheduled_shorts_publisher(self):
+        with tempfile.TemporaryDirectory() as root:
+            workflow = Path(root) / ".github" / "workflows"
+            workflow.mkdir(parents=True)
+            (workflow / "youtube-shorts.yml").write_text("on:\n  schedule:\n", encoding="utf-8")
+            check = AdminOperations(root).snapshot()["checks"][0]
+            self.assertEqual("attention", check["state"])

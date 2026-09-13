@@ -1,10 +1,8 @@
 name: AION - YouTube Shorts cycle
 
 on:
-  schedule:
-    # One Short daily, 20:00 Bangkok. It only republishes a Reel that has
-    # already cleared AION's existing safety and social publishing cycle.
-    - cron: "0 13 * * *"
+  # Emergency/manual fallback only.  The daily AION Creator Studio queue is
+  # the sole automatic Shorts publisher, preventing two uploads in one night.
   workflow_dispatch: {}
 
 concurrency:
