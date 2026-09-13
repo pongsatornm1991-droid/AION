@@ -36,6 +36,7 @@ from brain.youtube_creator_queue import YouTubeCreatorQueue
 from brain.aion_company import AionCompany
 from brain.social_intelligence import SocialIntelligence
 from brain.admin_operations import AdminOperations
+from brain.audience_accessibility import AudienceAccessibility
 
 
 DASHBOARD_DIR = ROOT / "dashboard"
@@ -472,6 +473,7 @@ def _platform_operations_snapshot(memory, reels):
     """One factual control panel per public platform, never credentials."""
     social = SocialIntelligence(memory).snapshot()
     admin = AdminOperations(ROOT).snapshot()
+    audience = AudienceAccessibility(memory).snapshot()
     return {
         "platforms": [
             {"id": "instagram", "name": "Instagram", "color": "#ff5db1", "purpose": "ภาพใหม่และ Reels ที่เข้าใจเร็ว", "cadence": "ภาพ 19:00 · Reel 18:00", "automation": "สร้างภาพใหม่ → ตรวจ → Instagram + Facebook", "community": "ตรวจคอมเมนต์ทุก 5 นาที", "messages": "รอ Meta Messaging เปิดใช้งาน", "published": reels["platform_counts"].get("instagram", 0)},
@@ -480,6 +482,7 @@ def _platform_operations_snapshot(memory, reels):
         ],
         "social_team": social,
         "admin_team": admin,
+        "audience_team": audience,
         "rule": "หนึ่งเรื่องสร้างได้หลายเวอร์ชัน แต่คิวเผยแพร่ต่อแพลตฟอร์มมีเพดานและห้ามงานซ้ำ",
     }
 

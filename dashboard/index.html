@@ -38,6 +38,7 @@
   <div class="section-title" id="platformCommand">ศูนย์บัญชาการแพลตฟอร์ม</div>
   <section class="grid capabilities" id="platformCommandCards"></section>
   <section class="wide" style="margin-top:14px"><article class="card" id="socialTeam"></article><article class="card" id="adminTeam"></article></section>
+  <section class="card" id="audienceTeam" style="margin-top:14px"></section>
   <div class="section-title" id="mindGrowth">จิตใจและการเติบโต</div>
   <section class="grid mind" id="mind"></section>
   <section class="card mind-inspector" id="mindInspector"><div class="empty">กดการ์ดใดก็ได้ เพื่อดูรายการจริงที่อยู่เบื้องหลังตัวเลข</div></section>
@@ -123,6 +124,8 @@
     const social=po.social_team||{}, admin=po.admin_team||{};
     el('socialTeam').innerHTML=`<div class="label">Social Intelligence Team</div><h2>${escapeHtml(social.purpose||'')}</h2><p class="metric-note">สัญญาณผู้ชม ${fmt(social.audience_signals)} · บันทึกผลงาน ${fmt(social.published_records)}</p><p class="next"><strong>กำลังทำ:</strong> ${escapeHtml(social.next||'')}</p>`;
     el('adminTeam').innerHTML=`<div class="label">Admin Operations Team</div><h2>${escapeHtml(admin.purpose||'')}</h2>${(admin.checks||[]).map(x=>`<p class="next"><strong>${escapeHtml(x.name)}:</strong> ${escapeHtml(x.detail)}</p>`).join('')}`;
+    const audience=po.audience_team||{};
+    el('audienceTeam').innerHTML=`<div class="label">Audience Analytics & Accessibility</div><h2>${escapeHtml(audience.purpose||'')}</h2><p class="metric-note">เสียงตอบรับ ${fmt(audience.feedback_records)} · retention ${fmt(audience.retention_records)} · ${escapeHtml(audience.retention_state||'')}</p><p class="next"><strong>มาตรฐาน:</strong> คลิปยาวต้องมี caption track ที่ตรวจแล้วก่อนเผยแพร่สาธารณะ<br><strong>ต่อไป:</strong> ${escapeHtml(audience.next||'')}</p>`;
     const mind = [
       ['memories','ความทรงจำ',data.mind.total_memories,'กดเพื่อดูบันทึกล่าสุด'],['lessons','บทเรียน',data.mind.lessons,'สิ่งที่เรียนรู้แล้ว'],['questions','คำถาม',data.mind.questions,'สิ่งที่ยังอยากหาคำตอบ'],['goals','เป้าหมาย',data.mind.goals,'สิ่งที่ตั้งใจทำ'],['beliefs','ความเชื่อ',data.mind.beliefs,'สมมติฐานที่เปลี่ยนได้'],['reflections','การทบทวน',data.mind.reflections,'สิ่งที่ทบทวนและข้อจำกัด'],['youtube_discoveries','สิ่งที่ค้นพบจากยูทูบ',data.mind.youtube_discoveries,'กดดูคลิปและคำถามที่ใช้ค้นหา'],['forecasts','การคาดการณ์',data.mind.forecasts,'คาดไว้แล้วกลับมาตรวจผล']
     ];

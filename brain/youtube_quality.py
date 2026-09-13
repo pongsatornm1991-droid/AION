@@ -7,6 +7,8 @@ it does not attempt to judge truth from prose alone.
 
 import re
 
+from brain.audience_accessibility import AudienceAccessibilityGate
+
 
 class YouTubeQualityGate:
     """Require an explicit viewer benefit and avoid duplicate uploads."""
@@ -41,9 +43,11 @@ class YouTubeQualityGate:
         # Unknown/realistic sources are never automatically declared safe:
         # retain an explicit review signal in the upload record.
         disclosure_review = payload.get("visual_style") != "illustrated-aion-storyboard-v4"
+        accessibility = AudienceAccessibilityGate().assess(payload)
         return {
             "eligible": not reasons,
             "reasons": reasons,
             "viewer_value": viewer_value,
             "ai_disclosure_review": disclosure_review,
+            "audience_accessibility": accessibility,
         }
