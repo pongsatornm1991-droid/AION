@@ -27,4 +27,11 @@ jobs:
           git config user.name aion-bot
           git config user.email aion-bot@users.noreply.github.com
           git add assets/content-library/aion-stories/ content/creator_series/
-          if ! git diff --cached --quiet; then git commit -m "AION: produce subject-first scenes"; git push; fi
+          if ! git diff --cached --quiet; then
+            git commit -m "AION: produce subject-first scenes"
+            # Other autonomous workflows may update main while images render.
+            # Rebase the generated assets onto that newer work before pushing
+            # so a successful image run is not reported as failed at its last step.
+            git pull --rebase origin main
+            git push
+          fi
