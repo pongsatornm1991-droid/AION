@@ -3,6 +3,8 @@
 import hashlib
 import re
 
+from brain.identity_disclosure import append_identity_disclosure
+
 
 class ContentRouter:
     """A deterministic router: same truth, different platform job."""
@@ -23,7 +25,7 @@ class ContentRouter:
         content_id = hashlib.sha256(f"{story}\n{viewer_value}".encode("utf-8")).hexdigest()[:16]
         return {
             "content_id": content_id,
-            "instagram": story,
-            "facebook": f"{facebook_context}\n\n{story}",
+            "instagram": append_identity_disclosure(story, "instagram"),
+            "facebook": append_identity_disclosure(f"{facebook_context}\n\n{story}", "facebook"),
             "youtube": f"{story}\n\n{youtube_label}{viewer_value}",
         }

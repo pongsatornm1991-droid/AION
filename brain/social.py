@@ -504,6 +504,12 @@ class SocialContentGenerator:
                 "platform": platform,
             }
 
+        # The user requires that every Facebook/Instagram post plainly says
+        # who is speaking.  This is caption-only: visual pipelines keep art
+        # text-free and video storytelling remains the focus.
+        from brain.identity_disclosure import append_identity_disclosure
+        draft = append_identity_disclosure(draft, platform)
+
         return {
             "safe": True,
             "reason": None,
@@ -535,10 +541,11 @@ class SocialAutoCycle:
 
     APPROVER = "auto-safety-gate"
 
-    def __init__(self, generator, lifecycle, tool_name):
+    def __init__(self, generator, lifecycle, tool_name, platform="facebook"):
         self.generator = generator
         self.lifecycle = lifecycle
         self.tool_name = tool_name
+        self.platform = platform
 
     def run_once(self, seed=None, rng=None):
         """Attempt exactly one post. Returns a report dict describing
@@ -547,6 +554,16 @@ class SocialAutoCycle:
         later lifecycle step, or actually posted. Never auto-retries
         within the same call -- a blocked draft's lesson is what the
         *next* call's prompt learns from."""
+
+        from brain.publication_cadence import PublicationCadence
+        if not PublicationCadence(self.generator.memory).has_slot(self.platform):
+            return {
+                "posted": False,
+                "stage": "cadence-hold",
+                "seed": None,
+                "draft": None,
+                "reason": "AION already published one feed item on this platform today.",
+            }
 
         try:
             draft_report = self.generator.draft_post(seed=seed, rng=rng)

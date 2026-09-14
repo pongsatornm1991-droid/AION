@@ -1,7 +1,10 @@
 name: AION - improvement approval check
 on:
   schedule:
-    - cron: "*/5 * * * *"
+    # Public publishing is already autonomous.  This only checks bounded
+    # internal experiments, so running every five minutes merely blocks the
+    # shared memory lane without improving audience-facing work.
+    - cron: "53 * * * *"
   workflow_dispatch: {}
 concurrency:
   group: aion-memory-data

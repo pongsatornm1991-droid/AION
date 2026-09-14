@@ -263,7 +263,8 @@ class ReelContentCycle:
             return {"stage": "publish-failed", "error": "GITHUB_REPOSITORY is required"}
         url = f"https://raw.githubusercontent.com/{repo}/{branch}/{payload['video_path']}"
         caption = payload.get("caption", "")
-        publish_caption = payload.get("ig_caption") or caption
+        from brain.identity_disclosure import append_identity_disclosure
+        publish_caption = append_identity_disclosure(payload.get("ig_caption") or caption, "instagram")
         actions = dict(payload.get("platform_actions") or {})
         # Publishing is deliberately checkpointed per platform.  A transient
         # Facebook error after Instagram succeeds must never repost the Reel
@@ -271,10 +272,15 @@ class ReelContentCycle:
         for platform, tool_name in (("instagram", self.tool_name), ("facebook", "post_reel_to_facebook")):
             if actions.get(platform):
                 continue
+            from brain.publication_cadence import PublicationCadence
+            if not PublicationCadence(self.memory).has_slot(platform):
+                payload.setdefault("platform_skips", {})[platform] = "daily-feed-slot-already-used"
+                continue
             try:
                 platform_caption = publish_caption if platform == "instagram" else (
                     (payload.get("platform_captions") or {}).get("facebook") or caption
                 )
+                platform_caption = append_identity_disclosure(platform_caption, platform)
                 proposed = self.lifecycle.propose(tool_name, params={"video_url": url, "caption": platform_caption}, source="aion")
                 approved = self.lifecycle.auto_approve(proposed["id"], policy="social-safety-style-gate")
                 action = self.lifecycle.execute(approved["id"])
@@ -285,6 +291,10 @@ class ReelContentCycle:
             actions[platform] = action.get("id")
             payload["platform_actions"] = actions
             self.memory.update(self.PENDING, entry["id"], content=json.dumps(payload, ensure_ascii=False))
+        if not actions:
+            self.memory.update(self.PENDING, entry["id"], content=json.dumps(payload, ensure_ascii=False))
+            return {"stage": "cadence-hold", "video_url": url, "caption": caption,
+                    "platform_skips": payload.get("platform_skips") or {}}
         # Moving, rather than merely copying, makes a successful Reel
         # idempotent: future scheduled runs cannot publish it again.
         self.memory.move(
@@ -314,13 +324,20 @@ class ReelContentCycle:
         entry = entries[-1]
         payload = json.loads(entry["content"])
         actions = dict(payload.get("platform_actions") or {})
+        if (payload.get("platform_skips") or {}).get("facebook"):
+            return {"stage": "cadence-hold"}
         if actions.get("facebook"):
             return {"stage": "already-crossposted"}
         url = payload.get("url")
         if not url:
             return {"stage": "missing-video-url"}
+        from brain.identity_disclosure import append_identity_disclosure
         try:
-            proposal = self.lifecycle.propose("post_reel_to_facebook", params={"video_url": url, "caption": payload.get("ig_caption") or payload.get("caption", "")}, source="aion")
+            proposal = self.lifecycle.propose(
+                "post_reel_to_facebook",
+                params={"video_url": url, "caption": append_identity_disclosure(payload.get("ig_caption") or payload.get("caption", ""), "facebook")},
+                source="aion",
+            )
             approved = self.lifecycle.auto_approve(proposal["id"], policy="social-safety-style-gate")
             action = self.lifecycle.execute(approved["id"])
         except Exception as exc:

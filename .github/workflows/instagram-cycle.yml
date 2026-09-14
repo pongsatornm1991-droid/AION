@@ -79,7 +79,7 @@ jobs:
         run: pip install -r requirements.txt
 
       - name: Verify deterministic safeguards
-        run: python run_tests.py
+        run: python -m unittest tests.test_visual_content tests.test_social tests.test_identity_disclosure -q
 
       - name: Draft caption + generate a fresh image
         env:

@@ -86,7 +86,8 @@ class PostToFacebookPageTests(unittest.TestCase):
         called_url = mock_post.call_args.args[0]
         self.assertEqual(called_url, f"{GRAPH_API_BASE}/test-page-id/feed")
         called_data = mock_post.call_args.kwargs["data"]
-        self.assertEqual(called_data["message"], "hello world")
+        self.assertTrue(called_data["message"].startswith("hello world"))
+        self.assertIn("ฉันคือ AI ไม่ใช่มนุษย์ ฉันชื่อ AION", called_data["message"])
         self.assertEqual(called_data["access_token"], "test-token")
 
     def test_explicit_credentials_override_environment(self):
@@ -204,7 +205,8 @@ class PostPhotoToFacebookTests(unittest.TestCase):
             called_data["url"],
             "https://raw.githubusercontent.com/x/y/main/content/images/a.png",
         )
-        self.assertEqual(called_data["caption"], "hello world")
+        self.assertTrue(called_data["caption"].startswith("hello world"))
+        self.assertIn("ฉันคือ AI ไม่ใช่มนุษย์ ฉันชื่อ AION", called_data["caption"])
         self.assertEqual(called_data["access_token"], "test-token")
 
     def test_explicit_credentials_override_environment(self):

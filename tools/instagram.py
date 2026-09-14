@@ -313,6 +313,9 @@ def publish_photo(image_url, caption="", account_id=None, access_token=None):
     if not image_url:
         raise ValueError("image_url cannot be empty.")
 
+    from brain.identity_disclosure import append_identity_disclosure
+    caption = append_identity_disclosure(caption, "instagram")
+
     container = create_media_container(
         image_url=image_url,
         caption=caption,
@@ -346,6 +349,9 @@ def publish_video(
 
     if not video_url:
         raise ValueError("video_url cannot be empty.")
+
+    from brain.identity_disclosure import append_identity_disclosure
+    caption = append_identity_disclosure(caption, "instagram")
 
     container = create_media_container(
         video_url=video_url,

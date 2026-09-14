@@ -86,6 +86,11 @@ class VisualContentCycle:
           add), report["caption"] is the text drawn on it.
         """
 
+        from brain.publication_cadence import PublicationCadence
+        if not PublicationCadence(self.memory).has_slot("instagram"):
+            return {"stage": "cadence-hold", "seed": None, "caption": None,
+                    "image_path": None, "reason": "Instagram already has one AION feed item today."}
+
         try:
             try:
                 draft_report = self.social_generator.draft_post(
@@ -264,6 +269,7 @@ class VisualContentCycle:
           already worked or re-rendering a brand new image.
         """
 
+        from brain.publication_cadence import PublicationCadence
         pending = self._oldest_pending()
 
         if pending is None:
@@ -314,7 +320,8 @@ class VisualContentCycle:
         # Falls back to the plain caption for any pending record saved
         # before ig_caption existed -- never crashes on an older
         # record, just publishes without the hashtag block that time.
-        publish_caption = payload.get("ig_caption") or caption
+        from brain.identity_disclosure import append_identity_disclosure
+        publish_caption = append_identity_disclosure(payload.get("ig_caption") or caption, "instagram")
         actions = dict(payload.get("platform_actions") or {})
 
         try:
@@ -332,12 +339,16 @@ class VisualContentCycle:
             if actions.get(platform):
                 continue
 
+            if not PublicationCadence(self.memory).has_slot(platform):
+                payload.setdefault("platform_skips", {})[platform] = "daily-feed-slot-already-used"
+                continue
+
             tool_name = tool_name or self.tool_name
 
             try:
                 proposed = self.lifecycle.propose(
                     tool_name,
-                    params={"image_url": image_url, "caption": publish_caption},
+                params={"image_url": image_url, "caption": append_identity_disclosure(publish_caption, platform)},
                     source="aion",
                 )
                 approved = self.lifecycle.auto_approve(
@@ -376,6 +387,14 @@ class VisualContentCycle:
                 PENDING_CATEGORY, pending["id"],
                 content=json.dumps(payload, ensure_ascii=False),
             )
+
+        # If every platform had already used its daily feed slot, retain this
+        # fresh work for a later slot rather than falsely recording it as
+        # published with no external action.
+        if not actions:
+            self.memory.update(PENDING_CATEGORY, pending["id"], content=json.dumps(payload, ensure_ascii=False))
+            return {"stage": "cadence-hold", "caption": caption, "image_path": image_path,
+                    "platform_skips": payload.get("platform_skips") or {}}
 
         self.memory.move(
             PENDING_CATEGORY, PUBLISHED_CATEGORY, pending["id"],

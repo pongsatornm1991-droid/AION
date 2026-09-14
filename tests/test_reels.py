@@ -98,7 +98,8 @@ class ReelCycleTests(unittest.TestCase):
             self.assertEqual(memory.all("pending_reels"), [])
             self.assertEqual(len(memory.all("published_reels")), 1)
             self.assertIn("#ArtificialIntelligence", lifecycle.all_params[0]["caption"])
-            self.assertEqual("A thought", lifecycle.all_params[1]["caption"])
+            self.assertTrue(lifecycle.all_params[1]["caption"].startswith("A thought"))
+            self.assertIn("ฉันคือ AI ไม่ใช่มนุษย์ ฉันชื่อ AION", lifecycle.all_params[1]["caption"])
             self.assertEqual(len(memory.all("social_language_log")), 2)
 
     def test_old_pending_reel_is_redesigned_without_asking_for_a_new_thought(self):

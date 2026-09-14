@@ -20,8 +20,9 @@ name: AION - reflection cycle
 # this public repo).
 
 on:
-  schedule:
-    - cron: "5 * * * *"
+  # Reflection is run first inside learning-cycle.yml so both steps use one
+  # checkout and one serialized memory transaction.  Keep manual dispatch
+  # for diagnosis without maintaining a second hourly queue entry.
   workflow_dispatch: {}
 
 # All AION workflows share one private, git-backed memory_data repo

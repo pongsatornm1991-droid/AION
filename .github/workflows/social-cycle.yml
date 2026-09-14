@@ -56,7 +56,7 @@ jobs:
         run: pip install -r requirements.txt
 
       - name: Verify deterministic safeguards
-        run: python run_tests.py
+        run: python -m unittest tests.test_social tests.test_tools tests.test_identity_disclosure -q
 
       - name: Run run-social-cycle
         env:

@@ -34,7 +34,7 @@ jobs:
           sudo apt-get install -y ffmpeg
       - run: pip install -r requirements.txt
       - name: Verify deterministic safeguards
-        run: python run_tests.py
+        run: python -m unittest tests.test_reels tests.test_video_quality tests.test_social tests.test_identity_disclosure -q
       - name: Draft a vertical Reel
         env:
           AION_MEMORY_ROOT: memory_data

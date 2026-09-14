@@ -19,6 +19,7 @@ is only needed when this function actually runs.
 import os
 
 from dotenv import load_dotenv
+from brain.identity_disclosure import append_identity_disclosure
 
 GRAPH_API_VERSION = "v21.0"
 GRAPH_API_BASE = f"https://graph.facebook.com/{GRAPH_API_VERSION}"
@@ -45,6 +46,7 @@ def publish_reel_to_facebook(video_url, caption="", access_token=None, page_id=N
     platform on a later scheduled run.
     """
     video_url = str(video_url or "").strip()
+    caption = append_identity_disclosure(caption, "facebook")
     if not video_url:
         raise ValueError("video_url cannot be empty.")
     access_token, page_id = _resolve_page_credentials(access_token, page_id)
@@ -124,10 +126,12 @@ def post_to_facebook_page(message, access_token=None, page_id=None):
     not silently retried or swallowed.
     """
 
-    message = str(message).strip()
+    message = str(message or "").strip()
 
     if not message:
         raise ValueError("message cannot be empty.")
+
+    message = append_identity_disclosure(message, "facebook")
 
     load_dotenv()
 
@@ -194,6 +198,7 @@ def post_photo_to_facebook(image_url, caption="", access_token=None, page_id=Non
     """
 
     image_url = str(image_url or "").strip()
+    caption = append_identity_disclosure(caption, "facebook")
 
     if not image_url:
         raise ValueError("image_url cannot be empty.")

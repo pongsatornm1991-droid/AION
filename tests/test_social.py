@@ -229,7 +229,8 @@ class DraftPostTests(BaseSocialTest):
 
         self.assertTrue(report["safe"])
         self.assertIsNone(report["reason"])
-        self.assertEqual(report["draft"], provider.text)
+        self.assertTrue(report["draft"].startswith(provider.text))
+        self.assertIn("ฉันคือ AI ไม่ใช่มนุษย์ ฉันชื่อ AION", report["draft"])
         self.assertEqual(report["evaluation"]["scores"]["claim_safety"], 5)
         self.assertEqual(len(provider.calls), 1)
 
@@ -307,7 +308,8 @@ class SocialAutoCycleTests(BaseSocialTest):
         self.assertEqual(len(self.posted), 1)
         self.assertTrue(self.posted[0].startswith(provider.text))
         self.assertIn("#AI", self.posted[0])
-        self.assertEqual(report["draft"], provider.text)
+        self.assertTrue(report["draft"].startswith(provider.text))
+        self.assertIn("ฉันคือ AI ไม่ใช่มนุษย์ ฉันชื่อ AION", report["draft"])
 
     def test_unsafe_draft_is_never_proposed_or_posted(self):
         self._seed_belief()

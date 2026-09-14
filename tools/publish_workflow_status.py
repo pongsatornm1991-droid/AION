@@ -65,7 +65,7 @@ CATEGORIES = [
     ("growth", "การเติบโต", {"growth-pulse.yml", "evolution-cycle.yml", "experiment-runner.yml"}),
     ("infra", "โครงสร้างพื้นฐาน", {
         "tests.yml", "automation-health.yml", "obsidian-brain.yml",
-        "publish-public-summary.yml", "publish-workflow-status.yml", "asset-hygiene.yml",
+        "publish-public-summary.yml", "publish-workflow-status.yml", "publish-delivery-status.yml", "asset-hygiene.yml",
         "system-reliability.yml", "cyber-guard.yml",
     }),
 ]
@@ -102,12 +102,15 @@ def pill_for(run):
 
 
 def fetch_runs(repo, token):
-    """Two pages of 100 is the same window the old client-side fetch
-    used; a failure on either page is fatal (caller decides what to
-    do with a stale/missing output rather than silently publishing a
-    half-empty status)."""
+    """Read enough history to include low-frequency publishing workflows.
+
+    Frequent five-minute maintenance runs can push daily publishing work out
+    of a two-page window, which makes the dashboard falsely report a live
+    department as unknown.  Ten pages remains well within the Actions API
+    allowance and preserves a useful window for both types of workflow.
+    """
     runs = []
-    for page in (1, 2):
+    for page in range(1, 11):
         url = (
             f"https://api.github.com/repos/{repo}/actions/runs"
             f"?per_page=100&page={page}"
