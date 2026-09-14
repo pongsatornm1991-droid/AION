@@ -595,6 +595,18 @@ def build_studio_snapshot(memory_root=None):
     )
     required_scenes = len((active_episode or {}).get("scenes") or [])
     completed_scenes = sum(1 for scene in (active_episode or {}).get("scenes") or [] if scene.get("image"))
+    scene_gallery = [
+        {
+            "number": scene.get("n"),
+            "beat": scene.get("beat") or "scene",
+            "visual": scene.get("visual") or "",
+            # Only storyboard-declared paths are exposed; the request handler
+            # also confines files to the generated scene directory.
+            "url": "/" + str(scene["image"]).lstrip("/").replace("\\", "/"),
+        }
+        for scene in ((active_episode or {}).get("scenes") or [])
+        if scene.get("image")
+    ]
     local_image_provider_ready = (
         os.getenv("IMAGE_PROVIDER") == "openai"
         and bool(os.getenv("OPENAI_IMAGE_API_KEY") or os.getenv("OPENAI_API_KEY"))
@@ -647,11 +659,13 @@ def build_studio_snapshot(memory_root=None):
             {"id": "story", "name": "ห้องเรื่องเล่า", "purpose": "เปลี่ยนคำถามให้เป็น hook, บทพูด และ storyboard ที่ AION อยู่ในทุกฉาก", "count": len(episodes), "unit": "ตอนที่ออกแบบแล้ว", "state": "active"},
             {"id": "costume", "name": "ห้องคอสตูม", "purpose": "จัด costume brief ตามยุค สภาพอากาศ และบทบาทของ AION ก่อนสร้างภาพ", "count": len(episodes), "unit": "ตอนที่มีแนวทางชุด", "state": "active"},
             {"id": "visual", "name": "ห้องภาพและฉาก", "purpose": "สร้างภาพใหม่เป็นรายฉาก ไม่ใช้ภาพเดิมวนซ้ำเป็นทางลัด", "count": len(generated_scenes), "unit": "ภาพฉากที่ผลิตใหม่", "state": scene_production["status"]},
+            {"id": "finance", "name": "ห้องการเงินและเครดิต", "purpose": "สรุปหน่วยงานผลิต ต้นทุนที่ผู้ให้บริการยืนยัน และสถานะยอดคงเหลือแบบอ่านอย่างเดียว", "count": len(generated_scenes), "unit": "หน่วยภาพที่ติดตาม", "state": "active"},
             {"id": "audio", "name": "ห้องเสียง", "purpose": "จัดเสียงบรรยายและเสียงประกอบหลังเรื่องและภาพผ่านการตรวจแล้ว", "count": len(audio), "unit": "ไฟล์เสียง", "state": "ready"},
             {"id": "review", "name": "ห้องตรวจและส่งออก", "purpose": "ตรวจหลักฐาน คุณค่าต่อผู้ชม และความพร้อมก่อนส่งเข้าคิวเผยแพร่", "count": len(video), "unit": "วิดีโอที่สร้างแล้ว", "state": "waiting" if any(item.get("publication_status") == "authorized-for-aion-publish" or item.get("status") == "upload-ready" for item in queue) else "active"},
         ],
         "episodes": episodes,
         "scene_production": scene_production,
+        "scene_gallery": scene_gallery,
         "queue": queue,
         "references": snapshot.get("creator_references", {}),
         # Keep the research-to-production chain visible inside Studio.  The
@@ -689,6 +703,11 @@ def build_evolution_lab_snapshot(memory_root=None):
     configured = memory_root or os.getenv("AION_DASHBOARD_MEMORY_ROOT") or os.getenv("AION_MEMORY_ROOT") or (str(ROOT / "aion-memory-data-sync") if (ROOT / "aion-memory-data-sync" / ".git").is_dir() else "memory")
     lab = EvolutionLab(MemoryEngine(configured)).snapshot()
     return {"title": "AION Evolution & Science Lab", "purpose": lab["purpose"] + " · " + lab["science"]["purpose"], "lab": lab, "boundary": lab["boundary"]}
+
+
+def build_finance_snapshot(memory_root=None):
+    from brain.finance_observatory import FinanceObservatory
+    return FinanceObservatory(ROOT).snapshot()
 
 
 def build_snapshot(memory_root=None):
@@ -844,10 +863,19 @@ class DashboardHandler(BaseHTTPRequestHandler):
         if path == "/api/evolution-lab":
             self._send(json.dumps(build_evolution_lab_snapshot(), ensure_ascii=False), "application/json; charset=utf-8")
             return
+        if path == "/api/finance":
+            self._send(json.dumps(build_finance_snapshot(), ensure_ascii=False), "application/json; charset=utf-8")
+            return
         if path in ("/studio", "/studio/"):
             self._send((DASHBOARD_DIR / "studio.html").read_text(encoding="utf-8"), "text/html; charset=utf-8")
             return
-        if path in ("/learning", "/cyber", "/lab"):
+        if path == "/studio-gallery.js":
+            self._send((DASHBOARD_DIR / "studio-gallery.js").read_text(encoding="utf-8"), "application/javascript; charset=utf-8")
+            return
+        if path in ("/learning", "/cyber", "/lab", "/finance"):
+            if path == "/finance":
+                self._send((DASHBOARD_DIR / "finance.html").read_text(encoding="utf-8"), "text/html; charset=utf-8")
+                return
             self._send((DASHBOARD_DIR / "workspace.html").read_text(encoding="utf-8"), "text/html; charset=utf-8")
             return
         if path in ("/", "/index.html"):
@@ -858,6 +886,12 @@ class DashboardHandler(BaseHTTPRequestHandler):
             reels = (ROOT / "content" / "reels").resolve()
             if target.parent == reels and target.is_file() and target.suffix.lower() in (".png", ".mp4"):
                 self._send(target.read_bytes(), "image/png" if target.suffix.lower() == ".png" else "video/mp4")
+                return
+        if path.startswith("/assets/content-library/aion-stories/"):
+            target = (ROOT / path.lstrip("/")).resolve()
+            generated_root = (ROOT / "assets" / "content-library" / "aion-stories").resolve()
+            if generated_root in target.parents and target.is_file() and target.suffix.lower() == ".png":
+                self._send(target.read_bytes(), "image/png")
                 return
         self._send("Not found", "text/plain; charset=utf-8", HTTPStatus.NOT_FOUND)
 
