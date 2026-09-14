@@ -200,7 +200,11 @@ class YouTubeCreatorQueue:
                 uploader = upload_short
             result = uploader(str(path), str(payload.get("title") or "AION Wonders"), description)
         except Exception as exc:
-            return {"stage": "upload-failed", "episode_id": payload.get("episode_id"), "error": str(exc)}
+            # Some provider exceptions have an empty string representation.
+            # Preserve their type so the Dashboard and retry log never show a
+            # blank, un-actionable failure.
+            error = str(exc).strip() or type(exc).__name__
+            return {"stage": "upload-failed", "episode_id": payload.get("episode_id"), "error": error}
         updated = {
             **payload,
             "youtube": {**result, "quality": quality},

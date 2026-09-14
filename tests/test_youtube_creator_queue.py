@@ -95,6 +95,19 @@ class YouTubeCreatorQueueTests(unittest.TestCase):
             self.assertFalse(gate["eligible"])
             self.assertIn("video-qa:missing-audio-stream", gate["reasons"])
 
+    def test_records_an_actionable_error_when_uploader_exception_has_no_message(self):
+        with tempfile.TemporaryDirectory() as root:
+            self._episode(root)
+            (Path(root) / "content" / "reels" / "episode.mp4").write_bytes(b"video")
+            policy = Path(root) / "config"; policy.mkdir()
+            (policy / "aion_authority.json").write_text('{"public_publishing":{"enabled":true}}', encoding="utf-8")
+            queue = YouTubeCreatorQueue(MemoryEngine(Path(root) / "memory"), root)
+            queue.prepare_once()
+            with patch("brain.video_quality.VideoQualityGate.assess", return_value={"eligible": True, "reasons": []}):
+                result = queue.publish_once(lambda *_: (_ for _ in ()).throw(RuntimeError()))
+            self.assertEqual("upload-failed", result["stage"])
+            self.assertEqual("RuntimeError", result["error"])
+
     def test_audits_published_episode_without_uploading_again(self):
         with tempfile.TemporaryDirectory() as root:
             self._episode(root)
