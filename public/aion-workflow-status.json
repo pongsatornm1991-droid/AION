@@ -1,10 +1,10 @@
 {
-  "generated_at": "2026-09-14T19:17:58.476989+00:00",
+  "generated_at": "2026-09-14T19:28:25.258522+00:00",
   "tiles": {
     "total": 41,
-    "ok": 35,
+    "ok": 34,
     "attn": 4,
-    "running": 1
+    "running": 3
   },
   "groups": [
     {
@@ -56,8 +56,8 @@
           "file": "assemble-creator-episode.yml",
           "status_class": "success",
           "status_label": "สำเร็จ",
-          "html_url": "https://github.com/pongsatornm1991-droid/AION/actions/runs/34853659029",
-          "created_at": "2026-09-14T14:08:28Z"
+          "html_url": "https://github.com/pongsatornm1991-droid/AION/actions/runs/34886822623",
+          "created_at": "2026-09-14T19:25:42Z"
         },
         {
           "name": "AION - social post cycle",
@@ -198,10 +198,10 @@
         {
           "name": "AION - Automation Health Monitor",
           "file": "automation-health.yml",
-          "status_class": "success",
-          "status_label": "ไม่มีเหตุให้ดำเนินการ",
-          "html_url": "https://github.com/pongsatornm1991-droid/AION/actions/runs/34885756348",
-          "created_at": "2026-09-14T19:15:12Z"
+          "status_class": "running",
+          "status_label": "กำลังรัน",
+          "html_url": "https://github.com/pongsatornm1991-droid/AION/actions/runs/34887058370",
+          "created_at": "2026-09-14T19:28:03Z"
         },
         {
           "name": "AION - Cyber Guard defensive audit",
@@ -222,10 +222,10 @@
         {
           "name": "AION - Publish public brain summary",
           "file": "publish-public-summary.yml",
-          "status_class": "success",
-          "status_label": "สำเร็จ",
-          "html_url": "https://github.com/pongsatornm1991-droid/AION/actions/runs/34854016962",
-          "created_at": "2026-09-14T14:11:43Z"
+          "status_class": "running",
+          "status_label": "กำลังรัน",
+          "html_url": "https://github.com/pongsatornm1991-droid/AION/actions/runs/34886976267",
+          "created_at": "2026-09-14T19:27:15Z"
         },
         {
           "name": "AION - bounded self repair",
@@ -248,8 +248,8 @@
           "file": "publish-workflow-status.yml",
           "status_class": "running",
           "status_label": "กำลังรัน",
-          "html_url": "https://github.com/pongsatornm1991-droid/AION/actions/runs/34885997396",
-          "created_at": "2026-09-14T19:17:33Z"
+          "html_url": "https://github.com/pongsatornm1991-droid/AION/actions/runs/34887058539",
+          "created_at": "2026-09-14T19:28:03Z"
         },
         {
           "name": "AION - recoverable media housekeeping",
