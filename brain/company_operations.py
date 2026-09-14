@@ -32,7 +32,10 @@ class CompanyOperations:
         ("social-intelligence", ("brain/social_intelligence.py", "brain/content_router.py"),
          (".github/workflows/growth-pulse.yml", ".github/workflows/content-experiment-evaluator.yml")),
         ("admin-operations", ("brain/admin_operations.py", "brain/company_work_registry.py"),
-         (".github/workflows/admin-operations.yml", ".github/workflows/publish-workflow-status.yml")),
+         # The health publisher observes this department; including it here
+         # would make the dashboard report this department as "running" while
+         # the publisher is merely writing its own read-only snapshot.
+         (".github/workflows/admin-operations.yml",)),
         ("memory", ("brain/memory.py", "brain/asset_hygiene.py"),
          (".github/workflows/asset-hygiene.yml", ".github/workflows/obsidian-brain.yml")),
         ("engineering", ("brain/system_reliability.py", "brain/company_quality_audit.py"),
