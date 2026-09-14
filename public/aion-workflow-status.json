@@ -1,10 +1,10 @@
 {
-  "generated_at": "2026-09-14T06:06:26.289575+00:00",
+  "generated_at": "2026-09-14T06:25:37.918504+00:00",
   "tiles": {
-    "total": 36,
-    "ok": 31,
-    "attn": 2,
-    "running": 1
+    "total": 35,
+    "ok": 29,
+    "attn": 1,
+    "running": 3
   },
   "groups": [
     {
@@ -38,10 +38,10 @@
         {
           "name": "AION - assemble illustrated Creator episode",
           "file": "assemble-creator-episode.yml",
-          "status_class": "success",
-          "status_label": "สำเร็จ",
-          "html_url": "https://github.com/pongsatornm1991-droid/AION/actions/runs/34795142545",
-          "created_at": "2026-09-14T01:12:06Z"
+          "status_class": "running",
+          "status_label": "กำลังรัน",
+          "html_url": "https://github.com/pongsatornm1991-droid/AION/actions/runs/34813400052",
+          "created_at": "2026-09-14T06:25:16Z"
         },
         {
           "name": "AION - social post cycle",
@@ -92,10 +92,10 @@
         {
           "name": "AION - external learning cycle",
           "file": "learning-cycle.yml",
-          "status_class": "success",
-          "status_label": "สำเร็จ",
-          "html_url": "https://github.com/pongsatornm1991-droid/AION/actions/runs/34795111546",
-          "created_at": "2026-09-14T01:11:31Z"
+          "status_class": "running",
+          "status_label": "กำลังรัน",
+          "html_url": "https://github.com/pongsatornm1991-droid/AION/actions/runs/34813310557",
+          "created_at": "2026-09-14T06:24:04Z"
         },
         {
           "name": "AION - reflection cycle",
@@ -190,10 +190,10 @@
         {
           "name": "AION - Publish public brain summary",
           "file": "publish-public-summary.yml",
-          "status_class": "success",
-          "status_label": "สำเร็จ",
-          "html_url": "https://github.com/pongsatornm1991-droid/AION/actions/runs/34795152378",
-          "created_at": "2026-09-14T01:12:16Z"
+          "status_class": "running",
+          "status_label": "กำลังรัน",
+          "html_url": "https://github.com/pongsatornm1991-droid/AION/actions/runs/34813355206",
+          "created_at": "2026-09-14T06:24:40Z"
         },
         {
           "name": "AION - deterministic tests",
@@ -206,18 +206,10 @@
         {
           "name": "AION - publish workflow health",
           "file": "publish-workflow-status.yml",
-          "status_class": "running",
-          "status_label": "กำลังรัน",
+          "status_class": "success",
+          "status_label": "สำเร็จ",
           "html_url": "https://github.com/pongsatornm1991-droid/AION/actions/runs/34811993189",
           "created_at": "2026-09-14T06:05:22Z"
-        },
-        {
-          "name": "AION - recoverable media housekeeping",
-          "file": "asset-hygiene.yml",
-          "status_class": "failure",
-          "status_label": "ล้มเหลว",
-          "html_url": "https://github.com/pongsatornm1991-droid/AION/actions/runs/34747201471",
-          "created_at": "2026-09-13T08:14:46Z"
         },
         {
           "name": "AION - system reliability",
