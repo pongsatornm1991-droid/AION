@@ -38,6 +38,7 @@ from brain.aion_company import AionCompany
 from brain.social_intelligence import SocialIntelligence
 from brain.admin_operations import AdminOperations
 from brain.audience_accessibility import AudienceAccessibility
+from brain.operations_control import OperationsControlTower
 
 
 DASHBOARD_DIR = ROOT / "dashboard"
@@ -451,11 +452,11 @@ def _community_campaign_snapshot():
     return CommunityCampaignRegistry().snapshot()
 
 
-def _operational_snapshot(reels, creator_queue, campaigns):
+def _operational_snapshot(reels, creator_queue, campaigns, control=None):
     """Give the dashboard an at-a-glance, colour-ready activity summary."""
     ready_video = next((item for item in creator_queue if item.get("publication_status") == "authorized-for-aion-publish"), None)
     ready_video = ready_video or next((item for item in creator_queue if item.get("status") == "upload-ready"), None)
-    return {"signals": [
+    signals = [
         {"state": "done" if reels.get("published") else "waiting", "title": "ผลงานที่เผยแพร่แล้ว",
          "value": f"{reels.get('published', 0)} ชิ้น", "detail": "บันทึกการเผยแพร่จากช่องทางจริง"},
         {"state": "active" if reels.get("pending") else "done", "title": "คิวคอนเทนต์",
@@ -467,7 +468,16 @@ def _operational_snapshot(reels, creator_queue, campaigns):
         {"state": "waiting" if campaigns.get("waiting_admin_count") else "active", "title": "ชุมชน Facebook",
          "value": f"รอผู้ดูแล {campaigns.get('waiting_admin_count', 0)}",
          "detail": "ยังไม่ส่งโพสต์ซ้ำ" if campaigns.get("waiting_admin_count") else "พร้อมเลือกงานที่ให้คุณค่า"},
-    ]}
+    ]
+    if control:
+        waiting = len(control.get("blockers") or [])
+        signals.append({
+            "state": "alert" if waiting else "done",
+            "title": "ศูนย์ควบคุมงาน",
+            "value": f"ติดตาม {waiting} จุด" if waiting else "สายงานปกติ",
+            "detail": "กดศูนย์ปฏิบัติการเพื่อดูคิว เหตุผล และวิธีกู้คืน" if waiting else "คิว คุณภาพ และหลักฐานเผยแพร่ครบตามข้อมูลล่าสุด",
+        })
+    return {"signals": signals}
 
 
 def _platform_operations_snapshot(memory, reels):
@@ -714,6 +724,8 @@ def build_operations_center_snapshot(memory_root=None):
     """One accountable view of the company handoffs, not a second Studio."""
     from brain.company_quality_audit import CompanyQualityAudit
     from brain.company_work_registry import CompanyWorkRegistry
+    configured = memory_root or os.getenv("AION_DASHBOARD_MEMORY_ROOT") or os.getenv("AION_MEMORY_ROOT") or (str(ROOT / "aion-memory-data-sync") if (ROOT / "aion-memory-data-sync" / ".git").is_dir() else "memory")
+    control = OperationsControlTower(MemoryEngine(configured), ROOT).snapshot()
     registry = CompanyWorkRegistry(ROOT).snapshot()
     quality = CompanyQualityAudit(ROOT).snapshot()
     studio = build_studio_snapshot(memory_root).get("scene_production", {})
@@ -730,6 +742,7 @@ def build_operations_center_snapshot(memory_root=None):
         "departments": departments,
         "quality": quality,
         "studio": studio,
+        "control": control,
         "boundary": "ห้องนี้สังเกตและรายงานการส่งต่องานเท่านั้น ไม่เผยแพร่แทน Studio ไม่แก้สิทธิ์บัญชี และไม่แตะเงินหรือข้อมูลรับรอง",
     }
 
@@ -788,6 +801,7 @@ def build_snapshot(memory_root=None):
     )
     autonomic_drive = AutonomicDrive(memory).snapshot()
     community_campaigns = _community_campaign_snapshot()
+    control = OperationsControlTower(memory, ROOT).snapshot()
     return {
         "generated_at": datetime.now().isoformat(timespec="seconds"),
         "data_source": {
@@ -838,7 +852,8 @@ def build_snapshot(memory_root=None):
         "autonomic_drive": autonomic_drive,
         "revenue": _revenue_snapshot(memory),
         "community_campaigns": community_campaigns,
-        "operations": _operational_snapshot(reels, youtube_creator_queue, community_campaigns),
+        "operations": _operational_snapshot(reels, youtube_creator_queue, community_campaigns, control),
+        "control_tower": control,
         "platform_operations": _platform_operations_snapshot(memory, reels),
         "development": _development_snapshot(memory),
         "brain": _brain_map(memory),
