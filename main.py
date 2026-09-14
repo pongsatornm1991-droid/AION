@@ -2018,7 +2018,7 @@ def _format_learning_telegram_report(report):
     short Thai summary -- the Telegram notification body, and also
     what is printed for stages that never reach an answer."""
 
-    lines = ["AION (เรียนรู้จากภายนอก):"]
+    lines = ["AION Research Team (ฝ่ายวิจัย):"]
 
     question = report.get("question") or {}
     if question.get("statement"):
@@ -2056,7 +2056,7 @@ def _format_learning_telegram_report(report):
     elif stage == "blocked-style":
         lines.append(f"ถูกบล็อกที่ตัวกรองน้ำเสียง: {report.get('reason')}")
     elif stage == "answered":
-        lines.append("บันทึกเป็นความรู้ใหม่และตอบคำถามนี้แล้ว")
+        lines.append("Evidence Analyst ตรวจหลักฐานแล้ว และส่งบทเรียนให้ AION ใช้ตัดสินใจต่อ")
 
     return "\n".join(lines)
 
