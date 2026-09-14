@@ -895,6 +895,24 @@ class DashboardHandler(BaseHTTPRequestHandler):
                 return
         self._send("Not found", "text/plain; charset=utf-8", HTTPStatus.NOT_FOUND)
 
+    def do_POST(self):
+        path = urlparse(self.path).path
+        if path != "/api/finance/openai-cost-reader":
+            self._send("Not found", "text/plain; charset=utf-8", HTTPStatus.NOT_FOUND)
+            return
+        try:
+            length = int(self.headers.get("Content-Length", "0"))
+            if not 1 <= length <= 4096:
+                raise ValueError
+            payload = json.loads(self.rfile.read(length).decode("utf-8"))
+            key = payload.get("admin_key") if isinstance(payload, dict) else None
+            from brain.finance_observatory import FinanceObservatory
+            FinanceObservatory.connect_openai_cost_reader(key)
+        except (OSError, ValueError, TypeError, UnicodeDecodeError, json.JSONDecodeError):
+            self._send(json.dumps({"ok": False, "error": "บันทึกกุญแจไม่สำเร็จ"}, ensure_ascii=False), "application/json; charset=utf-8", HTTPStatus.BAD_REQUEST)
+            return
+        self._send(json.dumps({"ok": True}, ensure_ascii=False), "application/json; charset=utf-8")
+
 
 def main():
     port = int(os.getenv("AION_DASHBOARD_PORT", str(DEFAULT_PORT)))

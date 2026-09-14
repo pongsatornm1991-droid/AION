@@ -14,6 +14,8 @@ from pathlib import Path
 from urllib.error import URLError
 from urllib.request import Request, urlopen
 
+from brain.local_secret_store import load_openai_admin_key, save_openai_admin_key
+
 
 class FinanceObservatory:
     def __init__(self, root=None):
@@ -22,8 +24,8 @@ class FinanceObservatory:
     @staticmethod
     def _openai_costs():
         """Read reconciled month-to-date costs without ever returning a key."""
-        enabled = os.getenv("AION_FINANCE_OPENAI_COSTS_ENABLED", "").lower() == "true"
-        admin_key = os.getenv("OPENAI_ADMIN_KEY")
+        enabled = os.getenv("AION_FINANCE_OPENAI_COSTS_ENABLED", "true").lower() != "false"
+        admin_key = load_openai_admin_key() or os.getenv("OPENAI_ADMIN_KEY")
         if not (enabled and admin_key):
             return None, "owner-setup-required"
         now = datetime.now(timezone.utc)
@@ -77,3 +79,8 @@ class FinanceObservatory:
             ],
             "boundary": "ห้องนี้อ่านและสรุปเท่านั้น AION ไม่มีสิทธิ์ซื้อเครดิต เติมเงิน ตั้ง auto-reload เปลี่ยน spend cap หรือเข้าถึงข้อมูลรับรอง",
         }
+
+    @staticmethod
+    def connect_openai_cost_reader(key):
+        """Store only in the OS vault; the caller must never retain or echo it."""
+        save_openai_admin_key(key)
