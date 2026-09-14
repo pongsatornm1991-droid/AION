@@ -1519,8 +1519,6 @@ def run_check_messages(args, platform):
     print(f"Stage: {report['stage']}")
     if report.get("error"):
         print(f"Reason: {report['error']}")
-    if report.get("reasons"):
-        print(f"Quality reasons: {', '.join(str(item) for item in report['reasons'])}")
 
 
 def run_propose_profile_change(args):
@@ -1843,6 +1841,8 @@ def run_publish_youtube_creator(args):
         print(f"Video: {report['url']}")
     if report.get("error"):
         print(f"Reason: {report['error']}")
+    if report.get("reasons"):
+        print(f"Quality reasons: {', '.join(str(item) for item in report['reasons'])}")
     # Quiet for ordinary empty queues.  The owner only hears about a real
     # publication, a quality block, or an actionable production/upload fault.
     if report.get("stage") in {"published", "quality-review-required", "missing-video", "upload-failed"}:
