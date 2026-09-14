@@ -91,6 +91,9 @@ class YouTubeCreatorQueueTests(unittest.TestCase):
                 result = queue.publish_once(lambda *_: {"video_id": "should-not-upload"})
             self.assertEqual("quality-review-required", result["stage"])
             self.assertIn("video-qa:missing-audio-stream", result["reasons"])
+            gate = queue.candidates()[0]["quality_gate"]
+            self.assertFalse(gate["eligible"])
+            self.assertIn("video-qa:missing-audio-stream", gate["reasons"])
 
     def test_audits_published_episode_without_uploading_again(self):
         with tempfile.TemporaryDirectory() as root:

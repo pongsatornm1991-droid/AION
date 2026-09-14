@@ -4,7 +4,9 @@ on:
     - cron: "40 */6 * * *"
   workflow_dispatch: {}
 concurrency:
-  group: aion-memory-data
+  # Keep experiments serial, but do not let an unrelated publisher cancel
+  # their evidence cycle before it can leave a durable result.
+  group: aion-content-experiment-evaluator
   cancel-in-progress: false
 permissions: {contents: read}
 jobs:

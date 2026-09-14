@@ -1841,6 +1841,10 @@ def run_publish_youtube_creator(args):
         print(f"Video: {report['url']}")
     if report.get("error"):
         print(f"Reason: {report['error']}")
+    # Quiet for ordinary empty queues.  The owner only hears about a real
+    # publication, a quality block, or an actionable production/upload fault.
+    if report.get("stage") in {"published", "quality-review-required", "missing-video", "upload-failed"}:
+        _notify_report(report, formatter=_format_youtube_creator_telegram_report)
 
 
 def run_publish_video(args):
@@ -1957,6 +1961,27 @@ def _format_youtube_telegram_report(report):
         lines.append("ไม่มี Reel ที่ผ่านการเผยแพร่และรอส่งขึ้น YouTube")
     else:
         lines.append("ส่ง YouTube Short ไม่สำเร็จในรอบนี้ — ระบบยังไม่บันทึกว่าส่งแล้ว")
+        if report.get("error"):
+            lines.append(f"สาเหตุ: {report['error']}")
+    return "\n".join(lines)
+
+
+def _format_youtube_creator_telegram_report(report):
+    """Report only meaningful Creator-pipeline outcomes to the owner."""
+    stage = report.get("stage")
+    lines = ["AION (YouTube Creator):"]
+    if stage == "published":
+        lines.append("เผยแพร่ผลงานที่ผ่าน Quality Gate แล้ว ✅")
+        if report.get("url"):
+            lines.append(f"ลิงก์: {report['url']}")
+    elif stage == "quality-review-required":
+        lines.append("Quality Gate ยังไม่ผ่าน — AION ยังไม่เผยแพร่")
+        if report.get("reasons"):
+            lines.append(f"จุดที่ต้องแก้: {', '.join(report['reasons'])}")
+    elif stage == "missing-video":
+        lines.append("พบตอนที่พร้อมเล่าเรื่อง แต่ไฟล์วิดีโอยังไม่ครบ")
+    else:
+        lines.append("สายเผยแพร่ Creator ผิดพลาด — งานยังไม่ถูกทำเครื่องหมายว่าเผยแพร่")
         if report.get("error"):
             lines.append(f"สาเหตุ: {report['error']}")
     return "\n".join(lines)

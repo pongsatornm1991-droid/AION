@@ -98,6 +98,10 @@ class YouTubeCreatorQueue:
                 # screens, but never discard the authorization state.
                 "publication_status": previous[1].get("upload_status") if previous else None,
                 "video_qa": (((previous[1].get("youtube") or {}).get("quality") or {}).get("video_qa") if previous else None),
+                # Preserve the last gate decision even when an upload was
+                # blocked.  A blocked item is useful operational evidence,
+                # not a reason for the dashboard to become silent.
+                "quality_gate": previous[1].get("quality_gate") if previous else None,
             })
         return result
 
@@ -174,6 +178,15 @@ class YouTubeCreatorQueue:
             quality["eligible"] = False
             quality["reasons"] = list(quality.get("reasons") or []) + [f"video-qa:{item}" for item in video_quality["reasons"]]
         if not quality["eligible"]:
+            blocked = {
+                **payload,
+                "quality_gate": {
+                    "state": "blocked",
+                    "eligible": False,
+                    "reasons": list(quality.get("reasons") or []),
+                },
+            }
+            self.memory.update(self.CATEGORY, entry["id"], content=json.dumps(blocked, ensure_ascii=False))
             return {"stage": "quality-review-required", "episode_id": payload.get("episode_id"), **quality}
         format_tags = "#Shorts #AION #AI" if payload.get("content_kind") == "short" else "#AION #AI"
         description = "\n\n".join(part for part in (
@@ -188,7 +201,12 @@ class YouTubeCreatorQueue:
             result = uploader(str(path), str(payload.get("title") or "AION Wonders"), description)
         except Exception as exc:
             return {"stage": "upload-failed", "episode_id": payload.get("episode_id"), "error": str(exc)}
-        updated = {**payload, "youtube": {**result, "quality": quality}, "upload_status": "published"}
+        updated = {
+            **payload,
+            "youtube": {**result, "quality": quality},
+            "quality_gate": {"state": "passed", "eligible": True, "reasons": []},
+            "upload_status": "published",
+        }
         self.memory.update(self.CATEGORY, entry["id"], content=json.dumps(updated, ensure_ascii=False))
         self.memory.remember(
             "social_language_log",
