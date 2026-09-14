@@ -1,8 +1,8 @@
 {
-  "generated_at": "2026-09-14T20:00:14.499261+00:00",
+  "generated_at": "2026-09-14T21:00:42.298474+00:00",
   "tiles": {
-    "total": 41,
-    "ok": 37,
+    "total": 42,
+    "ok": 38,
     "attn": 1,
     "running": 1
   },
@@ -236,6 +236,14 @@
           "created_at": "2026-09-14T19:59:03Z"
         },
         {
+          "name": "AION - delivery evidence watchdog",
+          "file": "publish-delivery-status.yml",
+          "status_class": "success",
+          "status_label": "สำเร็จ",
+          "html_url": "https://github.com/pongsatornm1991-droid/AION/actions/runs/34896118643",
+          "created_at": "2026-09-14T20:58:47Z"
+        },
+        {
           "name": "AION - deterministic tests",
           "file": "tests.yml",
           "status_class": "success",
@@ -248,8 +256,8 @@
           "file": "publish-workflow-status.yml",
           "status_class": "running",
           "status_label": "กำลังรัน",
-          "html_url": "https://github.com/pongsatornm1991-droid/AION/actions/runs/34890155148",
-          "created_at": "2026-09-14T19:59:06Z"
+          "html_url": "https://github.com/pongsatornm1991-droid/AION/actions/runs/34896197813",
+          "created_at": "2026-09-14T20:59:38Z"
         },
         {
           "name": "AION - recoverable media housekeeping",
