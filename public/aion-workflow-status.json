@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-09-14T19:45:06.067109+00:00",
+  "generated_at": "2026-09-14T19:47:07.415318+00:00",
   "tiles": {
     "total": 41,
     "ok": 36,
@@ -200,8 +200,8 @@
           "file": "automation-health.yml",
           "status_class": "success",
           "status_label": "สำเร็จ",
-          "html_url": "https://github.com/pongsatornm1991-droid/AION/actions/runs/34888497456",
-          "created_at": "2026-09-14T19:42:14Z"
+          "html_url": "https://github.com/pongsatornm1991-droid/AION/actions/runs/34888751039",
+          "created_at": "2026-09-14T19:44:50Z"
         },
         {
           "name": "AION - Cyber Guard defensive audit",
@@ -230,16 +230,16 @@
         {
           "name": "AION - bounded self repair",
           "file": "self-repair.yml",
-          "status_class": "failure",
-          "status_label": "ล้มเหลว",
-          "html_url": "https://github.com/pongsatornm1991-droid/AION/actions/runs/34888497551",
-          "created_at": "2026-09-14T19:42:14Z"
+          "status_class": "running",
+          "status_label": "กำลังรัน",
+          "html_url": "https://github.com/pongsatornm1991-droid/AION/actions/runs/34888751069",
+          "created_at": "2026-09-14T19:44:50Z"
         },
         {
           "name": "AION - deterministic tests",
           "file": "tests.yml",
-          "status_class": "running",
-          "status_label": "กำลังรัน",
+          "status_class": "failure",
+          "status_label": "ล้มเหลว",
           "html_url": "https://github.com/pongsatornm1991-droid/AION/actions/runs/34888632504",
           "created_at": "2026-09-14T19:43:37Z"
         },
@@ -248,8 +248,8 @@
           "file": "publish-workflow-status.yml",
           "status_class": "running",
           "status_label": "กำลังรัน",
-          "html_url": "https://github.com/pongsatornm1991-droid/AION/actions/runs/34888625168",
-          "created_at": "2026-09-14T19:43:33Z"
+          "html_url": "https://github.com/pongsatornm1991-droid/AION/actions/runs/34888868912",
+          "created_at": "2026-09-14T19:45:58Z"
         },
         {
           "name": "AION - recoverable media housekeeping",
