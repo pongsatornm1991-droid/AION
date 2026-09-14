@@ -52,8 +52,8 @@ class FinanceObservatory:
         videos = list((self.root / "content" / "reels").glob("*.mp4"))
         openai_cost, openai_state = self._openai_costs()
         return {
-            "title": "AION Finance Observatory",
-            "purpose": "ติดตามหน่วยงานผลิตและต้นทุนที่ผู้ให้บริการยืนยัน โดยอ่านอย่างเดียว",
+            "title": "ห้องบัญชี AION",
+            "purpose": "บันทึกหน่วยงานผลิต ต้นทุนที่ผู้ให้บริการยืนยัน และสถานะเครดิต โดยอ่านอย่างเดียว",
             "operations": {
                 "generated_scene_images": len(scene_images),
                 "assembled_videos": len(videos),

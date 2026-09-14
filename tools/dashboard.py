@@ -659,7 +659,7 @@ def build_studio_snapshot(memory_root=None):
             {"id": "story", "name": "ห้องเรื่องเล่า", "purpose": "เปลี่ยนคำถามให้เป็น hook, บทพูด และ storyboard ที่ AION อยู่ในทุกฉาก", "count": len(episodes), "unit": "ตอนที่ออกแบบแล้ว", "state": "active"},
             {"id": "costume", "name": "ห้องคอสตูม", "purpose": "จัด costume brief ตามยุค สภาพอากาศ และบทบาทของ AION ก่อนสร้างภาพ", "count": len(episodes), "unit": "ตอนที่มีแนวทางชุด", "state": "active"},
             {"id": "visual", "name": "ห้องภาพและฉาก", "purpose": "สร้างภาพใหม่เป็นรายฉาก ไม่ใช้ภาพเดิมวนซ้ำเป็นทางลัด", "count": len(generated_scenes), "unit": "ภาพฉากที่ผลิตใหม่", "state": scene_production["status"]},
-            {"id": "finance", "name": "ห้องการเงินและเครดิต", "purpose": "สรุปหน่วยงานผลิต ต้นทุนที่ผู้ให้บริการยืนยัน และสถานะยอดคงเหลือแบบอ่านอย่างเดียว", "count": len(generated_scenes), "unit": "หน่วยภาพที่ติดตาม", "state": "active"},
+            {"id": "finance", "name": "ห้องบัญชี AION", "purpose": "แยกบันทึกหน่วยงานผลิต ต้นทุนที่ผู้ให้บริการยืนยัน และสถานะเครดิตแบบอ่านอย่างเดียว", "count": len(generated_scenes), "unit": "หน่วยภาพที่ติดตาม", "state": "active"},
             {"id": "audio", "name": "ห้องเสียง", "purpose": "จัดเสียงบรรยายและเสียงประกอบหลังเรื่องและภาพผ่านการตรวจแล้ว", "count": len(audio), "unit": "ไฟล์เสียง", "state": "ready"},
             {"id": "review", "name": "ห้องตรวจและส่งออก", "purpose": "ตรวจหลักฐาน คุณค่าต่อผู้ชม และความพร้อมก่อนส่งเข้าคิวเผยแพร่", "count": len(video), "unit": "วิดีโอที่สร้างแล้ว", "state": "waiting" if any(item.get("publication_status") == "authorized-for-aion-publish" or item.get("status") == "upload-ready" for item in queue) else "active"},
         ],
