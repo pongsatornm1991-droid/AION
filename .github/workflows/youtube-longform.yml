@@ -34,6 +34,18 @@ jobs:
       - run: pip install -r requirements.txt
       - name: Verify safeguards
         run: python run_tests.py
+      - name: Restore an inspectable caption track when a finished episode is missing one
+        run: python tools/assemble_creator_episode.py --backfill-subtitles
+      - name: Commit restored caption tracks before Quality Gate
+        run: |
+          git config user.name "aion-bot"
+          git config user.email "aion-bot@users.noreply.github.com"
+          git add -A content/reels
+          if ! git diff --cached --quiet; then
+            git commit -m "AION: restore Creator caption track"
+            git pull --rebase origin main
+            git push
+          fi
       - name: Queue one finished long-form AION episode
         env:
           AION_MEMORY_ROOT: memory_data

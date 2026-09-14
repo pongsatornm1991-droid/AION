@@ -40,6 +40,29 @@ def _write_subtitles(episode, output):
     return subtitle
 
 
+def backfill_subtitles_once(root=ROOT):
+    """Restore a missing caption track without re-rendering a finished episode.
+
+    A long-form upload is intentionally blocked without an inspectable SRT
+    track.  This repair uses the already-approved narration in the storyboard;
+    it never changes the video, calls a provider, or publishes anything.
+    """
+    root = Path(root)
+    repaired = []
+    for episode in CreatorSeriesRegistry(root).episodes():
+        if episode.get("status") != "production-ready-assets-and-script":
+            continue
+        output = root / "content" / "reels" / f"{episode['id']}.mp4"
+        subtitle = output.with_suffix(".srt")
+        if output.is_file() and not subtitle.is_file():
+            _write_subtitles(episode, output)
+            repaired.append({
+                "episode_id": episode["id"],
+                "subtitle_path": str(subtitle.relative_to(root)).replace("\\", "/"),
+            })
+    return {"stage": "subtitle-backfill-complete", "repaired": repaired, "count": len(repaired)}
+
+
 def assemble_once(root=ROOT, episode_id=None, renderer=render_reel):
     """Render one asset-complete episode and advance only that episode."""
     root = Path(root)
@@ -79,5 +102,7 @@ def assemble_once(root=ROOT, episode_id=None, renderer=render_reel):
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("--episode-id")
+    parser.add_argument("--backfill-subtitles", action="store_true")
     args = parser.parse_args()
-    print(json.dumps(assemble_once(episode_id=args.episode_id), ensure_ascii=False, indent=2))
+    report = backfill_subtitles_once() if args.backfill_subtitles else assemble_once(episode_id=args.episode_id)
+    print(json.dumps(report, ensure_ascii=False, indent=2))

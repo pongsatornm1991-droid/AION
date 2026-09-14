@@ -3,7 +3,7 @@ import tempfile
 import unittest
 from pathlib import Path
 
-from tools.assemble_creator_episode import assemble_once
+from tools.assemble_creator_episode import assemble_once, backfill_subtitles_once
 
 
 class AssembleCreatorEpisodeTests(unittest.TestCase):
@@ -28,3 +28,30 @@ class AssembleCreatorEpisodeTests(unittest.TestCase):
     def test_does_not_claim_a_video_when_no_episode_is_ready(self):
         with tempfile.TemporaryDirectory() as root:
             self.assertEqual("no-asset-complete-episode", assemble_once(root)["stage"])
+
+    def test_restores_a_missing_caption_track_without_re_rendering(self):
+        with tempfile.TemporaryDirectory() as temp:
+            root = Path(temp)
+            episode_dir = root / "content" / "creator_series"; episode_dir.mkdir(parents=True)
+            reels = root / "content" / "reels"; reels.mkdir(parents=True)
+            (reels / "episode.mp4").write_bytes(b"existing video")
+            payload = {
+                "id":"episode", "series":"AION Wonders", "title":"A useful test story",
+                "status":"production-ready-assets-and-script", "format":"illustrated-narrated-short",
+                "scene_seconds":5, "target_duration_seconds":15,
+                "audience_promise":"Viewers learn why accessible captions matter to every audience.",
+                "wonder_hook":"Could captions save a finished story?", "creative_device":"journey",
+                "age_layers":{"children":"Ask.", "family":"Talk.", "deeper":"Test."},
+                "science_boundary":"This is a test boundary.",
+                "sources":[{"url":"https://one.test"}, {"url":"https://two.test"}],
+                "scenes":[
+                    {"n":1, "narration":"One.", "visual":"AION explores captions."},
+                    {"n":2, "narration":"Two.", "visual":"AION checks timing."},
+                    {"n":3, "narration":"Three.", "visual":"AION completes the repair."},
+                ],
+            }
+            (episode_dir / "episode.json").write_text(json.dumps(payload), encoding="utf-8")
+            report = backfill_subtitles_once(root)
+            self.assertEqual(1, report["count"])
+            self.assertTrue((reels / "episode.srt").is_file())
+            self.assertEqual(b"existing video", (reels / "episode.mp4").read_bytes())
