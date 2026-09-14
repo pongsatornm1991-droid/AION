@@ -9,7 +9,7 @@ the public Gemini API does not provide a general balance endpoint.
 
 import json
 import os
-import time
+from datetime import datetime, timezone
 from pathlib import Path
 from urllib.error import URLError
 from urllib.request import Request, urlopen
@@ -26,7 +26,8 @@ class FinanceObservatory:
         admin_key = os.getenv("OPENAI_ADMIN_KEY")
         if not (enabled and admin_key):
             return None, "owner-setup-required"
-        start_time = int(time.time()) - 31 * 24 * 60 * 60
+        now = datetime.now(timezone.utc)
+        start_time = int(datetime(now.year, now.month, 1, tzinfo=timezone.utc).timestamp())
         request = Request(
             "https://api.openai.com/v1/organization/costs"
             f"?start_time={start_time}&bucket_width=1d&limit=31",
@@ -40,7 +41,7 @@ class FinanceObservatory:
                 for bucket in payload.get("data") or []
                 for result in bucket.get("results") or []
             )
-            return {"amount": round(value, 4), "currency": "usd"}, "synced"
+            return f"${value:,.4f} USD", "synced"
         except (URLError, OSError, ValueError, TypeError):
             # A billing read error must remain visible but may never reveal
             # provider responses or credentials on the dashboard.
@@ -53,12 +54,12 @@ class FinanceObservatory:
         openai_cost, openai_state = self._openai_costs()
         return {
             "title": "ห้องบัญชี AION",
-            "purpose": "บันทึกหน่วยงานผลิต ต้นทุนที่ผู้ให้บริการยืนยัน และสถานะเครดิต โดยอ่านอย่างเดียว",
+            "purpose": "ศูนย์บันทึกงานผลิตและต้นทุนที่ยืนยันได้ เพื่อให้ประธานตรวจสอบการใช้ทรัพยากรของ AION โดยไม่ให้ระบบแตะเงินหรือข้อมูลรับรอง",
             "operations": {
                 "generated_scene_images": len(scene_images),
                 "assembled_videos": len(videos),
                 "known_currency_cost": openai_cost,
-                "currency_status": "ยืนยันจาก OpenAI Costs API" if openai_state == "synced" else "รอข้อมูลค่าใช้จ่ายที่ยืนยันจากผู้ให้บริการ",
+                "currency_status": "ต้นทุนสะสมตั้งแต่ต้นเดือนจาก OpenAI Costs API" if openai_state == "synced" else "ยังไม่มีการเชื่อมข้อมูลต้นทุนที่ยืนยันได้",
             },
             "providers": [
                 {
