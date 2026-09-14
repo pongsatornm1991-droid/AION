@@ -1519,6 +1519,8 @@ def run_check_messages(args, platform):
     print(f"Stage: {report['stage']}")
     if report.get("error"):
         print(f"Reason: {report['error']}")
+    if report.get("reasons"):
+        print(f"Quality reasons: {', '.join(str(item) for item in report['reasons'])}")
 
 
 def run_propose_profile_change(args):
