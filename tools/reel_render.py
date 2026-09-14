@@ -8,6 +8,7 @@ publishing logic.
 
 import hashlib
 import os
+import re
 import shutil
 import subprocess
 
@@ -20,6 +21,29 @@ from tools.image_render import (
 
 REEL_SIZE = (1080, 1920)
 WIDESCREEN_SIZE = (1920, 1080)
+
+
+class AudioTimingError(ValueError):
+    """Raised before rendering when narration would be cut by the picture."""
+
+
+def _duration_from_probe_text(text):
+    """Read a duration from ffmpeg's diagnostic output without another binary."""
+    match = re.search(r"Duration:\s*(\d+):(\d+):(\d+(?:\.\d+)?)", str(text or ""))
+    if not match:
+        return None
+    hours, minutes, seconds = match.groups()
+    return int(hours) * 3600 + int(minutes) * 60 + float(seconds)
+
+
+def _audio_duration(ffmpeg, audio_path):
+    """Return the synthesized audio duration, or None when it cannot be read."""
+    try:
+        result = subprocess.run([ffmpeg, "-i", str(audio_path), "-f", "null", "-"],
+                                check=False, capture_output=True, text=True, timeout=30)
+    except (OSError, subprocess.SubprocessError):
+        return None
+    return _duration_from_probe_text(f"{result.stdout}\n{result.stderr}")
 
 # AION is a recurring character, not an interchangeable abstract background.
 # These scenes give each narration a recognisable visual presence while still
@@ -172,6 +196,17 @@ def render_reel(hook, thought, output_path, duration=18, mood=None, still_paths=
     audio = os.path.splitext(output_path)[0] + ".mp3"
     from tools.voice import synthesize_reel_voice
     has_voice = synthesize_reel_voice(f"{hook}. {thought}", audio)
+    if has_voice:
+        audio_seconds = _audio_duration(ffmpeg, audio)
+        # Prior behavior used ``-t`` on the muxed output.  If speech was
+        # longer than the storyboard, ffmpeg silently chopped the final line.
+        # Reject instead: Story can shorten the narration or Visual can add
+        # new <=5-second beats.  A finished work must never end mid-sentence.
+        if audio_seconds is not None and audio_seconds > float(duration) + 0.25:
+            raise AudioTimingError(
+                f"audio-overruns-video: narration={audio_seconds:.2f}s, "
+                f"storyboard={float(duration):.2f}s; shorten narration or add visual beats"
+            )
     frames = max(3, int(duration * 30))
     scene_frames = max(1, frames // len(stills))
     command = [ffmpeg, "-y"]

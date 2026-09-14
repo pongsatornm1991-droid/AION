@@ -15,7 +15,7 @@ if str(ROOT) not in sys.path:
 
 from brain.creator_series import CreatorSeriesRegistry
 from brain.visual_story_policy import VisualStoryPolicy
-from tools.reel_render import REEL_SIZE, WIDESCREEN_SIZE, render_reel
+from tools.reel_render import AudioTimingError, REEL_SIZE, WIDESCREEN_SIZE, render_reel
 
 
 def _eligible_episode(root, episode_id=None):
@@ -85,6 +85,8 @@ def assemble_once(root=ROOT, episode_id=None, renderer=render_reel):
                  still_paths=[str(image) for image in images],
                  max_scene_seconds=VisualStoryPolicy.MAX_SCENE_SECONDS,
                  frame_size=frame_size)
+    except AudioTimingError as exc:
+        return {"stage": "audio-timing-failed", "episode_id": episode["id"], "error": str(exc)}
     except Exception as exc:
         return {"stage": "assembly-failed", "episode_id": episode["id"], "error": str(exc)}
     if not output.is_file() or output.stat().st_size == 0:

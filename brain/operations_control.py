@@ -123,6 +123,37 @@ class OperationsControlTower:
             items.append({"title": item.get("title"), "state": state, "detail": detail, "reasons": gate.get("reasons") or []})
         return items
 
+    def _audio_timing(self):
+        """Audit source narration against storyboard time, including old renders."""
+        try:
+            from brain.creator_series import CreatorSeriesRegistry
+            from brain.video_quality import VideoQualityGate
+            from tools.reel_render import _audio_duration
+            ffmpeg = VideoQualityGate._ffmpeg_path()
+            episodes = CreatorSeriesRegistry(self.root).episodes()
+        except (OSError, ValueError, TypeError):
+            return []
+        if not ffmpeg:
+            return [{"state": "waiting", "detail": "เครื่องตรวจยังไม่มีตัวอ่านความยาวเสียง"}]
+        reports = []
+        for episode in episodes:
+            audio = self.root / "content" / "reels" / f"{episode['id']}.mp3"
+            if not audio.is_file():
+                continue
+            actual = _audio_duration(ffmpeg, audio)
+            target = float(episode.get("target_duration_seconds") or 0)
+            if actual is None or not target:
+                continue
+            overrun = actual - target
+            reports.append({
+                "title": episode.get("title"),
+                "state": "attention" if overrun > 0.25 else "pass",
+                "audio_seconds": round(actual, 2), "storyboard_seconds": target,
+                "detail": (f"เสียงยาวกว่าภาพ {overrun:.2f} วินาที — ห้าม render ซ้ำจนกว่าจะย่อบทหรือเพิ่มฉาก" if overrun > 0.25
+                           else "เสียงอยู่ภายในเวลาที่ storyboard รองรับ"),
+            })
+        return reports
+
     def _self_repair(self):
         path = self.root / "public" / "aion-self-repair-status.json"
         try:
@@ -168,6 +199,7 @@ class OperationsControlTower:
             "blockers": blockers,
             "quality_gate": quality,
             "preflight": self._preflight(),
+            "audio_timing": self._audio_timing(),
             "delivery": delivery,
             "audience": audience,
             "asset_hygiene": assets,
