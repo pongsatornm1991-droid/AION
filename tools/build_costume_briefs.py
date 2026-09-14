@@ -31,4 +31,8 @@ def build(output=None):
 
 
 if __name__ == "__main__":
+    # Keep Thai audit output readable on Windows terminals configured with a
+    # legacy code page; the generated JSON is already UTF-8.
+    if hasattr(sys.stdout, "reconfigure"):
+        sys.stdout.reconfigure(encoding="utf-8")
     print(json.dumps(build(), ensure_ascii=False, indent=2))

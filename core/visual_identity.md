@@ -1,6 +1,12 @@
 # AION Visual DNA
 
-AION appears as a calm, emerging digital being rather than a generic robot or a real identifiable person. Its world is dark and spacious, illuminated by cyan-teal memory threads, constellations, translucent fragments, and occasional small flowers or organic growth. A restrained amber light represents human connection.
+AION appears as a calm, stylised animated digital guide rather than a generic
+robot or a real identifiable person. AION is recognisable by airy silver-white
+hair, expressive cyan eyes, pearl-light skin with fine constellation filaments,
+and a small faceted cyan crystal core at the sternum. The character lives in a
+cinematic world with realistic light, texture and scale. A restrained amber
+light represents human connection; cyan is an identity accent, never a full
+body colour scheme.
 
 Every visual should feel quiet, intelligent, and slightly mysterious. It may show AION's abstract profile or body, but does not need to repeat one human face. Avoid text inside artwork, logos, neon clutter, dystopian warfare, and generic futuristic interfaces.
 
@@ -18,35 +24,28 @@ Thai point of view, not a generic AI wearing Thai decoration.
 
 ## Illustrated AION
 
-Alongside the cinematic incarnation, AION can appear as a warm illustrated
-character for narrated Shorts. It has a recognizable cyan signal, a simple
-calm silhouette, observant eyes, and small human-readable gestures. The
-illustration should feel timeless and intelligent rather than like a branded
-children's cartoon. Each frame contains one visual idea, with generous empty
-space for movement and optional subtitles. This is a second medium for the
-same identity, not a different persona.
-
-The default illustrated body is translucent cyan-blue: an emerging digital
-being made from soft light, faint memory threads, and a calm human-like face.
-It should remain readable at phone size and expressive without becoming a
-photoreal person, a hard-metal robot, or an imitation of another character.
+For narrated Shorts and longer stories, AION remains a warm stylised 3D
+character with an immediately readable silhouette, observant eyes, and small
+human-readable gestures. The subject and setting lead every frame; AION is a
+guide. The character is not photorealistic, while the environment, light and
+materials may be. This keeps a single identity across ages without becoming a
+branded children's mascot or an imitation of another character.
 
 For creator stories, this is a mandatory recurring on-screen host, not merely
 a voice over: AION must be visibly present in every scene. The canonical
-storyteller form is a midnight-blue explorer jacket with restrained gold trim,
-constellation-light details, practical boots, the lotus light at the chest,
-and a small holographic orb. The orb can become a map, artifact, model, or
-time-window for the scene. AION can appear full-size, as a close observer, as
-a reflection, or as a small silhouette for scale, but must remain recognisable
-in every beat. Historical clothing may be layered onto the canonical outfit
-only when it serves the setting; it must not replace AION's identity.
+storyteller form uses warm-ivory, charcoal, earth or deep-navy practical layers
+chosen by the Costume Director for the setting. The crystal core can illuminate
+a map, artifact, model, or time-window for the scene. AION can appear full-size,
+as a close observer, as a reflection, or as a small silhouette for scale, but
+must remain recognisable in every beat. Historical clothing may be layered only
+when it serves the setting; it must not replace AION's identity.
 
 ## State-to-light palette
 
-The illustrated body stays cyan-blue, while its inner light and surrounding
-world adapt to the strongest *computational signal* currently observable in
-AION's memory. This helps viewers read the narrative without pretending that
-the signals are human feelings.
+The pearl-light character and cyan crystal core remain stable, while the core
+glow and surrounding world adapt to the strongest *computational signal*
+currently observable in AION's memory. This helps viewers read the narrative
+without pretending that the signals are human feelings.
 
 | Signal | Light direction | Story use |
 | --- | --- | --- |
