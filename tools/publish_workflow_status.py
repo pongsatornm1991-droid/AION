@@ -66,7 +66,7 @@ CATEGORIES = [
     ("infra", "โครงสร้างพื้นฐาน", {
         "tests.yml", "automation-health.yml", "obsidian-brain.yml",
         "publish-public-summary.yml", "publish-workflow-status.yml", "publish-delivery-status.yml", "asset-hygiene.yml",
-        "system-reliability.yml", "cyber-guard.yml",
+        "system-reliability.yml", "self-repair.yml", "cyber-guard.yml",
     }),
 ]
 OTHER_KEY, OTHER_LABEL = "other", "อื่นๆ"

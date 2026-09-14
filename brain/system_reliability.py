@@ -18,6 +18,7 @@ class SystemReliability:
         "brain/operations_control.py",
         "brain/continuity_guard.py",
         "brain/youtube_audience.py",
+        "brain/self_repair.py",
         "tools/dashboard.py",
         ".github/workflows/tests.yml",
         ".github/workflows/system-reliability.yml",

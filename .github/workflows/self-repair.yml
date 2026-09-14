@@ -1,0 +1,54 @@
+name: AION - bounded self repair
+
+on:
+  schedule:
+    - cron: "11 3 * * *"
+  workflow_run:
+    workflows: [AION - deterministic tests, AION - system reliability]
+    types: [completed]
+  workflow_dispatch: {}
+
+# The scheduled inspection may always run.  A workflow-triggered run only acts
+# after a failed engineering signal, so normal successful tests do not create
+# redundant repair work or compete with production.
+concurrency:
+  group: aion-memory-data
+  cancel-in-progress: false
+
+permissions:
+  contents: write
+
+jobs:
+  repair-known-artifacts:
+    if: ${{ github.event_name != 'workflow_run' || github.event.workflow_run.conclusion == 'failure' }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/checkout@v4
+        with:
+          repository: pongsatornm1991-droid/aion-memory-data
+          token: ${{ secrets.MEMORY_REPO_PAT }}
+          path: memory_data
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+          cache-dependency-path: requirements.txt
+      - run: sudo apt-get update && sudo apt-get install -y ffmpeg
+      - run: pip install -r requirements.txt
+      - name: Repair only registered recoverable artifacts
+        env:
+          AION_MEMORY_ROOT: memory_data
+        run: python tools/run_self_repair.py
+      - name: Verify repair boundaries and deterministic behavior
+        run: python -m unittest tests.test_self_repair tests.test_assemble_creator_episode tests.test_asset_hygiene -q
+      - name: Publish inspectable repair result
+        run: |
+          git config user.name aion-bot
+          git config user.email aion-bot@users.noreply.github.com
+          git add public/aion-self-repair-status.json content
+          if ! git diff --cached --quiet; then
+            git commit -m "AION: record bounded self repair"
+            git pull --rebase origin main
+            git push
+          fi

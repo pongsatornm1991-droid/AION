@@ -123,6 +123,19 @@ class OperationsControlTower:
             items.append({"title": item.get("title"), "state": state, "detail": detail, "reasons": gate.get("reasons") or []})
         return items
 
+    def _self_repair(self):
+        path = self.root / "public" / "aion-self-repair-status.json"
+        try:
+            payload = json.loads(path.read_text(encoding="utf-8"))
+        except (OSError, ValueError, TypeError):
+            return {"state": "waiting", "label": "รอรอบตรวจซ่อมอัตโนมัติครั้งแรก", "detail": "Self-Repair Agent จะซ่อมเฉพาะรายการที่ขึ้นทะเบียนและตรวจสอบผลก่อนบันทึก"}
+        return {
+            "state": "pass" if payload.get("stage") in {"repaired", "checked-no-repair-needed"} else "attention",
+            "label": "Self-Repair Agent ล่าสุด",
+            "detail": f"{payload.get('stage')} · ซ่อม/กู้ได้ {payload.get('repaired_count', 0)} รายการ",
+            "report": payload,
+        }
+
     def snapshot(self):
         pending = self._pending_work()
         delivery = DeliveryWatchdog(self.memory, root=self.root).snapshot()
@@ -134,6 +147,7 @@ class OperationsControlTower:
         quality = self._creative_gate()
         audience = AudienceAccessibility(self.memory).snapshot()
         continuity = ContinuityGuard(self.root, getattr(self.memory, "root", None)).snapshot()
+        self_repair = self._self_repair()
 
         blockers = []
         for item in pending:
@@ -158,6 +172,7 @@ class OperationsControlTower:
             "audience": audience,
             "asset_hygiene": assets,
             "continuity": continuity,
+            "self_repair": self_repair,
             "workflow_register": company,
             "recovery_policy": "งานที่รอจะถูกเก็บในคิวเดิมและลองใหม่โดย workflow ปกติ; ไม่สร้างโพสต์ซ้ำ ไม่ใช้ภาพเก่าแทน และไม่แตะสิทธิ์บัญชี เงิน หรือข้อมูลรับรอง",
         }
