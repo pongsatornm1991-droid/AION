@@ -33,7 +33,10 @@ jobs:
         run: |
           git config user.name "aion-bot"
           git config user.email "aion-bot@users.noreply.github.com"
-          git add content/images content/reels content/quarantine
+          # `git add` with a missing optional directory exits non-zero and
+          # used to fail the whole housekeeping run even when there was
+          # nothing to quarantine.  Stage the content tree safely instead.
+          git add -A content
           if ! git diff --cached --quiet; then
             git commit -m "AION: quarantine unreferenced generated media"
             git push

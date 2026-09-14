@@ -1,6 +1,16 @@
 name: AION - admin operations audit
 
 on:
+  push:
+    branches: [main]
+    paths:
+      - 'brain/admin_operations.py'
+      - 'brain/company_operations.py'
+      - 'brain/company_work_registry.py'
+      - 'brain/company_quality_audit.py'
+      - 'tests/test_company_operations.py'
+      - 'tests/test_dashboard.py'
+      - '.github/workflows/admin-operations.yml'
   schedule:
     - cron: "35 */6 * * *"
   workflow_dispatch: {}
@@ -10,6 +20,7 @@ permissions:
 
 jobs:
   audit:
+    timeout-minutes: 10
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
