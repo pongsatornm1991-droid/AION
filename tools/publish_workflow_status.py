@@ -62,7 +62,7 @@ CATEGORIES = [
         "check-comments.yml", "check-profile-approvals.yml",
         "propose-profile-change.yml",
     }),
-    ("growth", "การเติบโต", {"growth-pulse.yml", "evolution-cycle.yml", "experiment-runner.yml"}),
+    ("growth", "การเติบโต", {"growth-pulse.yml", "youtube-audience.yml", "evolution-cycle.yml", "experiment-runner.yml"}),
     ("infra", "โครงสร้างพื้นฐาน", {
         "tests.yml", "automation-health.yml", "obsidian-brain.yml",
         "publish-public-summary.yml", "publish-workflow-status.yml", "publish-delivery-status.yml", "asset-hygiene.yml",

@@ -15,6 +15,7 @@ from brain.company_work_registry import CompanyWorkRegistry
 from brain.delivery_watchdog import DeliveryWatchdog
 from brain.system_reliability import SystemReliability
 from brain.youtube_creator_queue import YouTubeCreatorQueue
+from brain.continuity_guard import ContinuityGuard
 
 
 class OperationsControlTower:
@@ -100,6 +101,28 @@ class OperationsControlTower:
                 "episodes": 0,
             }
 
+    def _preflight(self):
+        """Make the existing production gates visible before external upload."""
+        try:
+            candidates = YouTubeCreatorQueue(self.memory, root=self.root).candidates()
+        except (OSError, ValueError, TypeError):
+            candidates = []
+        items = []
+        for item in candidates:
+            if item.get("status") == "published":
+                continue
+            gate = item.get("quality_gate") or {}
+            if not item.get("video_exists"):
+                state, detail = "waiting", "รอประกอบวิดีโอจากภาพ เสียง และ storyboard"
+            elif gate.get("eligible"):
+                state, detail = "pass", "ผ่าน Quality Gate แล้ว รอรอบเผยแพร่"
+            elif gate.get("state") == "blocked":
+                state, detail = "attention", "Quality Gate ระบุสิ่งที่ต้องแก้ไว้แล้ว"
+            else:
+                state, detail = "waiting", "ก่อนอัปโหลดจะตรวจไฟล์, เสียง, สัดส่วน, ระยะเวลา, frame samples, คุณค่าต่อผู้ชม และงานซ้ำ"
+            items.append({"title": item.get("title"), "state": state, "detail": detail, "reasons": gate.get("reasons") or []})
+        return items
+
     def snapshot(self):
         pending = self._pending_work()
         delivery = DeliveryWatchdog(self.memory, root=self.root).snapshot()
@@ -110,6 +133,7 @@ class OperationsControlTower:
         workflow_attention = [item for item in company["departments"] if item["state"] in {"failure", "partial", "unknown"}]
         quality = self._creative_gate()
         audience = AudienceAccessibility(self.memory).snapshot()
+        continuity = ContinuityGuard(self.root, getattr(self.memory, "root", None)).snapshot()
 
         blockers = []
         for item in pending:
@@ -129,9 +153,11 @@ class OperationsControlTower:
             "work_now": pending,
             "blockers": blockers,
             "quality_gate": quality,
+            "preflight": self._preflight(),
             "delivery": delivery,
             "audience": audience,
             "asset_hygiene": assets,
+            "continuity": continuity,
             "workflow_register": company,
             "recovery_policy": "งานที่รอจะถูกเก็บในคิวเดิมและลองใหม่โดย workflow ปกติ; ไม่สร้างโพสต์ซ้ำ ไม่ใช้ภาพเก่าแทน และไม่แตะสิทธิ์บัญชี เงิน หรือข้อมูลรับรอง",
         }

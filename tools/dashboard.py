@@ -485,6 +485,12 @@ def _platform_operations_snapshot(memory, reels):
     social = SocialIntelligence(memory).snapshot()
     admin = AdminOperations(ROOT).snapshot()
     audience = AudienceAccessibility(memory).snapshot()
+    youtube_public = 0
+    for entry in _entries(memory, "social_feedback"):
+        if entry.get("source") == "youtube-public-analytics":
+            youtube_public += 1
+    audience["youtube_public_metric_records"] = youtube_public
+    audience["youtube_learning_state"] = ("มีข้อมูลสาธารณะให้เปรียบเทียบ" if youtube_public else "รอสถิติสาธารณะจาก YouTube; retention ต้องใช้ YouTube Analytics โดยเฉพาะ")
     return {
         "platforms": [
             {"id": "instagram", "name": "Instagram", "color": "#ff5db1", "purpose": "ภาพใหม่และ Reels ที่เข้าใจเร็ว", "cadence": "Reel 18:13 · ภาพ 19:31", "automation": "สร้างภาพใหม่ → ตรวจ → Instagram + Facebook", "community": "ตรวจคอมเมนต์ทุก 5 นาที", "messages": "รอ Meta Messaging เปิดใช้งาน", "published": reels["platform_counts"].get("instagram", 0)},

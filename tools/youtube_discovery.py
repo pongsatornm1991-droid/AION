@@ -76,3 +76,35 @@ def get_youtube_video_metadata(video_ids, api_key=None):
         "published_at": (item.get("snippet") or {}).get("publishedAt"),
         "duration": (item.get("contentDetails") or {}).get("duration"),
     } for item in items if item.get("id")]
+
+
+def get_youtube_video_statistics(video_ids, api_key=None):
+    """Return public outcome counters for AION's own known video IDs only.
+
+    This is intentionally not YouTube Analytics.  It reads public views,
+    likes, and comments and leaves retention/demographics explicitly unknown.
+    """
+    video_ids = [str(value).strip() for value in (video_ids or []) if str(value).strip()]
+    if not video_ids:
+        return []
+    api_key = api_key or os.getenv("YOUTUBE_DATA_API_KEY")
+    if not api_key:
+        raise RuntimeError("YOUTUBE_DATA_API_KEY is required for YouTube discovery")
+    import requests
+    response = requests.get(YOUTUBE_VIDEOS_URL, params={
+        "part": "snippet,statistics", "id": ",".join(video_ids[:50]), "key": api_key,
+    }, timeout=15)
+    if response.status_code >= 400:
+        raise RuntimeError(f"YouTube statistics error: HTTP {response.status_code}")
+    try:
+        items = response.json().get("items", [])
+    except ValueError as exc:
+        raise RuntimeError("YouTube statistics error: invalid JSON") from exc
+    return [{
+        "video_id": str(item.get("id") or ""),
+        "title": str((item.get("snippet") or {}).get("title") or "")[:240],
+        "published_at": (item.get("snippet") or {}).get("publishedAt"),
+        "view_count": (item.get("statistics") or {}).get("viewCount", 0),
+        "like_count": (item.get("statistics") or {}).get("likeCount", 0),
+        "comment_count": (item.get("statistics") or {}).get("commentCount", 0),
+    } for item in items if item.get("id")]
