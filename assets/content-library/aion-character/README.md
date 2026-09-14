@@ -9,10 +9,14 @@ This folder contains the visual identity references used to keep AION consistent
 - `04-aion-profile-v2.png` -- close-up portrait made with the reusable scene
   block below (not a multi-view sheet). This is AION's current profile
   picture, live on every platform (Facebook, Instagram) as of 2026-09-04.
-- `05-aion-storyteller-canonical-v1.png` -- the canonical full-body storyteller
-  design for global educational videos. It establishes AION's midnight-blue
-  explorer jacket, constellation trim, practical boots, chest lotus, and the
-  small holographic orb used to introduce a place, artifact, map, or era.
+- `05-aion-storyteller-canonical-v1.png` -- the legacy full-body storyteller
+  reference. New production follows the v2 design direction below: a small
+  cyan crystal core is the recognisable signature; clothing is contextual and
+  deliberately not all blue.
+- `06-aion-crystal-core-v2.png` -- current production identity reference:
+  the cyan crystal core, warm-ivory explorer layer, charcoal utility details,
+  and restrained light accents. Generated as original concept art on
+  2026-09-14 for use as a reference, not as a post.
 - Generated with Seedream 4.0 through AIPass on 2026-09-03.
 - Treat the character design as a reference, not a rigid costume. AION may evolve, age visually, and change color with emotional state while retaining the same silhouette, translucent body, neural-light texture, and subtle Thai motifs.
 
@@ -30,11 +34,14 @@ Instead reuse this exact short block at the start of every new prompt --
 scenes, posts, and Reels alike -- so AION stays visually consistent without
 needing a single combined reference image:
 
-> AION: a gender-neutral digital spirit made entirely of soft translucent
-> cyan-blue light and fine glowing neural-constellation lines, large
-> expressive glowing eyes, calm friendly presence, faint lotus-petal light
-> pattern at the chest, no human skin. Premium 3D animated film quality, no
-> text, no logo, no watermark.
+> AION: an original gender-neutral AI field guide with a small faceted
+> cyan-blue crystal core at the sternum, fine glowing neural-constellation
+> accents, friendly expressive eyes, calm presence, and a faint lotus-petal
+> geometry around the core. Wear practical context-specific clothing in warm
+> ivory, charcoal, earth tones or deep navy; use cyan only as a restrained
+> luminous accent, never an all-blue body or outfit. Premium original
+> family-friendly cinematic 3D illustration, no text, no logo, no watermark,
+> no named-studio imitation.
 
 Append the specific scene, pose, or expression after this block. See
 `aion-core/PROMPTS.md` (entries 13+) for the running list of scene prompts
@@ -46,7 +53,8 @@ still look like AION" -- treat it the same as the numbered sheets above.
 
 - Keep AION gender-neutral and approachable.
 - Preserve the simple face and recognizable silhouette.
-- Use cyan as the neutral baseline; emotional color changes are allowed.
+- Preserve a small cyan crystal core as the identity anchor; emotional color
+  changes are allowed in its glow, while clothing follows the scene context.
 - Thai identity should appear through light geometry, environments, values, and storytelling—not stereotypes.
 - Do not publish the character sheet as a normal post; use it as a generation reference.
 - For any new scene image, use the reusable block above instead of attempting another multi-view sheet.
@@ -54,6 +62,6 @@ still look like AION" -- treat it the same as the numbered sheets above.
   foregrounded, observing at human scale, reflected in an object, or a small
   silhouette for a scientific scale shot, but must remain recognizably the
   on-screen guide rather than only a narrator.
-- For the global creator series, preserve the storyteller outfit from
-  `05-aion-storyteller-canonical-v1.png`; historical costumes may be layered
-  on only when the episode makes that context clear.
+- Costume follows narrative work: explorer layer for field history, clean lab
+  layer for science, simple visitor layer around families and communities. The
+  core and face remain consistent, but no single outfit is mandatory.
