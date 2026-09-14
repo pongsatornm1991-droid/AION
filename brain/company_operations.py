@@ -24,7 +24,7 @@ class CompanyOperations:
         ("quality", ("brain/youtube_quality.py", "brain/video_quality.py", "brain/evidence_qualification.py"),
          (".github/workflows/tests.yml",)),
         ("publishing", ("brain/reels.py", "brain/youtube_creator_queue.py", "tools/youtube.py"),
-         (".github/workflows/reel-cycle.yml", ".github/workflows/instagram-cycle.yml", ".github/workflows/youtube-creator.yml")),
+         (".github/workflows/reel-cycle.yml", ".github/workflows/instagram-cycle.yml", ".github/workflows/youtube-creator.yml", ".github/workflows/youtube-longform.yml")),
         ("growth", ("brain/social_feedback.py", "brain/growth_pulse.py"),
          (".github/workflows/instagram-feedback.yml", ".github/workflows/growth-pulse.yml")),
         ("audience-accessibility", ("brain/audience_accessibility.py", "brain/youtube_quality.py"),
