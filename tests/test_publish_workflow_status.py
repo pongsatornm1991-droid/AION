@@ -35,6 +35,9 @@ class TestPillFor(unittest.TestCase):
     def test_in_progress_is_running(self):
         self.assertEqual("running", pws.pill_for({"status": "in_progress", "conclusion": None})[0])
 
+    def test_pending_is_running_not_unknown(self):
+        self.assertEqual("running", pws.pill_for({"status": "pending", "conclusion": None})[0])
+
     def test_success(self):
         self.assertEqual("success", pws.pill_for({"status": "completed", "conclusion": "success"})[0])
 

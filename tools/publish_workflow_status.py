@@ -85,7 +85,7 @@ def pill_for(run):
         return "unknown", "ไม่มีข้อมูล"
     status = run.get("status")
     conclusion = run.get("conclusion")
-    if status in ("in_progress", "queued"):
+    if status in ("in_progress", "queued", "pending", "waiting"):
         return "running", "กำลังรัน"
     if conclusion == "success":
         return "success", "สำเร็จ"
@@ -142,7 +142,10 @@ def build_status(runs):
         1 for e in entries
         if e["run"].get("conclusion") == "success" and e["run"].get("status") != "in_progress"
     )
-    running = sum(1 for e in entries if e["run"].get("status") in ("in_progress", "queued"))
+    running = sum(
+        1 for e in entries
+        if e["run"].get("status") in ("in_progress", "queued", "pending", "waiting")
+    )
     attn = sum(
         1 for e in entries
         if e["run"].get("conclusion") in ("failure", "timed_out", "startup_failure")
