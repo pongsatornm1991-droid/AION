@@ -13,7 +13,7 @@ name: AION - Instagram content cycle
 # Facebook Page is never quiet on a day it posted to Instagram --
 # mirrors reel-cycle.yml's own existing dual-platform publish).
 #
-# Deliberately one post daily at 19:00 Bangkok time: enough consistency to
+# Deliberately one post daily around 19:31 Bangkok time: enough consistency to
 # learn from audience response without filling the feed with low-signal work.
 #
 # Requires two NEW repository secrets beyond what every other AION
@@ -32,7 +32,8 @@ name: AION - Instagram content cycle
 
 on:
   schedule:
-    - cron: "0 12 * * *"
+    # Avoid GitHub's congested top-of-hour scheduler window.
+    - cron: "31 12 * * *"
   workflow_dispatch: {}
 
 # All AION workflows share one private, git-backed memory_data repo

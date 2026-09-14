@@ -4,7 +4,8 @@ name: AION - Instagram Reel cycle
 # feedback to judge whether this cadence earns attention; it is not a volume bot.
 on:
   schedule:
-    - cron: "0 11 * * *"
+    # Avoid GitHub's congested top-of-hour scheduler window.
+    - cron: "13 11 * * *"
   workflow_dispatch: {}
 
 concurrency:

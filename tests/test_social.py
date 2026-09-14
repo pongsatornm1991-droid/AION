@@ -151,6 +151,17 @@ class SeedSelectionTests(BaseSocialTest):
         self.assertIsNotNone(seed)
         self.assertEqual(seed["kind"], "goal")
 
+    def test_excludes_internal_work_briefs_from_public_seeds(self):
+        from brain.goals import GoalEngine
+
+        GoalEngine(self.memory).set_goal(
+            "รวบรวมคำชี้แจงจากผู้ใช้ให้ครบ: ประเภทความช่วยเหลือและรูปแบบผลลัพธ์ที่ต้องการ",
+            completion_criteria="ครบถ้วน",
+        )
+        generator = SocialContentGenerator(self.memory, SafeProvider())
+
+        self.assertIsNone(generator.pick_seed())
+
     def test_picks_a_seed_from_an_observed_experiment(self):
         from brain.experiments import ExperimentEngine
 

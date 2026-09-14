@@ -2,7 +2,9 @@ name: AION - social post cycle
 
 # Runs run-social-cycle so AION drafts and (if safe) posts new
 # content to Facebook without anyone running it by hand. Raised from
-# once daily at 21:00 Bangkok time. This pace leaves room for audience
+# once daily around 21:17 Bangkok time.  GitHub warns that jobs scheduled
+# exactly on the hour can be delayed under load; the deliberate offset makes
+# the daily run more reliable while preserving the same audience window. This pace leaves room for audience
 # response and avoids treating social growth as a volume contest.
 #
 # Shares the same private memory_data repo as check-comments.yml (see
@@ -11,7 +13,7 @@ name: AION - social post cycle
 
 on:
   schedule:
-    - cron: "0 14 * * *"
+    - cron: "17 14 * * *"
   workflow_dispatch: {}
 
 # All AION workflows share one private, git-backed memory_data repo

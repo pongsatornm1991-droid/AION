@@ -84,6 +84,20 @@ class SocialContentGenerator:
     _MARKDOWN_BULLET_RE = re.compile(r"^\s*[-*]\s+", re.MULTILINE)
     _WHITESPACE_RE = re.compile(r"\s+")
 
+    # A memory entry can be useful for operating AION while being a poor
+    # public topic.  In particular, an internal goal such as "collect the
+    # user's requirements" must never turn into a Facebook post asking the
+    # audience to fill in AION's own work brief.  Keep this deliberately
+    # narrow: we exclude operational instructions, not curiosity, research
+    # or creative ideas simply because they mention AION.
+    _INTERNAL_SEED_PATTERNS = [
+        r"รวบรวมคำชี้แจงจากผู้ใช้",
+        r"ประเภทความช่วยเหลือ",
+        r"รูปแบบผลลัพธ์ที่ต้องการ",
+        r"user requirements?",
+        r"help type \(research, planning, or writing\)",
+    ]
+
     def __init__(self, memory, provider, evaluator=None, min_claim_safety=5):
         if evaluator is None:
             from brain.evaluator import OutputEvaluator
@@ -119,6 +133,16 @@ class SocialContentGenerator:
 
         return text
 
+    @classmethod
+    def _is_public_worthy_seed(cls, text):
+        """Return whether a memory may safely become audience-facing topic."""
+
+        text = str(text or "")
+        return bool(text) and not any(
+            re.search(pattern, text, re.IGNORECASE)
+            for pattern in cls._INTERNAL_SEED_PATTERNS
+        )
+
     def _candidate_seeds(self):
         """Collect seed texts from every source of real, already-
         recorded AION content that currently exists. Each source is
@@ -134,7 +158,7 @@ class SocialContentGenerator:
         try:
             from brain.beliefs import BeliefSystem
             for entry in BeliefSystem(self.memory).active_beliefs(limit=5):
-                if entry.get("statement"):
+                if entry.get("statement") and self._is_public_worthy_seed(entry["statement"]):
                     seeds.append({
                         "kind": "belief",
                         "text": self._clean_seed_text(entry["statement"]),
@@ -145,7 +169,7 @@ class SocialContentGenerator:
         try:
             from brain.curiosity import CuriosityEngine
             for entry in CuriosityEngine(self.memory).open_questions(limit=5):
-                if entry.get("statement"):
+                if entry.get("statement") and self._is_public_worthy_seed(entry["statement"]):
                     seeds.append({
                         "kind": "question",
                         "text": self._clean_seed_text(entry["statement"]),
@@ -156,7 +180,7 @@ class SocialContentGenerator:
         try:
             from brain.goals import GoalEngine
             for entry in GoalEngine(self.memory).active_goals(limit=5):
-                if entry.get("statement"):
+                if entry.get("statement") and self._is_public_worthy_seed(entry["statement"]):
                     seeds.append({
                         "kind": "goal",
                         "text": self._clean_seed_text(entry["statement"]),
@@ -168,7 +192,7 @@ class SocialContentGenerator:
             from brain.experiments import ExperimentEngine
             experiments = ExperimentEngine(self.memory).observed_experiments(limit=5)
             for entry in experiments:
-                if entry.get("prediction"):
+                if entry.get("prediction") and self._is_public_worthy_seed(entry["prediction"]):
                     seeds.append({
                         "kind": "experiment",
                         "text": self._clean_seed_text(entry["prediction"]),
@@ -182,7 +206,7 @@ class SocialContentGenerator:
                     "social-safety-gate", "social-style-review",
                 ):
                     continue
-                if entry.get("content"):
+                if entry.get("content") and self._is_public_worthy_seed(entry["content"]):
                     seeds.append({
                         "kind": "lesson",
                         "text": self._clean_seed_text(entry["content"]),
