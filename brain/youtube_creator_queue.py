@@ -161,6 +161,14 @@ class YouTubeCreatorQueue:
         if target is None:
             return {"stage": "no-authorized-creator-episode"}
         entry, payload = target
+        # Records created before caption support did not store subtitle_path.
+        # The file convention is stable, so repair that metadata in memory
+        # rather than falsely treating a complete episode as missing captions.
+        if not payload.get("subtitle_path") and payload.get("episode_id"):
+            payload = {
+                **payload,
+                "subtitle_path": f"content/reels/{payload['episode_id']}.srt",
+            }
         path = self.root / str(payload.get("video_path") or "")
         if not path.is_file():
             return {"stage": "missing-video", "episode_id": payload.get("episode_id")}

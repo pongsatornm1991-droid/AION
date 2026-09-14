@@ -109,6 +109,24 @@ class YouTubeCreatorQueueTests(unittest.TestCase):
                 queue.publish_once(lambda _path, _title, description: captured.update(description=description) or {"video_id": "abc"})
             self.assertIn("#Shorts", captured["description"])
 
+    def test_legacy_creator_record_recovers_conventional_caption_path(self):
+        with tempfile.TemporaryDirectory() as root:
+            self._episode(root)
+            (Path(root) / "content" / "reels" / "episode.mp4").write_bytes(b"video")
+            (Path(root) / "content" / "reels" / "episode.srt").write_text("1\n00:00:00,000 --> 00:00:01,000\nAION\n", encoding="utf-8")
+            policy = Path(root) / "config"; policy.mkdir()
+            (policy / "aion_authority.json").write_text('{"public_publishing":{"enabled":true}}', encoding="utf-8")
+            memory = MemoryEngine(Path(root) / "memory")
+            queue = YouTubeCreatorQueue(memory, root)
+            queue.prepare_once()
+            entry = memory.all(queue.CATEGORY)[0]
+            legacy = __import__("json").loads(entry["content"])
+            legacy.pop("subtitle_path", None)
+            memory.update(queue.CATEGORY, entry["id"], content=__import__("json").dumps(legacy))
+            with patch("brain.video_quality.VideoQualityGate.assess", return_value={"eligible": True, "reasons": [], "technical": {}}):
+                result = queue.publish_once(lambda *_: {"video_id": "abc"})
+            self.assertEqual("published", result["stage"])
+
     def test_records_an_actionable_error_when_uploader_exception_has_no_message(self):
         with tempfile.TemporaryDirectory() as root:
             self._episode(root)
