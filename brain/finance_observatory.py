@@ -7,35 +7,65 @@ read-only Admin API key; Gemini balance remains an owner-console value because
 the public Gemini API does not provide a general balance endpoint.
 """
 
+import json
 import os
+import time
 from pathlib import Path
+from urllib.error import URLError
+from urllib.request import Request, urlopen
 
 
 class FinanceObservatory:
     def __init__(self, root=None):
         self.root = Path(root or Path(__file__).resolve().parents[1])
 
+    @staticmethod
+    def _openai_costs():
+        """Read reconciled month-to-date costs without ever returning a key."""
+        enabled = os.getenv("AION_FINANCE_OPENAI_COSTS_ENABLED", "").lower() == "true"
+        admin_key = os.getenv("OPENAI_ADMIN_KEY")
+        if not (enabled and admin_key):
+            return None, "owner-setup-required"
+        start_time = int(time.time()) - 31 * 24 * 60 * 60
+        request = Request(
+            "https://api.openai.com/v1/organization/costs"
+            f"?start_time={start_time}&bucket_width=1d&limit=31",
+            headers={"Authorization": f"Bearer {admin_key}", "Content-Type": "application/json"},
+        )
+        try:
+            with urlopen(request, timeout=15) as response:
+                payload = json.loads(response.read().decode("utf-8"))
+            value = sum(
+                float(result.get("amount", {}).get("value") or 0)
+                for bucket in payload.get("data") or []
+                for result in bucket.get("results") or []
+            )
+            return {"amount": round(value, 4), "currency": "usd"}, "synced"
+        except (URLError, OSError, ValueError, TypeError):
+            # A billing read error must remain visible but may never reveal
+            # provider responses or credentials on the dashboard.
+            return None, "sync-unavailable"
+
     def snapshot(self):
         scene_root = self.root / "assets" / "content-library" / "aion-stories"
         scene_images = list(scene_root.rglob("*.png")) if scene_root.is_dir() else []
         videos = list((self.root / "content" / "reels").glob("*.mp4"))
-        openai_costs_enabled = os.getenv("AION_FINANCE_OPENAI_COSTS_ENABLED", "").lower() == "true"
-        openai_admin_available = bool(os.getenv("OPENAI_ADMIN_KEY"))
+        openai_cost, openai_state = self._openai_costs()
         return {
             "title": "AION Finance Observatory",
             "purpose": "ติดตามหน่วยงานผลิตและต้นทุนที่ผู้ให้บริการยืนยัน โดยอ่านอย่างเดียว",
             "operations": {
                 "generated_scene_images": len(scene_images),
                 "assembled_videos": len(videos),
-                "known_currency_cost": None,
-                "currency_status": "รอข้อมูลค่าใช้จ่ายที่ยืนยันจากผู้ให้บริการ",
+                "known_currency_cost": openai_cost,
+                "currency_status": "ยืนยันจาก OpenAI Costs API" if openai_state == "synced" else "รอข้อมูลค่าใช้จ่ายที่ยืนยันจากผู้ให้บริการ",
             },
             "providers": [
                 {
                     "name": "OpenAI",
-                    "state": "ready-for-readonly-cost-sync" if (openai_costs_enabled and openai_admin_available) else "owner-setup-required",
+                    "state": openai_state,
                     "detail": "ดึงต้นทุนจริงรายวัน/โปรเจกต์ได้ผ่าน Costs API เมื่อประธานใส่ Admin API key แบบอ่านอย่างเดียวและเปิดการซิงก์",
-                    "remaining": "ไม่มีข้อมูลยอดคงเหลือในระบบตอนนี้",
+                    "remaining": "ต้นทุนเดือนล่าสุดที่ยืนยันแล้ว" if openai_cost else "ไม่มีข้อมูลยอดคงเหลือในระบบตอนนี้",
                 },
                 {
                     "name": "Gemini",
