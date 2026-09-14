@@ -12,6 +12,7 @@ class CostumeDirectionTests(unittest.TestCase):
         self.assertIn("practical", brief)
         self.assertIn("insulated", brief)
         self.assertIn("no logo", brief)
+        self.assertIn("silver-white hair", brief)
 
     def test_research_scene_gets_unobtrusive_prop(self):
         brief = CostumeDirection.brief_for(

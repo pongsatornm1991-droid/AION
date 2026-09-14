@@ -14,6 +14,7 @@ class CreatorSceneProductionTests(unittest.TestCase):
         )
         self.assertIn("Do not include AION in this scene", prompt)
         self.assertIn("never make AION the hero", prompt)
+        self.assertIn("photorealistic lighting", prompt)
 
     def test_creates_bounded_fresh_assets_and_updates_storyboard(self):
         with tempfile.TemporaryDirectory() as root:

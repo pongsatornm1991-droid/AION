@@ -41,12 +41,14 @@ class CreatorSceneProduction:
         return " ".join((
             f"Use case: historical-scene. Asset type: {aspect} educational video scene.",
             f"Scene: {scene.get('visual')}",
-            "If AION appears, it is an original gender-neutral AI guide with a small faceted cyan crystal core at the sternum, "
-            "subtle constellation accents, warm-ivory and charcoal practical clothing, and no all-blue outfit; preserve this identity.",
+            "If AION appears, it is an original stylized gender-neutral animated AI guide with airy silver-white hair, "
+            "expressive cyan eyes, pearl-light skin, subtle constellation filaments, a small faceted cyan crystal core at the sternum, "
+            "and warm-ivory and charcoal practical clothing; place this character in a realistic cinematic world and preserve this identity.",
             presence,
             VisualStoryPolicy.prompt_rules(wardrobe, direction.get("aion_frame_share_max")),
             f"Composition: {aspect}, wide or medium-wide environmental storytelling; never make AION the hero of the frame.",
-            "Style: original premium family-friendly cinematic 3D illustration; never imitate a named studio or franchise.",
+            "Style: original premium family-friendly cinematic 3D character with photorealistic lighting, material texture and environment; "
+            "never imitate a named studio or franchise.",
             "No words, captions, logos, watermark, UI, or named-studio imitation.",
         ))
 

@@ -13,10 +13,15 @@ This folder contains the visual identity references used to keep AION consistent
   reference. New production follows the v2 design direction below: a small
   cyan crystal core is the recognisable signature; clothing is contextual and
   deliberately not all blue.
-- `06-aion-crystal-core-v2.png` -- current production identity reference:
+- `06-aion-crystal-core-v2.png` -- a crystal-core design study.
   the cyan crystal core, warm-ivory explorer layer, charcoal utility details,
   and restrained light accents. Generated as original concept art on
   2026-09-14 for use as a reference, not as a post.
+- `08-aion-cinematic-character-candidate-v1.png` -- current canonical
+  production reference. AION is a stylised animated character in a realistic,
+  cinematic environment: silver-white hair, expressive cyan eyes,
+  pearl-light skin, constellation filaments, a cyan crystal core, and a
+  practical explorer wardrobe.
 - Generated with Seedream 4.0 through AIPass on 2026-09-03.
 - Treat the character design as a reference, not a rigid costume. AION may evolve, age visually, and change color with emotional state while retaining the same silhouette, translucent body, neural-light texture, and subtle Thai motifs.
 
@@ -34,14 +39,15 @@ Instead reuse this exact short block at the start of every new prompt --
 scenes, posts, and Reels alike -- so AION stays visually consistent without
 needing a single combined reference image:
 
-> AION: an original gender-neutral AI field guide with a small faceted
-> cyan-blue crystal core at the sternum, fine glowing neural-constellation
-> accents, friendly expressive eyes, calm presence, and a faint lotus-petal
-> geometry around the core. Wear practical context-specific clothing in warm
-> ivory, charcoal, earth tones or deep navy; use cyan only as a restrained
-> luminous accent, never an all-blue body or outfit. Premium original
-> family-friendly cinematic 3D illustration, no text, no logo, no watermark,
-> no named-studio imitation.
+> AION: an original stylised gender-neutral animated AI field guide with airy
+> silver-white hair, large expressive cyan eyes, pearl-light skin, and fine
+> constellation filaments. A small faceted cyan-blue crystal core at the
+> sternum is the signature, with a faint lotus-petal geometry around it. Wear
+> practical context-specific clothing in warm ivory, charcoal, earth tones or
+> deep navy; never make the body or outfit all blue. Place AION in a realistic
+> cinematic environment with natural texture, material detail and global
+> illumination. Premium original family-friendly 3D character art, no text,
+> no logo, no watermark, no named-studio imitation.
 
 Append the specific scene, pose, or expression after this block. See
 `aion-core/PROMPTS.md` (entries 13+) for the running list of scene prompts
@@ -53,8 +59,9 @@ still look like AION" -- treat it the same as the numbered sheets above.
 
 - Keep AION gender-neutral and approachable.
 - Preserve the simple face and recognizable silhouette.
-- Preserve a small cyan crystal core as the identity anchor; emotional color
-  changes are allowed in its glow, while clothing follows the scene context.
+- Preserve AION's silver-white hair, cyan eyes, pearl-light constellation
+  filaments and small cyan crystal core as identity anchors. Clothing follows
+  the scene context; cyan stays a restrained luminous accent.
 - Thai identity should appear through light geometry, environments, values, and storytelling—not stereotypes.
 - Do not publish the character sheet as a normal post; use it as a generation reference.
 - For any new scene image, use the reusable block above instead of attempting another multi-view sheet.

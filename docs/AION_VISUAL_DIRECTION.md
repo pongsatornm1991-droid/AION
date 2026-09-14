@@ -2,21 +2,23 @@
 
 ## Identity anchor
 
-AION is recognised by a small faceted cyan crystal core at the sternum,
-subtle constellation-light details, a calm gender-neutral face, and quiet
-lotus geometry. Cyan is a signal of intelligence and curiosity, not a full
-body colour scheme.
+AION is recognised by airy silver-white hair, expressive cyan eyes,
+pearl-light constellation filaments, a small faceted cyan crystal core at the
+sternum, and quiet lotus geometry. The character is stylised; the world around
+them has realistic cinematic lighting, material texture and scale. Cyan is a
+signal of intelligence and curiosity, not a full body colour scheme.
 
 ## What the audience sees
 
 | Context | Visual treatment | AION's role |
 | --- | --- | --- |
-| History, science, nature | Cinematic semi-real 3D, tactile environments, evidence and scale first | Brief field guide or small silhouette |
-| Family and young-viewer stories | Original stylised cinematic 3D, expressive but not mascot-led | Friendly guide at transitions |
+| History, science, nature | Original stylised 3D AION in tactile, realistic cinematic environments; evidence and scale first | Brief field guide or small silhouette |
+| Family and young-viewer stories | Original stylised cinematic 3D character in a believable world, expressive but not mascot-led | Friendly guide at transitions |
 | Research or explanation | Clean luminous lab language, diagrams only when they clarify | Researcher, not lecturer |
 
-This is an original visual language. It must not imitate Disney, Pixar, or any
-other named studio, franchise, character, or shot style.
+This is an original visual language: animated character + cinematic real-world
+setting. It must not imitate Disney, Pixar, or any other named studio,
+franchise, character, or shot style.
 
 ## Wardrobe rule
 
