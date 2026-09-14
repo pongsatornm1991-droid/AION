@@ -132,3 +132,16 @@ class DashboardTests(unittest.TestCase):
             (workflow / "youtube-shorts.yml").write_text("on:\n  schedule:\n", encoding="utf-8")
             check = AdminOperations(root).snapshot()["checks"][0]
             self.assertEqual("attention", check["state"])
+
+    def test_admin_operations_flags_top_of_hour_public_publishing_schedule(self):
+        with tempfile.TemporaryDirectory() as root:
+            workflow = Path(root) / ".github" / "workflows"
+            workflow.mkdir(parents=True)
+            for filename in ("reel-cycle.yml", "instagram-cycle.yml", "youtube-creator.yml", "social-cycle.yml"):
+                (workflow / filename).write_text('on:\n  schedule:\n    - cron: "0 12 * * *"\n', encoding="utf-8")
+
+            checks = AdminOperations(root).snapshot()["checks"]
+            cadence = next(check for check in checks if check["name"] == "Publishing cadence")
+
+            self.assertEqual("attention", cadence["state"])
+            self.assertIn("reel-cycle.yml", cadence["detail"])
