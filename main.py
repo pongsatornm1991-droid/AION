@@ -2220,13 +2220,15 @@ def run_learning_cycle(args):
             "eligible for this learning cycle."
         )
 
-    # Visibility notification.
-    #
-    # Telegram failure must never break the learning cycle itself.
-    notified = _notify_report(
-        report,
-        formatter=_format_learning_telegram_report,
-    )
+    # Telegram is for meaningful outcomes, not a noisy mirror of the
+    # Dashboard. Routine no-result/retry states remain in Learning Lab;
+    # workflow failures are handled separately by Automation Health.
+    notified = None
+    if stage == "answered":
+        notified = _notify_report(
+            report,
+            formatter=_format_learning_telegram_report,
+        )
 
     if notified is True:
         print("Notified via Telegram.")

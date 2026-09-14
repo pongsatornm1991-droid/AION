@@ -124,6 +124,10 @@ class SearchQueryPlanner:
         "perspectives": "perspective",
         "opinions": "opinion",
         "facts": "facts",
+        # The Latin spelling is commonly written with a diacritic. Search
+        # sources are less consistent, so retain one stable ASCII form.
+        "yakhchāl": "yakhchal",
+        "yakhchal": "yakhchal",
     }
 
     _HUMAN_PERSPECTIVE_SEEDS = (

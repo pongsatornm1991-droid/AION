@@ -581,10 +581,8 @@ class WebLearningCycleTests(BaseLearningTest):
             len(open_questions),
             1,
         )
-        self.assertEqual(
-            open_questions[0]["id"],
-            question["id"],
-        )
+        self.assertEqual(1, open_questions[0]["attempts"])
+        self.assertIn(question["id"], open_questions[0]["related"])
 
     def test_fetch_failure_is_captured_not_raised(self):
         self._raise_question()

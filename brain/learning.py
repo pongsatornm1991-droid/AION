@@ -2381,27 +2381,30 @@ class WebLearningCycle:
         self,
         question_text,
         root_question_id,
+        search_queries=None,
     ):
         """Retrieve one new source while preserving legacy failure stages."""
 
-        try:
-            results = self.search_fn(
-                question_text
-            )
-
-        except Exception as exc:
-            return {
-                "ok": False,
-                "stage": "search-failed",
-                "error": str(exc),
-                "source": None,
-                "source_entry": None,
-            }
+        results = []
+        queries = list(search_queries or [question_text])
+        for query in queries:
+            try:
+                results = self.search_fn(query)
+            except Exception as exc:
+                return {
+                    "ok": False,
+                    "stage": "search-failed",
+                    "error": str(exc),
+                    "source": None,
+                    "source_entry": None,
+                }
+            if results:
+                break
 
         if not results:
             fallback = (
                 self._attempt_fallback_source(
-                    question_text,
+                    queries[-1] if queries else question_text,
                     root_question_id,
                 )
             )
@@ -3115,9 +3118,17 @@ class WebLearningCycle:
             retrieval_items = []
         
         elif use_legacy_general_flow:
+            # A curiosity question is prose for reasoning, not necessarily a
+            # good encyclopedia query. Plan compact topic queries even for
+            # the original Wikipedia path.
+            from brain.search_query_planner import SearchQueryPlanner
+            search_queries = SearchQueryPlanner().plan(
+                question_text, "general_external"
+            ) or [question_text]
             retrieval = self._retrieve_source(
                 question_text,
                 root_question_id,
+                search_queries=search_queries,
             )
 
             if retrieval["ok"]:
@@ -3236,6 +3247,21 @@ class WebLearningCycle:
                     research_plan
                 ),
             }
+
+            # A normal empty result is still a real bounded attempt. Without
+            # recording it, the scheduler selected the same question every
+            # hour and repeatedly notified the owner. Preserve it for review,
+            # but consume its declared retry budget.
+            if stage in {"no-search-results", "empty-source", "no-new-source"} and not budget_exhausted:
+                try:
+                    attempted = self.curiosity.record_attempt(
+                        question_entry["id"],
+                        note=f"No usable evidence from {selected_source_id or 'wikipedia'}; retry with a planned compact query.",
+                    )
+                    report["question"] = attempted
+                    report["attempted_question"] = attempted
+                except (KeyError, ValueError, TypeError):
+                    pass
 
             if retrieval.get(
                 "error"
