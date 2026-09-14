@@ -17,6 +17,7 @@ permissions:
 
 jobs:
   youtube-longform:
+    timeout-minutes: 25
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -37,20 +38,18 @@ jobs:
         env:
           AION_MEMORY_ROOT: memory_data
         run: python main.py prepare-youtube-creator --content-kind long-form
-      - name: Publish one authorized long-form episode after all quality gates
+      - name: Run the long-form quality gate and publishing handoff
         env:
           AION_MEMORY_ROOT: memory_data
           YOUTUBE_CLIENT_ID: ${{ secrets.YOUTUBE_CLIENT_ID }}
           YOUTUBE_CLIENT_SECRET: ${{ secrets.YOUTUBE_CLIENT_SECRET }}
           YOUTUBE_REFRESH_TOKEN: ${{ secrets.YOUTUBE_REFRESH_TOKEN }}
           YOUTUBE_PRIVACY_STATUS: ${{ vars.YOUTUBE_PRIVACY_STATUS || 'public' }}
-        run: |
-          output="$(python main.py run-youtube-creator-publish --content-kind long-form)"
-          printf '%s\n' "$output"
-          # A green workflow must mean a durable YouTube upload record was
-          # written.  "No authorized episode" is useful information, but it
-          # must be visible as attention instead of looking like publication.
-          printf '%s' "$output" | grep -Fq 'Stage: published' || exit 1
+        # A missing candidate or a Quality Gate block is not an infrastructure
+        # failure.  The queue stores the exact decision for the Dashboard and
+        # Telegram sends only meaningful alerts; reserve a failed workflow for
+        # a genuinely broken command or unavailable dependency.
+        run: python main.py run-youtube-creator-publish --content-kind long-form
       - name: Persist private memory
         working-directory: memory_data
         run: |
