@@ -710,6 +710,30 @@ def build_finance_snapshot(memory_root=None):
     return FinanceObservatory(ROOT).snapshot()
 
 
+def build_operations_center_snapshot(memory_root=None):
+    """One accountable view of the company handoffs, not a second Studio."""
+    from brain.company_quality_audit import CompanyQualityAudit
+    from brain.company_work_registry import CompanyWorkRegistry
+    registry = CompanyWorkRegistry(ROOT).snapshot()
+    quality = CompanyQualityAudit(ROOT).snapshot()
+    studio = build_studio_snapshot(memory_root).get("scene_production", {})
+    departments = registry.get("departments") or []
+    active = [item for item in departments if item.get("state") == "running"]
+    attention = [item for item in departments if item.get("state") in {"failure", "partial", "unknown"}]
+    return {
+        "title": "ศูนย์ปฏิบัติการบริษัท AION",
+        "purpose": "ห้องเดียวสำหรับเห็นการส่งต่องานของทุกฝ่าย: อะไรทำงานอยู่ อะไรเชื่อมครบ และตรงไหนต้องแก้ก่อนกระทบการผลิตหรือเผยแพร่",
+        "metrics": {
+            "departments": len(departments), "active": len(active), "attention": len(attention),
+            "studio_stage": studio.get("status", "unknown"),
+        },
+        "departments": departments,
+        "quality": quality,
+        "studio": studio,
+        "boundary": "ห้องนี้สังเกตและรายงานการส่งต่องานเท่านั้น ไม่เผยแพร่แทน Studio ไม่แก้สิทธิ์บัญชี และไม่แตะเงินหรือข้อมูลรับรอง",
+    }
+
+
 def build_snapshot(memory_root=None):
     """Build the dashboard data without a network call or write operation."""
     synced_memory = ROOT / "aion-memory-data-sync"
@@ -866,13 +890,16 @@ class DashboardHandler(BaseHTTPRequestHandler):
         if path == "/api/finance":
             self._send(json.dumps(build_finance_snapshot(), ensure_ascii=False), "application/json; charset=utf-8")
             return
+        if path == "/api/operations":
+            self._send(json.dumps(build_operations_center_snapshot(), ensure_ascii=False), "application/json; charset=utf-8")
+            return
         if path in ("/studio", "/studio/"):
             self._send((DASHBOARD_DIR / "studio.html").read_text(encoding="utf-8"), "text/html; charset=utf-8")
             return
         if path == "/studio-gallery.js":
             self._send((DASHBOARD_DIR / "studio-gallery.js").read_text(encoding="utf-8"), "application/javascript; charset=utf-8")
             return
-        if path in ("/learning", "/cyber", "/lab", "/finance"):
+        if path in ("/learning", "/cyber", "/lab", "/finance", "/operations"):
             if path == "/finance":
                 self._send((DASHBOARD_DIR / "finance.html").read_text(encoding="utf-8"), "text/html; charset=utf-8")
                 return
