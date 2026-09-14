@@ -19,3 +19,23 @@ class VideoQualityTests(unittest.TestCase):
             report = VideoQualityGate(root).assess(path)
             self.assertFalse(report["eligible"])
             self.assertTrue(report["reasons"])
+
+    def test_vertical_sunday_feature_is_not_mistaken_for_widescreen_longform(self):
+        with tempfile.TemporaryDirectory() as root:
+            path = Path(root) / "feature.mp4"
+            path.write_bytes(b"video")
+            gate = VideoQualityGate(root)
+            gate._probe = lambda _path: ({
+                "format": {"duration": "120"},
+                "streams": [
+                    {"codec_type": "video", "width": 1080, "height": 1920},
+                    {"codec_type": "audio"},
+                ],
+            }, None)
+            signature = {"mean_luma": 30, "variance": 10, "pixels": b"different"}
+            gate._sample_frames = lambda _path, _duration: ([
+                {**signature, "pixels": bytes([1])},
+                {**signature, "pixels": bytes([2])},
+                {**signature, "pixels": bytes([3])},
+            ], None)
+            self.assertTrue(gate.assess(path, "long-form")["eligible"])

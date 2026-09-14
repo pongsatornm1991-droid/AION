@@ -133,12 +133,25 @@ class VideoQualityGate:
         if not has_audio:
             reasons.append("missing-audio-stream")
         if content_kind == "long-form":
-            if width < 1280 or height < 720:
-                reasons.append("resolution-too-low-for-longform")
-            if ratio and abs(ratio - (16 / 9)) > 0.04:
-                reasons.append("not-widescreen-16x9")
-            if duration <= self.MAX_DURATION:
-                reasons.append("longform-must-exceed-three-minutes")
+            # AION has two deliberate Sunday formats.  A widescreen episode
+            # is a conventional long YouTube video, while a vertical feature
+            # is a faster illustrated narrative that YouTube correctly
+            # classifies as a Short when it is at most three minutes.  Do not
+            # reject the latter merely because the editorial team calls it a
+            # "long-form story" internally.
+            vertical_feature = ratio and abs(ratio - (9 / 16)) <= 0.04
+            if vertical_feature:
+                if width < self.MIN_WIDTH or height < self.MIN_HEIGHT:
+                    reasons.append("resolution-too-low-for-vertical-feature")
+                if not 60.0 <= duration <= self.MAX_DURATION:
+                    reasons.append("vertical-feature-must-be-60-to-180-seconds")
+            else:
+                if width < 1280 or height < 720:
+                    reasons.append("resolution-too-low-for-longform")
+                if ratio and abs(ratio - (16 / 9)) > 0.04:
+                    reasons.append("unsupported-longform-aspect-ratio")
+                if duration <= self.MAX_DURATION:
+                    reasons.append("longform-must-exceed-three-minutes")
         else:
             if width < self.MIN_WIDTH or height < self.MIN_HEIGHT:
                 reasons.append("resolution-too-low")

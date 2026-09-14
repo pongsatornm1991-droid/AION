@@ -188,7 +188,13 @@ class YouTubeCreatorQueue:
             }
             self.memory.update(self.CATEGORY, entry["id"], content=json.dumps(blocked, ensure_ascii=False))
             return {"stage": "quality-review-required", "episode_id": payload.get("episode_id"), **quality}
-        format_tags = "#Shorts #AION #AI" if payload.get("content_kind") == "short" else "#AION #AI"
+        technical = video_quality.get("technical") or {}
+        video_ratio = (technical.get("width", 0) / technical.get("height", 1)) if technical.get("height") else 0
+        is_youtube_short = (
+            payload.get("content_kind") == "short"
+            or (abs(video_ratio - (9 / 16)) <= 0.04 and technical.get("duration_seconds", 0) <= 180)
+        )
+        format_tags = "#Shorts #AION #AI" if is_youtube_short else "#AION #AI"
         description = "\n\n".join(part for part in (
             payload.get("caption"),
             "Original illustrated AION story. AI disclosure reviewed before publication.",
