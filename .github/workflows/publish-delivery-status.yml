@@ -1,0 +1,47 @@
+name: AION - delivery evidence watchdog
+
+on:
+  schedule:
+    - cron: "23 * * * *"
+  workflow_run:
+    workflows:
+      - AION - social post cycle
+      - AION - Instagram content cycle
+      - AION - Instagram Reel cycle
+      - AION - YouTube Creator Studio
+    types: [completed]
+  workflow_dispatch: {}
+
+permissions:
+  contents: write
+
+concurrency:
+  group: aion-delivery-evidence
+  cancel-in-progress: false
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/checkout@v4
+        with:
+          repository: pongsatornm1991-droid/aion-memory-data
+          token: ${{ secrets.MEMORY_REPO_PAT }}
+          path: memory_data
+      - uses: actions/setup-python@v5
+        with: {python-version: "3.11"}
+      - name: Build delivery evidence without exposing IDs or credentials
+        env:
+          AION_MEMORY_ROOT: memory_data
+        run: python tools/publish_delivery_status.py
+      - name: Publish the read-only delivery record
+        run: |
+          git config user.name aion-bot
+          git config user.email aion-bot@users.noreply.github.com
+          git add public/aion-delivery-status.json
+          if ! git diff --cached --quiet; then
+            git commit -m "AION: refresh delivery evidence"
+            git pull --rebase origin main
+            git push
+          fi
