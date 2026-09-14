@@ -28,6 +28,8 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: "3.11"
+          cache: pip
+          cache-dependency-path: requirements.txt
       - run: pip install -r requirements.txt
       - name: Verify deterministic safeguards
         run: python -m unittest tests.test_youtube_creator_queue tests.test_youtube_cycle tests.test_youtube_quality tests.test_video_quality -q
