@@ -3,6 +3,22 @@ name: AION - publish workflow health
 on:
   schedule:
     - cron: "7 * * * *"
+  # Refresh the public operational board immediately after core work completes;
+  # the hourly schedule remains a recovery path if this event is delayed.
+  workflow_run:
+    workflows:
+      - AION - YouTube Creator Studio
+      - AION - YouTube long-form Sunday
+      - AION - subject-first scene production
+      - AION - assemble illustrated Creator episode
+      - AION - costume continuity briefs
+      - AION - Research to story brief
+      - AION - Daily Growth Pulse
+      - AION - external learning cycle
+      - AION - Cyber Guard defensive audit
+      - AION - system reliability
+      - AION - deterministic tests
+    types: [completed]
   workflow_dispatch: {}
 
 permissions:

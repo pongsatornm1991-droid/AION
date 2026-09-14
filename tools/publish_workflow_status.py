@@ -89,6 +89,11 @@ def pill_for(run):
         return "running", "กำลังรัน"
     if conclusion == "success":
         return "success", "สำเร็จ"
+    if conclusion == "skipped":
+        # A monitor that is skipped because nothing failed is a healthy no-op,
+        # not missing evidence.  Showing it as unknown made the company audit
+        # look unhealthy even while every production workflow was green.
+        return "success", "ไม่มีเหตุให้ดำเนินการ"
     if conclusion in ("failure", "timed_out", "startup_failure"):
         return "failure", "ล้มเหลว"
     if conclusion == "cancelled":
