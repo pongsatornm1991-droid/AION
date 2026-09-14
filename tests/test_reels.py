@@ -189,12 +189,13 @@ class ReelCycleTests(unittest.TestCase):
 
 
 class ReelRenderTests(unittest.TestCase):
-    def test_voice_audio_is_padded_instead_of_shortening_video(self):
+    def test_verified_short_voice_is_padded_instead_of_shortening_video(self):
         with tempfile.TemporaryDirectory() as root:
             output = os.path.join(root, "reel.mp4")
             with mock.patch("tools.reel_render.shutil.which", return_value="ffmpeg"), \
                  mock.patch("tools.reel_render.synthesize_reel_voice", return_value=True, create=True), \
                  mock.patch("tools.voice.synthesize_reel_voice", return_value=True), \
+                 mock.patch("tools.reel_render._audio_duration", return_value=12.0), \
                  mock.patch("tools.reel_render.subprocess.run") as run:
                 render_reel("A hook", "A thought", output, duration=18)
             command = run.call_args.args[0]
