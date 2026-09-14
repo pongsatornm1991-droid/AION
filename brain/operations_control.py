@@ -127,6 +127,7 @@ class OperationsControlTower:
         """Audit source narration against storyboard time, including old renders."""
         try:
             from brain.creator_series import CreatorSeriesRegistry
+            from brain.audio_visual_timing import AudioVisualTimingGate
             from brain.video_quality import VideoQualityGate
             from tools.reel_render import _audio_duration
             ffmpeg = VideoQualityGate._ffmpeg_path()
@@ -144,13 +145,13 @@ class OperationsControlTower:
             target = float(episode.get("target_duration_seconds") or 0)
             if actual is None or not target:
                 continue
-            overrun = actual - target
+            timing = AudioVisualTimingGate.assess(actual, target)
             reports.append({
                 "title": episode.get("title"),
-                "state": "attention" if overrun > 0.25 else "pass",
+                "state": "pass" if timing["eligible"] else "attention",
                 "audio_seconds": round(actual, 2), "storyboard_seconds": target,
-                "detail": (f"เสียงยาวกว่าภาพ {overrun:.2f} วินาที — ห้าม render ซ้ำจนกว่าจะย่อบทหรือเพิ่มฉาก" if overrun > 0.25
-                           else "เสียงอยู่ภายในเวลาที่ storyboard รองรับ"),
+                "detail": timing["detail"],
+                "next": "พร้อมให้ Video QA ตรวจไฟล์สุดท้าย" if timing["eligible"] else "ส่งกลับ Story และ Visual ก่อนประกอบไฟล์",
             })
         return reports
 

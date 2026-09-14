@@ -14,6 +14,7 @@ import subprocess
 
 from PIL import Image, ImageDraw, ImageFont, ImageOps
 
+from brain.audio_visual_timing import AudioVisualTimingGate
 from tools.image_render import (
     BACKGROUND_COLOR, CONTENT_LIBRARY_DIR, DEFAULT_FONT_PATH, GLOW_COLOR,
     TEXT_COLOR, _background_paths,
@@ -191,22 +192,23 @@ def render_reel(hook, thought, output_path, duration=18, mood=None, still_paths=
     width, height = frame_size
     if (width, height) not in {REEL_SIZE, WIDESCREEN_SIZE}:
         raise ValueError("AION videos must be 9:16 or 16:9")
-    cover = os.path.splitext(output_path)[0] + "-cover.png"
-    render_reel_cover(hook, thought, cover, mood=mood, still_paths=stills)
+    # Voice is timed before any final visual work.  This prevents an expensive
+    # render from reaching the muxer only to have its ending cut silently.
     audio = os.path.splitext(output_path)[0] + ".mp3"
     from tools.voice import synthesize_reel_voice
     has_voice = synthesize_reel_voice(f"{hook}. {thought}", audio)
     if has_voice:
         audio_seconds = _audio_duration(ffmpeg, audio)
-        # Prior behavior used ``-t`` on the muxed output.  If speech was
-        # longer than the storyboard, ffmpeg silently chopped the final line.
-        # Reject instead: Story can shorten the narration or Visual can add
-        # new <=5-second beats.  A finished work must never end mid-sentence.
-        if audio_seconds is not None and audio_seconds > float(duration) + 0.25:
+        timing = AudioVisualTimingGate.assess(audio_seconds, duration)
+        # Do not treat an unreadable source audio duration as safe.  Without a
+        # verified duration the Studio cannot guarantee that speech and image
+        # finish together.
+        if not timing["eligible"]:
             raise AudioTimingError(
-                f"audio-overruns-video: narration={audio_seconds:.2f}s, "
-                f"storyboard={float(duration):.2f}s; shorten narration or add visual beats"
+                f"audio-visual-timing-failed: {timing['detail']}"
             )
+    cover = os.path.splitext(output_path)[0] + "-cover.png"
+    render_reel_cover(hook, thought, cover, mood=mood, still_paths=stills)
     frames = max(3, int(duration * 30))
     scene_frames = max(1, frames // len(stills))
     command = [ffmpeg, "-y"]

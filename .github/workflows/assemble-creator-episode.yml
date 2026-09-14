@@ -25,6 +25,8 @@ jobs:
         with: {python-version: "3.11"}
       - run: sudo apt-get update && sudo apt-get install -y ffmpeg
       - run: pip install -r requirements.txt
+      - name: Verify the audio-visual timing gate
+        run: python -m unittest tests.test_audio_visual_timing tests.test_reel_render tests.test_assemble_creator_episode -q
       - name: Assemble only an asset-complete episode
         env:
           REEL_VOICE_PROVIDER: ${{ vars.REEL_VOICE_PROVIDER || 'edge-tts' }}

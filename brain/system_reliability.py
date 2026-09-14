@@ -16,6 +16,7 @@ class SystemReliability:
         "run_tests.py",
         "brain/autonomy_policy.py",
         "brain/operations_control.py",
+        "brain/audio_visual_timing.py",
         "brain/continuity_guard.py",
         "brain/youtube_audience.py",
         "brain/self_repair.py",
