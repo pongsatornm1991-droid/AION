@@ -122,3 +122,27 @@ class CreatorSceneProduction:
                         "produced": produced, "failed": failures, "batches": batches}
         return {"stage": "episode-production-ceiling-reached", "produced": produced,
                 "failed": failures, "batches": batches, "ceiling": max_scenes}
+
+    def produce_ready_episodes(self, episode_limit=1, batch_size=DEFAULT_BATCH_SIZE,
+                               max_scenes=MAX_SCENES_PER_EPISODE_RUN):
+        """Finish a small number of approved storyboards in one Studio shift.
+
+        This is a bounded production shift, not an unbounded content farm:
+        every episode still needs a research-grounded storyboard and image
+        requests remain capped per episode.  It lets the Monday and Wednesday
+        shifts build a release buffer rather than making the evening publisher
+        wait on a same-day render.
+        """
+        reports = []
+        for _ in range(max(1, int(episode_limit))):
+            report = self.produce_episode(batch_size=batch_size, max_scenes=max_scenes)
+            reports.append(report)
+            if report.get("stage") != "episode-assets-complete":
+                break
+        completed = [item.get("episode_id") for item in reports
+                     if item.get("stage") == "episode-assets-complete"]
+        return {
+            "stage": "studio-shift-complete" if completed else reports[-1].get("stage"),
+            "completed_episode_ids": completed,
+            "reports": reports,
+        }

@@ -12,7 +12,7 @@ concurrency:
   cancel-in-progress: false
 
 permissions:
-  contents: read
+  contents: write
 
 jobs:
   prepare:
@@ -35,6 +35,10 @@ jobs:
         env:
           AION_MEMORY_ROOT: memory_data
         run: python tools/run_research_story_handoff.py
+      - name: Stage one evidence-grounded storyboard for AION Studio
+        env:
+          AION_MEMORY_ROOT: memory_data
+        run: python tools/stage_creator_episode.py
       - name: Persist the private brief
         working-directory: memory_data
         run: |
@@ -43,5 +47,15 @@ jobs:
           git add -A
           if ! git diff --cached --quiet; then
             git commit -m "AION research story brief ($(date -u +%Y-%m-%dT%H:%M:%SZ))"
+            git push
+          fi
+      - name: Persist the Studio storyboard
+        run: |
+          git config user.name "aion-bot"
+          git config user.email "aion-bot@users.noreply.github.com"
+          git add content/creator_series/
+          if ! git diff --cached --quiet; then
+            git commit -m "AION: stage research-grounded storyboard"
+            git pull --rebase origin main
             git push
           fi

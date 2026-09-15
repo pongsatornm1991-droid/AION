@@ -10,9 +10,12 @@ from brain.creator_scene_production import CreatorSceneProduction
 parser = argparse.ArgumentParser()
 parser.add_argument("--batch-size", type=int, default=25)
 parser.add_argument("--max-scenes", type=int, default=120)
+parser.add_argument("--episode-limit", type=int, default=1)
 args = parser.parse_args()
 print(json.dumps(
-    CreatorSceneProduction(ROOT).produce_episode(args.batch_size, args.max_scenes),
+    CreatorSceneProduction(ROOT).produce_ready_episodes(
+        args.episode_limit, args.batch_size, args.max_scenes
+    ),
     ensure_ascii=False,
     indent=2,
 ))

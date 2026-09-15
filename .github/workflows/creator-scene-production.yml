@@ -23,14 +23,21 @@ jobs:
           OPENAI_IMAGE_API_KEY: ${{ secrets.OPENAI_IMAGE_API_KEY }}
           OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
         run: python tools/run_platform_preflight.py --require image
-      - name: Complete one approved storyboard in recoverable 25-scene batches
+      - name: Complete the planned Studio shift in recoverable 25-scene batches
         env:
           IMAGE_PROVIDER: openai
           OPENAI_IMAGE_API_KEY: ${{ secrets.OPENAI_IMAGE_API_KEY }}
           OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
           OPENAI_IMAGE_MODEL: ${{ vars.OPENAI_IMAGE_MODEL || 'gpt-image-2' }}
           OPENAI_IMAGE_QUALITY: ${{ vars.OPENAI_IMAGE_QUALITY || 'medium' }}
-        run: python tools/produce_creator_scenes.py --batch-size 25 --max-scenes 120
+        run: |
+          # Monday and Wednesday build two Shorts each; Friday makes one
+          # reserve episode.  Every episode remains independently storyboarded
+          # and Quality-gated before it can enter the publishing queue.
+          weekday="$(date -u +%u)"
+          episode_limit=1
+          if [[ "$weekday" == "1" || "$weekday" == "3" ]]; then episode_limit=2; fi
+          python tools/produce_creator_scenes.py --episode-limit "$episode_limit" --batch-size 25 --max-scenes 120
       - run: |
           git config user.name aion-bot
           git config user.email aion-bot@users.noreply.github.com
