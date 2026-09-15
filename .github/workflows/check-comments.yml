@@ -108,6 +108,18 @@ jobs:
           TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
         run: python main.py check-instagram-comments
 
+      - name: Run YouTube comment replies when owner-enabled
+        env:
+          AION_MEMORY_ROOT: memory_data
+          AION_YOUTUBE_COMMENT_REPLIES_ENABLED: ${{ vars.AION_YOUTUBE_COMMENT_REPLIES_ENABLED || 'false' }}
+          AI_PROVIDER: ${{ vars.AI_PROVIDER || 'gemini' }}
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+          YOUTUBE_CLIENT_ID: ${{ secrets.YOUTUBE_CLIENT_ID }}
+          YOUTUBE_CLIENT_SECRET: ${{ secrets.YOUTUBE_CLIENT_SECRET }}
+          YOUTUBE_REFRESH_TOKEN: ${{ secrets.YOUTUBE_REFRESH_TOKEN }}
+        run: python main.py check-youtube-comments
+
       - name: Run Messenger and Instagram Direct replies
         env:
           AION_MEMORY_ROOT: memory_data

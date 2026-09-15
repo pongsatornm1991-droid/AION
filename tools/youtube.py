@@ -9,6 +9,7 @@ from pathlib import Path
 
 
 YOUTUBE_UPLOAD_SCOPE = "https://www.googleapis.com/auth/youtube.upload"
+YOUTUBE_COMMENT_SCOPE = "https://www.googleapis.com/auth/youtube.force-ssl"
 VALID_PRIVACY = {"private", "unlisted", "public"}
 
 
@@ -19,7 +20,7 @@ def _required(name):
     return value
 
 
-def youtube_credentials():
+def youtube_credentials(scopes=None):
     """Build refreshable OAuth credentials without exposing token values."""
     from google.oauth2.credentials import Credentials
 
@@ -29,7 +30,7 @@ def youtube_credentials():
         token_uri="https://oauth2.googleapis.com/token",
         client_id=_required("YOUTUBE_CLIENT_ID"),
         client_secret=_required("YOUTUBE_CLIENT_SECRET"),
-        scopes=[YOUTUBE_UPLOAD_SCOPE],
+        scopes=list(scopes or [YOUTUBE_UPLOAD_SCOPE]),
     )
 
 
@@ -70,3 +71,36 @@ def upload_short(video_path, title, description, privacy_status=None):
         "url": f"https://www.youtube.com/watch?v={video_id}",
         "privacy_status": response.get("status", {}).get("privacyStatus", status),
     }
+
+
+def get_recent_channel_comments(limit=20):
+    """Read recent channel comments as data; never returns credentials."""
+    from googleapiclient.discovery import build
+    youtube = build("youtube", "v3", credentials=youtube_credentials([YOUTUBE_COMMENT_SCOPE]), cache_discovery=False)
+    channel = youtube.channels().list(part="id", mine=True).execute()
+    items = channel.get("items") or []
+    if not items:
+        return []
+    response = youtube.commentThreads().list(
+        part="snippet", allThreadsRelatedToChannelId=items[0]["id"], maxResults=min(max(1, int(limit)), 100), order="time",
+    ).execute()
+    comments = []
+    for item in response.get("items") or []:
+        top = ((item.get("snippet") or {}).get("topLevelComment") or {})
+        snippet = top.get("snippet") or {}
+        comments.append({
+            "id": top.get("id"), "message": snippet.get("textDisplay") or "",
+            "from_id": snippet.get("authorChannelId", {}).get("value"),
+            "from_name": snippet.get("authorDisplayName"), "created_time": snippet.get("publishedAt"),
+        })
+    return [item for item in comments if item.get("id")]
+
+
+def reply_to_youtube_comment(comment_id, message):
+    """Reply once to an existing YouTube comment after AION's safety gate."""
+    from googleapiclient.discovery import build
+    youtube = build("youtube", "v3", credentials=youtube_credentials([YOUTUBE_COMMENT_SCOPE]), cache_discovery=False)
+    response = youtube.comments().insert(part="snippet", body={
+        "snippet": {"parentId": str(comment_id), "textOriginal": str(message).strip()},
+    }).execute()
+    return {"comment_id": response.get("id"), "parent_id": str(comment_id)}

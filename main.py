@@ -892,6 +892,7 @@ def _build_social_tool_lifecycle():
     )
 
     from tools.instagram import publish_photo, publish_video, reply_to_instagram_comment
+    from tools.youtube import reply_to_youtube_comment
     from tools.meta_messaging import send_message as send_meta_message
 
     registry.register(
@@ -907,6 +908,12 @@ def _build_social_tool_lifecycle():
         lambda comment_id, message: reply_to_instagram_comment(comment_id, message),
         ActionLevel.COMMENT_REPLY,
         "Reply to one existing comment on AION's Instagram account.",
+    )
+    registry.register(
+        "reply_to_youtube_comment",
+        lambda comment_id, message: reply_to_youtube_comment(comment_id, message),
+        ActionLevel.COMMENT_REPLY,
+        "Reply to one existing comment on AION's YouTube channel.",
     )
     for platform in ("facebook", "instagram"):
         registry.register(
@@ -1448,6 +1455,9 @@ def run_check_comments(args, platform="facebook"):
     """
 
     load_dotenv()
+    if platform == "youtube" and os.getenv("AION_YOUTUBE_COMMENT_REPLIES_ENABLED", "false").lower() != "true":
+        print("\nAION YOUTUBE COMMENT REPLY CYCLE\nStage: disabled-by-owner-configuration")
+        return
 
     memory = Thinker().memory
     provider = build_provider()
@@ -1458,10 +1468,11 @@ def run_check_comments(args, platform="facebook"):
     )
     lifecycle = _build_social_tool_lifecycle()
     is_instagram = platform == "instagram"
+    is_youtube = platform == "youtube"
     cycle = CommentAutoReplyCycle(
         memory, generator, lifecycle,
-        tool_name=("reply_to_instagram_comment" if is_instagram else "reply_to_facebook_comment"),
-        page_id=(os.getenv("INSTAGRAM_USERNAME") if is_instagram else os.getenv("FACEBOOK_PAGE_ID")),
+        tool_name=("reply_to_youtube_comment" if is_youtube else "reply_to_instagram_comment" if is_instagram else "reply_to_facebook_comment"),
+        page_id=(os.getenv("INSTAGRAM_USERNAME") if is_instagram else os.getenv("FACEBOOK_PAGE_ID") if not is_youtube else "__aion_youtube_channel__"),
         platform=platform,
     )
 
@@ -3542,6 +3553,10 @@ def build_parser():
         "--min-claim-safety", type=int, default=5,
         help="Minimum claim_safety score (0-5) required to post the reply.",
     )
+    check_youtube_comments_parser = subparsers.add_parser(
+        "check-youtube-comments", help="Safely answer at most one new YouTube comment when the owner has enabled the required OAuth scope.",
+    )
+    check_youtube_comments_parser.add_argument("--min-claim-safety", type=int, default=5)
     for command, platform_name in (
         ("check-facebook-messages", "Facebook Messenger"),
         ("check-instagram-messages", "Instagram Direct"),
@@ -3871,6 +3886,10 @@ def main():
 
     if args.command == "check-instagram-comments":
         run_check_comments(args, platform="instagram")
+        return
+
+    if args.command == "check-youtube-comments":
+        run_check_comments(args, platform="youtube")
         return
 
     if args.command == "check-facebook-messages":
