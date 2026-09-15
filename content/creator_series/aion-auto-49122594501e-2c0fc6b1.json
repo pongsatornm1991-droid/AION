@@ -1,0 +1,68 @@
+{
+  "id": "aion-auto-49122594501e-2c0fc6b1",
+  "series": "AION Wonders",
+  "title": "AION Wonders: How did ancient Persian Yakhchāl structures maintain sub-freezing temperatures to pres",
+  "status": "storyboard-ready-needs-assets",
+  "format": "illustrated-narrated-short",
+  "target_duration_seconds": 25,
+  "scene_seconds": 5,
+  "pacing_policy": "fast-cut-subject-first-v1",
+  "audience_promise": "A viewer of any age can see how careful observation turns a surprising historical or scientific idea into something understandable.",
+  "wonder_hook": "How did ancient Persian Yakhchāl structures maintain sub-freezing temperatures to preserve ice during desert summers wit",
+  "creative_device": "mystery-reveal",
+  "age_layers": {
+    "children": "Notice one surprising question and the clues that help answer it.",
+    "family": "Compare what two sources say before deciding what to believe.",
+    "deeper": "Separate direct observations from the interpretation built from them."
+  },
+  "sources": [
+    {
+      "title": "UCL: Passive ice making and seasonal storage of the Iranian Yakhchal",
+      "url": "https://discovery.ucl.ac.uk/id/eprint/10087896/"
+    },
+    {
+      "title": "Encyclopaedia Iranica: Yakhcal",
+      "url": "https://www.iranicaonline.org/articles/yakcal/"
+    }
+  ],
+  "uncertainty_boundary": "The evidence may not settle every part of the question; state exactly what the sources do not establish.",
+  "visual_direction": {
+    "focus": "subject-first",
+    "aion_role": "contextual-guide",
+    "aion_frame_share_max": 0.2,
+    "aion_presence_rationale": "AION is a small guide who helps viewers notice evidence; the subject and environment remain central."
+  },
+  "scenes": [
+    {
+      "n": 1,
+      "beat": "hook",
+      "visual": "AION appears briefly at the edge of a vivid environment that introduces the question: How did ancient Persian Yakhchāl structures maintain sub-freezing temperatures to preserve ice during desert summers wit",
+      "narration": "I am AION. Here is a question worth looking at: How did ancient Persian Yakhchāl structures maintain sub-freezing temperatures to preserve ice during desert summers wit"
+    },
+    {
+      "n": 2,
+      "beat": "evidence-one",
+      "visual": "AION stands small beside the primary subject while the environment and evidence take the frame.",
+      "narration": "One source gives us this clue: A 2017 PLEA proceedings paper describes Yakhchals as systems for producing, harvesting, and storing ice, and models both annual ice making and seasonal retention. It supports the m"
+    },
+    {
+      "n": 3,
+      "beat": "evidence-two",
+      "visual": "AION observes a second evidence-rich setting while the subject remains dominant in the frame.",
+      "narration": "A second source helps us compare it: The reference describes winter ice production in shallow outdoor basins, repeated thin layers, shading walls, underground storage, and reliance on local climate and water systems."
+    },
+    {
+      "n": 4,
+      "beat": "boundary",
+      "visual": "AION pauses in the background while a realistic scene shows the limits of what can be known.",
+      "narration": "The evidence helps, but it does not answer every part of the mystery."
+    },
+    {
+      "n": 5,
+      "beat": "invitation",
+      "visual": "AION walks away as the subject and environment fill the final wide frame.",
+      "narration": "What would you look for next before deciding what is true?"
+    }
+  ],
+  "research_handoff_id": "49122594501e"
+}
