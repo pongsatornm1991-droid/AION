@@ -30,9 +30,21 @@ def authorize(client_secrets_path):
 def main():
     parser = argparse.ArgumentParser(description="Authorize AION to publish and reply to YouTube comments once.")
     parser.add_argument("--client-secrets", required=True, help="Downloaded OAuth desktop-client JSON path")
+    parser.add_argument(
+        "--token-output-file",
+        help="Optional local protected handoff file. When supplied, never print the refresh token.",
+    )
     args = parser.parse_args()
-    # Deliberately print the token only to this local interactive process.
-    print(authorize(args.client_secrets))
+    token = authorize(args.client_secrets)
+    if args.token_output_file:
+        destination = Path(args.token_output_file).resolve()
+        destination.parent.mkdir(parents=True, exist_ok=True)
+        destination.write_text(token, encoding="utf-8")
+        print("YouTube authorization completed; refresh token stored in the protected local handoff file.")
+        return
+    # Kept for manual operators, but the automated company setup uses the
+    # protected handoff path so credentials never appear in logs.
+    print(token)
 
 
 if __name__ == "__main__":
