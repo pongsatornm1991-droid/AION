@@ -1,8 +1,8 @@
 {
-  "generated_at": "2026-09-15T12:23:43.476733+00:00",
+  "generated_at": "2026-09-15T13:27:05.700683+00:00",
   "tiles": {
-    "total": 43,
-    "ok": 39,
+    "total": 44,
+    "ok": 40,
     "attn": 1,
     "running": 1
   },
@@ -264,8 +264,8 @@
           "file": "publish-workflow-status.yml",
           "status_class": "running",
           "status_label": "กำลังรัน",
-          "html_url": "https://github.com/pongsatornm1991-droid/AION/actions/runs/34968538645",
-          "created_at": "2026-09-15T12:23:11Z"
+          "html_url": "https://github.com/pongsatornm1991-droid/AION/actions/runs/34975005903",
+          "created_at": "2026-09-15T13:26:30Z"
         },
         {
           "name": "AION - recoverable media housekeeping",
@@ -368,6 +368,14 @@
           "status_label": "สำเร็จ",
           "html_url": "https://github.com/pongsatornm1991-droid/AION/actions/runs/34915436981",
           "created_at": "2026-09-15T00:59:35Z"
+        },
+        {
+          "name": "AION - platform delivery recovery",
+          "file": "platform-recovery.yml",
+          "status_class": "success",
+          "status_label": "สำเร็จ",
+          "html_url": "https://github.com/pongsatornm1991-droid/AION/actions/runs/34969188003",
+          "created_at": "2026-09-15T12:29:56Z"
         },
         {
           "name": "AION - revenue readiness",
