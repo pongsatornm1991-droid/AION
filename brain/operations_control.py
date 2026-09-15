@@ -17,6 +17,8 @@ from brain.system_reliability import SystemReliability
 from brain.youtube_creator_queue import YouTubeCreatorQueue
 from brain.continuity_guard import ContinuityGuard
 from brain.work_queue import WorkQueue
+from brain.platform_preflight import PlatformPreflight
+from brain.studio_pipeline import StudioPipeline
 
 
 class OperationsControlTower:
@@ -182,6 +184,11 @@ class OperationsControlTower:
         continuity = ContinuityGuard(self.root, getattr(self.memory, "root", None)).snapshot()
         self_repair = self._self_repair()
         work_queue = WorkQueue(self.memory).snapshot()
+        studio_pipeline = StudioPipeline(self.root).snapshot()
+        work_queue["active"] = list(studio_pipeline["active"]) + list(work_queue["active"])
+        work_queue["total"] += studio_pipeline["total"]
+        work_queue["active"].sort(key=lambda item: 0 if item.get("priority") == "urgent" else 1)
+        preflight = PlatformPreflight().snapshot()
 
         blockers = []
         for item in pending:
@@ -200,6 +207,7 @@ class OperationsControlTower:
             "status": "attention" if blockers or quality["state"] != "pass" else "healthy",
             "work_now": pending,
             "work_queue": work_queue,
+            "platform_preflight": preflight,
             "blockers": blockers,
             "quality_gate": quality,
             "preflight": self._preflight(),

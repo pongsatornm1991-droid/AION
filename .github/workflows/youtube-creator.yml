@@ -31,6 +31,12 @@ jobs:
           cache: pip
           cache-dependency-path: requirements.txt
       - run: pip install -r requirements.txt
+      - name: Preflight YouTube configuration
+        env:
+          YOUTUBE_CLIENT_ID: ${{ secrets.YOUTUBE_CLIENT_ID }}
+          YOUTUBE_CLIENT_SECRET: ${{ secrets.YOUTUBE_CLIENT_SECRET }}
+          YOUTUBE_REFRESH_TOKEN: ${{ secrets.YOUTUBE_REFRESH_TOKEN }}
+        run: python tools/run_platform_preflight.py --require youtube
       - name: Verify deterministic safeguards
         run: python -m unittest tests.test_youtube_creator_queue tests.test_youtube_cycle tests.test_youtube_quality tests.test_video_quality -q
       - name: Queue one finished AION Studio episode

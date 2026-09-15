@@ -15,6 +15,11 @@ jobs:
       - uses: actions/setup-python@v5
         with: {python-version: "3.11"}
       - run: pip install -r requirements.txt
+      - name: Preflight image production configuration
+        env:
+          OPENAI_IMAGE_API_KEY: ${{ secrets.OPENAI_IMAGE_API_KEY }}
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+        run: python tools/run_platform_preflight.py --require image
       - name: Complete one approved storyboard in recoverable 25-scene batches
         env:
           IMAGE_PROVIDER: openai
