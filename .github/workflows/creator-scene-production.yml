@@ -1,7 +1,10 @@
 name: AION - subject-first scene production
 on:
   schedule:
-    - cron: "0 2 * * *"
+    # 09:00 Asia/Bangkok on the three Studio production days.  New scenes
+    # are deliberately made well before the evening publishing window so
+    # assembly and Quality can stop a weak episode without creating a gap.
+    - cron: "0 2 * * 1,3,5"
   workflow_dispatch: {}
 permissions: {contents: write}
 concurrency:
