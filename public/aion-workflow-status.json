@@ -1,9 +1,9 @@
 {
-  "generated_at": "2026-09-15T07:50:20.464454+00:00",
+  "generated_at": "2026-09-15T07:51:44.837672+00:00",
   "tiles": {
     "total": 43,
-    "ok": 37,
-    "attn": 2,
+    "ok": 38,
+    "attn": 1,
     "running": 1
   },
   "groups": [
@@ -230,10 +230,10 @@
         {
           "name": "AION - Publish public brain summary",
           "file": "publish-public-summary.yml",
-          "status_class": "failure",
-          "status_label": "ล้มเหลว",
-          "html_url": "https://github.com/pongsatornm1991-droid/AION/actions/runs/34917691328",
-          "created_at": "2026-09-15T01:32:45Z"
+          "status_class": "running",
+          "status_label": "กำลังรัน",
+          "html_url": "https://github.com/pongsatornm1991-droid/AION/actions/runs/34943808880",
+          "created_at": "2026-09-15T07:51:01Z"
         },
         {
           "name": "AION - bounded self repair",
@@ -262,8 +262,8 @@
         {
           "name": "AION - publish workflow health",
           "file": "publish-workflow-status.yml",
-          "status_class": "running",
-          "status_label": "กำลังรัน",
+          "status_class": "success",
+          "status_label": "สำเร็จ",
           "html_url": "https://github.com/pongsatornm1991-droid/AION/actions/runs/34943693844",
           "created_at": "2026-09-15T07:49:40Z"
         },
