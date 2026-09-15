@@ -1874,6 +1874,8 @@ def run_release_private_youtube_creator(args):
         print(f"Privacy: {report['privacy_status']}")
     if report.get("error"):
         print(f"Reason: {report['error']}")
+    if report.get("stage") == "release-failed":
+        _notify_report(report, formatter=_format_youtube_creator_telegram_report)
 
 
 def run_publish_video(args):

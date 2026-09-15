@@ -49,7 +49,7 @@ def upload_short(video_path, title, description, privacy_status=None):
     if status not in VALID_PRIVACY:
         raise ValueError("YOUTUBE_PRIVACY_STATUS must be private, unlisted, or public")
 
-    youtube = build("youtube", "v3", credentials=youtube_credentials(), cache_discovery=False)
+    youtube = build("youtube", "v3", credentials=youtube_credentials([YOUTUBE_UPLOAD_SCOPE]), cache_discovery=False)
     request = youtube.videos().insert(
         part="snippet,status",
         body={
@@ -88,7 +88,10 @@ def set_video_privacy(video_id, privacy_status="public"):
     identifier = str(video_id or "").strip()
     if not identifier:
         raise ValueError("A YouTube video id is required")
-    youtube = build("youtube", "v3", credentials=youtube_credentials(), cache_discovery=False)
+    # Visibility changes, like comment replies, require the channel-management
+    # consent scope. Upload-only tokens can create a private upload but cannot
+    # safely change its public visibility afterwards.
+    youtube = build("youtube", "v3", credentials=youtube_credentials([YOUTUBE_COMMENT_SCOPE]), cache_discovery=False)
     response = youtube.videos().update(
         part="status",
         body={"id": identifier, "status": {"privacyStatus": status, "selfDeclaredMadeForKids": False}},
