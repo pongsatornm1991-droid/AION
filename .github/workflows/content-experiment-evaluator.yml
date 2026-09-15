@@ -4,9 +4,10 @@ on:
     - cron: "40 */6 * * *"
   workflow_dispatch: {}
 concurrency:
-  # Keep experiments serial, but do not let an unrelated publisher cancel
-  # their evidence cycle before it can leave a durable result.
-  group: aion-content-experiment-evaluator
+  # This workflow writes the same private memory repository as publishing,
+  # research and learning.  It must share their writer lane to avoid a git
+  # race that could lose an attribution or experiment result.
+  group: aion-memory-data
   cancel-in-progress: false
 permissions: {contents: read}
 jobs:
@@ -20,6 +21,8 @@ jobs:
         with: {python-version: "3.11"}
       - env: {AION_MEMORY_ROOT: memory_data}
         run: python tools/run_content_experiment_evaluator.py
+      - env: {AION_MEMORY_ROOT: memory_data}
+        run: python tools/run_growth_to_studio.py
       - working-directory: memory_data
         run: |
           git config user.name aion-bot
