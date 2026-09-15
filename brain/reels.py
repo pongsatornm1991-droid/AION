@@ -267,7 +267,7 @@ class ReelContentCycle:
         work_card = work_queue.ensure(
             "social-reel", entry["id"], "Publishing Agent",
             str(payload.get("caption") or "AION Reel")[:120], "Audience & Growth",
-            status="ready", related=[entry["id"]],
+            status="ready", related=[entry["id"]], priority="urgent",
         )["card"]
         work_queue.transition(
             work_card["task_id"], "in-progress", owner="Publishing Agent",

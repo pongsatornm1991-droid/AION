@@ -146,6 +146,12 @@ class YouTubeCreatorQueue:
             memory_type="action", source="aion-youtube-creator-queue", importance=3,
             tags=["youtube", "creator-series", candidate["episode_id"]],
         )
+        from brain.work_queue import WorkQueue
+        work = WorkQueue(self.memory).ensure(
+            "studio-to-youtube", candidate["episode_id"], "Video QA Agent", candidate["title"],
+            "YouTube Publishing Agent", status="ready", related=[record.get("id")] if record.get("id") else [],
+            priority="urgent",
+        )
         return {"stage": "authorized-for-publishing" if autonomous else "prepared-for-review", "record": record, **payload}
 
     def publish_once(self, uploader=None, content_kind=None):
@@ -161,6 +167,17 @@ class YouTubeCreatorQueue:
         if target is None:
             return {"stage": "no-authorized-creator-episode"}
         entry, payload = target
+        from brain.work_queue import WorkQueue
+        work_queue = WorkQueue(self.memory)
+        work_card = work_queue.ensure(
+            "studio-to-youtube", payload.get("episode_id"), "YouTube Publishing Agent",
+            payload.get("title") or "AION Creator episode", "Audience & Growth", status="ready",
+            related=[entry.get("id")] if entry.get("id") else [], priority="urgent",
+        )["card"]
+        work_queue.transition(
+            work_card["task_id"], "in-progress", owner="YouTube Publishing Agent",
+            next_owner="Audience & Growth", detail="กำลังตรวจไฟล์และส่งขึ้น YouTube",
+        )
         # Records created before caption support did not store subtitle_path.
         # The file convention is stable, so repair that metadata in memory
         # rather than falsely treating a complete episode as missing captions.
@@ -171,6 +188,7 @@ class YouTubeCreatorQueue:
             }
         path = self.root / str(payload.get("video_path") or "")
         if not path.is_file():
+            work_queue.transition(work_card["task_id"], "waiting", owner="Studio", next_owner="Video QA Agent", detail="รอไฟล์วิดีโอเดิมจาก Studio")
             return {"stage": "missing-video", "episode_id": payload.get("episode_id")}
         from brain.youtube_quality import YouTubeQualityGate
         prior = [record for _, record in self._records_by_episode().values()
@@ -195,6 +213,7 @@ class YouTubeCreatorQueue:
                 },
             }
             self.memory.update(self.CATEGORY, entry["id"], content=json.dumps(blocked, ensure_ascii=False))
+            work_queue.transition(work_card["task_id"], "waiting", owner="Video QA Agent", next_owner="Studio", detail="Quality Gate ส่งกลับรายการเดิมเพื่อแก้ไข")
             return {"stage": "quality-review-required", "episode_id": payload.get("episode_id"), **quality}
         technical = video_quality.get("technical") or {}
         video_ratio = (technical.get("width", 0) / technical.get("height", 1)) if technical.get("height") else 0
@@ -218,6 +237,7 @@ class YouTubeCreatorQueue:
             # Preserve their type so the Dashboard and retry log never show a
             # blank, un-actionable failure.
             error = str(exc).strip() or type(exc).__name__
+            work_queue.transition(work_card["task_id"], "waiting", owner="YouTube Publishing Agent", next_owner="YouTube Publishing Agent", detail="อัปโหลดไม่สำเร็จชั่วคราว: เก็บงานเดิมไว้ retry")
             return {"stage": "upload-failed", "episode_id": payload.get("episode_id"), "error": error}
         updated = {
             **payload,
@@ -232,6 +252,7 @@ class YouTubeCreatorQueue:
             memory_type="action", source="aion-youtube-creator-publish", importance=1,
             tags=["youtube", "creator-series", updated.get("episode_id", "unknown")],
         )
+        work_queue.transition(work_card["task_id"], "completed", owner="Audience & Growth", next_owner="Learning Lab", detail="YouTube ยืนยันการเผยแพร่แล้ว ส่งผลให้ฝ่ายวิเคราะห์")
         return {"stage": "published", "episode_id": updated.get("episode_id"), **result}
 
     def audit_existing(self, episode_id=None):

@@ -14,6 +14,7 @@ class WorkQueue:
     CATEGORY = "company_work_queue"
     ACTIVE = {"planned", "in-progress", "ready", "waiting"}
     TERMINAL = {"completed", "cancelled", "blocked"}
+    PRIORITIES = {"urgent", "normal", "background"}
 
     def __init__(self, memory):
         self.memory = memory
@@ -39,7 +40,7 @@ class WorkQueue:
                 values.append({**payload, "memory_id": entry.get("id"), "timestamp": entry.get("timestamp")})
         return values
 
-    def ensure(self, lane, key, owner, title, next_owner, status="planned", related=None):
+    def ensure(self, lane, key, owner, title, next_owner, status="planned", related=None, priority="normal"):
         """Create one card or return its existing active/terminal record.
 
         The caller supplies a domain-specific key (research-question id,
@@ -48,6 +49,8 @@ class WorkQueue:
         """
         if status not in self.ACTIVE | self.TERMINAL:
             raise ValueError("Unknown work-card status.")
+        if priority not in self.PRIORITIES:
+            raise ValueError("Unknown work-card priority.")
         fingerprint = self._fingerprint(lane, key)
         existing = next((card for card in reversed(self.cards()) if card.get("fingerprint") == fingerprint), None)
         if existing:
@@ -61,6 +64,7 @@ class WorkQueue:
             "next_owner": str(next_owner).strip(),
             "title": str(title).strip(),
             "status": status,
+            "priority": priority,
             "key": str(key).strip(),
         }
         saved = self.memory.remember(
@@ -98,7 +102,8 @@ class WorkQueue:
         latest = {}
         for card in cards:
             latest[card.get("fingerprint")] = card
-        values = sorted(latest.values(), key=lambda item: item.get("timestamp", ""), reverse=True)
+        rank = {"urgent": 0, "normal": 1, "background": 2}
+        values = sorted(latest.values(), key=lambda item: (rank.get(item.get("priority"), 1), item.get("timestamp", "")))
         return {
             "total": len(values),
             "active": [item for item in values if item.get("status") in self.ACTIVE],

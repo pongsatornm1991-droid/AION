@@ -33,3 +33,10 @@ class WorkQueueTests(unittest.TestCase):
             retry = queue.transition(card["task_id"], "in-progress")
             self.assertFalse(retry["changed"])
             self.assertEqual("completed", retry["card"]["status"])
+
+    def test_urgent_cards_are_listed_before_background_work(self):
+        with tempfile.TemporaryDirectory() as root:
+            queue = WorkQueue(MemoryEngine(root))
+            queue.ensure("study", "later", "Learning", "Study", "Learning", priority="background")
+            queue.ensure("publish", "now", "Publishing", "Publish", "Audience", priority="urgent")
+            self.assertEqual("urgent", queue.snapshot()["active"][0]["priority"])
