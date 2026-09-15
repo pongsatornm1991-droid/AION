@@ -133,6 +133,14 @@ class ResearchToStory:
             tags=["creator", "research-grounded", "story-brief"], related=related,
         )
         brief["memory_id"] = saved.get("id")
+        # Register the handoff once.  A retry sees this same task id instead
+        # of creating another story brief for the same research question.
+        from brain.work_queue import WorkQueue
+        work = WorkQueue(self.memory).ensure(
+            "research-to-story", candidate["root_question_id"], "Evidence Analyst", topic,
+            "Story Architect", status="ready", related=related,
+        )
+        brief["work_task_id"] = work["card"]["task_id"]
         return {"stage": "brief-created", "brief": brief}
 
     def snapshot(self):

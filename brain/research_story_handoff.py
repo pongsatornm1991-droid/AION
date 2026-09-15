@@ -72,6 +72,17 @@ class ResearchStoryHandoff:
             related=[item for item in related if item],
         )
         handoff["memory_id"] = saved.get("id")
+        from brain.work_queue import WorkQueue
+        queue = WorkQueue(self.memory)
+        card = queue.ensure(
+            "research-to-story", root_id, "Evidence Analyst", topic, "Story Architect",
+            status="ready", related=related,
+        )["card"]
+        queue.transition(
+            card["task_id"], "in-progress", owner="Story Architect", next_owner="Visual Director",
+            detail="Research brief ถูกส่งให้ฝ่ายเรื่องเล่าแล้ว",
+        )
+        handoff["work_task_id"] = card["task_id"]
         return {"stage": "story-handoff-created", "handoff": handoff}
 
     def snapshot(self):

@@ -16,6 +16,7 @@ from brain.delivery_watchdog import DeliveryWatchdog
 from brain.system_reliability import SystemReliability
 from brain.youtube_creator_queue import YouTubeCreatorQueue
 from brain.continuity_guard import ContinuityGuard
+from brain.work_queue import WorkQueue
 
 
 class OperationsControlTower:
@@ -180,6 +181,7 @@ class OperationsControlTower:
         audience = AudienceAccessibility(self.memory).snapshot()
         continuity = ContinuityGuard(self.root, getattr(self.memory, "root", None)).snapshot()
         self_repair = self._self_repair()
+        work_queue = WorkQueue(self.memory).snapshot()
 
         blockers = []
         for item in pending:
@@ -197,6 +199,7 @@ class OperationsControlTower:
             "purpose": "รวมคิวผลิต คุณภาพ การเผยแพร่ ผู้ชม และความน่าเชื่อถือจากหลักฐานจริง เพื่อให้งานไม่ค้างเงียบหรือทำซ้ำ",
             "status": "attention" if blockers or quality["state"] != "pass" else "healthy",
             "work_now": pending,
+            "work_queue": work_queue,
             "blockers": blockers,
             "quality_gate": quality,
             "preflight": self._preflight(),

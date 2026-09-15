@@ -258,6 +258,21 @@ class ReelContentCycle:
                 memory_type="lesson", source="aion-reel-publish", importance=2,
             )
             return {"stage": "no-pending"}
+        # One durable card follows this exact pending record through every
+        # platform checkpoint.  It is not a second publishing queue: it makes
+        # ownership and retry state visible while the existing pending record
+        # remains the source of truth for idempotent publication.
+        from brain.work_queue import WorkQueue
+        work_queue = WorkQueue(self.memory)
+        work_card = work_queue.ensure(
+            "social-reel", entry["id"], "Publishing Agent",
+            str(payload.get("caption") or "AION Reel")[:120], "Audience & Growth",
+            status="ready", related=[entry["id"]],
+        )["card"]
+        work_queue.transition(
+            work_card["task_id"], "in-progress", owner="Publishing Agent",
+            next_owner="Audience & Growth", detail="กำลังตรวจรอบเผยแพร่และส่งต่อรายแพลตฟอร์ม",
+        )
         repo = repo or os.getenv("GITHUB_REPOSITORY")
         if not repo:
             return {"stage": "publish-failed", "error": "GITHUB_REPOSITORY is required"}
@@ -285,14 +300,26 @@ class ReelContentCycle:
                 approved = self.lifecycle.auto_approve(proposed["id"], policy="social-safety-style-gate")
                 action = self.lifecycle.execute(approved["id"])
             except Exception as exc:
+                work_queue.transition(
+                    work_card["task_id"], "waiting", owner="Publishing Agent",
+                    next_owner="Publishing Agent", detail="ส่งไม่สำเร็จชั่วคราว: จะลองงานเดิมใหม่โดยไม่โพสต์ซ้ำ",
+                )
                 return {"stage": "lifecycle", "error": str(exc), "video_url": url, "caption": caption, "platform_actions": actions}
             if action.get("status") != "executed":
+                work_queue.transition(
+                    work_card["task_id"], "waiting", owner="Publishing Agent",
+                    next_owner="Publishing Agent", detail="แพลตฟอร์มยังไม่ยืนยันการเผยแพร่ จึงเก็บงานเดิมไว้สำหรับ retry",
+                )
                 return {"stage": "failed", "action": action, "video_url": url, "caption": caption, "platform_actions": actions}
             actions[platform] = action.get("id")
             payload["platform_actions"] = actions
             self.memory.update(self.PENDING, entry["id"], content=json.dumps(payload, ensure_ascii=False))
         if not actions:
             self.memory.update(self.PENDING, entry["id"], content=json.dumps(payload, ensure_ascii=False))
+            work_queue.transition(
+                work_card["task_id"], "waiting", owner="Publishing Agent",
+                next_owner="Publishing Agent", detail="รอรอบเผยแพร่ที่ไม่ซ้ำของแพลตฟอร์ม",
+            )
             return {"stage": "cadence-hold", "video_url": url, "caption": caption,
                     "platform_skips": payload.get("platform_skips") or {}}
         # Moving, rather than merely copying, makes a successful Reel
@@ -313,6 +340,10 @@ class ReelContentCycle:
             content=f"platform=facebook-reel; language={language}; action={actions.get('facebook', 'unknown')}",
             memory_type="action", source="social-language-strategy", importance=1,
             tags=[language, "facebook", "reel"],
+        )
+        work_queue.transition(
+            work_card["task_id"], "completed", owner="Audience & Growth",
+            next_owner="Learning Lab", detail="เผยแพร่แล้วและส่งต่อสัญญาณผู้ชมเพื่อเรียนรู้",
         )
         return {"stage": "published", "video_url": url, "action": actions, "caption": caption}
 
