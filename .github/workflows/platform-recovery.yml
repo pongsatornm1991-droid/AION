@@ -39,14 +39,10 @@ jobs:
         run: |
           python main.py run-reel-publish
           python main.py run-instagram-publish
-      - name: Resume an already-authorized YouTube upload only
-        env:
-          AION_MEMORY_ROOT: memory_data
-          YOUTUBE_CLIENT_ID: ${{ secrets.YOUTUBE_CLIENT_ID }}
-          YOUTUBE_CLIENT_SECRET: ${{ secrets.YOUTUBE_CLIENT_SECRET }}
-          YOUTUBE_REFRESH_TOKEN: ${{ secrets.YOUTUBE_REFRESH_TOKEN }}
-          YOUTUBE_PRIVACY_STATUS: ${{ vars.YOUTUBE_PRIVACY_STATUS || 'public' }}
-        run: python main.py run-youtube-creator-publish --content-kind short
+      # YouTube intentionally is not retried by this hourly recovery worker:
+      # an unrelated retry must never consume the scheduled 20:00–22:00 slot
+      # or create a second upload on the same day. The dedicated YouTube
+      # workflow owns that cadence and its idempotent queue.
       - name: Persist delivery checkpoints
         working-directory: memory_data
         run: |

@@ -2,10 +2,11 @@ name: AION - YouTube Creator Studio
 
 on:
   schedule:
-    # 20:00 Asia/Bangkok: the sole automatic daily Shorts slot.  It is a starting
-    # experiment, not a claim that one universal time is always best.
-    # Avoid GitHub's congested top-of-hour scheduler window.
-    - cron: "43 13 * * *"
+    # Publish Shorts within the 20:00–22:00 Asia/Bangkok window. Sunday moves
+    # to 21:00 so the weekly long-form release at 20:15 has breathing room.
+    # Avoid GitHub's congested top-of-hour scheduler window where possible.
+    - cron: "43 13 * * 1-6"
+    - cron: "0 14 * * 0"
   workflow_dispatch: {}
 
 concurrency:
