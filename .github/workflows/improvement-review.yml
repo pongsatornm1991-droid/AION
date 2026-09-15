@@ -1,7 +1,9 @@
 name: AION - autonomous internal improvement cycle
 on:
   schedule:
-    - cron: "10 */6 * * *"
+    # Runs after the creative intention is recorded; it starts its bounded
+    # experiment itself, so no separate experiment-runner schedule is needed.
+    - cron: "15 */6 * * *"
   workflow_dispatch: {}
 concurrency:
   group: aion-memory-data

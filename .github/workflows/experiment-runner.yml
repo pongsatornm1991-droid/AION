@@ -1,7 +1,8 @@
 name: AION - approved content experiment runner
 on:
-  schedule:
-    - cron: "20 */6 * * *"
+  # ImprovementReview.send_pending_once() already creates the bounded
+  # experiment in the same transaction.  Keep a manual recovery entry point,
+  # but do not spend a shared-memory slot re-running the same queue every 6h.
   workflow_dispatch: {}
 concurrency:
   group: aion-memory-data

@@ -1,10 +1,7 @@
 name: AION - improvement approval check
 on:
-  schedule:
-    # Public publishing is already autonomous.  This only checks bounded
-    # internal experiments, so running every five minutes merely blocks the
-    # shared memory lane without improving audience-facing work.
-    - cron: "53 * * * *"
+  # Internal experiments are autonomous now.  Retain this only as a manual
+  # compatibility/recovery tool for historic Telegram callback records.
   workflow_dispatch: {}
 concurrency:
   group: aion-memory-data

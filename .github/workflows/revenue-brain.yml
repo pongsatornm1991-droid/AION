@@ -1,7 +1,9 @@
 name: AION - revenue readiness
 on:
   schedule:
-    - cron: "40 */6 * * *"
+    # Revenue readiness changes slowly and never spends.  A daily review is
+    # enough and leaves the six-hour production lane available.
+    - cron: "35 2 * * *"
   workflow_dispatch: {}
 concurrency:
   group: aion-memory-data

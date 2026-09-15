@@ -20,4 +20,7 @@ jobs:
           python-version: "3.11"
       - run: pip install -r requirements.txt
       - run: python tools/run_system_reliability.py
-      - run: python run_tests.py
+      # The full deterministic suite already runs in tests.yml for every
+      # push.  Keep this workflow focused on the reliability inspection and
+      # its contract instead of running the same suite twice.
+      - run: python -m unittest tests.test_system_reliability -q

@@ -17,8 +17,10 @@ name: AION - propose profile change
 # memory/ is not tracked in this public repo).
 
 on:
+  # Page identity is an owner-controlled concern, not a production heartbeat.
+  # Review at most once per day; any real change still requires the owner.
   schedule:
-    - cron: "10 */6 * * *"
+    - cron: "5 3 * * *"
   workflow_dispatch: {}
 
 # All AION workflows share one private, git-backed memory_data repo

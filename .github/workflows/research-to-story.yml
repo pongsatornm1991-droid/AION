@@ -2,7 +2,9 @@ name: AION - Research to story brief
 
 on:
   schedule:
-    - cron: "35 */6 * * *"
+    # Follows the reference study so new creator lessons are available to the
+    # Story Agent without starting both memory writers at once.
+    - cron: "55 */6 * * *"
   workflow_dispatch: {}
 
 concurrency:

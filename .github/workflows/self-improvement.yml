@@ -26,7 +26,7 @@ name: AION - self-improvement proposals
 
 on:
   schedule:
-    - cron: "40 */6 * * *"
+    - cron: "30 */6 * * *"
   workflow_dispatch: {}
 
 # See learning-cycle.yml's header comment for why every AION workflow

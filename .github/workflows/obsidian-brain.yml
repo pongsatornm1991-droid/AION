@@ -5,7 +5,9 @@ name: AION - Obsidian brain dashboard
 # AION repository or any social network.
 on:
   schedule:
-    - cron: "45 */6 * * *"
+    # A private dashboard export does not need to contend with production and
+    # learning every six hours; refresh it once overnight.
+    - cron: "30 3 * * *"
   workflow_dispatch: {}
 
 concurrency:
