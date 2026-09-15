@@ -73,6 +73,33 @@ def upload_short(video_path, title, description, privacy_status=None):
     }
 
 
+def set_video_privacy(video_id, privacy_status="public"):
+    """Change visibility for an existing AION upload without exposing tokens.
+
+    The caller is responsible for selecting only quality-gated AION records.
+    This deliberately cannot alter title, description, audience settings, or
+    any account configuration.
+    """
+    from googleapiclient.discovery import build
+
+    status = str(privacy_status).strip().lower()
+    if status not in VALID_PRIVACY:
+        raise ValueError("YOUTUBE_PRIVACY_STATUS must be private, unlisted, or public")
+    identifier = str(video_id or "").strip()
+    if not identifier:
+        raise ValueError("A YouTube video id is required")
+    youtube = build("youtube", "v3", credentials=youtube_credentials(), cache_discovery=False)
+    response = youtube.videos().update(
+        part="status",
+        body={"id": identifier, "status": {"privacyStatus": status, "selfDeclaredMadeForKids": False}},
+    ).execute()
+    return {
+        "video_id": identifier,
+        "url": f"https://www.youtube.com/watch?v={identifier}",
+        "privacy_status": (response.get("status") or {}).get("privacyStatus", status),
+    }
+
+
 def get_recent_channel_comments(limit=20):
     """Read recent channel comments as data; never returns credentials."""
     from googleapiclient.discovery import build

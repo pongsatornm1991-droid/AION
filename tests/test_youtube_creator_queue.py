@@ -156,6 +156,24 @@ class YouTubeCreatorQueueTests(unittest.TestCase):
             self.assertEqual("video-qa-recorded", result["stage"])
             self.assertEqual(True, queue.candidates()[0]["video_qa"]["eligible"])
 
+    def test_releases_only_a_quality_gated_private_creator_video(self):
+        with tempfile.TemporaryDirectory() as root:
+            self._episode(root)
+            policy = Path(root) / "config"; policy.mkdir()
+            (policy / "aion_authority.json").write_text('{"public_publishing":{"enabled":true}}', encoding="utf-8")
+            memory = MemoryEngine(Path(root) / "memory")
+            queue = YouTubeCreatorQueue(memory, root)
+            record = memory.remember(queue.CATEGORY, __import__("json").dumps({
+                "episode_id": "episode", "upload_status": "published",
+                "youtube": {"video_id": "abc", "privacy_status": "private", "quality": {"eligible": True}},
+            }), memory_type="action", source="test", importance=1)
+            calls = []
+            result = queue.release_private_once(lambda video_id, status: calls.append((video_id, status)) or {"video_id": video_id, "privacy_status": status, "url": "https://youtu.be/abc"})
+            self.assertEqual("released-public", result["stage"])
+            self.assertEqual([("abc", "public")], calls)
+            self.assertEqual("public", __import__("json").loads(memory.all(queue.CATEGORY)[0]["content"])["youtube"]["privacy_status"])
+            self.assertEqual("no-quality-gated-private-creator-episode", queue.release_private_once()["stage"])
+
     def test_short_filter_never_selects_a_long_form_episode(self):
         with tempfile.TemporaryDirectory() as root:
             self._episode(root)

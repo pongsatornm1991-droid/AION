@@ -82,9 +82,11 @@ duplicate uploads.
 
 Creating a YouTube channel does not grant AION permission to upload through
 Google. To enable that final step, the channel owner must create a Google Cloud
-OAuth client for the YouTube Data API, grant the upload scope once, and store
-the resulting refresh token as a GitHub secret. No secret belongs in this
-repository.
+OAuth client for the YouTube Data API, grant the upload and comment-reply
+scopes once, and store the resulting refresh token as a GitHub secret. No
+secret belongs in this repository. This one consent lets AION publish
+quality-gated videos and answer eligible YouTube comments; it does not grant
+access to passwords, billing, or unrelated Google data.
 
 After that connection exists, AION can prepare, upload, schedule, and record
 each video result while keeping its current action log and safety checks.

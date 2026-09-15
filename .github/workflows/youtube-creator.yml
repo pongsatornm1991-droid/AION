@@ -37,6 +37,16 @@ jobs:
           YOUTUBE_CLIENT_SECRET: ${{ secrets.YOUTUBE_CLIENT_SECRET }}
           YOUTUBE_REFRESH_TOKEN: ${{ secrets.YOUTUBE_REFRESH_TOKEN }}
         run: python tools/run_platform_preflight.py --require youtube
+      - name: Release one previously quality-gated private Creator video
+        # Recovery only for legacy AION uploads that already passed their
+        # saved Quality Gate.  This fixes old Private uploads before making a
+        # new daily Short, without touching any unrelated channel video.
+        env:
+          AION_MEMORY_ROOT: memory_data
+          YOUTUBE_CLIENT_ID: ${{ secrets.YOUTUBE_CLIENT_ID }}
+          YOUTUBE_CLIENT_SECRET: ${{ secrets.YOUTUBE_CLIENT_SECRET }}
+          YOUTUBE_REFRESH_TOKEN: ${{ secrets.YOUTUBE_REFRESH_TOKEN }}
+        run: python main.py release-private-youtube-creator | tee youtube-release-report.txt
       - name: Verify deterministic safeguards
         run: python -m unittest tests.test_youtube_creator_queue tests.test_youtube_cycle tests.test_youtube_quality tests.test_video_quality -q
       - name: Queue one finished AION Studio episode
@@ -44,13 +54,31 @@ jobs:
           AION_MEMORY_ROOT: memory_data
         run: python main.py prepare-youtube-creator --content-kind short
       - name: Publish one authorized Creator episode
+        id: creator-publish
         env:
           AION_MEMORY_ROOT: memory_data
           YOUTUBE_CLIENT_ID: ${{ secrets.YOUTUBE_CLIENT_ID }}
           YOUTUBE_CLIENT_SECRET: ${{ secrets.YOUTUBE_CLIENT_SECRET }}
           YOUTUBE_REFRESH_TOKEN: ${{ secrets.YOUTUBE_REFRESH_TOKEN }}
           YOUTUBE_PRIVACY_STATUS: ${{ vars.YOUTUBE_PRIVACY_STATUS || 'public' }}
-        run: python main.py run-youtube-creator-publish --content-kind short
+        run: python main.py run-youtube-creator-publish --content-kind short | tee youtube-creator-publish-report.txt
+      - name: Keep the daily Shorts promise with a completed Reel fallback
+        # Creator episodes are the preferred format.  If no Creator Short is
+        # ready, publish exactly one already quality-gated daily Reel instead.
+        # This prevents a gap without making a duplicate upload.
+        if: ${{ always() }}
+        env:
+          AION_MEMORY_ROOT: memory_data
+          YOUTUBE_CLIENT_ID: ${{ secrets.YOUTUBE_CLIENT_ID }}
+          YOUTUBE_CLIENT_SECRET: ${{ secrets.YOUTUBE_CLIENT_SECRET }}
+          YOUTUBE_REFRESH_TOKEN: ${{ secrets.YOUTUBE_REFRESH_TOKEN }}
+          YOUTUBE_PRIVACY_STATUS: ${{ vars.YOUTUBE_PRIVACY_STATUS || 'public' }}
+        run: |
+          if [[ -f youtube-creator-publish-report.txt ]] && grep -q "Stage: no-authorized-creator-episode" youtube-creator-publish-report.txt; then
+            python main.py run-youtube-publish
+          else
+            echo "Creator Short handled the daily YouTube slot; no fallback upload."
+          fi
       - name: Persist private memory
         working-directory: memory_data
         run: |

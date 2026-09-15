@@ -1860,6 +1860,22 @@ def run_publish_youtube_creator(args):
         _notify_report(report, formatter=_format_youtube_creator_telegram_report)
 
 
+def run_release_private_youtube_creator(args):
+    """Release one old private, quality-gated AION Creator upload."""
+    load_dotenv()
+    report = YouTubeCreatorQueue(Thinker().memory).release_private_once()
+    print("\nAION YOUTUBE CREATOR RELEASE")
+    print(f"Stage: {report['stage']}")
+    if report.get("episode_id"):
+        print(f"Episode: {report['episode_id']}")
+    if report.get("url"):
+        print(f"Video: {report['url']}")
+    if report.get("privacy_status"):
+        print(f"Privacy: {report['privacy_status']}")
+    if report.get("error"):
+        print(f"Reason: {report['error']}")
+
+
 def run_publish_video(args):
     """Upload a human-supplied local video (not an AION-generated Reel)
     to YouTube, then post the link to Facebook and Instagram. Manual,
@@ -3697,6 +3713,7 @@ def build_parser():
     youtube_creator_publish_parser.add_argument("--content-kind", choices=("short", "long-form"), help="Publish only the selected YouTube format.")
     youtube_creator_prepare_parser = subparsers.add_parser("prepare-youtube-creator", help="Prepare one rendered Creator Series episode for YouTube review; never uploads it.")
     youtube_creator_prepare_parser.add_argument("--content-kind", choices=("short", "long-form"), help="Prepare only the selected YouTube format.")
+    subparsers.add_parser("release-private-youtube-creator", help="Release one old, quality-gated private AION Creator video to public.")
     subparsers.add_parser("run-growth-pulse", help="Send one daily Telegram summary of AION's growth and channels.")
 
     publish_video_parser = subparsers.add_parser(
@@ -3961,6 +3978,10 @@ def main():
         return
     if args.command == "run-youtube-creator-publish":
         run_publish_youtube_creator(args)
+        return
+
+    if args.command == "release-private-youtube-creator":
+        run_release_private_youtube_creator(args)
         return
 
     if args.command == "prepare-youtube-creator":

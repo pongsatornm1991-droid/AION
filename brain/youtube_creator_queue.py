@@ -255,6 +255,38 @@ class YouTubeCreatorQueue:
         work_queue.transition(work_card["task_id"], "completed", owner="Audience & Growth", next_owner="Learning Lab", detail="YouTube ยืนยันการเผยแพร่แล้ว ส่งผลให้ฝ่ายวิเคราะห์")
         return {"stage": "published", "episode_id": updated.get("episode_id"), **result}
 
+    def release_private_once(self, releaser=None):
+        """Release one previously quality-gated private AION upload.
+
+        Old videos may have been uploaded while the channel default was
+        private.  This is an idempotent, narrowly-scoped recovery: it only
+        changes a recorded AION video from private to public after its saved
+        Quality Gate has passed.  It never touches arbitrary channel videos.
+        """
+        if self.memory is None:
+            raise ValueError("Memory is required to release a creator episode.")
+        if not AutonomyPolicy(self.root).public_publishing_enabled:
+            return {"stage": "owner-policy-required"}
+        target = next((item for item in self._records_by_episode().values()
+                       if (item[1].get("youtube") or {}).get("video_id")
+                       and (item[1].get("youtube") or {}).get("privacy_status") == "private"
+                       and ((item[1].get("youtube") or {}).get("quality") or {}).get("eligible") is True), None)
+        if target is None:
+            return {"stage": "no-quality-gated-private-creator-episode"}
+        entry, payload = target
+        youtube = dict(payload.get("youtube") or {})
+        try:
+            if releaser is None:
+                from tools.youtube import set_video_privacy
+                releaser = set_video_privacy
+            result = releaser(youtube["video_id"], "public")
+        except Exception as exc:
+            error = str(exc).strip() or type(exc).__name__
+            return {"stage": "release-failed", "episode_id": payload.get("episode_id"), "error": error}
+        updated = {**payload, "youtube": {**youtube, **result}}
+        self.memory.update(self.CATEGORY, entry["id"], content=json.dumps(updated, ensure_ascii=False))
+        return {"stage": "released-public", "episode_id": updated.get("episode_id"), **result}
+
     def audit_existing(self, episode_id=None):
         """Attach a retrospective Video QA report to one already-published episode.
 

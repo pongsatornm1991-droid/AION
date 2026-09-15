@@ -10,14 +10,16 @@ from pathlib import Path
 
 # Permit direct execution with `python tools/youtube_authorize.py`.
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
-from tools.youtube import YOUTUBE_UPLOAD_SCOPE
+from tools.youtube import YOUTUBE_COMMENT_SCOPE, YOUTUBE_UPLOAD_SCOPE
 
 
 def authorize(client_secrets_path):
     from google_auth_oauthlib.flow import InstalledAppFlow
 
     flow = InstalledAppFlow.from_client_secrets_file(
-        client_secrets_path, scopes=[YOUTUBE_UPLOAD_SCOPE]
+        # A single consent grants only the two capabilities AION needs:
+        # publishing its quality-gated videos and replying to comments.
+        client_secrets_path, scopes=[YOUTUBE_UPLOAD_SCOPE, YOUTUBE_COMMENT_SCOPE]
     )
     credentials = flow.run_local_server(port=0, open_browser=False)
     if not credentials.refresh_token:
@@ -26,7 +28,7 @@ def authorize(client_secrets_path):
 
 
 def main():
-    parser = argparse.ArgumentParser(description="Authorize AION to upload to its YouTube channel once.")
+    parser = argparse.ArgumentParser(description="Authorize AION to publish and reply to YouTube comments once.")
     parser.add_argument("--client-secrets", required=True, help="Downloaded OAuth desktop-client JSON path")
     args = parser.parse_args()
     # Deliberately print the token only to this local interactive process.
