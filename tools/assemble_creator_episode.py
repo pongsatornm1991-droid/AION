@@ -84,7 +84,8 @@ def assemble_once(root=ROOT, episode_id=None, renderer=render_reel):
                  duration=int(episode["target_duration_seconds"]),
                  still_paths=[str(image) for image in images],
                  max_scene_seconds=VisualStoryPolicy.MAX_SCENE_SECONDS,
-                 frame_size=frame_size)
+                 frame_size=frame_size,
+                 scene_narrations=[str(scene.get("narration") or "").strip() for scene in scenes])
     except AudioTimingError as exc:
         return {"stage": "audio-timing-failed", "episode_id": episode["id"], "error": str(exc)}
     except Exception as exc:

@@ -36,6 +36,30 @@ class StoryEpisodeStager:
     def _clean(value, limit=220):
         return " ".join(str(value or "").split())[:limit].strip()
 
+    @classmethod
+    def _evidence_parts(cls, value, part_count=2, words_per_part=12):
+        """Split a source observation without cutting a sentence mid-word.
+
+        These are source-backed narration beats, not filler used to stretch a
+        Reel.  If research supplies a short observation, a later timing gate
+        returns it to Research/Story instead of padding a silent ending.
+        """
+        words = cls._clean(value, 520).split()
+        parts = []
+        for index in range(part_count):
+            start = index * words_per_part
+            fragment = " ".join(words[start:start + words_per_part]).strip()
+            if fragment:
+                parts.append(fragment.rstrip(" ,;:") + ".")
+        return parts
+
+    @staticmethod
+    def _narrated_evidence(part, topic):
+        """Keep a short source observation intelligible for a five-second beat."""
+        if len(str(part).split()) >= 9:
+            return part
+        return f"{part} This is a direct observation about {topic}."
+
     @staticmethod
     def _episode_id(root_id):
         safe = re.sub(r"[^a-z0-9]+", "-", str(root_id).lower()).strip("-")
@@ -57,8 +81,15 @@ class StoryEpisodeStager:
         if len(sources) < 2:
             raise ValueError("A Story Agent handoff needs two traceable sources before staging.")
         first, second = sources
-        evidence_one = self._clean(first.get("observation"), 180) or "The first source gives one piece of the evidence."
-        evidence_two = self._clean(second.get("observation"), 180) or "A second source lets us test the first interpretation."
+        evidence_one = self._clean(first.get("observation"), 520)
+        evidence_two = self._clean(second.get("observation"), 520)
+        if not evidence_one or not evidence_two:
+            raise ValueError("A Story Agent handoff needs a usable observation from each source.")
+        first_parts = self._evidence_parts(evidence_one)
+        second_parts = self._evidence_parts(evidence_two)
+        first_title = self._clean(first.get("title"), 100) or "the first source"
+        second_title = self._clean(second.get("title"), 100) or "the second source"
+        uncertainty = self._clean(handoff.get("unknown_facts"), 260)
         title = self._clean(handoff.get("working_title"), 100) or f"AION Wonders: {topic}"
         return {
             "id": episode_id,
@@ -70,7 +101,7 @@ class StoryEpisodeStager:
             "scene_seconds": 5,
             "pacing_policy": VisualStoryPolicy.VERSION,
             "audience_promise": self._clean(handoff.get("audience_value"), 240)
-                or "A viewer of any age can see how two sources support a careful answer, and where uncertainty remains.",
+                or f"A viewer of any age can follow a clear, evidence-backed answer to: {topic}",
             "wonder_hook": topic,
             "topic_key": topic,
             "creative_device": "mystery-reveal",
@@ -80,7 +111,7 @@ class StoryEpisodeStager:
                 "deeper": "Separate direct observations from the interpretation built from them.",
             },
             "sources": [{"title": self._clean(source.get("title"), 160) or "Research source", "url": source["url"]} for source in sources],
-            "uncertainty_boundary": self._clean(handoff.get("unknown_facts"), 280)
+            "uncertainty_boundary": uncertainty
                 or "The available sources do not settle every part of this question.",
             "visual_direction": {
                 "focus": "subject-first",
@@ -95,18 +126,18 @@ class StoryEpisodeStager:
                 "prohibited": ["all-blue body", "all-blue outfit", "cape", "armour", "fashion pose", "embedded text", "logo", "watermark"],
             },
             "scenes": [
-                {"n": 1, "beat": "hook", "visual": f"AION appears briefly at the edge of a vivid environment that introduces the question: {topic}", "narration": "I am AION. Here is a question worth opening."},
-                {"n": 2, "beat": "setting", "visual": "AION is small at the edge while the setting and the main subject fill the frame.", "narration": "First, look at the setting and the problem it solves."},
-                {"n": 3, "beat": "evidence-one-intro", "visual": "AION points toward a visible clue while the subject remains central.", "narration": "The first source gives us one careful clue."},
-                {"n": 4, "beat": "evidence-one", "visual": "AION observes the first evidence-rich setting from the background.", "narration": f"It describes this: {self._clean(evidence_one, 70)}"},
-                {"n": 5, "beat": "evidence-two-intro", "visual": "AION crosses into a contrasting setting where a second clue is visible.", "narration": "Now compare that clue with a second source."},
-                {"n": 6, "beat": "evidence-two", "visual": "AION stays small while the second source's evidence fills the frame.", "narration": f"It adds this: {self._clean(evidence_two, 70)}"},
-                {"n": 7, "beat": "pattern", "visual": "AION watches as the environment links both pieces of evidence.", "narration": "Together, the clues make a pattern easier to see."},
-                {"n": 8, "beat": "mechanism", "visual": "AION is in the distant background while the subject demonstrates how the mechanism works.", "narration": "The subject stays central; AION is only your guide."},
-                {"n": 9, "beat": "boundary", "visual": "AION pauses in the background while the scene shows what remains uncertain.", "narration": "Evidence has limits. It does not settle every detail."},
-                {"n": 10, "beat": "interpretation", "visual": "AION observes a transition from documented clue to a clearly separate reconstruction.", "narration": "We should say where reconstruction becomes interpretation."},
-                {"n": 11, "beat": "meaning", "visual": "AION looks on as the subject and environment take a final wide frame.", "narration": "That difference makes a story more honest and useful."},
-                {"n": 12, "beat": "invitation", "visual": "AION walks away while the subject and environment fill the final frame.", "narration": "What would you look for before deciding what is true?"},
+                {"n": 1, "beat": "hook", "visual": f"A cinematic educational opening centred on {topic}; the real subject and environment fill the frame, with AION only as a small guide at the edge.", "narration": f"I am AION, an AI—not a human. Today we are asking: {topic}"},
+                {"n": 2, "beat": "question", "visual": f"Show the central subject of {topic} clearly before any explanation; AION observes from the distant edge.", "narration": "We will follow what was actually observed, step by step, rather than inventing an answer."},
+                {"n": 3, "beat": "evidence-one-intro", "visual": f"Show the first evidence scene for {topic}, guided by {first_title}; AION remains small and practical in the background.", "narration": f"Our first clue comes from {first_title}. We will use it to examine the subject closely."},
+                {"n": 4, "beat": "evidence-one-a", "visual": f"Depict this documented observation about {topic}: {first_parts[0]} Keep the subject dominant; AION is a small guide only.", "narration": self._narrated_evidence(first_parts[0], topic)},
+                {"n": 5, "beat": "evidence-one-b", "visual": f"Continue the first documented observation for {topic}: {(first_parts[1] if len(first_parts) > 1 else evidence_one)} Keep the evidence visible and AION in the background.", "narration": self._narrated_evidence(first_parts[1], topic) if len(first_parts) > 1 else f"This is the first direct observation connected to {topic}."},
+                {"n": 6, "beat": "evidence-two-intro", "visual": f"Move to a distinct second evidence scene for {topic}, guided by {second_title}; AION remains small at the edge.", "narration": f"A second clue comes from {second_title}. We compare it carefully with the first observation."},
+                {"n": 7, "beat": "evidence-two-a", "visual": f"Depict this documented observation about {topic}: {second_parts[0]} Keep the subject, action, and setting central; AION observes subtly from the distant edge.", "narration": self._narrated_evidence(second_parts[0], topic)},
+                {"n": 8, "beat": "evidence-two-b", "visual": f"Continue the second documented observation for {topic}: {(second_parts[1] if len(second_parts) > 1 else evidence_two)} AION is only a small contextual guide.", "narration": self._narrated_evidence(second_parts[1], topic) if len(second_parts) > 1 else f"This gives us a second direct observation about {topic}."},
+                {"n": 9, "beat": "connection", "visual": f"A visual comparison of the two documented observations about {topic}; show the subject and environment, with AION pointing only subtly from the edge.", "narration": f"Together, these two observations give us a clearer picture of {topic}."},
+                {"n": 10, "beat": "boundary", "visual": f"Show the boundary between what the sources document and what they do not establish about {topic}; no invented action, AION remains in the background.", "narration": uncertainty or "The sources do not settle every detail, so we should not claim more than they show."},
+                {"n": 11, "beat": "takeaway", "visual": f"Return to the central subject of {topic} in a final meaningful wide scene; AION is a small observer, not the focus.", "narration": f"The careful takeaway is simple: begin with what was observed about {topic}, then separate it from interpretation."},
+                {"n": 12, "beat": "invitation", "visual": f"End on the real subject and environment of {topic}, leaving space for wonder; AION exits subtly at the edge.", "narration": "I am AION, an AI—not a human. Keep asking better questions, and check the evidence with me."},
             ],
             "research_handoff_id": root_id,
             "story_package_id": handoff.get("story_package_id") or root_id,

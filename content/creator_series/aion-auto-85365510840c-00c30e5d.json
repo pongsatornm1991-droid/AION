@@ -2,7 +2,15 @@
   "id": "aion-auto-85365510840c-00c30e5d",
   "series": "AION Wonders",
   "title": "AION Wonders: How can an octopus change color so quickly?",
-  "status": "production-ready-assets-and-script",
+  "status": "quality-blocked-story-and-audio",
+  "quality_incident": {
+    "state": "blocked",
+    "reasons": [
+      "narration-ends-before-final-scene",
+      "generic-template-story-does-not-explain-topic"
+    ],
+    "action": "Do not reuse, cross-post, or treat this episode as a production template. Rebuild from a topic-specific script and fresh scene plan."
+  },
   "format": "illustrated-narrated-short",
   "target_duration_seconds": 60,
   "scene_seconds": 5,

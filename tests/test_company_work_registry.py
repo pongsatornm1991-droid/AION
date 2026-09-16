@@ -28,6 +28,7 @@ class CompanyWorkRegistryTests(unittest.TestCase):
                     {"file": "instagram-cycle.yml", "status_class": "success"},
                     {"file": "youtube-creator.yml", "status_class": "success"},
                     {"file": "youtube-longform.yml", "status_class": "success"},
+                    {"file": "platform-recovery.yml", "status_class": "success"},
                 ]}],
             }), encoding="utf-8")
             result = CompanyWorkRegistry(root).snapshot()

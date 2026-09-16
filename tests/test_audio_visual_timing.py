@@ -16,6 +16,13 @@ class AudioVisualTimingGateTests(unittest.TestCase):
         self.assertEqual(6, report["minimum_extra_visual_beats"])
         self.assertIn("ย่อบท", report["detail"])
 
+    def test_rejects_silent_final_scenes(self):
+        report = AudioVisualTimingGate.assess(50, 60)
+        self.assertFalse(report["eligible"])
+        self.assertIn("narration-ends-before-final-scene", report["reasons"])
+        self.assertEqual(10, report["trailing_silence_seconds"])
+        self.assertIn("ห้ามประกอบคลิป", report["detail"])
+
     def test_rejects_unreadable_audio_duration(self):
         report = AudioVisualTimingGate.assess(None, 120)
         self.assertFalse(report["eligible"])

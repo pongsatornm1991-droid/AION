@@ -11,6 +11,7 @@ import os
 import re
 import shutil
 import subprocess
+import tempfile
 
 from PIL import Image, ImageDraw, ImageFont, ImageOps
 
@@ -166,7 +167,7 @@ def render_reel_cover(hook, thought, output_path, mood=None, still_paths=None):
 
 
 def render_reel(hook, thought, output_path, duration=18, mood=None, still_paths=None,
-                max_scene_seconds=10, frame_size=REEL_SIZE):
+                max_scene_seconds=10, frame_size=REEL_SIZE, scene_narrations=None):
     """Create a paced AION video in vertical or true widescreen format."""
     ffmpeg = shutil.which("ffmpeg")
     if not ffmpeg:
@@ -192,21 +193,47 @@ def render_reel(hook, thought, output_path, duration=18, mood=None, still_paths=
     width, height = frame_size
     if (width, height) not in {REEL_SIZE, WIDESCREEN_SIZE}:
         raise ValueError("AION videos must be 9:16 or 16:9")
-    # Voice is timed before any final visual work.  This prevents an expensive
-    # render from reaching the muxer only to have its ending cut silently.
+    # Voice is timed before any final visual work.  Creator episodes supply
+    # one narration unit per scene, so sound, subtitle, and image advance at
+    # the same boundary instead of using a single untraceable voice track.
     audio = os.path.splitext(output_path)[0] + ".mp3"
     from tools.voice import synthesize_reel_voice
-    has_voice = synthesize_reel_voice(f"{hook}. {thought}", audio)
-    if has_voice:
-        audio_seconds = _audio_duration(ffmpeg, audio)
-        timing = AudioVisualTimingGate.assess(audio_seconds, duration)
-        # Do not treat an unreadable source audio duration as safe.  Without a
-        # verified duration the Studio cannot guarantee that speech and image
-        # finish together.
-        if not timing["eligible"]:
-            raise AudioTimingError(
-                f"audio-visual-timing-failed: {timing['detail']}"
+    scene_narrations = [str(item).strip() for item in (scene_narrations or [])]
+    if scene_narrations and len(scene_narrations) != len(stills):
+        raise ValueError("Creator narration must contain exactly one entry for each visual scene.")
+
+    has_voice = False
+    scene_audio_paths = []
+    temporary_audio = None
+    if scene_narrations:
+        temporary_audio = tempfile.TemporaryDirectory(prefix="aion-scene-voice-")
+        for index, narration in enumerate(scene_narrations):
+            scene_audio = os.path.join(temporary_audio.name, f"scene-{index:02d}.mp3")
+            if not narration or not synthesize_reel_voice(narration, scene_audio):
+                temporary_audio.cleanup()
+                raise AudioTimingError(f"audio-visual-timing-failed: สร้างเสียงสำหรับฉาก {index + 1} ไม่สำเร็จ")
+            # A visual may breathe briefly after a sentence, but never for an
+            # entire scene. The final full-episode check remains stricter.
+            timing = AudioVisualTimingGate.assess(
+                _audio_duration(ffmpeg, scene_audio), seconds_per_scene,
+                max_trailing_silence=2.0,
             )
+            if not timing["eligible"]:
+                temporary_audio.cleanup()
+                raise AudioTimingError(
+                    f"audio-visual-timing-failed: ฉาก {index + 1}: {timing['detail']}"
+                )
+            scene_audio_paths.append(scene_audio)
+        has_voice = True
+    else:
+        has_voice = synthesize_reel_voice(f"{hook}. {thought}", audio)
+        if has_voice:
+            audio_seconds = _audio_duration(ffmpeg, audio)
+            timing = AudioVisualTimingGate.assess(audio_seconds, duration)
+            if not timing["eligible"]:
+                raise AudioTimingError(
+                    f"audio-visual-timing-failed: {timing['detail']}"
+                )
     cover = os.path.splitext(output_path)[0] + "-cover.png"
     render_reel_cover(hook, thought, cover, mood=mood, still_paths=stills)
     frames = max(3, int(duration * 30))
@@ -223,14 +250,27 @@ def render_reel(hook, thought, output_path, duration=18, mood=None, still_paths=
     ]
     joined = "".join(f"[v{index}]" for index in range(len(stills)))
     video_filter = ";".join(scene_filters + [f"{joined}concat=n={len(stills)}:v=1:a=0[v]"])
-    if has_voice:
-        # Narration is usually shorter than the Reel.  Pad it to the target
-        # duration instead of using -shortest, which would otherwise cut the
-        # video off as soon as the voice ends.
+    if scene_audio_paths:
+        for scene_audio in scene_audio_paths:
+            command.extend(["-i", scene_audio])
+        audio_inputs = [
+            f"[{len(stills) + index}:a]apad=pad_dur=0.5,atrim=duration={seconds_per_scene}[a{index}]"
+            for index in range(len(scene_audio_paths))
+        ]
+        joined_audio = "".join(f"[a{index}]" for index in range(len(scene_audio_paths)))
+        command.extend(["-filter_complex", f"{video_filter};{';'.join(audio_inputs)};{joined_audio}concat=n={len(scene_audio_paths)}:v=0:a=1[a]", "-map", "[v]", "-map", "[a]"])
+    elif has_voice:
+        # The timing gate has already ensured narration reaches the final
+        # beat.  Only a tiny codec-safe tail is allowed here; never use a
+        # long audio pad, because that would disguise silent final scenes.
         audio_index = len(stills)
-        command.extend(["-i", audio, "-filter_complex", f"{video_filter};[{audio_index}:a]apad=pad_dur={duration}[a]", "-map", "[v]", "-map", "[a]"])
+        command.extend(["-i", audio, "-filter_complex", f"{video_filter};[{audio_index}:a]apad=pad_dur=0.5[a]", "-map", "[v]", "-map", "[a]"])
     else:
         command.extend(["-filter_complex", video_filter, "-map", "[v]", "-an"])
     command.extend(["-t", str(duration), "-r", "30", "-c:v", "libx264", "-pix_fmt", "yuv420p", "-movflags", "+faststart", output_path])
-    subprocess.run(command, check=True, capture_output=True, text=True)
+    try:
+        subprocess.run(command, check=True, capture_output=True, text=True)
+    finally:
+        if temporary_audio is not None:
+            temporary_audio.cleanup()
     return output_path
