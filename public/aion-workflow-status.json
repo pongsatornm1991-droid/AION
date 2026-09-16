@@ -1,10 +1,10 @@
 {
-  "generated_at": "2026-09-16T08:11:15.616111+00:00",
+  "generated_at": "2026-09-16T08:21:34.097014+00:00",
   "tiles": {
     "total": 43,
-    "ok": 39,
+    "ok": 37,
     "attn": 2,
-    "running": 1
+    "running": 3
   },
   "groups": [
     {
@@ -198,10 +198,10 @@
         {
           "name": "AION - Automation Health Monitor",
           "file": "automation-health.yml",
-          "status_class": "success",
-          "status_label": "สำเร็จ",
-          "html_url": "https://github.com/pongsatornm1991-droid/AION/actions/runs/35072224590",
-          "created_at": "2026-09-16T08:09:08Z"
+          "status_class": "running",
+          "status_label": "กำลังรัน",
+          "html_url": "https://github.com/pongsatornm1991-droid/AION/actions/runs/35073302258",
+          "created_at": "2026-09-16T08:21:12Z"
         },
         {
           "name": "AION - Cyber Guard defensive audit",
@@ -230,10 +230,10 @@
         {
           "name": "AION - bounded self repair",
           "file": "self-repair.yml",
-          "status_class": "success",
-          "status_label": "สำเร็จ",
-          "html_url": "https://github.com/pongsatornm1991-droid/AION/actions/runs/35072224546",
-          "created_at": "2026-09-16T08:09:08Z"
+          "status_class": "running",
+          "status_label": "กำลังรัน",
+          "html_url": "https://github.com/pongsatornm1991-droid/AION/actions/runs/35073302312",
+          "created_at": "2026-09-16T08:21:12Z"
         },
         {
           "name": "AION - delivery evidence watchdog",
@@ -248,16 +248,16 @@
           "file": "tests.yml",
           "status_class": "failure",
           "status_label": "ล้มเหลว",
-          "html_url": "https://github.com/pongsatornm1991-droid/AION/actions/runs/35072149831",
-          "created_at": "2026-09-16T08:08:17Z"
+          "html_url": "https://github.com/pongsatornm1991-droid/AION/actions/runs/35073216253",
+          "created_at": "2026-09-16T08:20:15Z"
         },
         {
           "name": "AION - publish workflow health",
           "file": "publish-workflow-status.yml",
           "status_class": "running",
           "status_label": "กำลังรัน",
-          "html_url": "https://github.com/pongsatornm1991-droid/AION/actions/runs/35072357404",
-          "created_at": "2026-09-16T08:10:38Z"
+          "html_url": "https://github.com/pongsatornm1991-droid/AION/actions/runs/35073302363",
+          "created_at": "2026-09-16T08:21:13Z"
         },
         {
           "name": "AION - recoverable media housekeeping",
@@ -272,8 +272,8 @@
           "file": "system-reliability.yml",
           "status_class": "success",
           "status_label": "สำเร็จ",
-          "html_url": "https://github.com/pongsatornm1991-droid/AION/actions/runs/35072149723",
-          "created_at": "2026-09-16T08:08:17Z"
+          "html_url": "https://github.com/pongsatornm1991-droid/AION/actions/runs/35073216262",
+          "created_at": "2026-09-16T08:20:15Z"
         }
       ]
     },
