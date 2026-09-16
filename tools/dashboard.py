@@ -39,7 +39,6 @@ from brain.social_intelligence import SocialIntelligence
 from brain.admin_operations import AdminOperations
 from brain.audience_accessibility import AudienceAccessibility
 from brain.operations_control import OperationsControlTower
-from brain.youtube import YouTubeShortsCycle
 from brain.youtube_quality import YouTubeQualityGate
 
 
@@ -583,52 +582,36 @@ def _next_studio_release(memory):
     honest while leaving publication entirely to the scheduled workflow.
     """
     try:
-        cycle = YouTubeShortsCycle(memory)
-        all_payloads = []
-        for entry in memory.all(cycle.PUBLISHED):
-            payload = _safe_json(entry.get("content"))
-            if isinstance(payload, dict):
-                all_payloads.append(payload)
-        published = [
-            item for item in all_payloads
-            if isinstance(item.get("youtube"), dict) and item["youtube"].get("video_id")
-        ]
-        pending = []
-        for entry in sorted(memory.all(cycle.PUBLISHED), key=lambda item: item.get("timestamp", "")):
-            payload = _safe_json(entry.get("content"))
-            if not isinstance(payload, dict):
+        # Prefer the current Studio episode.  A historical Reel is never a
+        # substitute for a newly produced Creator episode in this view.
+        creator = YouTubeCreatorQueue(memory, ROOT)
+        for item in creator.candidates():
+            if item.get("content_kind") != "short" or item.get("status") not in {"upload-ready", "already-prepared"}:
                 continue
-            youtube = payload.get("youtube")
-            if isinstance(youtube, dict) and youtube.get("video_id"):
-                continue
-            pending.append((entry, payload))
-        for entry, payload in pending:
-            video_path = str(payload.get("video_path") or "").replace("\\", "/").lstrip("/")
+            video_path = str(item.get("video_path") or "").replace("\\", "/").lstrip("/")
             candidate = (ROOT / video_path).resolve()
             reels_root = (ROOT / "content" / "reels").resolve()
             if not (candidate.is_file() and candidate.parent == reels_root and candidate.suffix.lower() == ".mp4"):
                 continue
-            quality = YouTubeQualityGate().assess(payload, published)
+            quality = YouTubeQualityGate().assess(item, ())
             if not quality.get("eligible"):
                 continue
             cover_path = candidate.with_name(f"{candidate.stem}-cover.png")
             now = datetime.now()
             today_is_release_day = now.weekday() in {0, 2, 4, 5}
             before_release = (now.hour, now.minute) < (20, 43)
-            status = "พร้อมปล่อยคืนนี้" if today_is_release_day and before_release else "พร้อมสำหรับรอบเผยแพร่ถัดไป"
-            caption = str(payload.get("caption") or "").strip()
-            display_title = next((part.strip() for part in re.split(r"(?<=[.!?])\s+", caption) if part.strip()), "AION Short")
             return {
-                "entry_id": entry.get("id"),
-                "title": display_title[:100],
-                "status": status,
+                "entry_id": item.get("episode_id"),
+                "title": item.get("title") or "AION Studio Short",
+                "status": "พร้อมปล่อยคืนนี้" if today_is_release_day and before_release else "พร้อมสำหรับรอบเผยแพร่ถัดไป",
                 "release_time": "20:43 น. เวลาไทย · จันทร์ / พุธ / ศุกร์ / เสาร์",
                 "preview_url": f"/{video_path}",
                 "cover_url": "/" + str(cover_path.relative_to(ROOT)).replace("\\", "/") if cover_path.is_file() else None,
-                "viewer_value": quality.get("viewer_value") or "มีคุณค่าต่อผู้ชมตาม Quality Gate",
-                "boundary": str(payload.get("uncertainty_boundary") or ""),
-                "quality": "ผ่าน Quality Gate · ไฟล์พร้อมเข้าคิว YouTube",
+                "viewer_value": item.get("viewer_value") or "มีคุณค่าต่อผู้ชมตาม Quality Gate",
+                "boundary": item.get("uncertainty_boundary") or "",
+                "quality": "ผ่าน Quality Gate · ผลิตใหม่จาก AION Studio",
             }
+
     except (OSError, TypeError, ValueError, KeyError):
         # A malformed historical memory record must never blank the Studio.
         pass

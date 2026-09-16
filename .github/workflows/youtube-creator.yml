@@ -62,10 +62,10 @@ jobs:
           YOUTUBE_REFRESH_TOKEN: ${{ secrets.YOUTUBE_REFRESH_TOKEN }}
           YOUTUBE_PRIVACY_STATUS: ${{ vars.YOUTUBE_PRIVACY_STATUS || 'public' }}
         run: python main.py run-youtube-creator-publish --content-kind short | tee youtube-creator-publish-report.txt
-      - name: Keep the daily Shorts promise with a completed Reel fallback
-        # Creator episodes are the preferred format.  If no Creator Short is
-        # ready, publish exactly one already quality-gated daily Reel instead.
-        # This prevents a gap without making a duplicate upload.
+      - name: Record an empty slot; never substitute an old Reel
+        # A release slot must contain a newly produced Studio episode.  An old
+        # Reel may be technically valid but is not a replacement for today's
+        # promised work, so the next production cycle is allowed to recover it.
         if: ${{ always() }}
         env:
           AION_MEMORY_ROOT: memory_data
@@ -75,9 +75,9 @@ jobs:
           YOUTUBE_PRIVACY_STATUS: ${{ vars.YOUTUBE_PRIVACY_STATUS || 'public' }}
         run: |
           if [[ -f youtube-creator-publish-report.txt ]] && grep -q "Stage: no-authorized-creator-episode" youtube-creator-publish-report.txt; then
-            python main.py run-youtube-publish
+            echo "No new Studio Short is ready; historical Reels are intentionally not uploaded as a fallback."
           else
-            echo "Creator Short handled the daily YouTube slot; no fallback upload."
+            echo "Creator Short handled the daily YouTube slot."
           fi
       - name: Persist private memory
         working-directory: memory_data
