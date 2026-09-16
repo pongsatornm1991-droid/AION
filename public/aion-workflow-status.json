@@ -1,10 +1,10 @@
 {
-  "generated_at": "2026-09-16T08:09:37.240062+00:00",
+  "generated_at": "2026-09-16T08:11:15.616111+00:00",
   "tiles": {
     "total": 43,
-    "ok": 37,
+    "ok": 39,
     "attn": 2,
-    "running": 3
+    "running": 1
   },
   "groups": [
     {
@@ -198,8 +198,8 @@
         {
           "name": "AION - Automation Health Monitor",
           "file": "automation-health.yml",
-          "status_class": "running",
-          "status_label": "กำลังรัน",
+          "status_class": "success",
+          "status_label": "สำเร็จ",
           "html_url": "https://github.com/pongsatornm1991-droid/AION/actions/runs/35072224590",
           "created_at": "2026-09-16T08:09:08Z"
         },
@@ -230,8 +230,8 @@
         {
           "name": "AION - bounded self repair",
           "file": "self-repair.yml",
-          "status_class": "running",
-          "status_label": "กำลังรัน",
+          "status_class": "success",
+          "status_label": "สำเร็จ",
           "html_url": "https://github.com/pongsatornm1991-droid/AION/actions/runs/35072224546",
           "created_at": "2026-09-16T08:09:08Z"
         },
@@ -256,8 +256,8 @@
           "file": "publish-workflow-status.yml",
           "status_class": "running",
           "status_label": "กำลังรัน",
-          "html_url": "https://github.com/pongsatornm1991-droid/AION/actions/runs/35072227975",
-          "created_at": "2026-09-16T08:09:11Z"
+          "html_url": "https://github.com/pongsatornm1991-droid/AION/actions/runs/35072357404",
+          "created_at": "2026-09-16T08:10:38Z"
         },
         {
           "name": "AION - recoverable media housekeeping",
