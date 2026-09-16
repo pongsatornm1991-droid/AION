@@ -13,10 +13,14 @@ from brain.creator_episode_crosspost import CreatorEpisodeCrosspost
 from brain.thinker import Thinker
 
 parser = argparse.ArgumentParser()
-parser.add_argument("--episode-id", required=True)
+parser.add_argument("--episode-id")
+parser.add_argument("--latest-published", action="store_true")
 args = parser.parse_args()
 
-report = CreatorEpisodeCrosspost(Thinker().memory, ROOT).publish_once(args.episode_id)
+if bool(args.episode_id) == bool(args.latest_published):
+    raise SystemExit("Specify exactly one of --episode-id or --latest-published")
+crosspost = CreatorEpisodeCrosspost(Thinker().memory, ROOT)
+report = (crosspost.publish_once(args.episode_id) if args.episode_id else crosspost.publish_latest_once())
 print(json.dumps(report, ensure_ascii=False, indent=2))
-if report.get("stage") not in {"published", "partially-published"}:
+if report.get("stage") != "published":
     raise SystemExit(report.get("stage") or "creator-crosspost-failed")

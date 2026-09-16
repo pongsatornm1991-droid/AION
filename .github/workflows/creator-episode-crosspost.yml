@@ -1,6 +1,9 @@
 name: AION - cross-post verified Creator Short
 
 on:
+  workflow_run:
+    workflows: [AION - YouTube Creator Studio]
+    types: [completed]
   workflow_dispatch:
     inputs:
       episode_id:
@@ -19,6 +22,7 @@ concurrency:
 
 jobs:
   crosspost:
+    if: ${{ github.event_name != 'workflow_run' || github.event.workflow_run.conclusion == 'success' }}
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -37,7 +41,12 @@ jobs:
           INSTAGRAM_BUSINESS_ACCOUNT_ID: ${{ secrets.INSTAGRAM_BUSINESS_ACCOUNT_ID }}
           FACEBOOK_PAGE_ACCESS_TOKEN: ${{ secrets.FACEBOOK_PAGE_ACCESS_TOKEN }}
           FACEBOOK_PAGE_ID: ${{ secrets.FACEBOOK_PAGE_ID }}
-        run: python tools/crosspost_creator_episode.py --episode-id "${{ inputs.episode_id }}"
+        run: |
+          if [[ "${{ github.event_name }}" == "workflow_run" ]]; then
+            python tools/crosspost_creator_episode.py --latest-published
+          else
+            python tools/crosspost_creator_episode.py --episode-id "${{ inputs.episode_id }}"
+          fi
       - name: Persist cross-platform evidence
         working-directory: memory_data
         run: |

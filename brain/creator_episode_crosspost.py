@@ -87,3 +87,28 @@ class CreatorEpisodeCrosspost:
         complete = all(platforms.get(name, {}).get("status") == "published" for name in ("instagram", "facebook"))
         return {"stage": "published" if complete else "partially-published", "episode_id": episode_id,
                 "video_url": url, "platforms": platforms}
+
+    def publish_latest_once(self, instagram_publisher=None, facebook_publisher=None):
+        """Find the newest public Studio Short missing a social delivery.
+
+        This is deliberately based on the durable YouTube audit trail rather
+        than a filename or modification date.  Thus an automatic retry cannot
+        accidentally select an unreviewed storyboard or an older local Reel.
+        """
+        for entry in reversed(self.memory.all("youtube_creator_queue")):
+            try:
+                payload = json.loads(entry.get("content") or "{}")
+            except (TypeError, ValueError):
+                continue
+            episode_id = str(payload.get("episode_id") or "")
+            youtube = payload.get("youtube") or {}
+            if payload.get("content_kind") != "short" or not episode_id:
+                continue
+            if not youtube.get("video_id") or youtube.get("privacy_status") != "public":
+                continue
+            _, crosspost = self._record(episode_id)
+            platforms = (crosspost or {}).get("platforms") or {}
+            if all(platforms.get(name, {}).get("status") == "published" for name in ("instagram", "facebook")):
+                continue
+            return self.publish_once(episode_id, instagram_publisher, facebook_publisher)
+        return {"stage": "no-public-creator-short-awaiting-crosspost"}
