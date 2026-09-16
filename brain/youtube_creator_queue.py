@@ -5,6 +5,7 @@ from pathlib import Path
 
 from brain.autonomy_policy import AutonomyPolicy
 from brain.creator_series import CreatorSeriesRegistry
+from brain.visual_story_policy import VisualStoryPolicy
 
 
 class YouTubeCreatorQueue:
@@ -12,6 +13,7 @@ class YouTubeCreatorQueue:
 
     CATEGORY = "youtube_creator_queue"
     READY_STATUS = "production-ready-assets-and-script"
+    RETIRED_STATUS = "retired-do-not-publish"
 
     @staticmethod
     def _content_kind(episode):
@@ -70,15 +72,30 @@ class YouTubeCreatorQueue:
             video_path = self.root / "content" / "reels" / f"{episode['id']}.mp4"
             subtitle_path = self.root / "content" / "reels" / f"{episode['id']}.srt"
             ready = episode.get("status") == self.READY_STATUS and video_path.is_file()
+            content_kind = self._content_kind(episode)
+            release_blockers = []
+            # Reject an outdated storyboard before it ever occupies a release
+            # slot. Video QA still inspects the rendered file later, but this
+            # prevents legacy 25/36-second Shorts from blocking a complete one.
+            if content_kind == "short":
+                if int(episode.get("target_duration_seconds") or 0) < VisualStoryPolicy.MIN_SHORT_DURATION_SECONDS:
+                    release_blockers.append("short-must-be-at-least-50-seconds")
+                if len(episode.get("scenes") or []) < VisualStoryPolicy.MIN_SHORT_SCENES:
+                    release_blockers.append("short-must-have-at-least-10-scenes")
+                if int(episode.get("scene_seconds") or 0) != VisualStoryPolicy.MIN_SCENE_SECONDS:
+                    release_blockers.append("short-scenes-must-be-5-seconds")
+            retired = episode.get("status") == self.RETIRED_STATUS
             previous = recorded.get(episode["id"])
             result.append({
                 "episode_id": episode["id"],
-                "content_kind": self._content_kind(episode),
+                "content_kind": content_kind,
                 "format": episode.get("format", "long-form-illustrated"),
                 "title": episode["title"],
-                "status": "published" if previous and (previous[1].get("youtube") or {}).get("video_id") else "already-prepared" if previous else (
-                    "upload-ready" if ready else "needs-production"
-                ),
+                "status": "retired" if retired else ("published" if previous and (previous[1].get("youtube") or {}).get("video_id") else "already-prepared" if previous else (
+                    "upload-ready" if ready and not release_blockers else "needs-production"
+                )),
+                "release_eligible": not retired and not release_blockers,
+                "release_blockers": release_blockers,
                 "video_path": str(video_path.relative_to(self.root)).replace("\\", "/"),
                 "video_exists": video_path.is_file(),
                 "cover_path": f"content/reels/{episode['id']}-cover.png",
@@ -166,6 +183,7 @@ class YouTubeCreatorQueue:
             return {"stage": "authorized-for-publishing", "refreshed": True, "record": entry, **refreshed}
         eligible = [item for item in self.candidates()
                     if item["status"] == "upload-ready"
+                    and item.get("release_eligible")
                     and (not content_kind or item.get("content_kind") == content_kind)]
         # A documented corrective release may go first, but it can never
         # bypass the normal quality gates below. This prevents a stale ready

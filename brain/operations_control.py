@@ -115,7 +115,13 @@ class OperationsControlTower:
             if item.get("status") == "published":
                 continue
             gate = item.get("quality_gate") or {}
-            if not item.get("video_exists"):
+            if item.get("status") == "retired":
+                # Historic drafts are retained as audit evidence but must not
+                # look like active work or a silent fallback for a release day.
+                continue
+            if item.get("release_blockers"):
+                state, detail = "attention", "ยังไม่เข้าเกณฑ์รอบเผยแพร่: " + ", ".join(item["release_blockers"])
+            elif not item.get("video_exists"):
                 state, detail = "waiting", "รอประกอบวิดีโอจากภาพ เสียง และ storyboard"
             elif gate.get("eligible"):
                 state, detail = "pass", "ผ่าน Quality Gate แล้ว รอรอบเผยแพร่"
@@ -171,6 +177,19 @@ class OperationsControlTower:
             "report": payload,
         }
 
+    def _release_readiness(self):
+        """Read the scheduled-release buffer published by its own watchdog."""
+        path = self.root / "public" / "aion-release-readiness.json"
+        try:
+            payload = json.loads(path.read_text(encoding="utf-8"))
+        except (OSError, ValueError, TypeError):
+            return {"state": "waiting", "label": "รอการตรวจบัฟเฟอร์เผยแพร่", "detail": "ระบบจะตรวจล่วงหน้า 96 ชั่วโมงก่อนวันปล่อย"}
+        shortages = payload.get("shortages") or []
+        detail = "มีคลิปใหม่พร้อมสำหรับทุกช่วงเผยแพร่ 96 ชั่วโมงข้างหน้า" if not shortages else "ยังขาดบัฟเฟอร์: " + ", ".join(
+            f"{item.get('content_kind')} {item.get('missing')} ตอน" for item in shortages
+        )
+        return {"state": payload.get("state", "waiting"), "label": "บัฟเฟอร์วันเผยแพร่", "detail": detail, "report": payload}
+
     def snapshot(self):
         pending = self._pending_work()
         delivery = DeliveryWatchdog(self.memory, root=self.root).snapshot()
@@ -183,6 +202,7 @@ class OperationsControlTower:
         audience = AudienceAccessibility(self.memory).snapshot()
         continuity = ContinuityGuard(self.root, getattr(self.memory, "root", None)).snapshot()
         self_repair = self._self_repair()
+        release_readiness = self._release_readiness()
         work_queue = WorkQueue(self.memory).snapshot()
         studio_pipeline = StudioPipeline(self.root).snapshot()
         work_queue["active"] = list(studio_pipeline["active"]) + list(work_queue["active"])
@@ -200,6 +220,8 @@ class OperationsControlTower:
             blockers.append({"name": item["department"], "detail": "ต้องอาศัยผล workflow ล่าสุดก่อนยืนยันว่าการส่งต่องานครบ", "state": "attention"})
         if reliability["status"] != "healthy":
             blockers.append({"name": "โครงสร้างระบบ", "detail": reliability["scope"], "state": "attention"})
+        if release_readiness["state"] != "ready":
+            blockers.append({"name": release_readiness["label"], "detail": release_readiness["detail"], "state": release_readiness["state"]})
 
         return {
             "title": "AION Operations Control Tower",
@@ -217,6 +239,7 @@ class OperationsControlTower:
             "asset_hygiene": assets,
             "continuity": continuity,
             "self_repair": self_repair,
+            "release_readiness": release_readiness,
             "workflow_register": company,
             "recovery_policy": "งานที่รอจะถูกเก็บในคิวเดิมและลองใหม่โดย workflow ปกติ; ไม่สร้างโพสต์ซ้ำ ไม่ใช้ภาพเก่าแทน และไม่แตะสิทธิ์บัญชี เงิน หรือข้อมูลรับรอง",
         }

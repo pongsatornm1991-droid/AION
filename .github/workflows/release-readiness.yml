@@ -1,0 +1,51 @@
+name: AION - Creator release readiness
+
+# This is the early-warning layer for the fixed publishing appointments.  It
+# does not generate media or publish anything: it makes a missing 96-hour
+# buffer visible early enough for the normal Studio shifts to recover it.
+on:
+  schedule:
+    # Run after the Sunday/Thursday 09:07 Studio shift has had time to
+    # produce its release buffer; checking before it would create a false
+    # shortage alert while the planned work is still legitimately underway.
+    - cron: "30 5 * * *" # 12:30 Asia/Bangkok
+  workflow_dispatch: {}
+
+permissions:
+  contents: write
+
+concurrency:
+  group: aion-release-readiness
+  cancel-in-progress: false
+
+jobs:
+  inspect:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/checkout@v4
+        with:
+          repository: pongsatornm1991-droid/aion-memory-data
+          token: ${{ secrets.MEMORY_REPO_PAT }}
+          path: memory_data
+      - uses: actions/setup-python@v5
+        with: {python-version: "3.11"}
+      - run: pip install -r requirements.txt
+      - name: Publish the read-only release-buffer record
+        env:
+          AION_MEMORY_ROOT: memory_data
+        run: python tools/run_release_readiness.py
+      - name: Commit the visible readiness record
+        run: |
+          git config user.name aion-bot
+          git config user.email aion-bot@users.noreply.github.com
+          git add public/aion-release-readiness.json
+          if ! git diff --cached --quiet; then
+            git commit -m "AION: refresh release readiness"
+            git pull --rebase origin main
+            git push
+          fi
+      - name: Alert only when a scheduled slot lacks a new ready episode
+        env:
+          AION_MEMORY_ROOT: memory_data
+        run: python tools/run_release_readiness.py --strict

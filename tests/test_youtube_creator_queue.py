@@ -15,14 +15,14 @@ class YouTubeCreatorQueueTests(unittest.TestCase):
         series.mkdir(parents=True)
         images.mkdir(parents=True)
         reels.mkdir(parents=True)
-        for number in range(3):
+        for number in range(10):
             (images / f"{number}.png").write_bytes(b"image")
         # Every Creator upload now requires a Studio-produced cover.
         (reels / "episode-cover.png").write_bytes(b"png")
         (series / "episode.json").write_text(__import__("json").dumps({
             "id": "episode", "series": "AION Wonders", "title": "A useful question",
             "status": "production-ready-assets-and-script", "format": "illustrated-narrated-short",
-            "target_duration_seconds": 18, "scene_seconds": 6,
+            "target_duration_seconds": 50, "scene_seconds": 5,
             "audience_promise": "Viewers learn how a careful question can make a mystery easier to explore.",
             "wonder_hook": "Could a small question change how we see the world?", "creative_device": "journey",
             "age_layers": {"children": "Ask why.", "family": "Talk together.", "deeper": "Test a claim."},
@@ -30,7 +30,7 @@ class YouTubeCreatorQueueTests(unittest.TestCase):
             "sources": [{"url": "https://example.test/one"}, {"url": "https://example.test/two"}],
             "scenes": [
                 {"n": n, "image": f"assets/images/{n}.png", "visual": "AION explores a new place.", "narration": "AION asks a careful question."}
-                for n in range(3)
+                for n in range(10)
             ],
         }), encoding="utf-8")
 
@@ -46,6 +46,24 @@ class YouTubeCreatorQueueTests(unittest.TestCase):
             self.assertEqual("awaiting-human-confirmation", report["upload_status"])
             self.assertEqual("already-prepared", queue.candidates()[0]["status"])
             self.assertEqual("no-upload-ready-creator-episode", queue.prepare_once()["stage"])
+
+    def test_skips_a_legacy_short_instead_of_letting_it_consume_a_release_slot(self):
+        with tempfile.TemporaryDirectory() as root:
+            self._episode(root)
+            root = Path(root)
+            legacy = __import__("json").loads((root / "content" / "creator_series" / "episode.json").read_text(encoding="utf-8"))
+            legacy.update({"id": "legacy", "title": "Old draft", "target_duration_seconds": 25})
+            legacy["scenes"] = legacy["scenes"][:5]
+            (root / "content" / "creator_series" / "legacy.json").write_text(__import__("json").dumps(legacy), encoding="utf-8")
+            (root / "content" / "reels" / "episode.mp4").write_bytes(b"new")
+            (root / "content" / "reels" / "legacy.mp4").write_bytes(b"old")
+            (root / "content" / "reels" / "legacy-cover.png").write_bytes(b"png")
+            queue = YouTubeCreatorQueue(MemoryEngine(root / "memory"), root)
+            candidates = {item["episode_id"]: item for item in queue.candidates()}
+            self.assertFalse(candidates["legacy"]["release_eligible"])
+            self.assertEqual("upload-ready", candidates["episode"]["status"])
+            self.assertEqual("prepared-for-review", queue.prepare_once()["stage"])
+            self.assertEqual("episode", __import__("json").loads(queue.memory.all(queue.CATEGORY)[0]["content"])["episode_id"])
 
     def test_publishes_authorized_episode_once_when_project_policy_delegates_it(self):
         with tempfile.TemporaryDirectory() as root:
