@@ -11,6 +11,10 @@ class TopicNoveltyGate:
         "aion", "the", "and", "with", "from", "that", "this", "how", "did", "does", "what",
         "why", "where", "when", "were", "was", "into", "through", "your", "our", "for", "about",
         "ancient", "story", "wonders", "viewer", "viewers", "short", "video", "without",
+        # Broad helper verbs/actions are not a subject.  Counting these made
+        # an octopus colour-change story collide with an unrelated reflection
+        # merely because both said "can change".
+        "can", "could", "would", "should", "change", "become", "quickly", "small", "large",
     }
 
     @classmethod

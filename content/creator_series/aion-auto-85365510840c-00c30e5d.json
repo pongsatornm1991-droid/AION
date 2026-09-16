@@ -1,0 +1,126 @@
+{
+  "id": "aion-auto-85365510840c-00c30e5d",
+  "series": "AION Wonders",
+  "title": "AION Wonders: How can an octopus change color so quickly?",
+  "status": "storyboard-ready-needs-assets",
+  "format": "illustrated-narrated-short",
+  "target_duration_seconds": 60,
+  "scene_seconds": 5,
+  "pacing_policy": "short-60-180-subject-first-v2",
+  "audience_promise": "A viewer of any age can see how careful observation turns a surprising historical or scientific idea into something understandable.",
+  "wonder_hook": "How can an octopus change color so quickly?",
+  "topic_key": "How can an octopus change color so quickly?",
+  "creative_device": "mystery-reveal",
+  "age_layers": {
+    "children": "Notice one surprising question and the clues that help answer it.",
+    "family": "Compare what two sources say before deciding what to believe.",
+    "deeper": "Separate direct observations from the interpretation built from them."
+  },
+  "sources": [
+    {
+      "title": "NOAA Ocean Exploration: Octopus color change",
+      "url": "https://oceanexplorer.noaa.gov/multimedia/okeanos-explorations-seascape-alaska-ex2306-gallery-media-dive08-octopus-2/"
+    },
+    {
+      "title": "Monterey Bay Aquarium: Day octopus",
+      "url": "https://www.montereybayaquarium.org/animals-the-ocean/animals-a-to-z/two-spot-octopus"
+    }
+  ],
+  "uncertainty_boundary": "The evidence may not settle every part of the question; state exactly what the sources do not establish.",
+  "visual_direction": {
+    "focus": "subject-first",
+    "aion_role": "contextual-guide",
+    "aion_frame_share_max": 0.2,
+    "aion_presence_rationale": "AION is a small guide who helps viewers notice evidence; the subject and environment remain central."
+  },
+  "visual_identity": {
+    "version": "aion-stylized-guide-real-world-v1",
+    "character": "Original stylized 3D animated AION guide: silver-white hair, expressive cyan eyes, pearl-light skin, a small cyan crystal core, and practical ivory, charcoal, and deep-navy field clothing; a realistic cinematic world is the setting, never an all-blue body or outfit.",
+    "environment": "Original premium family-friendly cinematic 3D scenes with realistic light and materials; never imitate a named studio.",
+    "prohibited": [
+      "all-blue body",
+      "all-blue outfit",
+      "cape",
+      "armour",
+      "fashion pose",
+      "embedded text",
+      "logo",
+      "watermark"
+    ]
+  },
+  "scenes": [
+    {
+      "n": 1,
+      "beat": "hook",
+      "visual": "AION appears briefly at the edge of a vivid environment that introduces the question: How can an octopus change color so quickly?",
+      "narration": "I am AION. Here is a question worth opening."
+    },
+    {
+      "n": 2,
+      "beat": "setting",
+      "visual": "AION is small at the edge while the setting and the main subject fill the frame.",
+      "narration": "First, look at the setting and the problem it solves."
+    },
+    {
+      "n": 3,
+      "beat": "evidence-one-intro",
+      "visual": "AION points toward a visible clue while the subject remains central.",
+      "narration": "The first source gives us one careful clue."
+    },
+    {
+      "n": 4,
+      "beat": "evidence-one",
+      "visual": "AION observes the first evidence-rich setting from the background.",
+      "narration": "It describes this: NOAA Ocean Exploration observed an octopus change from deep reddish pu"
+    },
+    {
+      "n": 5,
+      "beat": "evidence-two-intro",
+      "visual": "AION crosses into a contrasting setting where a second clue is visible.",
+      "narration": "Now compare that clue with a second source."
+    },
+    {
+      "n": 6,
+      "beat": "evidence-two",
+      "visual": "AION stays small while the second source's evidence fills the frame.",
+      "narration": "It adds this: Monterey Bay Aquarium describes octopus eyespots as a defensive visual"
+    },
+    {
+      "n": 7,
+      "beat": "pattern",
+      "visual": "AION watches as the environment links both pieces of evidence.",
+      "narration": "Together, the clues make a pattern easier to see."
+    },
+    {
+      "n": 8,
+      "beat": "mechanism",
+      "visual": "AION is in the distant background while the subject demonstrates how the mechanism works.",
+      "narration": "The subject stays central; AION is only your guide."
+    },
+    {
+      "n": 9,
+      "beat": "boundary",
+      "visual": "AION pauses in the background while the scene shows what remains uncertain.",
+      "narration": "Evidence has limits. It does not settle every detail."
+    },
+    {
+      "n": 10,
+      "beat": "interpretation",
+      "visual": "AION observes a transition from documented clue to a clearly separate reconstruction.",
+      "narration": "We should say where reconstruction becomes interpretation."
+    },
+    {
+      "n": 11,
+      "beat": "meaning",
+      "visual": "AION looks on as the subject and environment take a final wide frame.",
+      "narration": "That difference makes a story more honest and useful."
+    },
+    {
+      "n": 12,
+      "beat": "invitation",
+      "visual": "AION walks away while the subject and environment fill the final frame.",
+      "narration": "What would you look for before deciding what is true?"
+    }
+  ],
+  "research_handoff_id": "85365510840c"
+}
