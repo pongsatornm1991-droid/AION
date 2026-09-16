@@ -106,6 +106,15 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("--episode-id")
     parser.add_argument("--backfill-subtitles", action="store_true")
+    parser.add_argument("--require-rendered", action="store_true",
+                        help="Exit non-zero when an asset-complete episode cannot become a verified video.")
     args = parser.parse_args()
     report = backfill_subtitles_once() if args.backfill_subtitles else assemble_once(episode_id=args.episode_id)
     print(json.dumps(report, ensure_ascii=False, indent=2))
+    # A scheduled job may legitimately have no storyboard ready.  However,
+    # once it starts on an asset-complete episode, any other result is a real
+    # production failure and must be visible to downstream workflows.
+    if args.require_rendered and report.get("stage") not in {
+        "episode-rendered-for-quality", "no-asset-complete-episode"
+    }:
+        raise SystemExit("creator-episode-assembly-failed")
