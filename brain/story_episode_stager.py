@@ -87,6 +87,12 @@ class StoryEpisodeStager:
                 "aion_frame_share_max": 0.20,
                 "aion_presence_rationale": "AION is a small guide who helps viewers notice evidence; the subject and environment remain central.",
             },
+            "visual_identity": {
+                "version": VisualStoryPolicy.IDENTITY_VERSION,
+                "character": VisualStoryPolicy.IDENTITY_SUMMARY,
+                "environment": "Original premium family-friendly cinematic 3D scenes with realistic light and materials; never imitate a named studio.",
+                "prohibited": ["all-blue body", "all-blue outfit", "cape", "armour", "fashion pose", "embedded text", "logo", "watermark"],
+            },
             "scenes": [
                 {"n": 1, "beat": "hook", "visual": f"AION appears briefly at the edge of a vivid environment that introduces the question: {topic}", "narration": "I am AION. Here is a question worth opening."},
                 {"n": 2, "beat": "setting", "visual": "AION is small at the edge while the setting and the main subject fill the frame.", "narration": "First, look at the setting and the problem it solves."},

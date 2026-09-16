@@ -21,7 +21,7 @@ class CreatorSceneProduction:
     def _episode(self):
         return next((item for item in CreatorSeriesRegistry(self.root).episodes()
                      if item.get("status") == "storyboard-ready-needs-assets"
-                     and item.get("pacing_policy") == VisualStoryPolicy.VERSION), None)
+                     and item.get("pacing_policy") in {VisualStoryPolicy.VERSION, "fast-cut-subject-first-v1"}), None)
 
     @staticmethod
     def _safe_name(scene):
@@ -72,12 +72,21 @@ class CreatorSceneProduction:
                 continue
             name = f"{int(scene['n']):02d}-{self._safe_name(scene)}.png"
             destination = folder / name
+            wardrobe = CostumeDirection.brief_for(episode, scene)
             if destination.is_file():
                 scene["image"] = str(destination.relative_to(self.root)).replace("\\", "/")
                 changed = True
                 continue
             if generator(self._prompt(episode, scene), str(destination)):
                 scene["image"] = str(destination.relative_to(self.root)).replace("\\", "/")
+                # This records the exact approved identity/costume handoff
+                # that the image was generated against.  It is not a claim
+                # that pixels were vision-reviewed; that remains a separate
+                # Quality task instead of silently assuming prompt compliance.
+                scene["visual_contract"] = {
+                    "identity_version": (episode.get("visual_identity") or {}).get("version", "legacy-unversioned"),
+                    "costume_brief": wardrobe,
+                }
                 made.append(scene["n"])
                 changed = True
             else:

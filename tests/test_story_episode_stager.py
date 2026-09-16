@@ -49,6 +49,7 @@ class StoryEpisodeStagerTests(unittest.TestCase):
                     "sources": [{"url": "https://example.test/one"}, {"url": "https://example.test/two"}],
                     "uncertainty_boundary": "The evidence does not settle every detail.",
                     "visual_direction": {"focus": "subject-first", "aion_role": "contextual-guide", "aion_frame_share_max": 0.2},
+                    "visual_identity": {"version": "aion-stylized-guide-real-world-v1"},
                     "scenes": [{"n": number, "visual": "AION appears briefly while the subject dominates the frame.", "narration": "AION asks a careful question."} for number in range(1, 13)],
                 }), encoding="utf-8")
             made = []
