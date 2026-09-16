@@ -1,0 +1,53 @@
+name: AION - YouTube release-window recovery
+
+# A transient provider error must not turn a planned release day into a silent
+# gap.  These are idempotent retries inside the agreed 20:00–22:00 Bangkok
+# window; they only resume a quality-gated, already-authorized episode.
+on:
+  schedule:
+    # 21:13 and 21:43 Bangkok on Monday, Wednesday and Friday.
+    - cron: "13,43 14 * * 1,3,5"
+    # Sunday long-form retries at 20:45 and 21:15 Bangkok.
+    - cron: "45 13 * * 0"
+    - cron: "15 14 * * 0"
+  workflow_dispatch: {}
+
+concurrency:
+  group: aion-memory-data
+  cancel-in-progress: false
+
+permissions:
+  contents: write
+
+jobs:
+  retry-within-release-window:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/checkout@v4
+        with:
+          repository: pongsatornm1991-droid/aion-memory-data
+          token: ${{ secrets.MEMORY_REPO_PAT }}
+          path: memory_data
+      - uses: actions/setup-python@v5
+        with: {python-version: "3.11"}
+      - run: pip install -r requirements.txt
+      - name: Retry only today's authorized release type
+        env:
+          AION_MEMORY_ROOT: memory_data
+          YOUTUBE_CLIENT_ID: ${{ secrets.YOUTUBE_CLIENT_ID }}
+          YOUTUBE_CLIENT_SECRET: ${{ secrets.YOUTUBE_CLIENT_SECRET }}
+          YOUTUBE_REFRESH_TOKEN: ${{ secrets.YOUTUBE_REFRESH_TOKEN }}
+          YOUTUBE_PRIVACY_STATUS: ${{ vars.YOUTUBE_PRIVACY_STATUS || 'public' }}
+        run: |
+          weekday="$(date -u +%u)"
+          kind="long-form"
+          if [[ "$weekday" == "1" || "$weekday" == "3" || "$weekday" == "5" ]]; then kind="short"; fi
+          python main.py run-youtube-creator-publish --content-kind "$kind"
+      - name: Persist retry evidence
+        working-directory: memory_data
+        run: |
+          git config user.name "aion-bot"
+          git config user.email "aion-bot@users.noreply.github.com"
+          git add -A
+          if ! git diff --cached --quiet; then git commit -m "AION YouTube release-window retry"; git push; fi
