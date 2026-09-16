@@ -47,6 +47,8 @@ class ResearchStoryHandoff:
             "status": "story-ready",
             "root_question_id": root_id,
             "topic": topic,
+            "topic_key": brief.get("topic_key") or topic,
+            "scout_lane": brief.get("scout_lane"),
             "working_title": f"AION Wonders: {topic}",
             "hook": "AION walks into a place that seems impossible — then asks what the evidence actually says.",
             "audience_value": "A viewer of any age can see how careful observation turns a surprising historical or scientific idea into something understandable.",

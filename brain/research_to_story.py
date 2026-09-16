@@ -9,6 +9,8 @@ traceable evidence for a viewer to check it.
 import json
 
 from .learning import ResearchEvidenceStore
+from .content_novelty import ContentNoveltyLedger
+from .research_portfolio import ResearchPortfolio
 
 
 class ResearchToStory:
@@ -85,6 +87,8 @@ class ResearchToStory:
                 "topic": question.get("statement") or "AION research question",
                 "completion_criteria": question.get("criteria") or "",
                 "sources": sources,
+                "topic_key": question.get("statement") or "AION research question",
+                "source_urls": [item["url"] for item in sources],
             })
         return sorted(candidates, key=lambda item: (item["topic"], item["root_question_id"]))
 
@@ -96,8 +100,13 @@ class ResearchToStory:
         rather than treating it as a new factual source.
         """
         existing_roots = {str(item.get("root_question_id") or "") for item in self._briefs()}
-        candidate = next((item for item in self.candidates() if item["root_question_id"] not in existing_roots), None)
+        candidates = [item for item in self.candidates() if item["root_question_id"] not in existing_roots]
+        ledger = ContentNoveltyLedger(self.memory)
+        candidate = next((item for item in candidates if ledger.assess(item)["eligible"]), None)
         if not candidate:
+            duplicates = [ledger.assess(item) for item in candidates]
+            if candidates and all(not report["eligible"] for report in duplicates):
+                return {"stage": "blocked-duplicate-topic", "brief": None, "matches": duplicates}
             return {"stage": "waiting-for-qualified-research", "brief": None}
 
         sources = [{
@@ -108,11 +117,14 @@ class ResearchToStory:
             "evidence_memory_id": item.get("memory_id"),
         } for item in candidate["sources"]]
         topic = candidate["topic"]
+        scout_lane = ResearchPortfolio.assign(topic)
         brief = {
             "version": 1,
             "status": "research-ready",
             "root_question_id": candidate["root_question_id"],
             "topic": topic,
+            "topic_key": candidate["topic_key"],
+            "scout_lane": scout_lane,
             "completion_criteria": candidate["completion_criteria"],
             "source_count": len(sources),
             "sources": sources,
@@ -151,4 +163,6 @@ class ResearchToStory:
             "current": current,
             "history_count": len(briefs),
             "eligible_topics": len(self.candidates()),
+            "scout_lanes": ResearchPortfolio.snapshot(),
+            "novelty": ContentNoveltyLedger(self.memory).snapshot(),
         }

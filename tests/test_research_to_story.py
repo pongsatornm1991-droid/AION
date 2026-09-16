@@ -44,3 +44,16 @@ class ResearchToStoryTests(unittest.TestCase):
             snapshot = pipeline.snapshot()
             self.assertEqual("research-ready", snapshot["status"])
             self.assertEqual(question["id"], snapshot["current"]["root_question_id"])
+
+    def test_company_wide_published_topic_cannot_return_to_story_production(self):
+        with tempfile.TemporaryDirectory() as root:
+            memory = MemoryEngine(root)
+            memory.remember("published_reels", json.dumps({"topic_key": "How Yakhchal stored ice in desert summers"}),
+                            memory_type="action", source="test")
+            question = CuriosityEngine(memory).raise_question(
+                "How did Yakhchal store ice in desert summers?", "Compare two cited sources.", priority=4,
+            )
+            self._evidence(memory, question, "Source one", "https://example.org/one", "Observation one.")
+            self._evidence(memory, question, "Source two", "https://example.org/two", "Observation two.")
+            result = ResearchToStory(memory).propose_once()
+            self.assertEqual("blocked-duplicate-topic", result["stage"])

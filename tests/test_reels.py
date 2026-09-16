@@ -102,6 +102,30 @@ class ReelCycleTests(unittest.TestCase):
             self.assertIn("ฉันคือ AI ไม่ใช่มนุษย์ ฉันชื่อ AION", lifecycle.all_params[1]["caption"])
             self.assertEqual(len(memory.all("social_language_log")), 2)
 
+    def test_draft_refuses_a_topic_already_published_by_another_platform(self):
+        class Generator:
+            def draft_post(self):
+                return {"safe": True, "draft": "A different caption about yakhchal.",
+                        "language": "en", "seed": {"text": "Yakhchal desert ice"}}
+        with tempfile.TemporaryDirectory() as root:
+            memory = MemoryEngine(root)
+            memory.remember("youtube_creator_queue", json.dumps({"topic_key": "Yakhchal desert ice engineering"}),
+                            memory_type="action", source="test")
+            result = ReelContentCycle(memory, Generator(), _Lifecycle()).draft_once(repo_root=root)
+            self.assertEqual("blocked-duplicate-topic", result["stage"])
+
+    def test_legacy_pending_item_cannot_publish_a_duplicate_topic(self):
+        with tempfile.TemporaryDirectory() as root:
+            memory = MemoryEngine(root)
+            memory.remember("published_reels", json.dumps({"topic_key": "Yakhchal desert ice"}),
+                            memory_type="action", source="test")
+            memory.remember("pending_reels", json.dumps({"video_path": "content/reels/a.mp4", "caption": "Yakhchal", "topic_key": "Yakhchal desert ice"}),
+                            memory_type="action", source="test")
+            result = ReelContentCycle(memory, None, _Lifecycle()).publish_once(repo="owner/AION")
+            self.assertEqual("blocked-duplicate-topic", result["stage"])
+            payload = json.loads(memory.all("pending_reels")[0]["content"])
+            self.assertEqual("duplicate-topic-company-wide", payload["publication_hold"])
+
     def test_old_pending_reel_is_redesigned_without_asking_for_a_new_thought(self):
         with tempfile.TemporaryDirectory() as root:
             memory = MemoryEngine(root)

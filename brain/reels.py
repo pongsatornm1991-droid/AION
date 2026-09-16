@@ -77,6 +77,16 @@ class ReelContentCycle:
         value = cls._viewer_value(seed)
         return ContentRouter().route(caption, value), value
 
+    @staticmethod
+    def _topic_key(seed, caption):
+        return str((seed or {}).get("topic_key") or (seed or {}).get("text") or caption).strip()
+
+    def _is_fresh_topic(self, topic_key, source_urls=(), exclude_memory_ids=()):
+        from brain.content_novelty import ContentNoveltyLedger
+        return ContentNoveltyLedger(self.memory).assess(
+            {"topic_key": topic_key, "source_urls": list(source_urls or [])}, exclude_memory_ids,
+        )
+
     def _used_library_assets(self):
         """Return curated video ids already queued or published.
 
@@ -158,6 +168,9 @@ class ReelContentCycle:
         creator = CreatorContentRegistry(self.memory, path=registry_path, root=creator_root).next_ready() if registry_path.is_file() else None
         if creator is not None:
             caption = creator["caption"]
+            novelty = self._is_fresh_topic(creator.get("topic_key") or creator["title"], [creator.get("source_url")] if creator.get("source_url") else [])
+            if not novelty["eligible"]:
+                return {"stage": "blocked-duplicate-topic", "matches": novelty["matches"]}
             routes, viewer_value = self._platform_captions(caption, {"kind": "creator-library"})
             record = self.memory.remember(
                 category=self.PENDING,
@@ -166,6 +179,7 @@ class ReelContentCycle:
                     "seed": {"kind": "creator-library", "text": creator["title"]},
                     "viewer_value": viewer_value, "platform_captions": routes,
                     "library_asset": creator["id"], "source_url": creator.get("source_url"),
+                    "topic_key": creator.get("topic_key") or creator["title"],
                     "visual_style": self.VISUAL_STYLE}, ensure_ascii=False),
                 memory_type="action", source="aion-creator-library", importance=3,
                 tags=["creator", "story", "english"])
@@ -198,6 +212,10 @@ class ReelContentCycle:
             report = self._bootstrap_report()
         if not report.get("safe"):
             return {"stage": report.get("reason_kind", "blocked"), **report}
+        topic_key = self._topic_key(report.get("seed"), report.get("draft"))
+        novelty = self._is_fresh_topic(topic_key)
+        if not novelty["eligible"]:
+            return {"stage": "blocked-duplicate-topic", "matches": novelty["matches"]}
         repo_root = repo_root or os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
         library_video = self._select_library_video(report)
         if library_video:
@@ -227,6 +245,7 @@ class ReelContentCycle:
             content=json.dumps({"video_path": relative, "caption": report["draft"],
                                 "ig_caption": ig_caption,
                                 "language": report.get("language", "en"), "seed": report.get("seed"),
+                                "topic_key": topic_key,
                                 "viewer_value": viewer_value, "platform_captions": routes,
                                 "content_experiment": experiment,
                                 "library_asset": library_video["id"] if library_video else None,
@@ -258,6 +277,17 @@ class ReelContentCycle:
                 memory_type="lesson", source="aion-reel-publish", importance=2,
             )
             return {"stage": "no-pending"}
+        novelty = self._is_fresh_topic(
+            payload.get("topic_key") or payload.get("caption"),
+            [payload.get("source_url")] if payload.get("source_url") else [],
+            exclude_memory_ids=[entry.get("id")],
+        )
+        if not novelty["eligible"]:
+            # Old queue records predate the company-wide rule.  They remain
+            # in the audit trail but cannot quietly become a second upload.
+            payload["publication_hold"] = "duplicate-topic-company-wide"
+            self.memory.update(self.PENDING, entry["id"], content=json.dumps(payload, ensure_ascii=False))
+            return {"stage": "blocked-duplicate-topic", "matches": novelty["matches"]}
         # One durable card follows this exact pending record through every
         # platform checkpoint.  It is not a second publishing queue: it makes
         # ownership and retry state visible while the existing pending record
