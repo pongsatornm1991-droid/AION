@@ -77,8 +77,8 @@ class CreatorEpisodeCrosspostTests(unittest.TestCase):
                 episode = {"id": episode_id, "series": "AION Wonders", "title": episode_id,
                            "status": "production-ready-assets-and-script", "format": "illustrated-narrated-short",
                            "target_duration_seconds": 60, "scene_seconds": 5, "audience_promise": "Viewers learn one clear answer through a short, evidence-led explanation.",
-                           "wonder_hook": "Why?", "creative_device": "mystery-reveal", "age_layers": {},
-                           "sources": [], "scenes": [{"n": n, "visual": "subject", "narration": "clue"} for n in range(1, 13)]}
+                           "wonder_hook": "Why can an octopus change colour in seconds?", "creative_device": "mystery-reveal", "age_layers": {"children": "Notice the colours.", "family": "Talk about camouflage.", "deeper": "Compare the evidence."},
+                           "sources": [{"url": "https://one.test"}, {"url": "https://two.test"}], "uncertainty_boundary": "The sources do not answer every detail.", "scenes": [{"n": n, "visual": "AION observes the subject.", "narration": "clue"} for n in range(1, 13)]}
                 (root / f"content/creator_series/{episode_id}.json").write_text(json.dumps(episode), encoding="utf-8")
                 (root / f"content/reels/{episode_id}.mp4").write_bytes(b"x")
             memory = MemoryEngine(root / "memory")
