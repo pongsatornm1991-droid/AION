@@ -1,10 +1,11 @@
 name: AION - subject-first scene production
 on:
   schedule:
-    # Produce *before* release days, not on the same day. Saturday makes the
-    # next Monday/Wednesday Short buffer; Thursday makes Friday's Short and
-    # Sunday's long-form. This leaves time for assembly, audio QA and retry.
-    - cron: "7 2 * * 4,6"
+    # Produce *before* release days, not on the same day. Thursday makes the
+    # Friday/Saturday Short buffer and Sunday's long-form; Sunday makes the
+    # next Monday/Wednesday Short buffer. This leaves time for assembly,
+    # audio QA and retry.
+    - cron: "7 2 * * 0,4"
   workflow_dispatch: {}
 permissions: {contents: write}
 concurrency:
@@ -31,13 +32,12 @@ jobs:
           OPENAI_IMAGE_MODEL: ${{ vars.OPENAI_IMAGE_MODEL || 'gpt-image-2' }}
           OPENAI_IMAGE_QUALITY: ${{ vars.OPENAI_IMAGE_QUALITY || 'medium' }}
         run: |
-          # Build a verified release buffer before the evening slots. Saturday
-          # makes two fresh Shorts for Monday/Wednesday; Thursday makes Friday's
-          # Short plus the next Sunday's long-form. No publisher is allowed to
-          # use an old Reel merely because the buffer is empty.
+          # Build a verified release buffer before the evening slots. Thursday
+          # makes two fresh Shorts for Friday/Saturday plus Sunday's long-form;
+          # Sunday makes Monday/Wednesday's two Shorts. No publisher is allowed
+          # to use an old Reel merely because the buffer is empty.
           weekday="$(date -u +%u)"
-          short_limit=1
-          if [[ "$weekday" == "6" ]]; then short_limit=2; fi
+          short_limit=2
           python tools/produce_creator_scenes.py --format short --episode-limit "$short_limit" --batch-size 25 --max-scenes 120 --require-complete
           if [[ "$weekday" == "4" ]]; then
             python tools/produce_creator_scenes.py --format long-form --episode-limit 1 --batch-size 25 --max-scenes 120 --require-complete
