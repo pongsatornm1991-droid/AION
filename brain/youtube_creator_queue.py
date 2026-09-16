@@ -94,6 +94,7 @@ class YouTubeCreatorQueue:
                 "topic_key": episode.get("topic_key") or episode.get("wonder_hook") or episode.get("title"),
                 "story_package_id": episode.get("story_package_id"),
                 "content_angle_key": episode.get("content_angle_key"),
+                "release_priority": (episode.get("special_release") or {}).get("release_priority", "normal"),
                 "source_urls": [source.get("url") for source in (episode.get("sources") or []) if source.get("url")],
                 "viewer_value": episode["audience_promise"],
                 "visual_style": "illustrated-aion-storyboard-v4",
@@ -130,9 +131,14 @@ class YouTubeCreatorQueue:
                 }
                 self.memory.update(self.CATEGORY, entry["id"], content=json.dumps(updated, ensure_ascii=False))
                 return {"stage": "authorized-for-publishing", "migrated": True, **updated}
-        candidate = next((item for item in self.candidates()
-                          if item["status"] == "upload-ready"
-                          and (not content_kind or item.get("content_kind") == content_kind)), None)
+        eligible = [item for item in self.candidates()
+                    if item["status"] == "upload-ready"
+                    and (not content_kind or item.get("content_kind") == content_kind)]
+        # A documented corrective release may go first, but it can never
+        # bypass the normal quality gates below. This prevents a stale ready
+        # file from winning merely because its filename sorts earlier.
+        eligible.sort(key=lambda item: (item.get("release_priority") != "urgent", item.get("episode_id") or ""))
+        candidate = eligible[0] if eligible else None
         if candidate is None:
             return {"stage": "no-upload-ready-creator-episode"}
         autonomous = policy.public_publishing_enabled

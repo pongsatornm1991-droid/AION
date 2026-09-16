@@ -1,6 +1,9 @@
 name: AION - YouTube Creator Studio
 
 on:
+  workflow_run:
+    workflows: [AION - assemble illustrated Creator episode]
+    types: [completed]
   schedule:
     # Four deliberate Shorts per week — Monday, Wednesday, Friday and Saturday
     # — at 20:43 Asia/Bangkok. Sunday is
@@ -21,6 +24,7 @@ permissions:
 
 jobs:
   youtube-creator:
+    if: ${{ github.event_name != 'workflow_run' || github.event.workflow_run.conclusion == 'success' }}
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -45,6 +49,7 @@ jobs:
         # Recovery only for legacy AION uploads that already passed their
         # saved Quality Gate.  This fixes old Private uploads before making a
         # new daily Short, without touching any unrelated channel video.
+        if: ${{ github.event_name != 'workflow_run' }}
         env:
           AION_MEMORY_ROOT: memory_data
           YOUTUBE_CLIENT_ID: ${{ secrets.YOUTUBE_CLIENT_ID }}
