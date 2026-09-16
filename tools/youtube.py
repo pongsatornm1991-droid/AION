@@ -75,14 +75,22 @@ def upload_short(video_path, title, description, privacy_status=None, thumbnail_
         "privacy_status": response.get("status", {}).get("privacyStatus", status),
     }
     if thumbnail is not None:
-        thumbnail_request = youtube.thumbnails().set(
-            videoId=video_id,
-            media_body=MediaFileUpload(str(thumbnail), mimetype="image/png", resumable=True),
-        )
-        thumbnail_response = None
-        while thumbnail_response is None:
-            _, thumbnail_response = thumbnail_request.next_chunk()
-        result["thumbnail_status"] = "set"
+        try:
+            thumbnail_request = youtube.thumbnails().set(
+                videoId=video_id,
+                media_body=MediaFileUpload(str(thumbnail), mimetype="image/png", resumable=True),
+            )
+            thumbnail_response = None
+            while thumbnail_response is None:
+                _, thumbnail_response = thumbnail_request.next_chunk()
+            result["thumbnail_status"] = "set"
+        except Exception as exc:
+            # The video is already created when this optional provider action
+            # happens. Keep its durable id so a retry never uploads a second
+            # copy. The dashboard can then show the exact owner-side account
+            # capability still needed for a custom thumbnail.
+            result["thumbnail_status"] = "provider-permission-required"
+            result["thumbnail_error"] = str(exc).strip() or type(exc).__name__
     return result
 
 

@@ -106,6 +106,12 @@ class CreatorEpisodeCrosspost:
                 continue
             if not youtube.get("video_id") or youtube.get("privacy_status") != "public":
                 continue
+            # A historical YouTube record is not enough. Re-check the exact
+            # local episode before delivery so an old 27-second render can
+            # never occupy a new Facebook/Instagram slot.
+            video_path = self.root / "content" / "reels" / f"{episode_id}.mp4"
+            if not VideoQualityGate(self.root).assess(video_path, "short").get("eligible"):
+                continue
             _, crosspost = self._record(episode_id)
             platforms = (crosspost or {}).get("platforms") or {}
             if all(platforms.get(name, {}).get("status") == "published" for name in ("instagram", "facebook")):

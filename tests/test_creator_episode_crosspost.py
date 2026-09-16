@@ -67,3 +67,26 @@ class CreatorEpisodeCrosspostTests(unittest.TestCase):
                  patch.dict("os.environ", {"GITHUB_REPOSITORY": "owner/repo"}, clear=False):
                 report = crosspost.publish_latest_once(lambda *_a, **_k: {"id": "ig"}, lambda *_a, **_k: {"id": "fb"})
             self.assertEqual("published", report["stage"])
+
+    def test_latest_publish_skips_a_public_but_underlength_legacy_short(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            (root / "content/creator_series").mkdir(parents=True)
+            (root / "content/reels").mkdir(parents=True)
+            for episode_id in ("legacy", "fresh"):
+                episode = {"id": episode_id, "series": "AION Wonders", "title": episode_id,
+                           "status": "production-ready-assets-and-script", "format": "illustrated-narrated-short",
+                           "target_duration_seconds": 60, "scene_seconds": 5, "audience_promise": "A clear answer.",
+                           "wonder_hook": "Why?", "creative_device": "mystery-reveal", "age_layers": {},
+                           "sources": [], "scenes": [{"n": n, "visual": "subject", "narration": "clue"} for n in range(1, 13)]}
+                (root / f"content/creator_series/{episode_id}.json").write_text(json.dumps(episode), encoding="utf-8")
+                (root / f"content/reels/{episode_id}.mp4").write_bytes(b"x")
+            memory = MemoryEngine(root / "memory")
+            for episode_id in ("fresh", "legacy"):
+                memory.remember("youtube_creator_queue", json.dumps({"episode_id": episode_id, "content_kind": "short", "youtube": {"video_id": episode_id, "privacy_status": "public"}}), "action")
+            crosspost = CreatorEpisodeCrosspost(memory, root)
+            from unittest.mock import patch
+            def quality(path, _kind): return {"eligible": Path(path).stem == "fresh"}
+            with patch("brain.creator_episode_crosspost.VideoQualityGate.assess", side_effect=quality), patch.dict("os.environ", {"GITHUB_REPOSITORY": "owner/repo"}, clear=False):
+                report = crosspost.publish_latest_once(lambda *_a, **_k: {"id": "ig"}, lambda *_a, **_k: {"id": "fb"})
+            self.assertEqual("fresh", report["episode_id"])
