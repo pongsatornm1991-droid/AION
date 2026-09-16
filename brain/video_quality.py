@@ -22,7 +22,9 @@ class VideoQualityGate:
     MIN_WIDTH = 720
     MIN_HEIGHT = 1280
     MIN_DURATION = 5.0
-    MIN_SHORT_DURATION = 60.0
+    # Owner policy: at least ten five-second story beats.  This permits a
+    # concise 0:50 Short but rejects the old 25–36 second drafts.
+    MIN_SHORT_DURATION = 50.0
     MAX_DURATION = 180.0
     SAMPLE_COUNT = 3
 
@@ -159,7 +161,7 @@ class VideoQualityGate:
             if ratio and abs(ratio - (9 / 16)) > 0.04:
                 reasons.append("not-vertical-9x16")
             if not self.MIN_SHORT_DURATION <= duration <= self.MAX_DURATION:
-                reasons.append("short-must-be-60-to-180-seconds")
+                reasons.append("short-must-be-50-to-180-seconds")
         if duration < self.MIN_DURATION:
             reasons.append("duration-out-of-range")
 

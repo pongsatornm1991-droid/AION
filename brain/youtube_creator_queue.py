@@ -81,6 +81,8 @@ class YouTubeCreatorQueue:
                 ),
                 "video_path": str(video_path.relative_to(self.root)).replace("\\", "/"),
                 "video_exists": video_path.is_file(),
+                "cover_path": f"content/reels/{episode['id']}-cover.png",
+                "cover_exists": (self.root / "content" / "reels" / f"{episode['id']}-cover.png").is_file(),
                 "subtitle_path": str(subtitle_path.relative_to(self.root)).replace("\\", "/"),
                 "subtitle_exists": subtitle_path.is_file(),
                 "audience_promise": episode["audience_promise"],
@@ -95,6 +97,10 @@ class YouTubeCreatorQueue:
                 "story_package_id": episode.get("story_package_id"),
                 "content_angle_key": episode.get("content_angle_key"),
                 "release_priority": (episode.get("special_release") or {}).get("release_priority", "normal"),
+                # A corrective release may replace precisely one named AION
+                # episode.  This is not a general duplicate bypass: the
+                # source storyboard must declare the predecessor explicitly.
+                "supersedes_episode_id": (episode.get("special_release") or {}).get("supersedes_episode_id"),
                 "source_urls": [source.get("url") for source in (episode.get("sources") or []) if source.get("url")],
                 "viewer_value": episode["audience_promise"],
                 "visual_style": "illustrated-aion-storyboard-v4",
@@ -200,9 +206,16 @@ class YouTubeCreatorQueue:
         if not path.is_file():
             work_queue.transition(work_card["task_id"], "waiting", owner="Studio", next_owner="Video QA Agent", detail="รอไฟล์วิดีโอเดิมจาก Studio")
             return {"stage": "missing-video", "episode_id": payload.get("episode_id")}
+        cover_path = self.root / str(payload.get("cover_path") or "")
+        if not cover_path.is_file():
+            work_queue.transition(work_card["task_id"], "waiting", owner="Studio", next_owner="Video QA Agent", detail="รอภาพปกที่ตรวจสอบได้ก่อนเผยแพร่")
+            return {"stage": "missing-cover", "episode_id": payload.get("episode_id")}
         from brain.youtube_quality import YouTubeQualityGate
-        prior = [record for _, record in self._records_by_episode().values()
-                 if (record.get("youtube") or {}).get("video_id")]
+        records = self._records_by_episode()
+        superseded_id = str(payload.get("supersedes_episode_id") or "").strip()
+        prior = [record for _, record in records.values()
+                 if (record.get("youtube") or {}).get("video_id")
+                 and record.get("episode_id") != superseded_id]
         quality = YouTubeQualityGate().assess(payload, prior)
         from brain.video_quality import VideoQualityGate
         video_quality = VideoQualityGate(self.root).assess(payload.get("video_path"), payload.get("content_kind") or "short")
@@ -225,6 +238,36 @@ class YouTubeCreatorQueue:
             self.memory.update(self.CATEGORY, entry["id"], content=json.dumps(blocked, ensure_ascii=False))
             work_queue.transition(work_card["task_id"], "waiting", owner="Video QA Agent", next_owner="Studio", detail="Quality Gate ส่งกลับรายการเดิมเพื่อแก้ไข")
             return {"stage": "quality-review-required", "episode_id": payload.get("episode_id"), **quality}
+
+        # A replacement is allowed only after its named predecessor is made
+        # private.  This keeps the public channel free of duplicate stories
+        # and never touches an arbitrary video outside AION's durable queue.
+        replacement = None
+        if superseded_id:
+            predecessor = records.get(superseded_id)
+            if predecessor is None:
+                return {"stage": "replacement-predecessor-not-found", "episode_id": payload.get("episode_id")}
+            previous_entry, previous_payload = predecessor
+            previous_youtube = dict(previous_payload.get("youtube") or {})
+            previous_video_id = str(previous_youtube.get("video_id") or "").strip()
+            if not previous_video_id:
+                return {"stage": "replacement-predecessor-not-published", "episode_id": payload.get("episode_id")}
+            if previous_youtube.get("privacy_status") != "private":
+                try:
+                    from tools.youtube import set_video_privacy
+                    privacy_result = set_video_privacy(previous_video_id, "private")
+                except Exception as exc:
+                    error = str(exc).strip() or type(exc).__name__
+                    work_queue.transition(work_card["task_id"], "waiting", owner="YouTube Publishing Agent", next_owner="YouTube Publishing Agent", detail="เปลี่ยนคลิปเดิมเป็นส่วนตัวไม่สำเร็จ จึงยังไม่ปล่อยคลิปทดแทน")
+                    return {"stage": "replacement-privacy-update-failed", "episode_id": payload.get("episode_id"), "error": error}
+                previous_updated = {
+                    **previous_payload,
+                    "youtube": {**previous_youtube, **privacy_result},
+                    "upload_status": "superseded-private",
+                    "superseded_by": payload.get("episode_id"),
+                }
+                self.memory.update(self.CATEGORY, previous_entry["id"], content=json.dumps(previous_updated, ensure_ascii=False))
+                replacement = {"episode_id": superseded_id, "video_id": previous_video_id, "privacy_status": "private"}
         technical = video_quality.get("technical") or {}
         video_ratio = (technical.get("width", 0) / technical.get("height", 1)) if technical.get("height") else 0
         is_youtube_short = (
@@ -241,7 +284,10 @@ class YouTubeCreatorQueue:
             if uploader is None:
                 from tools.youtube import upload_short
                 uploader = upload_short
-            result = uploader(str(path), str(payload.get("title") or "AION Wonders"), description)
+                result = uploader(str(path), str(payload.get("title") or "AION Wonders"), description,
+                                  thumbnail_path=str(cover_path))
+            else:
+                result = uploader(str(path), str(payload.get("title") or "AION Wonders"), description)
         except Exception as exc:
             # Some provider exceptions have an empty string representation.
             # Preserve their type so the Dashboard and retry log never show a
@@ -263,7 +309,7 @@ class YouTubeCreatorQueue:
             tags=["youtube", "creator-series", updated.get("episode_id", "unknown")],
         )
         work_queue.transition(work_card["task_id"], "completed", owner="Audience & Growth", next_owner="Learning Lab", detail="YouTube ยืนยันการเผยแพร่แล้ว ส่งผลให้ฝ่ายวิเคราะห์")
-        return {"stage": "published", "episode_id": updated.get("episode_id"), **result}
+        return {"stage": "published", "episode_id": updated.get("episode_id"), "replacement": replacement, **result}
 
     def release_private_once(self, releaser=None):
         """Release one previously quality-gated private AION upload.

@@ -40,7 +40,7 @@ class VideoQualityTests(unittest.TestCase):
             ], None)
             self.assertTrue(gate.assess(path, "long-form")["eligible"])
 
-    def test_shorter_than_one_minute_never_passes_short_quality_gate(self):
+    def test_shorter_than_fifty_seconds_never_passes_short_quality_gate(self):
         with tempfile.TemporaryDirectory() as root:
             path = Path(root) / "short.mp4"
             path.write_bytes(b"video")
@@ -54,4 +54,4 @@ class VideoQualityTests(unittest.TestCase):
             ], None)
             report = gate.assess(path, "short")
             self.assertFalse(report["eligible"])
-            self.assertIn("short-must-be-60-to-180-seconds", report["reasons"])
+            self.assertIn("short-must-be-50-to-180-seconds", report["reasons"])

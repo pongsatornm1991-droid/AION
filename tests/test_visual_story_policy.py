@@ -9,6 +9,7 @@ class VisualStoryPolicyTests(unittest.TestCase):
             "pacing_policy": VisualStoryPolicy.VERSION,
             "scene_seconds": 5,
             "target_duration_seconds": 60,
+            "scenes": [{}] * 12,
             "visual_identity": {"version": VisualStoryPolicy.IDENTITY_VERSION},
             "visual_direction": {"focus": "subject-first", "aion_role": "contextual-guide", "aion_frame_share_max": 0.20},
         })
@@ -19,6 +20,7 @@ class VisualStoryPolicyTests(unittest.TestCase):
             "pacing_policy": VisualStoryPolicy.VERSION,
             "scene_seconds": 8,
             "target_duration_seconds": 60,
+            "scenes": [{}] * 12,
             "visual_identity": {"version": VisualStoryPolicy.IDENTITY_VERSION},
             "visual_direction": {"focus": "aion-hero", "aion_role": "lead", "aion_frame_share_max": 0.6},
         })
@@ -30,6 +32,7 @@ class VisualStoryPolicyTests(unittest.TestCase):
             "pacing_policy": VisualStoryPolicy.VERSION,
             "scene_seconds": 5,
             "target_duration_seconds": 60,
+            "scenes": [{}] * 12,
             "visual_identity": {"version": VisualStoryPolicy.IDENTITY_VERSION},
             "visual_direction": {
                 "focus": "subject-first", "aion_role": "contextual-guide",
@@ -44,6 +47,7 @@ class VisualStoryPolicyTests(unittest.TestCase):
             "pacing_policy": VisualStoryPolicy.VERSION,
             "scene_seconds": 5,
             "target_duration_seconds": 60,
+            "scenes": [{}] * 12,
             "visual_direction": {"focus": "subject-first", "aion_role": "contextual-guide", "aion_frame_share_max": 0.20},
         })
         self.assertFalse(report["eligible"])

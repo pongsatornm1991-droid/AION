@@ -2,11 +2,11 @@
   "id": "aion-special-octopus-chromatophores-v1",
   "series": "AION Wonders",
   "title": "How an Octopus Changes Color in Seconds",
-  "status": "production-ready-assets-and-script",
+  "status": "assets-ready-for-assembly",
   "format": "illustrated-narrated-short",
   "target_duration_seconds": 60,
   "scene_seconds": 5,
-  "pacing_policy": "short-60-180-subject-first-v2",
+  "pacing_policy": "short-50-180-subject-first-v3",
   "audience_promise": "In one minute, viewers can see the real skin mechanism that lets an octopus change colour in seconds.",
   "wonder_hook": "How can an octopus change color in seconds?",
   "topic_key": "octopus chromatophores colour change mechanism",
@@ -188,6 +188,7 @@
   "special_release": {
     "reason": "Replacement for a public episode blocked for silent final scenes and an unclear generic narrative.",
     "release_priority": "urgent",
+    "supersedes_episode_id": "aion-auto-85365510840c-00c30e5d",
     "publication_rule": "Publish only after fresh images, per-scene narration timing, video-quality, story-quality, and platform checks pass."
   }
 }

@@ -34,7 +34,7 @@ def youtube_credentials(scopes=None):
     )
 
 
-def upload_short(video_path, title, description, privacy_status=None):
+def upload_short(video_path, title, description, privacy_status=None, thumbnail_path=None):
     """Upload one local vertical video and return only safe public metadata."""
     from googleapiclient.discovery import build
     from googleapiclient.http import MediaFileUpload
@@ -44,6 +44,9 @@ def upload_short(video_path, title, description, privacy_status=None):
         raise FileNotFoundError(f"YouTube video file was not found: {path}")
     if path.suffix.lower() not in {".mp4", ".mov", ".m4v"}:
         raise ValueError("YouTube upload must be a video file (.mp4, .mov, or .m4v)")
+    thumbnail = Path(thumbnail_path) if thumbnail_path else None
+    if thumbnail is not None and (not thumbnail.is_file() or thumbnail.suffix.lower() not in {".png", ".jpg", ".jpeg"}):
+        raise ValueError("YouTube thumbnail must be an existing PNG or JPEG image")
 
     status = (privacy_status or os.getenv("YOUTUBE_PRIVACY_STATUS", "private")).strip().lower()
     if status not in VALID_PRIVACY:
@@ -66,11 +69,21 @@ def upload_short(video_path, title, description, privacy_status=None):
     while response is None:
         _, response = request.next_chunk()
     video_id = response["id"]
-    return {
+    result = {
         "video_id": video_id,
         "url": f"https://www.youtube.com/watch?v={video_id}",
         "privacy_status": response.get("status", {}).get("privacyStatus", status),
     }
+    if thumbnail is not None:
+        thumbnail_request = youtube.thumbnails().set(
+            videoId=video_id,
+            media_body=MediaFileUpload(str(thumbnail), mimetype="image/png", resumable=True),
+        )
+        thumbnail_response = None
+        while thumbnail_response is None:
+            _, thumbnail_response = thumbnail_request.next_chunk()
+        result["thumbnail_status"] = "set"
+    return result
 
 
 def set_video_privacy(video_id, privacy_status="public"):
