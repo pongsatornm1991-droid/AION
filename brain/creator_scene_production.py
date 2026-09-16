@@ -18,9 +18,10 @@ class CreatorSceneProduction:
         self.root = Path(root or Path(__file__).resolve().parents[1])
         self.generator = generator
 
-    def _episode(self):
+    def _episode(self, episode_format=None):
         return next((item for item in CreatorSeriesRegistry(self.root).episodes()
                      if item.get("status") == "storyboard-ready-needs-assets"
+                     and (not episode_format or item.get("format") == episode_format)
                      and item.get("pacing_policy") in {VisualStoryPolicy.VERSION, "fast-cut-subject-first-v1"}), None)
 
     @staticmethod
@@ -52,8 +53,8 @@ class CreatorSceneProduction:
             "No words, captions, logos, watermark, UI, or named-studio imitation.",
         ))
 
-    def produce_once(self, limit=DEFAULT_BATCH_SIZE):
-        episode = self._episode()
+    def produce_once(self, limit=DEFAULT_BATCH_SIZE, episode_format=None):
+        episode = self._episode(episode_format)
         if episode is None:
             return {"stage": "no-subject-first-storyboard-ready"}
         if self.generator is None:
@@ -106,7 +107,7 @@ class CreatorSceneProduction:
                 "episode_id": episode["id"], "produced": made, "failed": failed}
 
     def produce_episode(self, batch_size=DEFAULT_BATCH_SIZE,
-                        max_scenes=MAX_SCENES_PER_EPISODE_RUN):
+                        max_scenes=MAX_SCENES_PER_EPISODE_RUN, episode_format=None):
         """Finish one approved storyboard in the same run, in recoverable batches.
 
         Batches limit the blast radius of a provider error; they are not a
@@ -119,7 +120,7 @@ class CreatorSceneProduction:
         max_scenes = max(1, int(max_scenes))
         produced, failures, batches = [], [], 0
         while len(produced) < max_scenes:
-            result = self.produce_once(limit=min(batch_size, max_scenes - len(produced)))
+            result = self.produce_once(limit=min(batch_size, max_scenes - len(produced)), episode_format=episode_format)
             batches += 1
             produced.extend(result.get("produced") or [])
             failures.extend(result.get("failed") or [])
@@ -133,7 +134,7 @@ class CreatorSceneProduction:
                 "failed": failures, "batches": batches, "ceiling": max_scenes}
 
     def produce_ready_episodes(self, episode_limit=1, batch_size=DEFAULT_BATCH_SIZE,
-                               max_scenes=MAX_SCENES_PER_EPISODE_RUN):
+                               max_scenes=MAX_SCENES_PER_EPISODE_RUN, episode_format=None):
         """Finish a small number of approved storyboards in one Studio shift.
 
         This is a bounded production shift, not an unbounded content farm:
@@ -144,7 +145,7 @@ class CreatorSceneProduction:
         """
         reports = []
         for _ in range(max(1, int(episode_limit))):
-            report = self.produce_episode(batch_size=batch_size, max_scenes=max_scenes)
+            report = self.produce_episode(batch_size=batch_size, max_scenes=max_scenes, episode_format=episode_format)
             reports.append(report)
             if report.get("stage") != "episode-assets-complete":
                 break
