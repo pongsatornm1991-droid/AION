@@ -22,17 +22,24 @@ from tools.reel_render import AudioTimingError, REEL_SIZE, WIDESCREEN_SIZE, rend
 def _eligible_episode(root, episode_id=None):
     """Find a fresh episode, or repair a render that failed its real gate."""
     root = Path(root)
+    candidates = []
     for episode in CreatorSeriesRegistry(root).episodes():
         if episode_id and episode.get("id") != episode_id:
             continue
         if episode.get("status") == "assets-ready-for-assembly":
-            return episode
-        if episode.get("status") == "production-ready-assets-and-script":
+            candidates.append((0, episode))
+        elif episode.get("status") == "production-ready-assets-and-script":
             output = root / "content" / "reels" / f"{episode['id']}.mp4"
             kind = "short" if episode.get("format") == "illustrated-narrated-short" else "long-form"
             if not VideoQualityGate(root).assess(output, kind).get("eligible"):
-                return episode
-    return None
+                candidates.append((1, episode))
+    # A corrective release is explicitly more urgent than unrelated repairs.
+    # A malformed historical episode must never block the promised new slot.
+    candidates.sort(key=lambda item: (
+        (item[1].get("special_release") or {}).get("release_priority") != "urgent",
+        item[0], item[1].get("id") or "",
+    ))
+    return candidates[0][1] if candidates else None
 
 
 def _timestamp(seconds):
