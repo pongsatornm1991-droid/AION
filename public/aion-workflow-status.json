@@ -1,10 +1,10 @@
 {
-  "generated_at": "2026-09-16T18:32:28.767992+00:00",
+  "generated_at": "2026-09-16T18:34:33.884785+00:00",
   "tiles": {
     "total": 41,
-    "ok": 34,
+    "ok": 35,
     "attn": 4,
-    "running": 2
+    "running": 1
   },
   "groups": [
     {
@@ -206,8 +206,8 @@
         {
           "name": "AION - bounded self repair",
           "file": "self-repair.yml",
-          "status_class": "running",
-          "status_label": "กำลังรัน",
+          "status_class": "success",
+          "status_label": "สำเร็จ",
           "html_url": "https://github.com/pongsatornm1991-droid/AION/actions/runs/35134940703",
           "created_at": "2026-09-16T18:31:32Z"
         },
@@ -232,8 +232,8 @@
           "file": "publish-workflow-status.yml",
           "status_class": "running",
           "status_label": "กำลังรัน",
-          "html_url": "https://github.com/pongsatornm1991-droid/AION/actions/runs/35134940918",
-          "created_at": "2026-09-16T18:31:32Z"
+          "html_url": "https://github.com/pongsatornm1991-droid/AION/actions/runs/35135077714",
+          "created_at": "2026-09-16T18:32:51Z"
         },
         {
           "name": "AION - system reliability",
