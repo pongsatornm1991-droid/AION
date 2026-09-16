@@ -10,7 +10,9 @@ on:
   workflow_dispatch: {}
 
 concurrency:
-  group: aion-memory-data
+  # Keep the Sunday release independent of research-memory work, but mutually
+  # exclusive with Short publishing and recovery retries.
+  group: aion-youtube-release
   cancel-in-progress: false
 
 permissions:
@@ -71,4 +73,8 @@ jobs:
           git config user.name "aion-bot"
           git config user.email "aion-bot@users.noreply.github.com"
           git add -A
-          if ! git diff --cached --quiet; then git commit -m "AION long-form YouTube update"; git push; fi
+          if ! git diff --cached --quiet; then
+            git commit -m "AION long-form YouTube update"
+            git pull --rebase origin main
+            git push
+          fi
