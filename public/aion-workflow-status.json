@@ -1,10 +1,10 @@
 {
-  "generated_at": "2026-09-16T10:54:40.143167+00:00",
+  "generated_at": "2026-09-16T10:56:53.895606+00:00",
   "tiles": {
     "total": 43,
-    "ok": 36,
+    "ok": 37,
     "attn": 3,
-    "running": 2
+    "running": 1
   },
   "groups": [
     {
@@ -46,8 +46,8 @@
         {
           "name": "AION - assemble illustrated Creator episode",
           "file": "assemble-creator-episode.yml",
-          "status_class": "running",
-          "status_label": "กำลังรัน",
+          "status_class": "success",
+          "status_label": "สำเร็จ",
           "html_url": "https://github.com/pongsatornm1991-droid/AION/actions/runs/35087436305",
           "created_at": "2026-09-16T10:53:56Z"
         },
@@ -200,8 +200,8 @@
           "file": "automation-health.yml",
           "status_class": "success",
           "status_label": "ไม่มีเหตุให้ดำเนินการ",
-          "html_url": "https://github.com/pongsatornm1991-droid/AION/actions/runs/35087436219",
-          "created_at": "2026-09-16T10:53:56Z"
+          "html_url": "https://github.com/pongsatornm1991-droid/AION/actions/runs/35087622086",
+          "created_at": "2026-09-16T10:56:03Z"
         },
         {
           "name": "AION - Cyber Guard defensive audit",
@@ -256,8 +256,8 @@
           "file": "publish-workflow-status.yml",
           "status_class": "running",
           "status_label": "กำลังรัน",
-          "html_url": "https://github.com/pongsatornm1991-droid/AION/actions/runs/35087436272",
-          "created_at": "2026-09-16T10:53:56Z"
+          "html_url": "https://github.com/pongsatornm1991-droid/AION/actions/runs/35087622324",
+          "created_at": "2026-09-16T10:56:03Z"
         },
         {
           "name": "AION - recoverable media housekeeping",
