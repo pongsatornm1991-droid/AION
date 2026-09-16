@@ -137,6 +137,33 @@ class YouTubeCreatorQueue:
                 }
                 self.memory.update(self.CATEGORY, entry["id"], content=json.dumps(updated, ensure_ascii=False))
                 return {"stage": "authorized-for-publishing", "migrated": True, **updated}
+
+        # An episode may have been authorized before Studio finished its
+        # cover or before its corrective-release metadata was added.  Refresh
+        # that one durable record from the source episode instead of leaving
+        # it permanently blocked as "missing-cover".  This is metadata-only:
+        # it never uploads, changes credentials, or broadens authorization.
+        records = self._records_by_episode()
+        for candidate in self.candidates():
+            if content_kind and candidate.get("content_kind") != content_kind:
+                continue
+            existing = records.get(candidate["episode_id"])
+            if existing is None:
+                continue
+            entry, payload = existing
+            if (payload.get("upload_status") != "authorized-for-aion-publish"
+                    or (payload.get("youtube") or {}).get("video_id")):
+                continue
+            refreshed = {
+                **payload,
+                **candidate,
+                "upload_status": "authorized-for-aion-publish",
+                "publish_note": payload.get("publish_note") or (
+                    "AION is authorized to publish after the quality gate and channel checks pass."
+                ),
+            }
+            self.memory.update(self.CATEGORY, entry["id"], content=json.dumps(refreshed, ensure_ascii=False))
+            return {"stage": "authorized-for-publishing", "refreshed": True, "record": entry, **refreshed}
         eligible = [item for item in self.candidates()
                     if item["status"] == "upload-ready"
                     and (not content_kind or item.get("content_kind") == content_kind)]

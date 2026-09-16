@@ -81,6 +81,24 @@ class YouTubeCreatorQueueTests(unittest.TestCase):
             self.assertTrue(migrated["migrated"])
             self.assertEqual("authorized-for-aion-publish", migrated["upload_status"])
 
+    def test_refreshes_authorized_record_with_new_cover_metadata(self):
+        with tempfile.TemporaryDirectory() as root:
+            self._episode(root)
+            (Path(root) / "content" / "reels" / "episode.mp4").write_bytes(b"video")
+            policy = Path(root) / "config"; policy.mkdir()
+            (policy / "aion_authority.json").write_text('{"public_publishing":{"enabled":true}}', encoding="utf-8")
+            memory = MemoryEngine(Path(root) / "memory")
+            queue = YouTubeCreatorQueue(memory, root)
+            queue.prepare_once()
+            entry = memory.all(queue.CATEGORY)[0]
+            stale = __import__("json").loads(entry["content"])
+            stale.pop("cover_path", None)
+            stale.pop("supersedes_episode_id", None)
+            memory.update(queue.CATEGORY, entry["id"], content=__import__("json").dumps(stale))
+            refreshed = queue.prepare_once("short")
+            self.assertTrue(refreshed["refreshed"])
+            self.assertEqual("content/reels/episode-cover.png", refreshed["cover_path"])
+
     def test_video_qa_can_block_an_authorized_upload(self):
         with tempfile.TemporaryDirectory() as root:
             self._episode(root)
