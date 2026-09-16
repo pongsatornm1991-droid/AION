@@ -1,0 +1,63 @@
+{
+  "id": "aion-special-octopus-chromatophores-v1",
+  "series": "AION Wonders",
+  "title": "How an Octopus Changes Color in Seconds",
+  "status": "storyboard-ready-needs-assets",
+  "format": "illustrated-narrated-short",
+  "target_duration_seconds": 60,
+  "scene_seconds": 5,
+  "pacing_policy": "short-60-180-subject-first-v2",
+  "audience_promise": "In one minute, viewers can see the real skin mechanism that lets an octopus change colour in seconds.",
+  "wonder_hook": "How can an octopus change color in seconds?",
+  "topic_key": "octopus chromatophores colour change mechanism",
+  "story_package_id": "octopus-chromatophores-special-v1",
+  "content_angle_key": "mechanism-explainer",
+  "creative_device": "scale-shift",
+  "age_layers": {
+    "children": "See an octopus turn colour, then discover the tiny colour cells beneath its skin.",
+    "family": "Follow one clear chain: skin cells, pigment sacs, muscles, and a visible colour change.",
+    "deeper": "Notice the distinction between the observed colour shift and the documented chromatophore mechanism."
+  },
+  "sources": [
+    {
+      "title": "NOAA Ocean Exploration: Octopus",
+      "url": "https://oceanexplorer.noaa.gov/multimedia/okeanos-explorations-seascape-alaska-ex2306-gallery-media-dive08-octopus-2/"
+    },
+    {
+      "title": "Smithsonian Ocean: How Octopuses and Squids Change Color",
+      "url": "https://ocean.si.edu/ocean-life/invertebrates/how-octopuses-and-squids-change-color"
+    }
+  ],
+  "uncertainty_boundary": "This episode explains the chromatophore mechanism documented by the sources; individual colour patterns and behaviour can vary by species and situation.",
+  "visual_direction": {
+    "focus": "subject-first",
+    "aion_role": "contextual-guide",
+    "aion_frame_share_max": 0.15,
+    "aion_presence_rationale": "AION appears only as a small field guide. The octopus, its skin, and the mechanism always carry the visual story."
+  },
+  "visual_identity": {
+    "version": "aion-stylized-guide-real-world-v1",
+    "character": "Original stylized 3D animated AION guide: silver-white hair, expressive cyan eyes, pearl-light skin, a small cyan crystal core, and practical ivory, charcoal, and deep-navy field clothing. AION is never all-blue and never dominates the frame.",
+    "environment": "Original premium family-friendly cinematic 3D storytelling with realistic underwater light, animal anatomy, materials, and environment. Do not imitate a named studio.",
+    "prohibited": ["all-blue body", "all-blue outfit", "cape", "armour", "fashion pose", "embedded text", "logo", "watermark", "cartoonish animal anatomy"]
+  },
+  "scenes": [
+    {"n": 1, "beat": "hook", "visual": "Realistic cinematic underwater close view of an octopus on a rocky seafloor, deep reddish purple skin, about to change colour; AION is tiny at the distant edge in practical dive-research clothing.", "narration": "One moment, this octopus is purple. Seconds later, it turns bright white."},
+    {"n": 2, "beat": "answer", "visual": "Subject-first educational cutaway: the same realistic octopus dominates the frame while a naturalistic translucent skin cross-section reveals tiny colour cells; AION observes subtly at the edge.", "narration": "How? Its skin is filled with tiny colour-changing cells called chromatophores."},
+    {"n": 3, "beat": "pigment-sac", "visual": "Macro cinematic scientific visualization of an octopus skin cell containing a coloured pigment sac, organic and accurate-looking, no labels or text; AION is a tiny observing guide at the border.", "narration": "Each cell holds pigment inside a tiny elastic sac, like a balloon."},
+    {"n": 4, "beat": "control", "visual": "Macro visualization of delicate muscles around chromatophore pigment sacs changing tension beneath octopus skin; realistic biological materials, no labels; AION remains tiny in the corner.", "narration": "Nerves and muscles control those sacs, opening some while closing others."},
+    {"n": 5, "beat": "expand", "visual": "Extreme close view of chromatophores expanding beneath octopus skin so warm pigment spreads across a larger visible area; show the octopus skin as the central subject and AION very small.", "narration": "When a sac spreads open, its pigment covers more skin and looks brighter."},
+    {"n": 6, "beat": "contract", "visual": "Matching close view of chromatophores contracting so less pigment is visible and the octopus skin appears pale; AION is only a small guide at the far edge.", "narration": "When it closes, less pigment shows, so the octopus appears lighter again."},
+    {"n": 7, "beat": "observed-change", "visual": "Cinematic underwater sequence represented in one image: a real octopus shifting from deep reddish purple to white, with a smooth visual transition across the body; AION watches from afar.", "narration": "NOAA recorded one octopus flash reddish purple, then turn completely white."},
+    {"n": 8, "beat": "speed", "visual": "Wide underwater scene showing the same octopus in two immediately successive colour states against a rocky background, visually communicating a change within seconds; AION remains small.", "narration": "That shift happened within seconds, not because the ocean changed around it."},
+    {"n": 9, "beat": "camouflage", "visual": "A realistic octopus blending into a textured rocky seafloor using colour and skin pattern, subject visible on close inspection; AION is a tiny guide, never the focal point.", "narration": "Colour change can help an octopus blend into its surroundings and hide."},
+    {"n": 10, "beat": "pattern", "visual": "A realistic octopus displays a bold high-contrast pattern while remaining central in an underwater environment; AION watches from the distant edge, no text or symbols.", "narration": "It can also make patterns that stand out against the water and rocks."},
+    {"n": 11, "beat": "takeaway", "visual": "Elegant realistic wide scene of the octopus moving over the seafloor, with a subtle visual echo of changing skin cells; AION is a small silent observer.", "narration": "It is not magic or paint: living skin controlled in real time."},
+    {"n": 12, "beat": "close", "visual": "Peaceful cinematic underwater wide shot: the octopus disappears naturally among rocks while AION is tiny at the edge, looking toward the ocean; no text or watermark.", "narration": "I am AION, an AI—not human. What ocean wonder should we explore next?"}
+  ],
+  "special_release": {
+    "reason": "Replacement for a public episode blocked for silent final scenes and an unclear generic narrative.",
+    "release_priority": "urgent",
+    "publication_rule": "Publish only after fresh images, per-scene narration timing, video-quality, story-quality, and platform checks pass."
+  }
+}
