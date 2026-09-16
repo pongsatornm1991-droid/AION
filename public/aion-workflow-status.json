@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-09-16T00:28:15.511034+00:00",
+  "generated_at": "2026-09-16T00:36:30.788060+00:00",
   "tiles": {
     "total": 43,
     "ok": 39,
@@ -222,8 +222,8 @@
         {
           "name": "AION - Publish public brain summary",
           "file": "publish-public-summary.yml",
-          "status_class": "running",
-          "status_label": "กำลังรัน",
+          "status_class": "success",
+          "status_label": "สำเร็จ",
           "html_url": "https://github.com/pongsatornm1991-droid/AION/actions/runs/35040061087",
           "created_at": "2026-09-16T00:27:15Z"
         },
@@ -240,8 +240,8 @@
           "file": "publish-delivery-status.yml",
           "status_class": "success",
           "status_label": "สำเร็จ",
-          "html_url": "https://github.com/pongsatornm1991-droid/AION/actions/runs/35030461358",
-          "created_at": "2026-09-15T22:20:25Z"
+          "html_url": "https://github.com/pongsatornm1991-droid/AION/actions/runs/35040636407",
+          "created_at": "2026-09-16T00:35:24Z"
         },
         {
           "name": "AION - deterministic tests",
@@ -254,10 +254,10 @@
         {
           "name": "AION - publish workflow health",
           "file": "publish-workflow-status.yml",
-          "status_class": "success",
-          "status_label": "สำเร็จ",
-          "html_url": "https://github.com/pongsatornm1991-droid/AION/actions/runs/35039985915",
-          "created_at": "2026-09-16T00:26:11Z"
+          "status_class": "running",
+          "status_label": "กำลังรัน",
+          "html_url": "https://github.com/pongsatornm1991-droid/AION/actions/runs/35040664720",
+          "created_at": "2026-09-16T00:35:50Z"
         },
         {
           "name": "AION - recoverable media housekeeping",
