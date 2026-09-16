@@ -406,6 +406,13 @@ class ReplyToFacebookCommentTests(unittest.TestCase):
         called_data = mock_post.call_args.kwargs["data"]
         self.assertEqual(called_data["message"], "ขอบคุณครับ")
 
+    def test_like_comment_posts_to_the_comment_likes_edge(self):
+        from tools.facebook import like_facebook_comment
+        with mock.patch("requests.post", return_value=FakeResponse(200, {"success": True})) as mock_post:
+            result = like_facebook_comment("c1")
+        self.assertEqual({"success": True}, result)
+        self.assertEqual(f"{GRAPH_API_BASE}/c1/likes", mock_post.call_args.args[0])
+
     def test_graph_api_error_raises_runtime_error(self):
         payload = {
             "error": {"message": "Comment not found.", "type": "GraphError", "code": 100},

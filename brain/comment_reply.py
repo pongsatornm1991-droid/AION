@@ -228,7 +228,7 @@ class CommentAutoReplyCycle:
 
     def __init__(
         self, memory, generator, lifecycle, tool_name, page_id=None,
-        platform="facebook", account_id=None, fetch_comments=None,
+        platform="facebook", account_id=None, fetch_comments=None, like_tool_name=None,
     ):
         self.memory = memory
         self.generator = generator
@@ -237,6 +237,7 @@ class CommentAutoReplyCycle:
         self.platform = str(platform or "facebook").lower()
         self.page_id = account_id or page_id
         self.fetch_comments = fetch_comments
+        self.like_tool_name = like_tool_name
 
     @property
     def comment_tag_prefix(self):
@@ -453,6 +454,20 @@ class CommentAutoReplyCycle:
         posted = executed["status"] == "executed"
         stage = "executed" if posted else "failed"
         detail = reply_text if posted else str(executed.get("error", ""))
+        like = None
+        if posted and self.like_tool_name:
+            try:
+                proposed_like = self.lifecycle.propose(
+                    self.like_tool_name, params={"comment_id": comment["id"]}, source="aion",
+                )
+                approved_like = self.lifecycle.auto_approve(
+                    proposed_like["id"], policy="comment-reaction-after-reply",
+                )
+                like = self.lifecycle.execute(approved_like["id"])
+            except Exception as exc:
+                # The reply is already complete. Preserve the reaction error
+                # as audit evidence but never post the same reply twice.
+                like = {"status": "failed", "error": str(exc)}
 
         self._record_handled(comment, stage, detail, "comment-auto-reply")
 
@@ -460,5 +475,6 @@ class CommentAutoReplyCycle:
             "handled": posted,
             "stage": stage,
             "action": executed,
+            "like": like,
             **draft_report,
         }

@@ -852,6 +852,7 @@ def _build_social_tool_lifecycle():
     from tools.facebook import (
         post_to_facebook_page,
         reply_to_facebook_comment,
+        like_facebook_comment,
         update_page_bio,
         publish_reel_to_facebook,
         post_photo_to_facebook,
@@ -880,6 +881,12 @@ def _build_social_tool_lifecycle():
         ),
         ActionLevel.COMMENT_REPLY,
         "Reply to one existing comment on AION's configured Facebook Page.",
+    )
+    registry.register(
+        "like_facebook_comment",
+        lambda comment_id: like_facebook_comment(comment_id),
+        ActionLevel.COMMENT_REPLY,
+        "Like one Facebook comment only after AION has successfully replied.",
     )
 
     registry.register(
@@ -1474,6 +1481,7 @@ def run_check_comments(args, platform="facebook"):
         tool_name=("reply_to_youtube_comment" if is_youtube else "reply_to_instagram_comment" if is_instagram else "reply_to_facebook_comment"),
         page_id=(os.getenv("INSTAGRAM_USERNAME") if is_instagram else os.getenv("FACEBOOK_PAGE_ID") if not is_youtube else "__aion_youtube_channel__"),
         platform=platform,
+        like_tool_name=("like_facebook_comment" if platform == "facebook" else None),
     )
 
     report = cycle.run_once()

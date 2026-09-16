@@ -506,3 +506,29 @@ def reply_to_facebook_comment(comment_id, message, access_token=None):
         raise _graph_error(payload, response.status_code)
 
     return payload
+
+
+def like_facebook_comment(comment_id, access_token=None):
+    """Like one real Page comment after AION has replied to it.
+
+    This is deliberately separate from replying: a failed reaction must not
+    cause the answer itself to be retried and duplicated.
+    """
+    if not comment_id:
+        raise ValueError("comment_id cannot be empty.")
+    load_dotenv()
+    access_token = access_token or os.getenv("FACEBOOK_PAGE_ACCESS_TOKEN")
+    if not access_token:
+        raise RuntimeError("FACEBOOK_PAGE_ACCESS_TOKEN is not configured. Add it to .env.")
+    import requests
+    response = requests.post(
+        f"{GRAPH_API_BASE}/{comment_id}/likes",
+        data={"access_token": access_token}, timeout=15,
+    )
+    try:
+        payload = response.json()
+    except ValueError:
+        payload = {}
+    if response.status_code >= 400 or "error" in payload:
+        raise _graph_error(payload, response.status_code)
+    return payload
