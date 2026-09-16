@@ -16,16 +16,17 @@ class YouTubeShortsCycle:
         self.memory = memory
         self.uploader = uploader
 
-    def _next_reel(self):
+    def _pending_reels(self):
         entries = self.memory.all(self.PUBLISHED)
+        pending = []
         for entry in sorted(entries, key=lambda item: item.get("timestamp", "")):
             try:
                 payload = json.loads(entry["content"])
             except (TypeError, ValueError):
                 continue
             if not (payload.get("youtube") or {}).get("video_id"):
-                return entry, payload
-        return None, None
+                pending.append((entry, payload))
+        return pending
 
     @staticmethod
     def _title(caption):
@@ -33,16 +34,10 @@ class YouTubeShortsCycle:
         return first_line[:100]
 
     def publish_once(self, repo_root=None):
-        entry, payload = self._next_reel()
-        if entry is None:
+        pending = self._pending_reels()
+        if not pending:
             return {"stage": "no-pending"}
-
-        video_path = payload.get("video_path")
-        if not video_path:
-            return {"stage": "missing-video", "entry_id": entry.get("id")}
         root = repo_root or os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-        absolute_video_path = os.path.join(root, video_path)
-        caption = str(payload.get("caption", "")).strip()
         from brain.youtube_quality import YouTubeQualityGate
         prior = []
         for previous in self.memory.all(self.PUBLISHED):
@@ -50,17 +45,31 @@ class YouTubeShortsCycle:
                 previous_payload = json.loads(previous.get("content") or "{}")
             except (TypeError, ValueError):
                 continue
-            if previous.get("id") != entry.get("id") and (previous_payload.get("youtube") or {}).get("video_id"):
+            if (previous_payload.get("youtube") or {}).get("video_id"):
                 prior.append(previous_payload)
-        quality = YouTubeQualityGate().assess(payload, prior)
         from brain.video_quality import VideoQualityGate
-        video_quality = VideoQualityGate(root).assess(video_path, "short")
-        quality["video_qa"] = video_quality
-        if not video_quality["eligible"]:
-            quality["eligible"] = False
-            quality["reasons"] = list(quality.get("reasons") or []) + [f"video-qa:{item}" for item in video_quality["reasons"]]
-        if not quality["eligible"]:
-            return {"stage": "quality-review-required", "entry_id": entry.get("id"), **quality}
+        blocked = []
+        selected = None
+        for entry, payload in pending:
+            video_path = payload.get("video_path")
+            if not video_path:
+                blocked.append({"entry_id": entry.get("id"), "reasons": ["missing-video"]})
+                continue
+            quality = YouTubeQualityGate().assess(payload, prior)
+            video_quality = VideoQualityGate(root).assess(video_path, "short")
+            quality["video_qa"] = video_quality
+            if not video_quality["eligible"]:
+                quality["eligible"] = False
+                quality["reasons"] = list(quality.get("reasons") or []) + [f"video-qa:{item}" for item in video_quality["reasons"]]
+            if quality["eligible"]:
+                selected = (entry, payload, video_path, quality)
+                break
+            blocked.append({"entry_id": entry.get("id"), "reasons": list(quality.get("reasons") or [])})
+        if selected is None:
+            return {"stage": "quality-review-required", "blocked": blocked}
+        entry, payload, video_path, quality = selected
+        absolute_video_path = os.path.join(root, video_path)
+        caption = str(payload.get("caption", "")).strip()
         from brain.cross_platform import append_invitation
         routed_youtube = (payload.get("platform_captions") or {}).get("youtube") or caption
         description = "\n\n".join(
