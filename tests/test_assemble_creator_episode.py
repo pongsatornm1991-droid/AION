@@ -1,6 +1,7 @@
 import json
 import tempfile
 import unittest
+from unittest import mock
 from pathlib import Path
 
 from tools.assemble_creator_episode import assemble_once, backfill_subtitles_once
@@ -19,7 +20,11 @@ class AssembleCreatorEpisodeTests(unittest.TestCase):
                 self.assertEqual(15, kwargs["duration"]); self.assertEqual(3, len(kwargs["still_paths"]))
                 self.assertEqual((1080, 1920), kwargs["frame_size"])
                 Path(output).parent.mkdir(parents=True, exist_ok=True); Path(output).write_bytes(b"mp4")
-            result = assemble_once(root, renderer=renderer)
+            # This test isolates orchestration.  The renderer fixture writes
+            # only a marker file, so the real media gate is intentionally
+            # mocked; dedicated video-quality tests cover the gate itself.
+            with mock.patch("tools.assemble_creator_episode.VideoQualityGate.assess", return_value={"eligible": True}):
+                result = assemble_once(root, renderer=renderer)
             self.assertEqual("episode-rendered-for-quality", result["stage"])
             self.assertTrue((root / result["subtitle_path"]).is_file())
             self.assertIn("00:00:00,000 --> 00:00:05,000", (root / result["subtitle_path"]).read_text(encoding="utf-8"))

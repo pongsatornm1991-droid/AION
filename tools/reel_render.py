@@ -236,16 +236,16 @@ def render_reel(hook, thought, output_path, duration=18, mood=None, still_paths=
                 )
     cover = os.path.splitext(output_path)[0] + "-cover.png"
     render_reel_cover(hook, thought, cover, mood=mood, still_paths=stills)
-    frames = max(3, int(duration * 30))
-    scene_frames = max(1, frames // len(stills))
     command = [ffmpeg, "-y"]
     for still in stills:
-        # Feed exactly one input frame per still.  zoompan expands that frame
-        # to the precise scene duration; looping it here would multiply the
-        # first scene and make a whole episode appear to be one static image.
-        command.extend(["-loop", "1", "-framerate", "1", "-t", "1", "-i", still])
+        # Give each still an explicit five-second video input.  The prior
+        # zoompan approach started from a one-frame, one-fps source and could
+        # end early after concat, creating a 27-second file for a 60-second
+        # storyboard.  Duration is now controlled at the input boundary and
+        # is therefore measurable before any platform quality gate runs.
+        command.extend(["-loop", "1", "-framerate", "30", "-t", str(seconds_per_scene), "-i", still])
     scene_filters = [
-        f"[{index}:v]zoompan=z='min(zoom+0.00045,1.05)':d={scene_frames}:s={width}x{height}:fps=30,format=yuv420p[v{index}]"
+        f"[{index}:v]scale={width}:{height}:force_original_aspect_ratio=increase,crop={width}:{height},fps=30,format=yuv420p[v{index}]"
         for index in range(len(stills))
     ]
     joined = "".join(f"[v{index}]" for index in range(len(stills)))
@@ -254,7 +254,10 @@ def render_reel(hook, thought, output_path, duration=18, mood=None, still_paths=
         for scene_audio in scene_audio_paths:
             command.extend(["-i", scene_audio])
         audio_inputs = [
-            f"[{len(stills) + index}:a]apad=pad_dur=0.5,atrim=duration={seconds_per_scene}[a{index}]"
+            # Every scene owns its complete picture interval.  Pad shorter
+            # narration all the way to its boundary; never concatenate a
+            # fractional audio stream that can shorten the whole output.
+            f"[{len(stills) + index}:a]apad=pad_dur={seconds_per_scene},atrim=duration={seconds_per_scene}[a{index}]"
             for index in range(len(scene_audio_paths))
         ]
         joined_audio = "".join(f"[a{index}]" for index in range(len(scene_audio_paths)))

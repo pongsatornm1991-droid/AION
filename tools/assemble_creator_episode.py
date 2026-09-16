@@ -14,14 +14,25 @@ if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 
 from brain.creator_series import CreatorSeriesRegistry
+from brain.video_quality import VideoQualityGate
 from brain.visual_story_policy import VisualStoryPolicy
 from tools.reel_render import AudioTimingError, REEL_SIZE, WIDESCREEN_SIZE, render_reel
 
 
 def _eligible_episode(root, episode_id=None):
-    return next((episode for episode in CreatorSeriesRegistry(root).episodes()
-                 if episode.get("status") == "assets-ready-for-assembly"
-                 and (not episode_id or episode.get("id") == episode_id)), None)
+    """Find a fresh episode, or repair a render that failed its real gate."""
+    root = Path(root)
+    for episode in CreatorSeriesRegistry(root).episodes():
+        if episode_id and episode.get("id") != episode_id:
+            continue
+        if episode.get("status") == "assets-ready-for-assembly":
+            return episode
+        if episode.get("status") == "production-ready-assets-and-script":
+            output = root / "content" / "reels" / f"{episode['id']}.mp4"
+            kind = "short" if episode.get("format") == "illustrated-narrated-short" else "long-form"
+            if not VideoQualityGate(root).assess(output, kind).get("eligible"):
+                return episode
+    return None
 
 
 def _timestamp(seconds):
@@ -92,6 +103,10 @@ def assemble_once(root=ROOT, episode_id=None, renderer=render_reel):
         return {"stage": "assembly-failed", "episode_id": episode["id"], "error": str(exc)}
     if not output.is_file() or output.stat().st_size == 0:
         return {"stage": "assembly-output-missing", "episode_id": episode["id"]}
+    kind = "short" if episode.get("format") == "illustrated-narrated-short" else "long-form"
+    quality = VideoQualityGate(root).assess(output, kind)
+    if not quality.get("eligible"):
+        return {"stage": "assembly-quality-failed", "episode_id": episode["id"], "quality": quality}
     subtitle = _write_subtitles(episode, output)
     source = root / episode["file"]
     episode["status"] = "production-ready-assets-and-script"
