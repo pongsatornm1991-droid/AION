@@ -72,6 +72,7 @@ class StoryEpisodeStager:
             "audience_promise": self._clean(handoff.get("audience_value"), 240)
                 or "A viewer of any age can see how two sources support a careful answer, and where uncertainty remains.",
             "wonder_hook": topic,
+            "topic_key": topic,
             "creative_device": "mystery-reveal",
             "age_layers": {
                 "children": "Notice one surprising question and the clues that help answer it.",

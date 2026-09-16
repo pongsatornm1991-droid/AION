@@ -8,6 +8,7 @@ it does not attempt to judge truth from prose alone.
 import re
 
 from brain.audience_accessibility import AudienceAccessibilityGate
+from brain.topic_novelty import TopicNoveltyGate
 
 
 class YouTubeQualityGate:
@@ -38,6 +39,8 @@ class YouTubeQualityGate:
             reasons.append("duplicate-narrative")
         if video_path and video_path in prior_paths:
             reasons.append("duplicate-video")
+        if any(TopicNoveltyGate.same_topic(payload, previous) for previous in prior_payloads):
+            reasons.append("duplicate-topic")
 
         # AION's default renderer is illustrated rather than photorealistic.
         # Unknown/realistic sources are never automatically declared safe:

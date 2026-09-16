@@ -32,3 +32,15 @@ class YouTubeQualityGateTests(unittest.TestCase):
         })
         self.assertTrue(report["eligible"])
         self.assertTrue(report["ai_disclosure_review"])
+
+    def test_blocks_a_new_video_about_the_same_specific_topic(self):
+        base = {
+            "caption": "AION explains an evidence-led idea in a useful way for viewers.",
+            "viewer_value": "Viewers receive a grounded explanation with a clear uncertainty boundary.",
+            "visual_style": "illustrated-aion-storyboard-v4",
+        }
+        candidate = {**base, "video_path": "content/reels/new.mp4", "title": "How yakhchāls kept ice", "topic_key": "Persian yakhchal ice storage"}
+        earlier = {**base, "video_path": "content/reels/old.mp4", "title": "Yakhchal desert ice", "topic_key": "Persian yakhchal ice storage", "youtube": {"video_id": "old"}}
+        report = YouTubeQualityGate().assess(candidate, [earlier])
+        self.assertFalse(report["eligible"])
+        self.assertIn("duplicate-topic", report["reasons"])
