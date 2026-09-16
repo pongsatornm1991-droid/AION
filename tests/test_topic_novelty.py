@@ -14,3 +14,23 @@ class TopicNoveltyGateTests(unittest.TestCase):
             {"topic_key": "How did Persian yakhchal structures store ice?"},
             {"topic_key": "Persian yakhchal ice storage"},
         ))
+
+    def test_one_research_package_can_have_distinct_editorial_angles(self):
+        main_short = {
+            "story_package_id": "ocean-colour-01",
+            "content_angle_key": "how-the-cells-work",
+            "topic_key": "How an octopus changes colour",
+            "source_urls": ["https://example.test/evidence"],
+        }
+        different_short = {
+            "story_package_id": "ocean-colour-01",
+            "content_angle_key": "why-it-is-not-camouflage-alone",
+            "topic_key": "How an octopus changes colour",
+            "source_urls": ["https://example.test/evidence"],
+        }
+        self.assertFalse(TopicNoveltyGate.same_topic(different_short, main_short))
+
+    def test_one_research_package_cannot_repeat_the_same_angle(self):
+        first = {"story_package_id": "ocean-colour-01", "content_angle_key": "how-the-cells-work"}
+        repeat = {"story_package_id": "ocean-colour-01", "content_angle_key": "how-the-cells-work"}
+        self.assertTrue(TopicNoveltyGate.same_topic(repeat, first))

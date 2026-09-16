@@ -122,6 +122,11 @@ class ResearchToStory:
             "version": 1,
             "status": "research-ready",
             "root_question_id": candidate["root_question_id"],
+            # This identifier permits a later editorial package to reuse this
+            # evidence only for clearly different angles; it never permits a
+            # repeated Short.
+            "story_package_id": candidate["root_question_id"],
+            "content_angle_key": "evidence-walkthrough",
             "topic": topic,
             "topic_key": candidate["topic_key"],
             "scout_lane": scout_lane,

@@ -92,6 +92,8 @@ class YouTubeCreatorQueue:
                 "source_count": len(episode.get("sources") or []),
                 "caption": self._caption(episode),
                 "topic_key": episode.get("topic_key") or episode.get("wonder_hook") or episode.get("title"),
+                "story_package_id": episode.get("story_package_id"),
+                "content_angle_key": episode.get("content_angle_key"),
                 "source_urls": [source.get("url") for source in (episode.get("sources") or []) if source.get("url")],
                 "viewer_value": episode["audience_promise"],
                 "visual_style": "illustrated-aion-storyboard-v4",

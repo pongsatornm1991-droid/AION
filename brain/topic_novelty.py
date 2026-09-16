@@ -29,6 +29,19 @@ class TopicNoveltyGate:
 
     @classmethod
     def same_topic(cls, candidate, previous):
+        # A single researched subject may legitimately become a small editorial
+        # package: for example, one long explanation and two Shorts that answer
+        # different viewer questions.  It is *not* a duplicate only when both
+        # records explicitly belong to the same package and name different
+        # editorial angles.  Missing metadata remains conservative and blocks.
+        package = str((candidate or {}).get("story_package_id") or "").strip()
+        previous_package = str((previous or {}).get("story_package_id") or "").strip()
+        if package and package == previous_package:
+            angle = str((candidate or {}).get("content_angle_key") or "").strip()
+            previous_angle = str((previous or {}).get("content_angle_key") or "").strip()
+            if angle and previous_angle and angle != previous_angle:
+                return False
+            return True
         candidate_urls = set(candidate.get("source_urls") or [])
         previous_urls = set(previous.get("source_urls") or [])
         if candidate_urls and previous_urls and candidate_urls.intersection(previous_urls):

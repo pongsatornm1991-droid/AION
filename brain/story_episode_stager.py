@@ -109,6 +109,8 @@ class StoryEpisodeStager:
                 {"n": 12, "beat": "invitation", "visual": "AION walks away while the subject and environment fill the final frame.", "narration": "What would you look for before deciding what is true?"},
             ],
             "research_handoff_id": root_id,
+            "story_package_id": handoff.get("story_package_id") or root_id,
+            "content_angle_key": handoff.get("content_angle_key") or "evidence-walkthrough-short",
         }
 
     def stage_once(self):

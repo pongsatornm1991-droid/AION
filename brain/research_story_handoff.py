@@ -46,6 +46,8 @@ class ResearchStoryHandoff:
             "version": 1,
             "status": "story-ready",
             "root_question_id": root_id,
+            "story_package_id": brief.get("story_package_id") or root_id,
+            "content_angle_key": brief.get("content_angle_key") or "evidence-walkthrough",
             "topic": topic,
             "topic_key": brief.get("topic_key") or topic,
             "scout_lane": brief.get("scout_lane"),
