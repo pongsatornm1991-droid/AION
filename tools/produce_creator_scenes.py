@@ -14,6 +14,8 @@ parser.add_argument("--episode-limit", type=int, default=1)
 parser.add_argument("--format", choices=["short", "long-form"])
 parser.add_argument("--require-complete", action="store_true",
                     help="Fail visibly when the planned release buffer could not be produced.")
+parser.add_argument("--require-no-failures", action="store_true",
+                    help="Fail only when a ready episode actually fails to render; an empty spare slot is not an error.")
 args = parser.parse_args()
 episode_format = {
     "short": "illustrated-narrated-short",
@@ -25,3 +27,12 @@ report = CreatorSceneProduction(ROOT).produce_ready_episodes(
 print(json.dumps(report, ensure_ascii=False, indent=2))
 if args.require_complete and len(report.get("completed_episode_ids") or []) < args.episode_limit:
     raise SystemExit("planned-release-buffer-incomplete")
+if args.require_no_failures:
+    reports = report.get("reports") or []
+    failed = [item for item in reports if item.get("failed")]
+    unexpected = [
+        item for item in reports
+        if item.get("stage") not in {"episode-assets-complete", "no-subject-first-storyboard-ready"}
+    ]
+    if failed or unexpected:
+        raise SystemExit("studio-scene-production-failed")

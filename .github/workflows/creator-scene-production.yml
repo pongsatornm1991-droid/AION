@@ -38,9 +38,12 @@ jobs:
           # to use an old Reel merely because the buffer is empty.
           weekday="$(date -u +%u)"
           short_limit=2
-          python tools/produce_creator_scenes.py --format short --episode-limit "$short_limit" --batch-size 25 --max-scenes 120 --require-complete
+          # An empty spare slot is a planning signal, not a production failure.
+          # Fail only for a real rendering fault so completed images are always
+          # committed and can continue to assembly.
+          python tools/produce_creator_scenes.py --format short --episode-limit "$short_limit" --batch-size 25 --max-scenes 120 --require-no-failures
           if [[ "$weekday" == "4" ]]; then
-            python tools/produce_creator_scenes.py --format long-form --episode-limit 1 --batch-size 25 --max-scenes 120 --require-complete
+            python tools/produce_creator_scenes.py --format long-form --episode-limit 1 --batch-size 25 --max-scenes 120 --require-no-failures
           fi
       - run: |
           git config user.name aion-bot
