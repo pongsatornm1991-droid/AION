@@ -1,0 +1,51 @@
+name: AION - cross-post verified Creator Short
+
+on:
+  workflow_dispatch:
+    inputs:
+      episode_id:
+        description: "Exact Creator Studio episode ID to cross-post"
+        required: true
+        type: string
+
+permissions:
+  contents: write
+
+concurrency:
+  # Social delivery uses its own narrow lane. It never races itself, but it
+  # also does not delay research or the YouTube publishing lane.
+  group: aion-creator-social-release
+  cancel-in-progress: false
+
+jobs:
+  crosspost:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/checkout@v4
+        with:
+          repository: pongsatornm1991-droid/aion-memory-data
+          token: ${{ secrets.MEMORY_REPO_PAT }}
+          path: memory_data
+      - uses: actions/setup-python@v5
+        with: {python-version: "3.11"}
+      - run: pip install -r requirements.txt
+      - name: Cross-post only this verified Studio episode
+        env:
+          AION_MEMORY_ROOT: memory_data
+          INSTAGRAM_ACCESS_TOKEN: ${{ secrets.INSTAGRAM_ACCESS_TOKEN }}
+          INSTAGRAM_BUSINESS_ACCOUNT_ID: ${{ secrets.INSTAGRAM_BUSINESS_ACCOUNT_ID }}
+          FACEBOOK_PAGE_ACCESS_TOKEN: ${{ secrets.FACEBOOK_PAGE_ACCESS_TOKEN }}
+          FACEBOOK_PAGE_ID: ${{ secrets.FACEBOOK_PAGE_ID }}
+        run: python tools/crosspost_creator_episode.py --episode-id "${{ inputs.episode_id }}"
+      - name: Persist cross-platform evidence
+        working-directory: memory_data
+        run: |
+          git config user.name "aion-bot"
+          git config user.email "aion-bot@users.noreply.github.com"
+          git add -A
+          if ! git diff --cached --quiet; then
+            git commit -m "AION Creator cross-platform delivery"
+            git pull --rebase origin main
+            git push
+          fi
