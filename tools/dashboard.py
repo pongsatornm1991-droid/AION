@@ -40,6 +40,7 @@ from brain.admin_operations import AdminOperations
 from brain.audience_accessibility import AudienceAccessibility
 from brain.operations_control import OperationsControlTower
 from brain.youtube_quality import YouTubeQualityGate
+from brain.video_quality import VideoQualityGate
 
 
 DASHBOARD_DIR = ROOT / "dashboard"
@@ -594,7 +595,8 @@ def _next_studio_release(memory):
             if not (candidate.is_file() and candidate.parent == reels_root and candidate.suffix.lower() == ".mp4"):
                 continue
             quality = YouTubeQualityGate().assess(item, ())
-            if not quality.get("eligible"):
+            video_quality = VideoQualityGate(ROOT).assess(video_path, "short")
+            if not quality.get("eligible") or not video_quality.get("eligible"):
                 continue
             cover_path = candidate.with_name(f"{candidate.stem}-cover.png")
             now = datetime.now()

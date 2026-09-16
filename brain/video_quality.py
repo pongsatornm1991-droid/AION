@@ -22,6 +22,7 @@ class VideoQualityGate:
     MIN_WIDTH = 720
     MIN_HEIGHT = 1280
     MIN_DURATION = 5.0
+    MIN_SHORT_DURATION = 60.0
     MAX_DURATION = 180.0
     SAMPLE_COUNT = 3
 
@@ -157,8 +158,8 @@ class VideoQualityGate:
                 reasons.append("resolution-too-low")
             if ratio and abs(ratio - (9 / 16)) > 0.04:
                 reasons.append("not-vertical-9x16")
-            if not self.MIN_DURATION <= duration <= self.MAX_DURATION:
-                reasons.append("duration-out-of-range")
+            if not self.MIN_SHORT_DURATION <= duration <= self.MAX_DURATION:
+                reasons.append("short-must-be-60-to-180-seconds")
         if duration < self.MIN_DURATION:
             reasons.append("duration-out-of-range")
 

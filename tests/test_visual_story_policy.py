@@ -8,6 +8,7 @@ class VisualStoryPolicyTests(unittest.TestCase):
         report = VisualStoryPolicy.validate_episode({
             "pacing_policy": VisualStoryPolicy.VERSION,
             "scene_seconds": 5,
+            "target_duration_seconds": 60,
             "visual_direction": {"focus": "subject-first", "aion_role": "contextual-guide", "aion_frame_share_max": 0.20},
         })
         self.assertTrue(report["eligible"])
@@ -16,6 +17,7 @@ class VisualStoryPolicyTests(unittest.TestCase):
         report = VisualStoryPolicy.validate_episode({
             "pacing_policy": VisualStoryPolicy.VERSION,
             "scene_seconds": 8,
+            "target_duration_seconds": 60,
             "visual_direction": {"focus": "aion-hero", "aion_role": "lead", "aion_frame_share_max": 0.6},
         })
         self.assertFalse(report["eligible"])
@@ -25,6 +27,7 @@ class VisualStoryPolicyTests(unittest.TestCase):
         report = VisualStoryPolicy.validate_episode({
             "pacing_policy": VisualStoryPolicy.VERSION,
             "scene_seconds": 5,
+            "target_duration_seconds": 60,
             "visual_direction": {
                 "focus": "subject-first", "aion_role": "contextual-guide",
                 "aion_frame_share_max": 0.28,
