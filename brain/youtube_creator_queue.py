@@ -5,6 +5,7 @@ from pathlib import Path
 
 from brain.autonomy_policy import AutonomyPolicy
 from brain.creator_series import CreatorSeriesRegistry
+from brain.identity_disclosure import append_identity_disclosure
 from brain.visual_story_policy import VisualStoryPolicy
 
 
@@ -322,7 +323,7 @@ class YouTubeCreatorQueue:
         format_tags = "#Shorts #AION #AI" if is_youtube_short else "#AION #AI"
         description = "\n\n".join(part for part in (
             payload.get("caption"),
-            "Original illustrated AION story. AI disclosure reviewed before publication.",
+            append_identity_disclosure("", "youtube"),
             format_tags,
         ) if part)
         try:

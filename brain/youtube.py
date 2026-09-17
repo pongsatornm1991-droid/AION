@@ -71,11 +71,11 @@ class YouTubeShortsCycle:
         absolute_video_path = os.path.join(root, video_path)
         caption = str(payload.get("caption", "")).strip()
         from brain.cross_platform import append_invitation
-        routed_youtube = (payload.get("platform_captions") or {}).get("youtube") or caption
+        from brain.identity_disclosure import append_identity_disclosure
+        routed_youtube = append_identity_disclosure((payload.get("platform_captions") or {}).get("youtube") or caption, "youtube")
         description = "\n\n".join(
             part for part in (
                 append_invitation(routed_youtube, "youtube", self.memory),
-                "Original illustrated AION story. AI disclosure reviewed before publication.",
                 "#Shorts #AION #AI",
             ) if part
         )

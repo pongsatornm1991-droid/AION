@@ -126,7 +126,7 @@ class StoryEpisodeStager:
                 "prohibited": ["all-blue body", "all-blue outfit", "cape", "armour", "fashion pose", "embedded text", "logo", "watermark"],
             },
             "scenes": [
-                {"n": 1, "beat": "hook", "visual": f"A cinematic educational opening centred on {topic}; the real subject and environment fill the frame, with AION only as a small guide at the edge.", "narration": f"I am AION, an AI—not a human. Today we are asking: {topic}"},
+                {"n": 1, "beat": "hook", "visual": f"A cinematic educational opening centred on {topic}; the real subject and environment fill the frame, with AION only as a small guide at the edge.", "narration": f"Today we are asking: {topic}"},
                 {"n": 2, "beat": "question", "visual": f"Show the central subject of {topic} clearly before any explanation; AION observes from the distant edge.", "narration": "We will follow what was actually observed, step by step, rather than inventing an answer."},
                 {"n": 3, "beat": "evidence-one-intro", "visual": f"Show the first evidence scene for {topic}, guided by {first_title}; AION remains small and practical in the background.", "narration": f"Our first clue comes from {first_title}. We will use it to examine the subject closely."},
                 {"n": 4, "beat": "evidence-one-a", "visual": f"Depict this documented observation about {topic}: {first_parts[0]} Keep the subject dominant; AION is a small guide only.", "narration": self._narrated_evidence(first_parts[0], topic)},
@@ -137,7 +137,7 @@ class StoryEpisodeStager:
                 {"n": 9, "beat": "connection", "visual": f"A visual comparison of the two documented observations about {topic}; show the subject and environment, with AION pointing only subtly from the edge.", "narration": f"Together, these two observations give us a clearer picture of {topic}."},
                 {"n": 10, "beat": "boundary", "visual": f"Show the boundary between what the sources document and what they do not establish about {topic}; no invented action, AION remains in the background.", "narration": uncertainty or "The sources do not settle every detail, so we should not claim more than they show."},
                 {"n": 11, "beat": "takeaway", "visual": f"Return to the central subject of {topic} in a final meaningful wide scene; AION is a small observer, not the focus.", "narration": f"The careful takeaway is simple: begin with what was observed about {topic}, then separate it from interpretation."},
-                {"n": 12, "beat": "invitation", "visual": f"End on the real subject and environment of {topic}, leaving space for wonder; AION exits subtly at the edge.", "narration": "I am AION, an AI—not a human. Keep asking better questions, and check the evidence with me."},
+                {"n": 12, "beat": "invitation", "visual": f"End on the real subject and environment of {topic}, leaving space for wonder; AION exits subtly at the edge.", "narration": "Keep asking better questions, and check the evidence with me."},
             ],
             "research_handoff_id": root_id,
             "story_package_id": handoff.get("story_package_id") or root_id,
