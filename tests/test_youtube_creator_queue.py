@@ -194,6 +194,19 @@ class YouTubeCreatorQueueTests(unittest.TestCase):
             self.assertEqual("video-qa-recorded", result["stage"])
             self.assertEqual(True, queue.candidates()[0]["video_qa"]["eligible"])
 
+    def test_owner_confirmed_reconciliation_removes_a_public_video_from_release_queue(self):
+        with tempfile.TemporaryDirectory() as root:
+            self._episode(root)
+            (Path(root) / "content" / "reels" / "episode.mp4").write_bytes(b"video")
+            queue = YouTubeCreatorQueue(MemoryEngine(Path(root) / "memory"), root)
+            result = queue.reconcile_owner_confirmed_publication(
+                "episode", "public-video", "https://www.youtube.com/watch?v=public-video"
+            )
+            self.assertEqual("reconciled-published", result["stage"])
+            candidate = queue.candidates()[0]
+            self.assertEqual("published", candidate["status"])
+            self.assertEqual("public-video", __import__("json").loads(queue.memory.all(queue.CATEGORY)[0]["content"])["youtube"]["video_id"])
+
     def test_releases_only_a_quality_gated_private_creator_video(self):
         with tempfile.TemporaryDirectory() as root:
             self._episode(root)

@@ -216,6 +216,57 @@ class YouTubeCreatorQueue:
         )
         return {"stage": "authorized-for-publishing" if autonomous else "prepared-for-review", "record": record, **payload}
 
+    def reconcile_owner_confirmed_publication(self, episode_id, video_id, url):
+        """Record an already-public video when an earlier delivery lost its audit entry.
+
+        This deliberately does *not* call YouTube.  It is a narrow recovery
+        path for a channel owner to reconcile a known publication with the
+        durable Studio queue, preventing Studio from offering the same video
+        for upload again.
+        """
+        if self.memory is None:
+            raise ValueError("Memory is required to reconcile a creator episode.")
+        episode_id = str(episode_id or "").strip()
+        video_id = str(video_id or "").strip()
+        url = str(url or "").strip()
+        if not episode_id or not video_id or not url:
+            raise ValueError("episode_id, video_id, and url are required.")
+
+        candidate = next((item for item in self.candidates()
+                          if item.get("episode_id") == episode_id), None)
+        if candidate is None:
+            raise ValueError(f"Creator episode not found: {episode_id}")
+        records = self._records_by_episode()
+        existing = records.get(episode_id)
+        prior = existing[1] if existing else {}
+        payload = {
+            **prior,
+            **candidate,
+            "upload_status": "published",
+            "publication_status": "published",
+            "youtube": {
+                **(prior.get("youtube") or {}),
+                "video_id": video_id,
+                "url": url,
+                "privacy_status": "public",
+                "verification": "owner-confirmed-manual-reconciliation",
+            },
+            "publish_note": (
+                "Owner-confirmed reconciliation: the public YouTube video existed, "
+                "but its prior delivery did not persist a Studio queue record. "
+                "No upload or privacy change was performed by this reconciliation."
+            ),
+        }
+        if existing:
+            entry = self.memory.update(self.CATEGORY, existing[0]["id"], content=json.dumps(payload, ensure_ascii=False))
+        else:
+            entry = self.memory.remember(
+                self.CATEGORY, json.dumps(payload, ensure_ascii=False),
+                memory_type="action", source="aion-owner-publication-reconciliation", importance=4,
+                tags=["youtube", "creator-series", episode_id, "owner-confirmed"],
+            )
+        return {"stage": "reconciled-published", "record": entry, **payload}
+
     def publish_once(self, uploader=None, content_kind=None):
         """Upload one authorized Creator episode exactly once."""
         if self.memory is None:
