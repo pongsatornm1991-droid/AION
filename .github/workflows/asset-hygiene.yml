@@ -35,8 +35,8 @@ jobs:
           git config user.email "aion-bot@users.noreply.github.com"
           # `git add` with a missing optional directory exits non-zero and
           # used to fail the whole housekeeping run even when there was
-          # nothing to quarantine.  Stage the content tree safely instead.
-          git add -A content
+          # nothing to quarantine. Stage both managed media trees safely.
+          git add -A content assets
           if ! git diff --cached --quiet; then
             git commit -m "AION: quarantine unreferenced generated media"
             git push

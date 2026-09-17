@@ -44,3 +44,29 @@ class AssetHygieneTests(unittest.TestCase):
             self.assertEqual(1, result["count"])
             self.assertFalse(orphan.exists())
             self.assertTrue((base / "content" / "quarantine" / "images" / "orphan.png").is_file())
+
+    def test_tracks_storyboard_referenced_library_assets_and_quarantines_old_orphans_recoverably(self):
+        with tempfile.TemporaryDirectory() as root:
+            base = Path(root)
+            library = base / "assets" / "content-library" / "aion-stories" / "episode"
+            library.mkdir(parents=True)
+            active = library / "active.png"
+            orphan = library / "orphan.png"
+            active.write_bytes(b"active")
+            orphan.write_bytes(b"orphan")
+            series = base / "content" / "creator_series"
+            series.mkdir(parents=True)
+            (series / "episode.json").write_text(
+                '{"scenes":[{"image":"assets/content-library/aion-stories/episode/active.png"}]}',
+                encoding="utf-8",
+            )
+            old = datetime(2026, 1, 1, tzinfo=timezone.utc).timestamp()
+            os.utime(orphan, (old, old))
+            hygiene = AssetHygiene(base, retention_days=30)
+            report = hygiene.scan(now=datetime(2026, 3, 1, tzinfo=timezone.utc))
+            by_path = {item["path"]: item["status"] for item in report["files"]}
+            self.assertEqual("active", by_path["assets/content-library/aion-stories/episode/active.png"])
+            self.assertEqual("review", by_path["assets/content-library/aion-stories/episode/orphan.png"])
+            result = hygiene.quarantine_review_files(now=datetime(2026, 3, 1, tzinfo=timezone.utc))
+            self.assertEqual(1, result["count"])
+            self.assertTrue((base / "assets" / "quarantine" / "content-library" / "aion-stories" / "episode" / "orphan.png").is_file())

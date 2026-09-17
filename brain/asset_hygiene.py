@@ -11,6 +11,16 @@ class AssetHygiene:
     """Classify generated media without deleting anything automatically."""
 
     MEDIA_SUFFIXES = {".png", ".jpg", ".jpeg", ".webp", ".mp4", ".mov", ".m4v"}
+    MANAGED_DIRECTORIES = (
+        "content/images",
+        "content/reels",
+        "assets/content-library/aion-stories",
+        "assets/content-library/aion-character",
+    )
+    # These are early-warning limits, not permission to delete.  They make a
+    # growing library visible before it can affect a workstation or CI clone.
+    WARNING_BYTES = 1_500 * 1024 * 1024
+    CRITICAL_BYTES = 3_000 * 1024 * 1024
 
     def __init__(self, root, memory_root=None, retention_days=30):
         self.root = Path(root)
@@ -18,16 +28,24 @@ class AssetHygiene:
         self.retention_days = int(retention_days)
 
     def _references(self):
-        """Find repo-relative media paths in private memory records only."""
+        """Find repo-relative media paths in memory and active storyboards."""
         refs = set()
-        if not self.memory_root.is_dir():
-            return refs
-        for record in self.memory_root.rglob("*.md"):
+        records = []
+        if self.memory_root.is_dir():
+            records.extend(self.memory_root.rglob("*.md"))
+        storyboard_root = self.root / "content" / "creator_series"
+        if storyboard_root.is_dir():
+            records.extend(storyboard_root.glob("*.json"))
+        pattern = (
+            r"(?:content/(?:images|reels)/[^\s\"']+|"
+            r"assets/content-library/(?:aion-stories|aion-character)/[^\s\"']+)"
+        )
+        for record in records:
             try:
                 text = record.read_text(encoding="utf-8")
             except OSError:
                 continue
-            refs.update(re.findall(r"content/(?:images|reels)/[^\s\"']+", text))
+            refs.update(re.findall(pattern, text))
         return {item.rstrip(".,)]}") for item in refs}
 
     def scan(self, now=None):
@@ -35,7 +53,7 @@ class AssetHygiene:
         references = self._references()
         cutoff = now - timedelta(days=self.retention_days)
         items = []
-        for relative_dir in ("content/images", "content/reels"):
+        for relative_dir in self.MANAGED_DIRECTORIES:
             directory = self.root / relative_dir
             if not directory.is_dir():
                 continue
@@ -52,14 +70,24 @@ class AssetHygiene:
                     "status": status,
                 })
         items.sort(key=lambda item: item["path"])
+        managed_bytes = sum(item["bytes"] for item in items)
+        storage_state = (
+            "critical" if managed_bytes >= self.CRITICAL_BYTES else
+            "warning" if managed_bytes >= self.WARNING_BYTES else "healthy"
+        )
         return {
             "retention_days": self.retention_days,
             "files": items,
             "summary": {
+                "total_files": len(items),
                 "active": sum(item["status"] == "active" for item in items),
                 "recent_unreferenced": sum(item["status"] == "recent-unreferenced" for item in items),
                 "review": sum(item["status"] == "review" for item in items),
                 "review_bytes": sum(item["bytes"] for item in items if item["status"] == "review"),
+                "managed_bytes": managed_bytes,
+                "storage_state": storage_state,
+                "warning_bytes": self.WARNING_BYTES,
+                "critical_bytes": self.CRITICAL_BYTES,
             },
         }
 
@@ -76,11 +104,16 @@ class AssetHygiene:
             if item["status"] != "review":
                 continue
             source = (self.root / item["path"]).resolve()
-            media_root = (self.root / "content").resolve()
-            if not source.is_file() or media_root not in source.parents:
+            root_content = (self.root / "content").resolve()
+            root_assets = (self.root / "assets").resolve()
+            if not source.is_file() or not (root_content in source.parents or root_assets in source.parents):
                 continue
-            relative_under_content = source.relative_to(media_root)
-            destination = self.root / "content" / "quarantine" / relative_under_content
+            if root_content in source.parents:
+                relative = source.relative_to(root_content)
+                destination = self.root / "content" / "quarantine" / relative
+            else:
+                relative = source.relative_to(root_assets)
+                destination = self.root / "assets" / "quarantine" / relative
             destination.parent.mkdir(parents=True, exist_ok=True)
             if destination.exists():
                 destination = destination.with_name(

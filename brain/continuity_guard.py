@@ -23,6 +23,7 @@ class ContinuityGuard:
             {"name": "โค้ดและ workflow", "state": "pass" if core["status"] == "healthy" else "attention", "detail": core["scope"]},
             {"name": "ประวัติงานและความจำ", "state": "pass" if memory_versioned else "waiting", "detail": "ความจำอยู่ใน Git history ที่กู้คืนได้" if memory_versioned else "เครื่องนี้ยังไม่มีสำเนา memory ที่ sync จากคลังส่วนตัว"},
             {"name": "สื่อและไฟล์กำพร้า", "state": "pass" if not assets["summary"]["review"] else "attention", "detail": f"ไฟล์ใช้งาน {assets['summary']['active']} · ต้องตรวจ {assets['summary']['review']} · ย้ายเข้ากักกันแบบกู้คืนได้"},
+            {"name": "พื้นที่คลังสื่อ", "state": "pass" if assets["summary"]["storage_state"] == "healthy" else "attention", "detail": f"ใช้แล้ว {round(assets['summary']['managed_bytes'] / 1024 / 1024, 1)} MB · แจ้งเตือนที่ {round(assets['summary']['warning_bytes'] / 1024 / 1024)} MB · วิกฤตที่ {round(assets['summary']['critical_bytes'] / 1024 / 1024)} MB"},
             {"name": "จุดกู้คืน", "state": "pass" if code_versioned else "attention", "detail": "โค้ดและสื่อย้อนกลับผ่าน Git ได้; ไฟล์ที่ต้องล้างจะย้ายเข้า quarantine ไม่ลบถาวร" if code_versioned else "ไม่พบ Git history ของโครงการนี้"},
         ]
         return {
