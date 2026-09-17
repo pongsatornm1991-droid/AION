@@ -893,6 +893,19 @@ def build_snapshot(memory_root=None):
     for category in categories + ["published_reels", "social_feedback"]:
         observed_entries.extend(_entries(memory, category))
     latest_memory = _latest(observed_entries) or {}
+    latest_memory_at = latest_memory.get("timestamp")
+    memory_freshness = "unknown"
+    memory_age_minutes = None
+    if latest_memory_at:
+        try:
+            recorded_at = datetime.strptime(latest_memory_at, "%Y-%m-%d %H:%M:%S")
+            memory_age_minutes = max(0, int((datetime.now() - recorded_at).total_seconds() // 60))
+            # The page may refresh every 15 seconds, but it must never call
+            # old source data "live". Twenty minutes is one normal workflow
+            # handoff window; older records are visibly marked as delayed.
+            memory_freshness = "current" if memory_age_minutes <= 20 else "delayed"
+        except (TypeError, ValueError):
+            memory_freshness = "unknown"
     try:
         creator_library = CreatorContentRegistry(memory).snapshot()
     except (OSError, ValueError, TypeError):
@@ -928,7 +941,9 @@ def build_snapshot(memory_root=None):
         "generated_at": datetime.now().isoformat(timespec="seconds"),
         "data_source": {
             "mode": "configured" if (os.getenv("AION_DASHBOARD_MEMORY_ROOT") or (synced_memory / ".git").is_dir()) else "local-default",
-            "latest_memory_at": latest_memory.get("timestamp"),
+            "latest_memory_at": latest_memory_at,
+            "freshness": memory_freshness,
+            "age_minutes": memory_age_minutes,
         },
         "platforms": {
             "instagram": {
