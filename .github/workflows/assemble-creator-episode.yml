@@ -2,7 +2,7 @@ name: AION - assemble illustrated Creator episode
 
 on:
   workflow_run:
-    workflows: [AION - subject-first scene production]
+    workflows: [AION - subject-first scene production, AION - Creator release readiness]
     types: [completed]
   schedule:
     - cron: "15 * * * *"

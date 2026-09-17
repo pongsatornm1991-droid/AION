@@ -35,11 +35,32 @@ jobs:
         env:
           AION_MEMORY_ROOT: memory_data
         run: python tools/run_release_readiness.py
+      - name: Prepare one new evidence-grounded Short only when the buffer is short
+        # This is a bounded recovery step: at most one storyboard, no upload,
+        # no reuse of old content, and no platform/account change.  Image
+        # production remains in the existing Studio workflow after this handoff.
+        env:
+          AION_MEMORY_ROOT: memory_data
+        run: python tools/recover_release_buffer.py | tee release-buffer-recovery.json
+      - name: Produce the single recovery storyboard in bounded batches
+        if: ${{ success() }}
+        env:
+          IMAGE_PROVIDER: openai
+          OPENAI_IMAGE_API_KEY: ${{ secrets.OPENAI_IMAGE_API_KEY }}
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+          OPENAI_IMAGE_MODEL: ${{ vars.OPENAI_IMAGE_MODEL || 'gpt-image-2' }}
+          OPENAI_IMAGE_QUALITY: ${{ vars.OPENAI_IMAGE_QUALITY || 'medium' }}
+        run: |
+          if grep -q '"needs_production": true' release-buffer-recovery.json; then
+            python tools/produce_creator_scenes.py --format short --episode-limit 1 --batch-size 25 --max-scenes 120 --require-no-failures
+          else
+            echo "No Short recovery production is needed."
+          fi
       - name: Commit the visible readiness record
         run: |
           git config user.name aion-bot
           git config user.email aion-bot@users.noreply.github.com
-          git add public/aion-release-readiness.json
+          git add public/aion-release-readiness.json content/creator_series/ assets/content-library/aion-stories/
           if ! git diff --cached --quiet; then
             git commit -m "AION: refresh release readiness"
             git pull --rebase origin main

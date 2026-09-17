@@ -19,6 +19,7 @@ from brain.continuity_guard import ContinuityGuard
 from brain.work_queue import WorkQueue
 from brain.platform_preflight import PlatformPreflight
 from brain.studio_pipeline import StudioPipeline
+from brain.release_readiness import ReleaseReadiness
 
 
 class OperationsControlTower:
@@ -71,7 +72,13 @@ class OperationsControlTower:
             candidates = []
         for item in candidates:
             status = item.get("publication_status") or item.get("status")
-            if status in {"published", "uploaded"}:
+            if status in {"published", "uploaded"} or str(status).startswith("retired"):
+                continue
+            # Historical drafts which failed a previous gate remain useful
+            # audit evidence, but must not be displayed as today's blocked
+            # release work.  The Story team will create a new, distinct
+            # episode instead of reviving them as a fallback.
+            if status in {"quality-blocked-story-and-audio", "quality-blocked"}:
                 continue
             ready = status in {"authorized-for-aion-publish", "upload-ready"}
             work.append({
@@ -183,7 +190,16 @@ class OperationsControlTower:
         try:
             payload = json.loads(path.read_text(encoding="utf-8"))
         except (OSError, ValueError, TypeError):
-            return {"state": "waiting", "label": "รอการตรวจบัฟเฟอร์เผยแพร่", "detail": "ระบบจะตรวจล่วงหน้า 96 ชั่วโมงก่อนวันปล่อย"}
+            # A local Dashboard must not report an artificial outage simply
+            # because the committed GitHub artifact has not arrived yet.  It
+            # can calculate the same read-only queue result from the synced
+            # memory, while clearly labelling its source below.
+            live = ReleaseReadiness(self.memory, self.root).snapshot()
+            shortages = live.get("shortages") or []
+            detail = "มีคลิปใหม่พร้อมสำหรับทุกช่วงเผยแพร่ 96 ชั่วโมงข้างหน้า" if not shortages else "ยังขาดบัฟเฟอร์: " + ", ".join(
+                f"{item.get('content_kind')} {item.get('missing')} ตอน" for item in shortages
+            )
+            return {"state": live.get("state", "waiting"), "label": "บัฟเฟอร์วันเผยแพร่", "detail": detail, "report": live, "source": "local-live-queue"}
         shortages = payload.get("shortages") or []
         detail = "มีคลิปใหม่พร้อมสำหรับทุกช่วงเผยแพร่ 96 ชั่วโมงข้างหน้า" if not shortages else "ยังขาดบัฟเฟอร์: " + ", ".join(
             f"{item.get('content_kind')} {item.get('missing')} ตอน" for item in shortages
@@ -210,6 +226,28 @@ class OperationsControlTower:
         work_queue["active"].sort(key=lambda item: 0 if item.get("priority") == "urgent" else 1)
         preflight = PlatformPreflight().snapshot()
 
+        # These two views intentionally never collapse into one status:
+        # local preflight tells the owner what this private Dashboard machine
+        # itself can do; GitHub workflow evidence tells whether the hosted
+        # automation was able to do its job with its own sealed secrets.
+        github_generated = company.get("generated_at")
+        execution_context = {
+            "local_observer": {
+                "state": "read-only-observer",
+                "label": "เครื่องนี้: ศูนย์สังเกตการณ์",
+                "detail": "ไม่มีคีย์เผยแพร่ในเครื่องเป็นเรื่องปกติ; เครื่องนี้อ่านคิวและแสดงผลเท่านั้น",
+                "preflight": preflight,
+            },
+            "github_automation": {
+                "state": "reported" if github_generated else "waiting",
+                "label": "GitHub: งานอัตโนมัติจริง",
+                "detail": "อ่านผล GitHub Actions ล่าสุดที่เผยแพร่โดย workflow สุขภาพระบบ; ไม่แสดงข้อมูลรับรอง",
+                "generated_at": github_generated,
+                "departments": company.get("departments") or [],
+            },
+            "refresh": "หน้า Dashboard อ่านสถานะใหม่ทุก 15 วินาที; GitHub จะอัปเดตบันทึกทันทีหลังงานหลักจบ และมีรอบสำรองทุกชั่วโมง",
+        }
+
         blockers = []
         for item in pending:
             if item["state"] == "waiting":
@@ -230,6 +268,7 @@ class OperationsControlTower:
             "work_now": pending,
             "work_queue": work_queue,
             "platform_preflight": preflight,
+            "execution_context": execution_context,
             "blockers": blockers,
             "quality_gate": quality,
             "preflight": self._preflight(),
