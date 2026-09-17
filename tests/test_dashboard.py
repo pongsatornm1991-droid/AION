@@ -18,6 +18,14 @@ class DashboardTests(unittest.TestCase):
         self.assertTrue(any(room["id"] == "costume" for room in snapshot["rooms"]))
         self.assertTrue(snapshot["workflow"])
 
+    def test_studio_does_not_show_a_published_episode_as_live_production(self):
+        snapshot = build_studio_snapshot()
+        published_ids = {item["episode_id"] for item in snapshot["published_history"]}
+        production_ids = {item["id"] for item in snapshot["production_episodes"]}
+        self.assertTrue(published_ids)
+        self.assertFalse(published_ids & production_ids)
+        self.assertTrue(all(item["status"] != "published" for item in snapshot["release_queue"]))
+
     def test_snapshot_combines_platforms_and_mind(self):
         with tempfile.TemporaryDirectory() as root:
             memory = MemoryEngine(root)

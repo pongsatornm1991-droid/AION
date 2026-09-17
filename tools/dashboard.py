@@ -688,15 +688,26 @@ def build_studio_snapshot(memory_root=None):
         episode_details = CreatorSeriesRegistry().episodes()
     except (OSError, ValueError, TypeError):
         episode_details = []
-    # Keep the current production visible through every handoff.  Previously
-    # this only selected the pre-image status, so Studio became blank at the
-    # exact moment a complete set of scene assets was ready for assembly.
-    active_episode = next(
-        (item for item in episode_details
-         if item.get("pacing_policy") == "fast-cut-subject-first-v1"
-         and item.get("status") in {"storyboard-ready-needs-assets", "assets-ready-for-assembly", "production-ready-assets-and-script"}),
-        None,
-    )
+    # A source storyboard is not itself live production.  Once it has a
+    # durable Creator queue record, it belongs in either release or history.
+    # Otherwise an already-published episode can keep appearing as "currently
+    # producing" simply because its source JSON correctly retains the assets
+    # and script that were used to make it.
+    queued_episode_ids = {
+        item.get("episode_id") for item in queue
+        if item.get("episode_id") and item.get("status") not in {"needs-production", "retired"}
+    }
+    production_statuses = {
+        "storyboard-ready-needs-assets",
+        "assets-ready-for-assembly",
+        "production-ready-assets-and-script",
+    }
+    production_episodes = [
+        item for item in episode_details
+        if item.get("status") in production_statuses
+        and item.get("id") not in queued_episode_ids
+    ]
+    active_episode = production_episodes[0] if production_episodes else None
     required_scenes = len((active_episode or {}).get("scenes") or [])
     completed_scenes = sum(1 for scene in (active_episode or {}).get("scenes") or [] if scene.get("image"))
     scene_gallery = [
@@ -748,6 +759,8 @@ def build_studio_snapshot(memory_root=None):
         "detail": (
             "ภาพครบแล้ว กำลังรอประกอบเป็นวิดีโอและตรวจคุณภาพ" if (active_episode or {}).get("status") == "assets-ready-for-assembly"
             else "วิดีโอประกอบแล้ว กำลังรอ Quality Gate และคิวเผยแพร่" if (active_episode or {}).get("status") == "production-ready-assets-and-script"
+            else "ยังไม่มีตอนที่กำลังผลิต — งานที่เสร็จแล้วถูกย้ายไปประวัติ/เผยแพร่ และ Studio กำลังรอ Story Agent ส่งเรื่องใหม่"
+            if active_episode is None
             else "สร้างภาพใหม่ได้ในเครื่องนี้" if local_image_provider_ready
             else "ส่งสร้างภาพจริงผ่าน GitHub Actions ได้ โดยคีย์อยู่ในคลังรหัสของ GitHub ไม่ถูกคัดลอกลงเครื่องนี้" if cloud_image_workflow_ready
             else "ยังไม่มีผู้ให้บริการภาพที่พร้อมใช้งาน; งานจะไม่ใช้ภาพเก่ามาแทนหรือแสดงว่าผลิตสำเร็จ"
@@ -771,6 +784,15 @@ def build_studio_snapshot(memory_root=None):
         "scene_production": scene_production,
         "scene_gallery": scene_gallery,
         "queue": queue,
+        # The queue panel must never mix released history with upcoming work.
+        "release_queue": [
+            item for item in queue
+            if item.get("status") not in {"published", "retired"}
+        ],
+        "published_history": [
+            item for item in queue if item.get("status") == "published"
+        ],
+        "production_episodes": production_episodes,
         "next_release": next_release,
         "references": snapshot.get("creator_references", {}),
         # Keep the research-to-production chain visible inside Studio.  The
