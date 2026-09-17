@@ -787,7 +787,11 @@ def build_studio_snapshot(memory_root=None):
         # The queue panel must never mix released history with upcoming work.
         "release_queue": [
             item for item in queue
-            if item.get("status") not in {"published", "retired"}
+            # A storyboard with no assembled video is not a publishing task.
+            # Keep it with the production backlog rather than making the
+            # release queue look blocked by an unfinished episode.
+            if item.get("status") not in {"published", "retired", "needs-production"}
+            and item.get("video_exists")
         ],
         "published_history": [
             item for item in queue if item.get("status") == "published"
