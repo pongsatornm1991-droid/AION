@@ -1,10 +1,10 @@
 {
-  "generated_at": "2026-09-17T07:48:20.648153+00:00",
+  "generated_at": "2026-09-17T07:49:37.186379+00:00",
   "tiles": {
     "total": 39,
     "ok": 29,
-    "attn": 6,
-    "running": 3
+    "attn": 8,
+    "running": 2
   },
   "groups": [
     {
@@ -167,15 +167,15 @@
           "name": "AION - Automation Health Monitor",
           "file": "automation-health.yml",
           "status_class": "success",
-          "status_label": "ไม่มีเหตุให้ดำเนินการ",
-          "html_url": "https://github.com/pongsatornm1991-droid/AION/actions/runs/35196227424",
-          "created_at": "2026-09-17T07:46:32Z"
+          "status_label": "สำเร็จ",
+          "html_url": "https://github.com/pongsatornm1991-droid/AION/actions/runs/35196404759",
+          "created_at": "2026-09-17T07:48:42Z"
         },
         {
           "name": "AION - Cyber Guard defensive audit",
           "file": "cyber-guard.yml",
-          "status_class": "running",
-          "status_label": "กำลังรัน",
+          "status_class": "failure",
+          "status_label": "ล้มเหลว",
           "html_url": "https://github.com/pongsatornm1991-droid/AION/actions/runs/35196346787",
           "created_at": "2026-09-17T07:47:59Z"
         },
@@ -190,8 +190,8 @@
         {
           "name": "AION - Publish public brain summary",
           "file": "publish-public-summary.yml",
-          "status_class": "running",
-          "status_label": "กำลังรัน",
+          "status_class": "failure",
+          "status_label": "ล้มเหลว",
           "html_url": "https://github.com/pongsatornm1991-droid/AION/actions/runs/35196256319",
           "created_at": "2026-09-17T07:46:53Z"
         },
@@ -206,10 +206,10 @@
         {
           "name": "AION - delivery evidence watchdog",
           "file": "publish-delivery-status.yml",
-          "status_class": "success",
-          "status_label": "สำเร็จ",
-          "html_url": "https://github.com/pongsatornm1991-droid/AION/actions/runs/35196227465",
-          "created_at": "2026-09-17T07:46:32Z"
+          "status_class": "running",
+          "status_label": "กำลังรัน",
+          "html_url": "https://github.com/pongsatornm1991-droid/AION/actions/runs/35196434019",
+          "created_at": "2026-09-17T07:49:03Z"
         },
         {
           "name": "AION - deterministic tests",
@@ -224,8 +224,8 @@
           "file": "publish-workflow-status.yml",
           "status_class": "running",
           "status_label": "กำลังรัน",
-          "html_url": "https://github.com/pongsatornm1991-droid/AION/actions/runs/35196264421",
-          "created_at": "2026-09-17T07:46:58Z"
+          "html_url": "https://github.com/pongsatornm1991-droid/AION/actions/runs/35196404692",
+          "created_at": "2026-09-17T07:48:42Z"
         },
         {
           "name": "AION - system reliability",
