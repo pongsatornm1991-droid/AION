@@ -45,6 +45,24 @@ class AssetHygieneTests(unittest.TestCase):
             self.assertFalse(orphan.exists())
             self.assertTrue((base / "content" / "quarantine" / "images" / "orphan.png").is_file())
 
+    def test_purge_deletes_only_old_unreferenced_generated_media(self):
+        with tempfile.TemporaryDirectory() as root:
+            base = Path(root)
+            images = base / "content" / "images"
+            images.mkdir(parents=True)
+            expired = images / "expired.png"
+            recent = images / "recent.png"
+            expired.write_bytes(b"expired")
+            recent.write_bytes(b"recent")
+            old = datetime(2026, 1, 1, tzinfo=timezone.utc).timestamp()
+            os.utime(expired, (old, old))
+            result = AssetHygiene(base, retention_days=14).purge_review_files(
+                now=datetime(2026, 3, 1, tzinfo=timezone.utc),
+            )
+            self.assertEqual(["content/images/expired.png"], result["deleted"])
+            self.assertFalse(expired.exists())
+            self.assertTrue(recent.is_file())
+
     def test_tracks_storyboard_referenced_library_assets_and_quarantines_old_orphans_recoverably(self):
         with tempfile.TemporaryDirectory() as root:
             base = Path(root)

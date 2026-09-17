@@ -1,8 +1,9 @@
-name: AION - recoverable media housekeeping
+name: AION - media-library hygiene
 
 on:
   schedule:
-    - cron: "15 3 * * 0"
+    # Every day at 10:15 Asia/Bangkok: keep generated-media growth bounded.
+    - cron: "15 3 * * *"
   workflow_dispatch: {}
 
 concurrency:
@@ -13,7 +14,7 @@ permissions:
   contents: write
 
 jobs:
-  quarantine-old-orphans:
+  purge-expired-orphans:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -25,19 +26,18 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: "3.11"
-      - name: Move only unreferenced media older than 30 days to quarantine
+      - name: Purge only unreferenced generated media older than 14 days
         env:
           AION_MEMORY_ROOT: memory_data
-        run: python tools/asset_hygiene.py --retention-days 30 --quarantine
-      - name: Commit recoverable moves only when needed
+        run: python tools/asset_hygiene.py --retention-days 14 --purge
+      - name: Commit the cleanup record only when files expired
         run: |
           git config user.name "aion-bot"
           git config user.email "aion-bot@users.noreply.github.com"
-          # `git add` with a missing optional directory exits non-zero and
-          # used to fail the whole housekeeping run even when there was
-          # nothing to quarantine. Stage both managed media trees safely.
+          # Stage only the two media trees.  The Python guard accepts files
+          # only when they were unreferenced and older than 14 days.
           git add -A content assets
           if ! git diff --cached --quiet; then
-            git commit -m "AION: quarantine unreferenced generated media"
+            git commit -m "AION: purge expired unreferenced generated media"
             git push
           fi

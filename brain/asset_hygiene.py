@@ -1,4 +1,4 @@
-"""Non-destructive asset inventory for AION-generated media."""
+"""Evidence-based inventory and bounded cleanup for AION-generated media."""
 
 import json
 import re
@@ -8,7 +8,7 @@ from pathlib import Path
 
 
 class AssetHygiene:
-    """Classify generated media without deleting anything automatically."""
+    """Classify media and purge only verified unreferenced generated files."""
 
     MEDIA_SUFFIXES = {".png", ".jpg", ".jpeg", ".webp", ".mp4", ".mov", ".m4v"}
     MANAGED_DIRECTORIES = (
@@ -122,3 +122,25 @@ class AssetHygiene:
             shutil.move(str(source), str(destination))
             moved.append({"from": item["path"], "to": destination.relative_to(self.root).as_posix()})
         return {"moved": moved, "count": len(moved), "scan": report["summary"]}
+
+    def purge_review_files(self, now=None):
+        """Delete only files that are both unreferenced and past retention.
+
+        This intentionally does not inspect, delete, or rewrite source code,
+        credentials, account data, memories, or any file outside the four
+        generated-media directories.  The workflow commit is the audit trail;
+        Git history retains a recoverable record of a removed tracked asset.
+        """
+        report = self.scan(now=now)
+        deleted = []
+        content_root = (self.root / "content").resolve()
+        assets_root = (self.root / "assets").resolve()
+        for item in report["files"]:
+            if item["status"] != "review":
+                continue
+            source = (self.root / item["path"]).resolve()
+            if not source.is_file() or not (content_root in source.parents or assets_root in source.parents):
+                continue
+            source.unlink()
+            deleted.append(item["path"])
+        return {"deleted": deleted, "count": len(deleted), "scan": report["summary"]}

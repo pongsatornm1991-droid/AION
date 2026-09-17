@@ -1,8 +1,8 @@
-"""Print a safe inventory of AION-generated media that may be archived later.
+"""Inspect generated media and perform bounded cleanup only when requested.
 
-This command never moves or deletes a file.  Files marked ``review`` are
-unreferenced and older than the retention window; a human can inspect them
-before choosing a recoverable archive/quarantine action.
+Files marked ``review`` are unreferenced and older than the retention window.
+The normal command is read-only.  ``--quarantine`` is recoverable; ``--purge``
+is restricted to confirmed old, unreferenced generated media.
 """
 
 import argparse
@@ -20,12 +20,18 @@ from brain.asset_hygiene import AssetHygiene
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--retention-days", type=int, default=30)
+    parser.add_argument("--retention-days", type=int, default=14)
     parser.add_argument("--memory-root", default=os.getenv("AION_MEMORY_ROOT", str(ROOT / "memory")))
-    parser.add_argument("--quarantine", action="store_true", help="Move only old unreferenced review files into content/ or assets/quarantine; never deletes.")
+    action = parser.add_mutually_exclusive_group()
+    action.add_argument("--quarantine", action="store_true", help="Move only old unreferenced review files into content/ or assets/quarantine; never deletes.")
+    action.add_argument("--purge", action="store_true", help="Delete only old unreferenced generated media in the managed directories.")
     args = parser.parse_args()
     hygiene = AssetHygiene(ROOT, args.memory_root, args.retention_days)
-    report = hygiene.quarantine_review_files() if args.quarantine else hygiene.scan()
+    report = (
+        hygiene.purge_review_files() if args.purge else
+        hygiene.quarantine_review_files() if args.quarantine else
+        hygiene.scan()
+    )
     print(json.dumps(report, ensure_ascii=False, indent=2))
 
 
