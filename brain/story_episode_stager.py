@@ -152,7 +152,7 @@ class StoryEpisodeStager:
         }
 
         if episode_format == "long-form":
-            # A Sunday episode is a distinct deliverable, not a stretched
+            # A primary episode is a distinct deliverable, not a stretched
             # Short.  It uses the same cited evidence but gives each source
             # observation room for setup, comparison and a clear uncertainty
             # boundary.  Every beat remains traceable to the handoff; no new

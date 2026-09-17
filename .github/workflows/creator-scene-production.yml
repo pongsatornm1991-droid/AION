@@ -1,11 +1,10 @@
 name: AION - subject-first scene production
 on:
   schedule:
-    # Produce *before* release days, not on the same day. Thursday makes the
-    # Friday/Saturday Short buffer and Sunday's long-form; Sunday makes the
-    # next Monday/Wednesday Short buffer. This leaves time for assembly,
-    # audio QA and retry.
-    - cron: "7 2 * * 0,4"
+    # Tuesday creates the Thursday–Sunday release set; Wednesday is the
+    # recovery/QA production shift. This preserves Monday–Wednesday for
+    # research, script, images, audio and a real retry window.
+    - cron: "7 2 * * 2,3"
   workflow_dispatch: {}
 permissions: {contents: write}
 concurrency:
@@ -32,19 +31,16 @@ jobs:
           OPENAI_IMAGE_MODEL: ${{ vars.OPENAI_IMAGE_MODEL || 'gpt-image-2' }}
           OPENAI_IMAGE_QUALITY: ${{ vars.OPENAI_IMAGE_QUALITY || 'medium' }}
         run: |
-          # Build a verified release buffer before the evening slots. Thursday
-          # makes two fresh Shorts for Friday/Saturday plus Sunday's long-form;
-          # Sunday makes Monday/Wednesday's two Shorts. No publisher is allowed
-          # to use an old Reel merely because the buffer is empty.
-          weekday="$(date -u +%u)"
-          short_limit=2
+          # Build the complete Thursday–Sunday release set in advance: three
+          # distinct Shorts plus Saturday's primary episode. Wednesday retries
+          # only genuinely unfinished storyboards; it never substitutes an old
+          # Reel merely because the buffer is empty.
+          short_limit=3
           # An empty spare slot is a planning signal, not a production failure.
           # Fail only for a real rendering fault so completed images are always
           # committed and can continue to assembly.
           python tools/produce_creator_scenes.py --format short --episode-limit "$short_limit" --batch-size 25 --max-scenes 120 --require-no-failures
-          if [[ "$weekday" == "4" ]]; then
-            python tools/produce_creator_scenes.py --format long-form --episode-limit 1 --batch-size 25 --max-scenes 120 --require-no-failures
-          fi
+          python tools/produce_creator_scenes.py --format long-form --episode-limit 1 --batch-size 25 --max-scenes 120 --require-no-failures
       - run: |
           git config user.name aion-bot
           git config user.email aion-bot@users.noreply.github.com

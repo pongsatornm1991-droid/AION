@@ -139,7 +139,7 @@ class CreatorSceneProduction:
 
         This is a bounded production shift, not an unbounded content farm:
         every episode still needs a research-grounded storyboard and image
-        requests remain capped per episode.  It lets the Monday and Wednesday
+        requests remain capped per episode.  It lets the Tuesday and Wednesday
         shifts build a release buffer rather than making the evening publisher
         wait on a same-day render.
         """

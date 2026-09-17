@@ -15,7 +15,9 @@ class ReleaseReadiness:
     """Keep the fixed Bangkok publishing cadence from failing silently."""
 
     BANGKOK = ZoneInfo("Asia/Bangkok")
-    SHORT_DAYS = {0, 2, 4, 5}  # Monday, Wednesday, Friday, Saturday
+    # Thursday/Friday build discovery, Saturday carries the main episode and
+    # Sunday closes the weekly arc with a related but non-duplicative Short.
+    SHORT_DAYS = {3, 4, 6}  # Thursday, Friday, Sunday
     HORIZON_HOURS = 96
 
     def __init__(self, memory, root=None):
@@ -33,7 +35,7 @@ class ReleaseReadiness:
             if weekday in cls.SHORT_DAYS:
                 slot = datetime(day.year, day.month, day.day, 20, 43, tzinfo=cls.BANGKOK)
                 kind = "short"
-            elif weekday == 6:
+            elif weekday == 5:
                 slot = datetime(day.year, day.month, day.day, 20, 15, tzinfo=cls.BANGKOK)
                 kind = "long-form"
             else:

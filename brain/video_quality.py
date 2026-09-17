@@ -136,7 +136,7 @@ class VideoQualityGate:
         if not has_audio:
             reasons.append("missing-audio-stream")
         if content_kind == "long-form":
-            # AION has two deliberate Sunday formats.  A widescreen episode
+            # AION has two deliberate primary-episode formats. A widescreen episode
             # is a conventional long YouTube video, while a vertical feature
             # is a faster illustrated narrative that YouTube correctly
             # classifies as a Short when it is at most three minutes.  Do not

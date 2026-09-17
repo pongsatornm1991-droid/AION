@@ -1,16 +1,16 @@
-name: AION - YouTube long-form Sunday
+name: AION - YouTube long-form Saturday
 
 on:
-  # Sunday 20:15 Asia/Bangkok, inside the agreed 20:00–22:00 window. Review
+  # Saturday 20:15 Asia/Bangkok, inside the agreed 20:00–22:00 window. Review
   # after 28 days using YouTube Audience
   # analytics; this is an initial family-friendly appointment, not a universal
   # optimum time.
   schedule:
-    - cron: "15 13 * * 0"
+    - cron: "15 13 * * 6"
   workflow_dispatch: {}
 
 concurrency:
-  # Keep the Sunday release independent of research-memory work, but mutually
+  # Keep the Saturday release independent of research-memory work, but mutually
   # exclusive with Short publishing and recovery retries.
   group: aion-youtube-release
   cancel-in-progress: false
