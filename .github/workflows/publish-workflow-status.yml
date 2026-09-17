@@ -40,6 +40,11 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+      - name: Refresh the status writer before reading Actions history
+        # The dashboard status file is shared output.  Start from the newest
+        # main branch before producing it so a completed production workflow
+        # cannot make this read-only observer fail at its final commit.
+        run: git pull --ff-only origin main
       - uses: actions/setup-python@v5
         with: {python-version: "3.11"}
       - name: Build a read-only status record from GitHub Actions
