@@ -896,16 +896,22 @@ def build_snapshot(memory_root=None):
     latest_memory_at = latest_memory.get("timestamp")
     memory_freshness = "unknown"
     memory_age_minutes = None
-    if latest_memory_at:
+    if latest_memory_at and re.search(r"(?:Z|[+-]\d{2}:?\d{2})$", str(latest_memory_at)):
         try:
-            recorded_at = datetime.strptime(latest_memory_at, "%Y-%m-%d %H:%M:%S")
-            memory_age_minutes = max(0, int((datetime.now() - recorded_at).total_seconds() // 60))
+            recorded_at = datetime.fromisoformat(str(latest_memory_at).replace("Z", "+00:00"))
+            memory_age_minutes = max(0, int((datetime.now(recorded_at.tzinfo) - recorded_at).total_seconds() // 60))
             # The page may refresh every 15 seconds, but it must never call
             # old source data "live". Twenty minutes is one normal workflow
             # handoff window; older records are visibly marked as delayed.
             memory_freshness = "current" if memory_age_minutes <= 20 else "delayed"
         except (TypeError, ValueError):
             memory_freshness = "unknown"
+    elif latest_memory_at:
+        # Historic memory entries predate timezone-aware timestamps. Their
+        # clock can be UTC (GitHub) or local time, so calculating an age would
+        # fabricate a measurement. Preserve the timestamp but label its
+        # precision honestly until writers include an offset.
+        memory_freshness = "timestamp-unzoned"
     try:
         creator_library = CreatorContentRegistry(memory).snapshot()
     except (OSError, ValueError, TypeError):

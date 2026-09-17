@@ -75,7 +75,7 @@ class DashboardTests(unittest.TestCase):
             self.assertEqual("Social Intelligence Team", snapshot["platform_operations"]["social_team"]["name"])
             self.assertTrue(snapshot["platform_operations"]["admin_team"]["checks"])
             self.assertEqual("Audience Analytics & Accessibility", snapshot["platform_operations"]["audience_team"]["name"])
-            self.assertIn(snapshot["data_source"]["freshness"], {"current", "delayed", "unknown"})
+            self.assertIn(snapshot["data_source"]["freshness"], {"current", "delayed", "unknown", "timestamp-unzoned"})
 
     def test_a_legacy_string_action_record_never_crashes_the_dashboard(self):
         # Real production bug (found 2026-09-04): tools/dashboard.py's
