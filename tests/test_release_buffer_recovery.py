@@ -28,6 +28,11 @@ class ReleaseBufferRecoveryTests(unittest.TestCase):
                     "scenes": [{"n": n, "visual": "The subject leads; AION is a guide.", "narration": "A useful narrated beat."} for n in range(1, 11)],
                 }), encoding="utf-8")
             memory = MemoryEngine(root / "memory")
+            for ident in ("one", "two"):
+                memory.remember("youtube_creator_queue", json.dumps({
+                    "episode_id": ident,
+                    "quality_gate": {"eligible": True, "reasons": []},
+                }), memory_type="action")
             # The generic helper uses the actual current time; separately
             # ensure the fixture itself represents a valid ready buffer.
             self.assertEqual("ready", ReleaseReadiness(memory, root).snapshot(

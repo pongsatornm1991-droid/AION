@@ -42,7 +42,7 @@ class StoryEpisodeStagerTests(unittest.TestCase):
                 (series / f"episode-{index}.json").write_text(json.dumps({
                     "id": f"episode-{index}", "series": "AION Wonders", "title": "A useful question",
                     "status": "storyboard-ready-needs-assets", "format": "illustrated-narrated-short",
-                    "target_duration_seconds": 60, "scene_seconds": 5, "pacing_policy": "short-60-180-subject-first-v2",
+                    "target_duration_seconds": 60, "scene_seconds": 5, "pacing_policy": "fast-cut-subject-first-v1",
                     "audience_promise": "A viewer learns to compare evidence before accepting a surprising claim.",
                     "wonder_hook": "Could a careful question reveal something unexpected?", "creative_device": "mystery-reveal",
                     "age_layers": {"children": "Notice clues.", "family": "Compare ideas.", "deeper": "Test evidence."},
@@ -61,3 +61,23 @@ class StoryEpisodeStagerTests(unittest.TestCase):
             self.assertEqual("studio-shift-complete", report["stage"])
             self.assertEqual(2, len(report["completed_episode_ids"]))
             self.assertEqual(24, len(made))
+
+    def test_stages_a_distinct_two_minute_primary_episode_from_the_same_evidence(self):
+        with tempfile.TemporaryDirectory() as root:
+            root = Path(root)
+            memory = MemoryEngine(root / "memory")
+            memory.remember("creator_research_handoffs", json.dumps({
+                "status": "story-ready", "root_question_id": "question-long",
+                "topic": "How did an ancient ice house work?",
+                "sources": [
+                    {"title": "Source one", "url": "https://example.test/one", "observation": "Ice was stored below ground where shade and thick earth slowed heat transfer during the day."},
+                    {"title": "Source two", "url": "https://example.test/two", "observation": "Cold clear nights and carefully directed water could create thin ice layers before storage."},
+                ],
+                "unknown_facts": "The exact temperature varied by season.",
+            }), memory_type="decision", source="test", importance=4)
+            report = StoryEpisodeStager(memory, root).stage_once("long-form")
+            self.assertEqual("storyboard-staged", report["stage"])
+            episode = CreatorSeriesRegistry(root).episodes()[0]
+            self.assertEqual("long-form-illustrated", episode["format"])
+            self.assertEqual(24, len(episode["scenes"]))
+            self.assertEqual(120, episode["target_duration_seconds"])

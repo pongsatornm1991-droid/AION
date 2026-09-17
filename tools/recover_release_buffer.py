@@ -1,9 +1,10 @@
-"""Bounded recovery for a missing Creator release buffer.
+"""Bounded recovery plan for a missing Creator release buffer.
 
 It never reuses an old reel, publishes, changes credentials, or generates an
-unbounded backlog.  When the 96-hour observer finds a missing Short, this
-prepares at most one new research-grounded storyboard for the normal Studio
-image/assembly workflows to complete.
+unbounded backlog.  The planner mirrors the real 96-hour appointments: it
+identifies every missing Short *and* primary episode, prepares the next
+research-grounded storyboard when available, and leaves media generation to
+the existing bounded Studio shift.
 """
 
 import argparse
@@ -25,43 +26,54 @@ from brain.creator_series import CreatorSeriesRegistry
 from brain.visual_story_policy import VisualStoryPolicy
 
 
+def _active_by_kind(root):
+    active = {"short": [], "long-form": []}
+    for item in CreatorSeriesRegistry(root).episodes():
+        if item.get("pacing_policy") != VisualStoryPolicy.VERSION:
+            continue
+        if item.get("status") not in {"storyboard-ready-needs-assets", "assets-ready-for-assembly"}:
+            continue
+        kind = "short" if item.get("format") == "illustrated-narrated-short" else "long-form"
+        active.setdefault(kind, []).append(item.get("id"))
+    return active
+
+
 def recover_once(memory, root=ROOT):
     readiness = ReleaseReadiness(memory, root).snapshot()
-    missing_short = next(
-        (item for item in readiness.get("shortages") or [] if item.get("content_kind") == "short"),
-        None,
-    )
-    if not missing_short:
+    shortages = {
+        item.get("content_kind"): int(item.get("missing") or 0)
+        for item in (readiness.get("shortages") or [])
+    }
+    if not any(shortages.values()):
         return {"stage": "buffer-already-ready", "needs_production": False, "readiness": readiness}
 
-    # A gap can already be on its way through images/assembly.  Starting a
-    # second recovery topic each day would create the very duplicate queue
-    # this tool is meant to prevent.
-    active = [
-        item for item in CreatorSeriesRegistry(root).episodes()
-        if item.get("format") == "illustrated-narrated-short"
-        and item.get("pacing_policy") == VisualStoryPolicy.VERSION
-        and item.get("status") in {"storyboard-ready-needs-assets", "assets-ready-for-assembly"}
-    ]
-    if active:
-        return {
-            "stage": "recovery-already-in-production",
-            "needs_production": False,
-            "missing_short": missing_short.get("missing", 0),
-            "episode_id": active[0].get("id"),
-            "detail": "มีตอนใหม่กำลังผลิตอยู่แล้ว จึงไม่สร้างหัวข้อกู้บัฟเฟอร์ซ้ำ",
-        }
+    active = _active_by_kind(root)
+    planned = {
+        kind: max(0, shortages.get(kind, 0) - len(active.get(kind, [])))
+        for kind in ("short", "long-form")
+    }
+    prepared = []
+    # One run may prepare the next missing appointment.  The 3-hour Story
+    # shift keeps filling the remaining plan without a user needing to order
+    # it.  Deliberately do not fabricate three episodes from one weak source
+    # package or start paid media generation in this observer.
+    next_kind = next((kind for kind in ("short", "long-form") if planned[kind]), None)
+    if next_kind:
+        brief = ResearchToStory(memory).propose_once()
+        handoff = ResearchStoryHandoff(memory).create_once()
+        staged = StoryEpisodeStager(memory, root).stage_once(next_kind)
+        prepared.append({"content_kind": next_kind, "brief": brief, "handoff": handoff, "staged": staged})
+    else:
+        staged = None
 
-    brief = ResearchToStory(memory).propose_once()
-    handoff = ResearchStoryHandoff(memory).create_once()
-    staged = StoryEpisodeStager(memory, root).stage_once()
     return {
-        "stage": "recovery-storyboard-prepared" if staged.get("stage") in {"storyboard-staged", "already-staged"} else "recovery-needs-research",
-        "needs_production": staged.get("stage") in {"storyboard-staged", "already-staged"},
-        "missing_short": missing_short.get("missing", 0),
-        "brief": brief,
-        "handoff": handoff,
-        "staged": staged,
+        "stage": "recovery-storyboard-prepared" if staged and staged.get("stage") in {"storyboard-staged", "already-staged"} else "recovery-needs-research",
+        "needs_production": bool(staged and staged.get("stage") in {"storyboard-staged", "already-staged"}),
+        "shortages": shortages,
+        "active_pipeline": active,
+        "remaining_storyboard_plan": planned,
+        "prepared": prepared,
+        "detail": "แผนนี้สร้างเฉพาะงานใหม่จากหลักฐาน และไม่ใช้คลิปเก่าเป็นตัวแทนของรอบที่ขาด",
     }
 
 

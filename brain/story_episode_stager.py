@@ -62,21 +62,26 @@ class StoryEpisodeStager:
         return f"{part} This is a direct observation about {topic}."
 
     @staticmethod
-    def _episode_id(root_id):
+    def _episode_id(root_id, episode_format="short"):
         safe = re.sub(r"[^a-z0-9]+", "-", str(root_id).lower()).strip("-")
         digest = hashlib.sha256(str(root_id).encode("utf-8")).hexdigest()[:8]
-        return f"aion-auto-{safe[:32] or 'research'}-{digest}"
+        suffix = "long" if episode_format == "long-form" else "short"
+        return f"aion-auto-{safe[:27] or 'research'}-{digest}-{suffix}"
 
-    def _next_handoff(self):
+    def _next_handoff(self, episode_format="short"):
         for entry in self.memory.all(self.CATEGORY):
             payload = self._payload(entry)
-            if payload and payload.get("status") == "story-ready":
+            if not payload or payload.get("status") not in {"story-ready", "staged-for-studio"}:
+                continue
+            root_id = str(payload.get("root_question_id") or payload.get("memory_id") or "research")
+            episode_id = self._episode_id(root_id, episode_format)
+            if not (self.directory / f"{episode_id}.json").exists():
                 return entry, payload
         return None, None
 
-    def _episode(self, handoff):
+    def _episode(self, handoff, episode_format="short"):
         root_id = str(handoff.get("root_question_id") or handoff.get("memory_id") or "research")
-        episode_id = self._episode_id(root_id)
+        episode_id = self._episode_id(root_id, episode_format)
         topic = self._clean(handoff.get("topic"), 120) or "A question worth examining"
         sources = [item for item in (handoff.get("sources") or []) if item.get("url")][:2]
         if len(sources) < 2:
@@ -93,7 +98,7 @@ class StoryEpisodeStager:
         uncertainty = self._clean(handoff.get("unknown_facts"), 260)
         title = self._clean(handoff.get("working_title"), 100) or f"AION Wonders: {topic}"
         audience_promise = self._clean(handoff.get("audience_value"), 240) or f"A viewer of any age can follow a clear, evidence-backed answer to: {topic}"
-        return {
+        episode = {
             "id": episode_id,
             "series": "AION Wonders",
             "title": title,
@@ -146,20 +151,83 @@ class StoryEpisodeStager:
             "content_angle_key": handoff.get("content_angle_key") or "evidence-walkthrough-short",
         }
 
-    def stage_once(self):
-        entry, handoff = self._next_handoff()
+        if episode_format == "long-form":
+            # A Sunday episode is a distinct deliverable, not a stretched
+            # Short.  It uses the same cited evidence but gives each source
+            # observation room for setup, comparison and a clear uncertainty
+            # boundary.  Every beat remains traceable to the handoff; no new
+            # facts are invented merely to fill time.
+            source_beats = []
+            for source, label in ((first, first_title), (second, second_title)):
+                parts = self._evidence_parts(source.get("observation"), part_count=6, words_per_part=8)
+                for index, part in enumerate(parts, start=1):
+                    source_beats.append({
+                        "beat": f"evidence-{len(source_beats) + 1}",
+                        "visual": f"Examine documented evidence from {label} about {topic}: {part} The subject and setting lead the frame; AION is a small guide only.",
+                        "narration": self._narrated_evidence(part, topic),
+                    })
+            framing = [
+                ("hook", f"Open on the most surprising visual question about {topic}; the subject fills the frame and AION is a small guide.", f"How can we explain {topic} without skipping what the evidence actually says?"),
+                ("map-the-question", f"Orient the viewer in the real setting relevant to {topic}; show scale, place and context before the explanation.", f"We will take this one clue at a time and compare independent sources about {topic}."),
+                ("first-source", f"Introduce {first_title} as the first evidence source for {topic}, showing what this source can and cannot directly support.", f"Our first source is {first_title}. It gives us a specific observation to examine."),
+            ]
+            bridge = [
+                ("compare", f"Compare the two documented evidence trails about {topic} in one clear visual layout; do not turn interpretation into fact.", "Now compare the two sources. Agreement can strengthen a clue, but it does not answer every question by itself."),
+                ("uncertainty", f"Show the limit of the available evidence around {topic}; retain the real setting and avoid invented details.", uncertainty or "The sources do not settle every detail, so we should not claim more than they show."),
+                ("takeaway", f"Return to the subject of {topic} in a meaningful final wide scene, with AION only at the edge.", f"The useful takeaway is to start with what was observed about {topic}, then separate evidence from interpretation."),
+                ("invitation", f"End on the real subject and environment of {topic}, leaving visual space for the viewer's next question.", "There is always more to learn when we follow the evidence carefully."),
+            ]
+            long_scenes = [
+                {"n": index, "beat": beat, "visual": visual, "narration": narration}
+                for index, (beat, visual, narration) in enumerate(framing + [(item["beat"], item["visual"], item["narration"]) for item in source_beats] + bridge, start=1)
+            ]
+            # A minimum two-minute primary episode needs 24 meaningful
+            # five-second beats.  If evidence is concise, repeat the evidence
+            # only as a different *inspection* (setting, mechanism, compare),
+            # never as a silent filler shot.
+            while len(long_scenes) < 24:
+                source = source_beats[(len(long_scenes) - len(framing)) % len(source_beats)]
+                number = len(long_scenes) + 1
+                long_scenes.insert(-1, {
+                    "n": number,
+                    "beat": f"inspection-{number}",
+                    "visual": f"Use a new environmental angle to inspect the evidence about {topic}: {source['narration']} Keep the subject central and AION subtle.",
+                    "narration": f"Look again at this clue in context: {source['narration']}",
+                })
+            for number, scene in enumerate(long_scenes, start=1):
+                scene["n"] = number
+                if "aion" not in str(scene.get("visual") or "").lower():
+                    scene["visual"] = (
+                        f"{scene['visual']} AION appears briefly at the edge as a contextual guide."
+                    )
+            episode.update({
+                "title": f"AION Explains: {topic}",
+                "format": "long-form-illustrated",
+                "target_duration_seconds": len(long_scenes) * 5,
+                "scene_seconds": 5,
+                "scenes": long_scenes,
+                "content_angle_key": "evidence-walkthrough-primary",
+            })
+        return episode
+
+    def stage_once(self, episode_format="short"):
+        if episode_format not in {"short", "long-form"}:
+            raise ValueError("episode_format must be 'short' or 'long-form'")
+        entry, handoff = self._next_handoff(episode_format)
         if entry is None:
             return {"stage": "no-story-ready-handoff"}
-        episode = self._episode(handoff)
+        episode = self._episode(handoff, episode_format)
         self.directory.mkdir(parents=True, exist_ok=True)
         destination = self.directory / f"{episode['id']}.json"
         if destination.exists():
             handoff["status"] = "staged-for-studio"
             handoff["episode_id"] = episode["id"]
+            handoff["staged_formats"] = sorted(set(handoff.get("staged_formats") or []) | {episode_format})
             self.memory.update(self.CATEGORY, entry["id"], content=json.dumps(handoff, ensure_ascii=False, sort_keys=True))
             return {"stage": "already-staged", "episode_id": episode["id"], "file": str(destination.relative_to(self.root)).replace("\\", "/")}
         destination.write_text(json.dumps(episode, ensure_ascii=False, indent=2), encoding="utf-8")
         handoff["status"] = "staged-for-studio"
         handoff["episode_id"] = episode["id"]
+        handoff["staged_formats"] = sorted(set(handoff.get("staged_formats") or []) | {episode_format})
         self.memory.update(self.CATEGORY, entry["id"], content=json.dumps(handoff, ensure_ascii=False, sort_keys=True))
         return {"stage": "storyboard-staged", "episode_id": episode["id"], "file": str(destination.relative_to(self.root)).replace("\\", "/"), "scene_count": len(episode["scenes"])}

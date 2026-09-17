@@ -34,12 +34,22 @@ class ResearchStoryHandoff:
         return roots
 
     def create_once(self):
-        brief = ResearchToStory(self.memory).snapshot().get("current")
+        # `snapshot().current` is useful for the dashboard, but it is not a
+        # queue.  Once its latest brief has been handed off, selecting it
+        # again used to prevent older, equally-qualified briefs from ever
+        # reaching Studio.  Pick the next unhanded brief instead.
+        existing_roots = self._existing_roots()
+        brief = next(
+            (
+                item for item in ResearchToStory(self.memory)._briefs()
+                if item.get("status") == "research-ready"
+                and str(item.get("root_question_id") or "") not in existing_roots
+            ),
+            None,
+        )
         if not brief:
             return {"stage": "waiting-for-research-brief"}
         root_id = str(brief.get("root_question_id") or "")
-        if root_id in self._existing_roots():
-            return {"stage": "handoff-already-created", "root_question_id": root_id}
 
         topic = str(brief.get("topic") or "AION research story")
         handoff = {

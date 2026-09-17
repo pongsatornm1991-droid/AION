@@ -4,7 +4,7 @@ on:
   schedule:
     # Follows the reference study so new creator lessons are available to the
     # Story Agent without starting both memory writers at once.
-    - cron: "55 */6 * * *"
+    - cron: "55 */3 * * *"
   workflow_dispatch: {}
 
 concurrency:
@@ -39,6 +39,19 @@ jobs:
         env:
           AION_MEMORY_ROOT: memory_data
         run: python tools/stage_creator_episode.py
+      - name: Stage the matching primary-episode storyboard when Thursday buffer work begins
+        # The Sunday primary episode is planned on Thursday, alongside the two
+        # Shorts for Friday/Saturday.  This only writes a storyboard from
+        # cited evidence; image generation remains in the bounded Studio shift.
+        if: ${{ github.event_name == 'workflow_dispatch' || github.event.schedule == '55 */3 * * *' }}
+        env:
+          AION_MEMORY_ROOT: memory_data
+        run: |
+          if [[ "$(date -u +%u)" == "4" ]]; then
+            python tools/stage_creator_episode.py --format long-form
+          else
+            echo "Primary storyboard is scheduled for Thursday's buffer shift."
+          fi
       - name: Persist the private brief
         working-directory: memory_data
         run: |
