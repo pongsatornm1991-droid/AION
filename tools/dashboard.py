@@ -34,6 +34,7 @@ from brain.autonomic_drive import AutonomicDrive
 from brain.revenue_brain import RevenueBrain
 from brain.community_campaign import CommunityCampaignRegistry
 from brain.youtube_creator_queue import YouTubeCreatorQueue
+from brain.release_readiness import ReleaseReadiness
 from brain.aion_company import AionCompany
 from brain.social_intelligence import SocialIntelligence
 from brain.admin_operations import AdminOperations
@@ -495,15 +496,53 @@ def _platform_operations_snapshot(memory, reels):
     audience["youtube_learning_state"] = ("มีข้อมูลสาธารณะให้เปรียบเทียบ" if youtube_public else "รอสถิติสาธารณะจาก YouTube; retention ต้องใช้ YouTube Analytics โดยเฉพาะ")
     return {
         "platforms": [
-            {"id": "instagram", "name": "Instagram", "color": "#ff5db1", "purpose": "ภาพใหม่และ Reels ที่เข้าใจเร็ว", "cadence": "Reel 18:13 · ภาพ 19:31", "automation": "สร้างภาพใหม่ → ตรวจ → Instagram + Facebook", "community": "ตรวจคอมเมนต์ทุก 5 นาที", "messages": "รอ Meta Messaging เปิดใช้งาน", "published": reels["platform_counts"].get("instagram", 0)},
-            {"id": "facebook", "name": "Facebook", "color": "#4e8cff", "purpose": "บทสนทนา ชุมชน และเรื่องเล่าที่ชวนคุย", "cadence": "โพสต์สนทนา 21:17 · รับภาพ/รีลจาก Instagram", "automation": "Social Agent เผยแพร่หลัง Claim Safety Gate", "community": "ตรวจคอมเมนต์ทุก 5 นาที · กันตอบซ้ำด้วยความจำ", "messages": "รอ Meta Messaging เปิดใช้งาน", "published": reels["platform_counts"].get("facebook", 0)},
-            {"id": "youtube", "name": "YouTube", "color": "#ff5a63", "purpose": "Shorts เพื่อการค้นพบ และ 16:9 เพื่อการเล่าเรื่องลึก", "cadence": "Shorts อัตโนมัติไม่เกิน 1 ชิ้น/วัน 20:43 · 16:9 วันอาทิตย์เมื่อพร้อม", "automation": "Studio → Video QA → Publishing Agent", "community": "วิเคราะห์ retention และคำถามผู้ชมเมื่อมีข้อมูล", "messages": "ไม่มี DM ใน workflow", "published": reels["platform_counts"].get("youtube", 0)},
+            {"id": "instagram", "name": "Instagram", "color": "#ff5db1", "purpose": "Reels ที่เข้าใจเร็ว และทำให้คนค้นพบ AION", "cadence": "รับคลิปใหม่ที่ผ่าน Quality Gate จาก Studio หลัง YouTube เผยแพร่", "automation": "Creator episode ที่ตรวจแล้ว → Cross-post เดียวกัน (ไม่สร้างคลิปซ้ำ)", "community": "ตรวจคอมเมนต์และกันตอบซ้ำ", "messages": "รอ Meta Messaging เปิดใช้งาน", "published": reels["platform_counts"].get("instagram", 0)},
+            {"id": "facebook", "name": "Facebook", "color": "#4e8cff", "purpose": "Reels, บทสนทนา และชุมชนรอบเรื่องที่ AION เล่า", "cadence": "รับคลิป Studio เดียวกับ YouTube/Instagram หลังเผยแพร่สำเร็จ", "automation": "Cross-post เฉพาะตอนใหม่ที่ผ่าน Quality Gate; ไม่ใช้คลิปเก่าทดแทน", "community": "ตรวจคอมเมนต์และกันตอบซ้ำ", "messages": "รอ Meta Messaging เปิดใช้งาน", "published": reels["platform_counts"].get("facebook", 0)},
+            {"id": "youtube", "name": "YouTube", "color": "#ff5a63", "purpose": "Shorts เพื่อการค้นพบ และตอนหลักเพื่อเล่าเรื่องลึก", "cadence": "Shorts จ./พ./ศ./ส. 20:43 · ตอนหลัก อา. 20:15 (เวลาไทย)", "automation": "Research → Studio → Video QA → YouTube → Cross-post", "community": "วิเคราะห์ retention และคำถามผู้ชมเมื่อมีข้อมูล", "messages": "ไม่มี DM ใน workflow", "published": reels["platform_counts"].get("youtube", 0)},
         ],
         "social_team": social,
         "admin_team": admin,
         "audience_team": audience,
         "rule": "หนึ่งเรื่องสร้างได้หลายเวอร์ชัน แต่คิวเผยแพร่ต่อแพลตฟอร์มมีเพดานและห้ามงานซ้ำ",
     }
+
+
+def _command_center(creator_queue, readiness, control):
+    """The one-screen answer to what AION is doing and what happens next."""
+    visible = [item for item in creator_queue if item.get("status") != "retired"]
+    ready = next((item for item in visible if item.get("publication_status") == "authorized-for-aion-publish"), None)
+    ready = ready or next((item for item in visible if item.get("status") in {"upload-ready", "already-prepared"}), None)
+    active = next((item for item in visible if item.get("status") not in {"published", "retired"}), None)
+    slots = readiness.get("slots") or []
+    next_slot = slots[0] if slots else None
+    blockers = control.get("blockers") or []
+    cards = [
+        {
+            "state": "done" if readiness.get("state") == "ready" else "alert",
+            "label": "ความพร้อมก่อนวันปล่อย",
+            "value": "พร้อมตามแผน" if readiness.get("state") == "ready" else "ต้องเติมงานล่วงหน้า",
+            "detail": readiness.get("policy") or "กำลังตรวจคิวปล่อย",
+        },
+        {
+            "state": "active" if active else "waiting",
+            "label": "งานที่กำลังเดิน",
+            "value": (active or {}).get("title") or "กำลังคัดเลือกหัวข้อใหม่",
+            "detail": "อยู่ในสายผลิต Studio" if active else "ฝ่ายวิจัยกำลังหาเรื่องที่มีหลักฐานพอจะเล่า",
+        },
+        {
+            "state": "done" if ready else "waiting",
+            "label": "คลิปถัดไป",
+            "value": (ready or {}).get("title") or "ยังไม่มีตอนพร้อมปล่อย",
+            "detail": "ผ่านคิวพร้อมเผยแพร่" if ready else "ไม่ใช้คลิปเก่าหรือหัวข้อซ้ำแทน",
+        },
+        {
+            "state": "alert" if blockers else "done",
+            "label": "สิ่งที่ต้องติดตาม",
+            "value": f"{len(blockers)} จุด" if blockers else "ไม่มีจุดวิกฤต",
+            "detail": (blockers[0].get("detail") if blockers and isinstance(blockers[0], dict) else "สายงานสำคัญมีการเฝ้าระวัง"),
+        },
+    ]
+    return {"cards": cards, "next_slot": next_slot}
 
 
 def _brain_map(memory, limit=30):
@@ -858,6 +897,7 @@ def build_snapshot(memory_root=None):
     autonomic_drive = AutonomicDrive(memory).snapshot()
     community_campaigns = _community_campaign_snapshot()
     control = OperationsControlTower(memory, ROOT).snapshot()
+    release_readiness = ReleaseReadiness(memory, ROOT).snapshot()
     return {
         "generated_at": datetime.now().isoformat(timespec="seconds"),
         "data_source": {
@@ -910,6 +950,8 @@ def build_snapshot(memory_root=None):
         "community_campaigns": community_campaigns,
         "operations": _operational_snapshot(reels, youtube_creator_queue, community_campaigns, control),
         "control_tower": control,
+        "release_readiness": release_readiness,
+        "command_center": _command_center(youtube_creator_queue, release_readiness, control),
         "platform_operations": _platform_operations_snapshot(memory, reels),
         "development": _development_snapshot(memory),
         "brain": _brain_map(memory),

@@ -11,36 +11,47 @@ class AdminOperations:
         self.root = Path(root or Path(__file__).resolve().parents[1])
 
     def snapshot(self):
-        shorts_workflow = self.root / ".github" / "workflows" / "youtube-shorts.yml"
-        try:
-            # The legacy fallback may exist, but it must not have its own
-            # timer. A file-exists check would falsely report this safe.
-            duplicate_guard = "schedule:" not in shorts_workflow.read_text(encoding="utf-8")
-        except OSError:
-            duplicate_guard = False
-
-        # GitHub does not guarantee an exact start time for scheduled jobs,
-        # especially at minute 00.  These four workflows are the public
-        # publishing spine, so the operations team checks that each still has
-        # one deliberately offset schedule.  This catches an accidental edit
-        # that silently returns AION to the congested top-of-hour window.
-        publishing_files = (
+        legacy_publishers = (
+            "youtube-shorts.yml",
             "reel-cycle.yml",
             "instagram-cycle.yml",
-            "youtube-creator.yml",
             "social-cycle.yml",
         )
-        cadence_issues = []
+        legacy_schedules = []
+        for filename in legacy_publishers:
+            try:
+                source = (self.root / ".github" / "workflows" / filename).read_text(encoding="utf-8")
+                if "schedule:" in source:
+                    legacy_schedules.append(filename)
+            except OSError:
+                # A deployment may omit a retired legacy workflow entirely;
+                # absence is safer than a timed second publisher.
+                continue
+        # Legacy tools are intentionally retained for a human-triggered,
+        # exceptional repair.  They must never publish on their own timer:
+        # Studio Creator is the single public-content source of truth.
+        duplicate_guard = not legacy_schedules
+
+        # GitHub does not guarantee an exact start time for scheduled jobs,
+        # especially at minute 00.  Only the Creator release spine owns an
+        # automatic public schedule; legacy social workflows are manual-only.
+        publishing_files = (
+            "youtube-creator.yml",
+            "youtube-longform.yml",
+            "youtube-release-recovery.yml",
+        )
+        cadence_issues = [f"{filename}: ไม่ควรมีตารางเผยแพร่อัตโนมัติ" for filename in legacy_schedules]
         for filename in publishing_files:
             try:
                 source = (self.root / ".github" / "workflows" / filename).read_text(encoding="utf-8")
                 crons = re.findall(r'cron:\s*["\']([^"\']+)["\']', source)
-                if len(crons) != 1:
+                if not crons:
                     cadence_issues.append(f"{filename}: ตารางไม่ชัดเจน")
                     continue
-                minute = crons[0].split()[0]
-                if minute in ("0", "00"):
-                    cadence_issues.append(f"{filename}: ตั้งต้นชั่วโมง")
+                for cron in crons:
+                    minute = cron.split()[0]
+                    if minute in ("0", "00"):
+                        cadence_issues.append(f"{filename}: ตั้งต้นชั่วโมง")
             except OSError:
                 cadence_issues.append(f"{filename}: ไม่พบไฟล์")
 
@@ -48,8 +59,8 @@ class AdminOperations:
             "name": "Admin Operations Team",
             "purpose": "ดูคิวเผยแพร่ การชนกันของตาราง หลักฐานงาน และการแจ้งข้อผิดพลาดให้ฝ่ายที่รับผิดชอบ",
             "checks": [
-                {"name": "Shorts daily cap", "state": "pass" if duplicate_guard else "attention", "detail": "มีสายอัตโนมัติหลักเพียงหนึ่งรอบต่อวัน; workflow เก่ายังใช้ได้เฉพาะสั่งมือ"},
-                {"name": "Publishing cadence", "state": "pass" if not cadence_issues else "attention", "detail": "ตารางเผยแพร่ทั้ง 4 ช่องทางถูกกระจายเวลา ลดโอกาสพลาดรอบ" if not cadence_issues else "; ".join(cadence_issues)},
+                {"name": "Single publishing source", "state": "pass" if duplicate_guard else "attention", "detail": "เผยแพร่สาธารณะอัตโนมัติผ่าน Creator pipeline เพียงสายเดียว" if duplicate_guard else f"พบสายเก่าที่ตั้งเวลาอยู่: {', '.join(legacy_schedules)}"},
+                {"name": "Publishing cadence", "state": "pass" if not cadence_issues else "attention", "detail": "Shorts จ./พ./ศ./ส. 20:43 และตอนหลัก อา. 20:15 เวลาไทย; มีรอบกู้คืนในช่วงเวลาเดียวกัน" if not cadence_issues else "; ".join(cadence_issues)},
                 {"name": "Protected authority", "state": "pass", "detail": "ห้ามเปลี่ยนสิทธิ์ บัญชี คีย์ เงิน และสัญญา"},
                 {"name": "Queue handoff", "state": "pass", "detail": "งานเผยแพร่ต้องผ่าน Research → Production → Quality Gate → Publishing"},
             ],

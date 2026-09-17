@@ -12,8 +12,9 @@ name: AION - social post cycle
 # public repo).
 
 on:
-  schedule:
-    - cron: "17 14 * * *"
+  # The verified Creator cross-post workflow is the only automatic social
+  # publisher.  This older text-post cycle is retained for a human-triggered
+  # exceptional task, never as a competing daily publisher.
   workflow_dispatch: {}
 
 # All AION workflows share one private, git-backed memory_data repo

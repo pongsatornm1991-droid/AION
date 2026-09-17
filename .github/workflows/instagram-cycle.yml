@@ -31,9 +31,9 @@ name: AION - Instagram content cycle
 # `permissions: contents: write` below.
 
 on:
-  schedule:
-    # Avoid GitHub's congested top-of-hour scheduler window.
-    - cron: "31 12 * * *"
+  # Creator Studio episodes are cross-posted after their verified YouTube
+  # release.  Keep this older image-post tool manual-only so it cannot race
+  # or dilute the fixed Creator schedule.
   workflow_dispatch: {}
 
 # All AION workflows share one private, git-backed memory_data repo
