@@ -52,7 +52,13 @@ class ReleaseReadiness:
         for item in candidates:
             is_ready = item.get("status") in {"upload-ready", "already-prepared"}
             is_authorized = item.get("publication_status") == "authorized-for-aion-publish"
-            if item.get("release_eligible") and (is_ready or is_authorized):
+            # A rendered file or a historical authorization is not proof that
+            # the finished video is safe to schedule.  Readiness is used to
+            # protect fixed release slots, so it must require a durable pass
+            # from the actual quality gate rather than infer one.
+            gate = item.get("quality_gate") or item.get("video_qa") or {}
+            quality_passed = gate.get("eligible") is True
+            if item.get("release_eligible") and quality_passed and (is_ready or is_authorized):
                 available.setdefault(item.get("content_kind"), []).append(item.get("episode_id"))
         required = {kind: sum(slot["content_kind"] == kind for slot in slots) for kind in available}
         shortages = []
@@ -68,5 +74,5 @@ class ReleaseReadiness:
             "slots": slots,
             "available": available,
             "shortages": shortages,
-            "policy": "ตรวจล่วงหน้า 96 ชั่วโมง; นับเฉพาะตอนใหม่ที่พร้อมและไม่ซ้ำ ไม่ใช้คลิปเก่าแทนวันปล่อย",
+            "policy": "ตรวจล่วงหน้า 96 ชั่วโมง; นับเฉพาะตอนใหม่ที่ผ่าน Quality Gate พร้อมและไม่ซ้ำ ไม่ใช้คลิปเก่าแทนวันปล่อย",
         }
