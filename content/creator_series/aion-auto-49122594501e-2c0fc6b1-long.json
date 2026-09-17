@@ -2,7 +2,7 @@
   "id": "aion-auto-49122594501e-2c0fc6b1-long",
   "series": "AION Wonders",
   "title": "AION Explains: How did ancient Persian Yakhchāl structures maintain sub-freezing temperatures to preserve ice during desert summers wit",
-  "status": "storyboard-ready-needs-assets",
+  "status": "retired-do-not-publish",
   "format": "long-form-illustrated",
   "target_duration_seconds": 120,
   "scene_seconds": 5,
@@ -205,5 +205,27 @@
   ],
   "research_handoff_id": "49122594501e",
   "story_package_id": "49122594501e",
-  "content_angle_key": "evidence-walkthrough-primary"
+  "content_angle_key": "evidence-walkthrough-primary",
+  "retirement_reason": "duplicate-topic-company-wide",
+  "novelty_audit": {
+    "state": "blocked",
+    "reason": "duplicate-topic-company-wide",
+    "matches": [
+      {
+        "category": "youtube_creator_queue",
+        "memory_id": "8aa2105daa6e",
+        "title": "How Did Ancient Persia Keep Ice in the Desert?"
+      },
+      {
+        "category": "youtube_creator_queue",
+        "memory_id": "12571327e935",
+        "title": "How Did Ancient Persia Make Ice in the Desert?"
+      },
+      {
+        "category": "youtube_creator_queue",
+        "memory_id": "18a8c1b31160",
+        "title": "How Ancient Persia Made Ice in the Desert"
+      }
+    ]
+  }
 }
