@@ -10,12 +10,17 @@
     "count": 0
   },
   "asset_hygiene": {
-    "active": 40,
-    "recent_unreferenced": 29,
+    "total_files": 191,
+    "active": 140,
+    "recent_unreferenced": 51,
     "review": 0,
-    "review_bytes": 0
+    "review_bytes": 0,
+    "managed_bytes": 594284363,
+    "storage_state": "healthy",
+    "warning_bytes": 1572864000,
+    "critical_bytes": 3145728000
   },
   "boundary": "ซ่อมได้เฉพาะโฟลเดอร์งานและ caption track ที่สร้างใหม่จาก storyboard เดิม; ไม่แก้โค้ด สิทธิ์ ข้อมูลรับรอง เงิน กฎความปลอดภัย หรือเผยแพร่งาน",
   "next": "ข้อผิดพลาดนอกบัญชีซ่อมที่กำหนดจะถูกแสดงใน Operations Center พร้อมหลักฐาน เพื่อให้เกิดการแก้โค้ดที่ทดสอบได้ ไม่ใช่การแก้แบบเดาสุ่ม",
-  "generated_at": "2026-09-17T17:46:35.994845+00:00"
+  "generated_at": "2026-09-17T17:55:09.993899+00:00"
 }
