@@ -790,7 +790,7 @@ def build_studio_snapshot(memory_root=None):
         "rooms": [
             {"id": "research", "name": "1 · หลักฐาน", "purpose": "ค้นคว้าและส่งต่อเฉพาะหัวข้อที่มีแหล่งอ้างอิงตรวจย้อนกลับได้", "count": snapshot.get("research_to_story", {}).get("eligible_topics", 0), "unit": "หัวข้อพร้อมเขียน", "state": room_state("research")},
             {"id": "story", "name": "2 · บทและคอสตูม", "purpose": "วาง hook, บท, storyboard และชุดตามบริบทในบัตรงานเดียว", "count": len(episodes), "unit": "ตอนที่ออกแบบ", "state": room_state("story", "costume")},
-            {"id": "visual", "name": "ห้องภาพและฉาก", "purpose": "สร้างภาพใหม่เป็นรายฉาก ไม่ใช้ภาพเดิมวนซ้ำเป็นทางลัด", "count": len(generated_scenes), "unit": "ภาพฉากที่ผลิตใหม่", "state": scene_production["status"]},
+            {"id": "visual", "name": "3 · ภาพและฉาก", "purpose": "สร้างภาพใหม่เป็นรายฉาก ไม่ใช้ภาพเดิมวนซ้ำเป็นทางลัด", "count": len(generated_scenes), "unit": "ภาพฉากที่ผลิตใหม่", "state": scene_production["status"]},
             {"id": "audio", "name": "4 · เสียงและประกอบ", "purpose": "ประกอบเสียง–ภาพหลังบทและฉากผ่านการตรวจ พร้อมตรวจว่าเสียงครอบคลุมทุกฉาก", "count": len(audio), "unit": "ไฟล์เสียง", "state": room_state("audio")},
             {"id": "review", "name": "5 · คุณภาพและเผยแพร่", "purpose": "ตรวจหลักฐาน ไฟล์ ภาพ เสียง และส่งเฉพาะงานที่ผ่านเข้าเผยแพร่", "count": len(video), "unit": "วิดีโอที่ประกอบแล้ว", "state": room_state("quality", "publishing")},
         ],

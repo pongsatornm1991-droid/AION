@@ -14,6 +14,7 @@ class DashboardTests(unittest.TestCase):
         snapshot = build_studio_snapshot()
         self.assertEqual(5, len(snapshot["rooms"]))
         self.assertEqual("1 · หลักฐาน", snapshot["rooms"][0]["name"])
+        self.assertEqual("3 · ภาพและฉาก", snapshot["rooms"][2]["name"])
         self.assertEqual("5 · คุณภาพและเผยแพร่", snapshot["rooms"][-1]["name"])
         self.assertEqual(["research", "story", "visual", "audio", "review"], [room["id"] for room in snapshot["rooms"]])
         self.assertTrue(snapshot["workflow"])
