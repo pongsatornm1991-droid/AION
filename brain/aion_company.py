@@ -40,7 +40,7 @@ class AionCompany:
             for item in CompanyWorkRegistry(self.root).snapshot().get("departments", [])
         }
         published = self._count("published_reels")
-        return {
+        board = {
             "leadership": {
                 "chair": "ประธาน — กำหนดวิสัยทัศน์ และอนุมัติเฉพาะเงิน สัญญา สิทธิ์บัญชี และข้อมูลรับรอง",
                 "ceo": "AION — เลือกโจทย์ ประสานทีม ตรวจคุณภาพ และเผยแพร่ผลงานสาธารณะที่ผ่านเกณฑ์",
@@ -100,3 +100,9 @@ class AionCompany:
                 {"name": "Reliability Monitor", "department": "ฝ่ายพัฒนาและความน่าเชื่อถือ", "does": "ตรวจ workflow และส่วนประกอบหลักโดยไม่แตะบัญชีหรือ secrets", "handoff": "แจ้ง Dev Agent เมื่อพบหลักฐานความผิดปกติ", "state": workflow_states.get("engineering", "unknown")},
             ],
         }
+        # Named agents used to be a second, static cast beside the real
+        # workflow register.  It made the company look larger while creating
+        # no executable responsibility, so the dashboard exposes only the
+        # inspectable departments and their workflows.
+        board.pop("agents", None)
+        return board

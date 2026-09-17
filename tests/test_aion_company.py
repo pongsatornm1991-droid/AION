@@ -13,4 +13,5 @@ class AionCompanyTests(unittest.TestCase):
             self.assertGreaterEqual(len(board["departments"]), 9)
             self.assertTrue(all(item["handoff"] for item in board["departments"]))
             self.assertIn("เผยแพร่ผลงานสาธารณะ", board["boundary"])
-            self.assertTrue(any(item["name"] == "Dev Agent" for item in board["agents"]))
+            self.assertNotIn("agents", board)
+            self.assertTrue(board["work_registry"]["departments"])
