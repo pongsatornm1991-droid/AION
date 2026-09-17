@@ -63,6 +63,33 @@ class AssetHygieneTests(unittest.TestCase):
             self.assertFalse(expired.exists())
             self.assertTrue(recent.is_file())
 
+    def test_purge_preserves_character_identity_and_published_story_sources(self):
+        with tempfile.TemporaryDirectory() as root:
+            base = Path(root)
+            character = base / "assets" / "content-library" / "aion-character"
+            story = base / "assets" / "content-library" / "aion-stories" / "before-books"
+            character.mkdir(parents=True)
+            story.mkdir(parents=True)
+            portrait = character / "portrait.png"
+            source_scene = story / "scene.png"
+            portrait.write_bytes(b"identity")
+            source_scene.write_bytes(b"published-source")
+            library = base / "content"
+            library.mkdir(exist_ok=True)
+            (library / "creator_library.json").write_text(
+                '{"episodes":[{"video_path":"content/reels/aion-story-001-before-books.mp4"}]}',
+                encoding="utf-8",
+            )
+            old = datetime(2026, 1, 1, tzinfo=timezone.utc).timestamp()
+            os.utime(portrait, (old, old))
+            os.utime(source_scene, (old, old))
+            result = AssetHygiene(base, retention_days=14).purge_review_files(
+                now=datetime(2026, 3, 1, tzinfo=timezone.utc),
+            )
+            self.assertEqual([], result["deleted"])
+            self.assertTrue(portrait.is_file())
+            self.assertTrue(source_scene.is_file())
+
     def test_tracks_storyboard_referenced_library_assets_and_quarantines_old_orphans_recoverably(self):
         with tempfile.TemporaryDirectory() as root:
             base = Path(root)
