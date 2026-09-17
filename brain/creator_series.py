@@ -3,6 +3,7 @@ import json
 from pathlib import Path
 
 from brain.visual_story_policy import VisualStoryPolicy
+from brain.creator_growth import CreatorGrowthGate
 
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -36,6 +37,9 @@ class CreatorSeriesRegistry:
                 visual_check = VisualStoryPolicy.validate_episode(item)
                 if not visual_check["eligible"]:
                     raise ValueError(f"{item.get('id')} violates current visual policy: {', '.join(visual_check['reasons'])}")
+                growth_check = CreatorGrowthGate.assess(item)
+                if not growth_check["eligible"]:
+                    raise ValueError(f"{item.get('id')} violates current creator growth policy: {', '.join(growth_check['reasons'])}")
             if int(item.get("target_duration_seconds") or 0) != len(scenes) * seconds:
                 raise ValueError(f"{item.get('id')} duration does not match its storyboard.")
             promise = str(item.get("audience_promise") or "").strip()
@@ -86,4 +90,5 @@ class CreatorSeriesRegistry:
             "scene_seconds": item["scene_seconds"],
             "pacing_policy": item.get("pacing_policy", "legacy-v1"),
             "visual_direction": item.get("visual_direction", {}),
+            "growth_plan": item.get("growth_plan", {}),
         } for item in self.episodes()]

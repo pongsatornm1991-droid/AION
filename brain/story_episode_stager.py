@@ -11,6 +11,7 @@ import re
 from pathlib import Path
 
 from brain.visual_story_policy import VisualStoryPolicy
+from brain.creator_growth import CreatorGrowthGate
 
 
 class StoryEpisodeStager:
@@ -91,6 +92,7 @@ class StoryEpisodeStager:
         second_title = self._clean(second.get("title"), 100) or "the second source"
         uncertainty = self._clean(handoff.get("unknown_facts"), 260)
         title = self._clean(handoff.get("working_title"), 100) or f"AION Wonders: {topic}"
+        audience_promise = self._clean(handoff.get("audience_value"), 240) or f"A viewer of any age can follow a clear, evidence-backed answer to: {topic}"
         return {
             "id": episode_id,
             "series": "AION Wonders",
@@ -100,9 +102,9 @@ class StoryEpisodeStager:
             "target_duration_seconds": 60,
             "scene_seconds": 5,
             "pacing_policy": VisualStoryPolicy.VERSION,
-            "audience_promise": self._clean(handoff.get("audience_value"), 240)
-                or f"A viewer of any age can follow a clear, evidence-backed answer to: {topic}",
+            "audience_promise": audience_promise,
             "wonder_hook": topic,
+            "growth_plan": CreatorGrowthGate.default_plan(topic, audience_promise),
             "topic_key": topic,
             "creative_device": "mystery-reveal",
             "age_layers": {
