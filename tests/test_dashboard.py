@@ -12,10 +12,10 @@ from brain.admin_operations import AdminOperations
 class DashboardTests(unittest.TestCase):
     def test_studio_snapshot_separates_creator_rooms(self):
         snapshot = build_studio_snapshot()
-        self.assertEqual(9, len(snapshot["rooms"]))
-        self.assertEqual("ห้องตัวตน AION", snapshot["rooms"][0]["name"])
-        self.assertEqual("ห้องตรวจและส่งออก", snapshot["rooms"][-1]["name"])
-        self.assertTrue(any(room["id"] == "costume" for room in snapshot["rooms"]))
+        self.assertEqual(5, len(snapshot["rooms"]))
+        self.assertEqual("1 · หลักฐาน", snapshot["rooms"][0]["name"])
+        self.assertEqual("5 · คุณภาพและเผยแพร่", snapshot["rooms"][-1]["name"])
+        self.assertEqual(["research", "story", "visual", "audio", "review"], [room["id"] for room in snapshot["rooms"]])
         self.assertTrue(snapshot["workflow"])
 
     def test_studio_does_not_show_a_published_episode_as_live_production(self):

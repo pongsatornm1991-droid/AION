@@ -767,18 +767,32 @@ def build_studio_snapshot(memory_root=None):
         ),
     }
 
+    # Studio is a production workspace, not a map of every corporate
+    # capability.  These five rooms are the only hand-offs needed to make a
+    # video. Finance, operations, research history and safety audits retain
+    # their own dedicated pages.
+    department_states = {
+        item.get("department"): item.get("state", "unknown")
+        for item in (company.get("work_registry", {}).get("departments") or [])
+    }
+    def room_state(*department_ids):
+        states = {department_states.get(item, "unknown") for item in department_ids}
+        if "failure" in states:
+            return "attention"
+        if "running" in states:
+            return "active"
+        if "partial" in states or "unknown" in states:
+            return "waiting"
+        return "ready"
+
     return {
         "generated_at": snapshot["generated_at"],
         "rooms": [
-            {"id": "identity", "name": "ห้องตัวตน AION", "purpose": "รักษาคาแรกเตอร์ ภาพลักษณ์ และบทบาทของ AION ให้ต่อเนื่องทุกตอน", "count": len(images), "unit": "ภาพต้นฉบับ", "state": "ready"},
-            {"id": "research", "name": "ห้องค้นคว้า", "purpose": "เก็บแหล่งอ้างอิงและขอบเขตข้อเท็จจริงก่อนเขียนเรื่อง", "count": sum(item.get("source_count", 0) for item in episodes), "unit": "แหล่งอ้างอิงในซีรีส์", "state": "active"},
-            {"id": "research-lab", "name": "ห้องวิจัยและหลักฐาน", "purpose": "ให้ Inquiry Scout และ Evidence Analyst เปลี่ยนคำถามเป็น research brief ที่ตรวจย้อนกลับได้ ก่อนส่งต่อไปเขียนเรื่อง", "count": snapshot.get("research_to_story", {}).get("eligible_topics", 0), "unit": "หัวข้อที่มีหลักฐานพร้อมต่อยอด", "state": "active"},
-            {"id": "story", "name": "ห้องเรื่องเล่า", "purpose": "เปลี่ยนคำถามให้เป็น hook, บทพูด และ storyboard ที่ AION อยู่ในทุกฉาก", "count": len(episodes), "unit": "ตอนที่ออกแบบแล้ว", "state": "active"},
-            {"id": "costume", "name": "ห้องคอสตูม", "purpose": "จัด costume brief ตามยุค สภาพอากาศ และบทบาทของ AION ก่อนสร้างภาพ", "count": len(episodes), "unit": "ตอนที่มีแนวทางชุด", "state": "active"},
+            {"id": "research", "name": "1 · หลักฐาน", "purpose": "ค้นคว้าและส่งต่อเฉพาะหัวข้อที่มีแหล่งอ้างอิงตรวจย้อนกลับได้", "count": snapshot.get("research_to_story", {}).get("eligible_topics", 0), "unit": "หัวข้อพร้อมเขียน", "state": room_state("research")},
+            {"id": "story", "name": "2 · บทและคอสตูม", "purpose": "วาง hook, บท, storyboard และชุดตามบริบทในบัตรงานเดียว", "count": len(episodes), "unit": "ตอนที่ออกแบบ", "state": room_state("story", "costume")},
             {"id": "visual", "name": "ห้องภาพและฉาก", "purpose": "สร้างภาพใหม่เป็นรายฉาก ไม่ใช้ภาพเดิมวนซ้ำเป็นทางลัด", "count": len(generated_scenes), "unit": "ภาพฉากที่ผลิตใหม่", "state": scene_production["status"]},
-            {"id": "finance", "name": "ห้องบัญชี AION", "purpose": "แยกบันทึกหน่วยงานผลิต ต้นทุนที่ผู้ให้บริการยืนยัน และสถานะเครดิตแบบอ่านอย่างเดียว", "count": len(generated_scenes), "unit": "หน่วยภาพที่ติดตาม", "state": "active"},
-            {"id": "audio", "name": "ห้องเสียง", "purpose": "จัดเสียงบรรยายและเสียงประกอบหลังเรื่องและภาพผ่านการตรวจแล้ว", "count": len(audio), "unit": "ไฟล์เสียง", "state": "ready"},
-            {"id": "review", "name": "ห้องตรวจและส่งออก", "purpose": "ตรวจหลักฐาน คุณค่าต่อผู้ชม และความพร้อมก่อนส่งเข้าคิวเผยแพร่", "count": len(video), "unit": "วิดีโอที่สร้างแล้ว", "state": "waiting" if any(item.get("publication_status") == "authorized-for-aion-publish" or item.get("status") == "upload-ready" for item in queue) else "active"},
+            {"id": "audio", "name": "4 · เสียงและประกอบ", "purpose": "ประกอบเสียง–ภาพหลังบทและฉากผ่านการตรวจ พร้อมตรวจว่าเสียงครอบคลุมทุกฉาก", "count": len(audio), "unit": "ไฟล์เสียง", "state": room_state("audio")},
+            {"id": "review", "name": "5 · คุณภาพและเผยแพร่", "purpose": "ตรวจหลักฐาน ไฟล์ ภาพ เสียง และส่งเฉพาะงานที่ผ่านเข้าเผยแพร่", "count": len(video), "unit": "วิดีโอที่ประกอบแล้ว", "state": room_state("quality", "publishing")},
         ],
         "episodes": episodes,
         "scene_production": scene_production,
