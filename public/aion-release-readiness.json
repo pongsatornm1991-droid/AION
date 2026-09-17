@@ -1,0 +1,39 @@
+{
+  "generated_at": "2026-09-17T17:21:23.349694+07:00",
+  "timezone": "Asia/Bangkok",
+  "horizon_hours": 96,
+  "state": "attention",
+  "slots": [
+    {
+      "at": "2026-09-18T20:43:00+07:00",
+      "content_kind": "short"
+    },
+    {
+      "at": "2026-09-19T20:43:00+07:00",
+      "content_kind": "short"
+    },
+    {
+      "at": "2026-09-20T20:15:00+07:00",
+      "content_kind": "long-form"
+    }
+  ],
+  "available": {
+    "short": [],
+    "long-form": []
+  },
+  "shortages": [
+    {
+      "content_kind": "short",
+      "needed": 2,
+      "ready": 0,
+      "missing": 2
+    },
+    {
+      "content_kind": "long-form",
+      "needed": 1,
+      "ready": 0,
+      "missing": 1
+    }
+  ],
+  "policy": "ตรวจล่วงหน้า 96 ชั่วโมง; นับเฉพาะตอนใหม่ที่ผ่าน Quality Gate พร้อมและไม่ซ้ำ ไม่ใช้คลิปเก่าแทนวันปล่อย"
+}
