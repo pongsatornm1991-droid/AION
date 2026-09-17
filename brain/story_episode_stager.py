@@ -12,6 +12,9 @@ from pathlib import Path
 
 from brain.visual_story_policy import VisualStoryPolicy
 from brain.creator_growth import CreatorGrowthGate
+from brain.aion_director import AionDirector
+from brain.watchability_gate import WatchabilityGate
+from brain.story_genome import StoryGenome
 
 
 class StoryEpisodeStager:
@@ -208,6 +211,11 @@ class StoryEpisodeStager:
                 "scenes": long_scenes,
                 "content_angle_key": "evidence-walkthrough-primary",
             })
+        episode["director_plan"] = AionDirector.plan(episode)
+        episode["watchability_gate"] = WatchabilityGate.assess_storyboard(episode)
+        episode["story_genome"] = StoryGenome(self.memory, self.root).snapshot()
+        if not episode["watchability_gate"]["eligible"]:
+            raise ValueError("Storyboard did not pass the AION Watchability Gate.")
         return episode
 
     def stage_once(self, episode_format="short"):
