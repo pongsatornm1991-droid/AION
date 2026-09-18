@@ -15,6 +15,7 @@ from brain.creator_growth import CreatorGrowthGate
 from brain.aion_director import AionDirector
 from brain.watchability_gate import WatchabilityGate
 from brain.story_genome import StoryGenome
+from brain.creator_source_integrity import CreatorSourceIntegrity
 
 
 class StoryEpisodeStager:
@@ -89,6 +90,11 @@ class StoryEpisodeStager:
         sources = [item for item in (handoff.get("sources") or []) if item.get("url")][:2]
         if len(sources) < 2:
             raise ValueError("A Story Agent handoff needs two traceable sources before staging.")
+        integrity = CreatorSourceIntegrity.assess(
+            sources, handoff.get("topic"), handoff.get("completion_criteria")
+        )
+        if not integrity["eligible"]:
+            raise ValueError(f"A Story Agent handoff needs suitable independent factual sources: {integrity['reason']}.")
         first, second = sources
         evidence_one = self._clean(first.get("observation"), 520)
         evidence_two = self._clean(second.get("observation"), 520)

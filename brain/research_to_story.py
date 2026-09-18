@@ -11,6 +11,7 @@ import json
 from .learning import ResearchEvidenceStore
 from .content_novelty import ContentNoveltyLedger
 from .research_portfolio import ResearchPortfolio
+from .creator_source_integrity import CreatorSourceIntegrity
 
 
 class ResearchToStory:
@@ -82,6 +83,11 @@ class ResearchToStory:
             if len(sources) < self.MIN_SOURCES:
                 continue
             question = questions.get(root_id, {})
+            integrity = CreatorSourceIntegrity.assess(
+                sources, question.get("statement"), question.get("criteria")
+            )
+            if not integrity["eligible"]:
+                continue
             candidates.append({
                 "root_question_id": root_id,
                 "topic": question.get("statement") or "AION research question",

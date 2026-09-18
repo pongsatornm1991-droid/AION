@@ -6,6 +6,7 @@ from pathlib import Path
 from brain.creator_series import CreatorSeriesRegistry
 from brain.costume_direction import CostumeDirection
 from brain.visual_story_policy import VisualStoryPolicy
+from brain.creator_source_integrity import CreatorSourceIntegrity
 
 
 class CreatorSceneProduction:
@@ -22,7 +23,8 @@ class CreatorSceneProduction:
         return next((item for item in CreatorSeriesRegistry(self.root).episodes()
                      if item.get("status") == "storyboard-ready-needs-assets"
                      and (not episode_format or item.get("format") == episode_format)
-                     and item.get("pacing_policy") in {VisualStoryPolicy.VERSION, "fast-cut-subject-first-v1"}), None)
+                     and item.get("pacing_policy") in {VisualStoryPolicy.VERSION, "fast-cut-subject-first-v1"}
+                     and CreatorSourceIntegrity.assess(item.get("sources"), item.get("topic_key"), "").get("eligible")), None)
 
     @staticmethod
     def _safe_name(scene):

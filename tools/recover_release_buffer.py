@@ -78,6 +78,11 @@ def recover_once(memory, root=ROOT):
 
 
 def main():
+    # GitHub runners use UTF-8, while a local Windows console can default to
+    # cp1252.  Recovery reports contain Thai operational detail, so ensure a
+    # successful storyboard handoff is never misreported as a failed run.
+    if hasattr(sys.stdout, "reconfigure"):
+        sys.stdout.reconfigure(encoding="utf-8")
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--memory-root", default=os.getenv("AION_MEMORY_ROOT", "memory"))
     args = parser.parse_args()
