@@ -1,9 +1,9 @@
 name: AION - YouTube Creator Studio
 
+# Assembly makes an episode eligible for the queue; it must never publish at
+# the moment rendering finishes.  Public release is intentionally limited to
+# the Bangkok appointments below (or an explicit manual operator dispatch).
 on:
-  workflow_run:
-    workflows: [AION - assemble illustrated Creator episode]
-    types: [completed]
   schedule:
     # Thursday/Friday discovery Shorts lead into Saturday's primary episode;
     # Sunday has one related but distinct Short to bring new viewers back to
@@ -23,7 +23,6 @@ permissions:
 
 jobs:
   youtube-creator:
-    if: ${{ github.event_name != 'workflow_run' || github.event.workflow_run.conclusion == 'success' }}
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
