@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-09-19T01:21:06.798702+07:00",
+  "generated_at": "2026-09-19T01:34:12.412082+07:00",
   "timezone": "Asia/Bangkok",
   "horizon_hours": 144,
   "state": "attention",
@@ -19,7 +19,9 @@
   ],
   "available": {
     "short": [],
-    "long-form": []
+    "long-form": [
+      "aion-wonders-003"
+    ]
   },
   "shortages": [
     {
@@ -27,12 +29,6 @@
       "needed": 2,
       "ready": 0,
       "missing": 2
-    },
-    {
-      "content_kind": "long-form",
-      "needed": 1,
-      "ready": 0,
-      "missing": 1
     }
   ],
   "policy": "ตรวจล่วงหน้า 144 ชั่วโมง; นับเฉพาะตอนใหม่ที่ผ่าน Quality Gate พร้อมและไม่ซ้ำ ไม่ใช้คลิปเก่าแทนวันปล่อย"
