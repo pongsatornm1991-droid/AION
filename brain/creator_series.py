@@ -70,10 +70,23 @@ class CreatorSeriesRegistry:
                 raise ValueError(
                     f"{item.get('id')} needs an explicit uncertainty or reconstruction boundary."
                 )
-            for scene in scenes:
-                image = scene.get("image")
-                if image and not (self.root / image).is_file():
-                    raise ValueError(f"{item.get('id')} references missing image {image}.")
+            # A storyboard intentionally names its future image destinations
+            # before Studio generates them.  Treating those paths as an error
+            # made a newly approved storyboard crash the dashboard and blocked
+            # the very production job meant to create the files.  Once an
+            # episode claims to have assets, however, each path remains a hard
+            # integrity requirement.
+            asset_complete = item.get("status") in {
+                "assets-ready-for-assembly",
+                "production-ready-assets-and-script",
+                "upload-ready",
+                "published",
+            }
+            if asset_complete:
+                for scene in scenes:
+                    image = scene.get("image")
+                    if image and not (self.root / image).is_file():
+                        raise ValueError(f"{item.get('id')} references missing image {image}.")
             result.append({**item, "file": str(path.relative_to(self.root)).replace("\\", "/")})
         return result
 

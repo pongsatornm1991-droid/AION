@@ -1,0 +1,73 @@
+{
+  "id": "aion-gentle-thailand-rice-journey-v1",
+  "series": "AION Gentle Thailand",
+  "title": "How One Grain of Rice Reaches Your Bowl",
+  "status": "storyboard-ready-needs-assets",
+  "format": "illustrated-narrated-short",
+  "target_duration_seconds": 60,
+  "scene_seconds": 5,
+  "pacing_policy": "short-50-180-subject-first-v3",
+  "topic_key": "rice journey field harvest drying milling market bowl",
+  "content_angle_key": "gentle-thailand-rice-field-to-bowl-postcard",
+  "creative_device": "journey",
+  "age_layers": {
+    "children": "Follow one rice grain from a green field to a warm bowl.",
+    "family": "Notice the people and careful steps behind an everyday meal.",
+    "deeper": "See harvesting, drying and milling as linked parts of a food system."
+  },
+  "audience_promise": "In one minute, viewers can see the real broad steps that take rice from field to bowl through a gentle Thai picture-book world.",
+  "wonder_hook": "Before it becomes dinner, how far does one grain of rice travel?",
+  "growth_plan": {
+    "version": "evidence-led-creator-growth-v1",
+    "hook_seconds": 2,
+    "hook_line": "Before it becomes dinner, how far does one grain of rice travel?",
+    "retention_promise": "Every five-second beat moves one grain to a new place and reveals the next careful step.",
+    "follow_reason": "Follow AION for everyday wonders told through new places and visual worlds.",
+    "series_angle": "AION Gentle Thailand is a recurring Sunday-style visual treatment that can be tested on a Friday release without replacing factual standards.",
+    "editing_rule": "Every scene changes the grain's stage, location or caretaker; no silent filler and no repeated scenic shot."
+  },
+  "sources": [
+    {"title": "Rice in human nutrition: cultivation, harvest and processing", "url": "https://www.fao.org/4/t0567e/T0567E03.htm"},
+    {"title": "Rice post-harvest operations", "url": "https://www.fao.org/fileadmin/user_upload/inpho/docs/Post_Harvest_Compendium_-_RICE.pdf"},
+    {"title": "Milling and processing", "url": "https://www.knowledgebank.irri.org/step-by-step-production/postharvest/milling"}
+  ],
+  "uncertainty_boundary": "Rice varieties, farming methods, harvest timing, milling and cooking differ by place and household; this episode shows a general field-to-bowl journey, not one farm's exact process.",
+  "visual_style": {
+    "id": "aion-illustrated-postcard-v1",
+    "summary": "Original Thai picture-book watercolor and gouache postcard scenes: soft paper texture, rounded friendly forms, quiet everyday life and gentle pigment blooms; never imitate a named artist or studio."
+  },
+  "visual_direction": {
+    "focus": "subject-first",
+    "aion_role": "contextual-guide",
+    "aion_frame_share_max": 0.15,
+    "aion_presence_rationale": "Rice, people and the journey lead every frame. AION is only a small observing guide with a cyan crystal pin."
+  },
+  "visual_identity": {
+    "version": "aion-realistic-profile-with-illustrated-postcard-adaptation-v1",
+    "character": "AION is an original silver-white-haired AI guide with cyan eyes and a small cyan crystal pin, translated into a restrained picture-book watercolor character only when present.",
+    "environment": "Original imagined Thai rice-growing and neighborhood postcard world; never show real branded landmarks.",
+    "prohibited": ["embedded text", "logo", "watermark", "all-blue body", "fashion pose", "named-studio imitation"]
+  },
+  "scenes": [
+    {"n": 1, "beat": "hook", "visual": "A warm watercolor breakfast table holds a simple white bowl of rice; a tiny AION with a cyan crystal pin is reflected in the spoon, while a rice field appears softly in the steam.", "narration": "Before it becomes dinner, how far does one grain of rice travel?"},
+    {"n": 2, "beat": "seed", "visual": "An imagined Thai farmer's hands hold pale rice seeds above a small nursery bed at sunrise; AION is a small quiet observer by a fence.", "narration": "It begins as a seed, cared for long before we see a bowl."},
+    {"n": 3, "beat": "field", "visual": "Young green rice plants ripple in a shallow field beneath soft clouds; AION walks tiny along a narrow earthen path, not facing camera.", "narration": "With water, light, soil, and time, the plants grow tall."},
+    {"n": 4, "beat": "grain", "visual": "Close watercolor view of golden rice panicles bending gently in a breeze, with a small AION cyan glint far beyond the plants.", "narration": "Then each stalk carries a cluster of grains."},
+    {"n": 5, "beat": "harvest", "visual": "A wide imagined harvest scene: workers carefully gather ripe rice with simple tools, golden field and distant hills; AION is a tiny helper carrying an empty basket.", "narration": "When the grain is ready, it is harvested from the field."},
+    {"n": 6, "beat": "thresh", "visual": "A friendly picture-book scene of rice heads being threshed so the grains separate from straw; AION quietly watches from a safe distance.", "narration": "Threshing separates the grain from the straw."},
+    {"n": 7, "beat": "dry", "visual": "Golden paddy dries in thin layers under a clear warm sky, with a family gently turning it; AION stands small beneath a shade tree.", "narration": "Drying helps protect the grain before the next step."},
+    {"n": 8, "beat": "mill", "visual": "A simple clean small rice mill illustrated like a cutaway: paddy enters one side and clean grains emerge the other; AION is only a small guide at the doorway.", "narration": "At a mill, the tough outer hull is removed."},
+    {"n": 9, "beat": "market", "visual": "Fresh rice is packed into plain unbranded sacks and delivered to a cheerful neighborhood market; AION is a tiny observer near a bicycle.", "narration": "Then it travels from mill to market, ready for a kitchen."},
+    {"n": 10, "beat": "kitchen", "visual": "A gentle home kitchen scene: hands rinse rice in a bowl beside a pot, warm window light and paper texture; AION is a small cyan glint by a plant.", "narration": "At home, rice is rinsed, cooked, and transformed again."},
+    {"n": 11, "beat": "bowl", "visual": "Steam rises from a warm bowl of rice shared at a family table; no faces dominate, and AION is only a small seated silhouette in the background.", "narration": "A single grain becomes part of a meal and a moment together."},
+    {"n": 12, "beat": "ending", "visual": "A poetic watercolor transition from a rice bowl back to a glowing field at sunset; AION's small cyan crystal glints at the edge, no words in image.", "narration": "So the next grain you see carries a whole journey with it."}
+  ],
+  "director_plan": {
+    "version": "director-plan-v1",
+    "creative_promise": "Make an everyday bowl of rice feel like the ending of a quiet human journey.",
+    "hook": {"seconds": 5, "narration": "Before it becomes dinner, how far does one grain of rice travel?", "visual_priority": "A familiar warm bowl opens into an unexpected field; AION remains only a reflection."},
+    "visual_rule": "The rice journey leads every shot; soft illustration adds warmth but never replaces the real process.",
+    "ending": {"narration": "So the next grain you see carries a whole journey with it.", "viewer_reason_to_return": "Give ordinary meals a new reason to be noticed."}
+  },
+  "watchability_gate": {"eligible": true, "state": "pass", "version": "watchability-v1", "reasons": [], "checks": {"hook": "pass", "narration_coverage": "pass", "visual_variety": "pass", "ending": "pass", "viewer_value": "pass"}, "detail": "ตอนทดลอง AION Gentle Thailand ความยาว 60 วินาที พร้อมส่งผลิต"}
+}

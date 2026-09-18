@@ -7,6 +7,14 @@ from brain.visual_story_policy import VisualStoryPolicy
 
 
 class CreatorSceneProductionTests(unittest.TestCase):
+    def test_storyboard_can_name_future_asset_paths_before_generation(self):
+        with tempfile.TemporaryDirectory() as root:
+            root = Path(root)
+            episode_dir = root / "content" / "creator_series"; episode_dir.mkdir(parents=True)
+            (episode_dir / "episode.json").write_text('''{"id":"episode","series":"AION Wonders","title":"Test story","audience_promise":"A useful evidence-led story for every age.","wonder_hook":"Could this work?","creative_device":"journey","age_layers":{"children":"Ask.","family":"Talk.","deeper":"Test."},"target_duration_seconds":15,"scene_seconds":5,"format":"illustrated-narrated-short","pacing_policy":"fast-cut-subject-first-v1","visual_direction":{"focus":"subject-first","aion_role":"contextual-guide","aion_frame_share_max":0.20},"history_boundary":"A boundary.","sources":[{"url":"https://one.test"},{"url":"https://two.test"}],"status":"storyboard-ready-needs-assets","scenes":[{"n":1,"beat":"hook","visual":"AION explores a historical place.","narration":"One."},{"n":2,"beat":"reveal","visual":"AION observes the subject.","narration":"Two."},{"n":3,"beat":"end","visual":"AION shares a question.","narration":"Three."}]}''', encoding="utf-8")
+            result = CreatorSceneProduction(root, lambda _, destination: (Path(destination).write_bytes(b"png") or True)).produce_once(limit=1)
+            self.assertEqual([1], result["produced"])
+
     def test_background_scene_does_not_force_aion_into_frame(self):
         episode = {"format": "illustrated-narrated-short", "visual_direction": {}}
         prompt = CreatorSceneProduction()._prompt(
