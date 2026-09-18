@@ -18,6 +18,13 @@ class VisualStoryPolicy:
     DEFAULT_AION_FRAME_SHARE = 0.20
     DEFAULT_AION_ROLE = "contextual-guide"
     IDENTITY_VERSION = "aion-stylized-guide-real-world-v1"
+    APPROVED_IDENTITY_VERSIONS = {
+        IDENTITY_VERSION,
+        # A deliberately limited seasonal/locale special.  The visual medium
+        # changes, but AION remains a small contextual guide with the same
+        # recognizable silver hair, cyan eyes and crystal signature.
+        "aion-realistic-profile-with-illustrated-postcard-adaptation-v1",
+    }
     IDENTITY_SUMMARY = (
         "Original stylized 3D animated AION guide: silver-white hair, expressive cyan eyes, pearl-light skin, "
         "a small cyan crystal core, and practical ivory, charcoal, and deep-navy field clothing; "
@@ -38,7 +45,7 @@ class VisualStoryPolicy:
         if len(episode.get("scenes") or []) < cls.MIN_SHORT_SCENES:
             reasons.append("short-must-have-at-least-10-scenes")
         identity = episode.get("visual_identity") or {}
-        if identity.get("version") != cls.IDENTITY_VERSION:
+        if identity.get("version") not in cls.APPROVED_IDENTITY_VERSIONS:
             reasons.append("missing-approved-aion-visual-identity")
         visual = episode.get("visual_direction") or {}
         if visual.get("focus") != "subject-first":

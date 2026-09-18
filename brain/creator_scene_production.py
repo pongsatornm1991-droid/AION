@@ -41,6 +41,19 @@ class CreatorSceneProduction:
             if mentions_aion else
             "Do not include AION in this scene. Let the subject, people, evidence, and environment carry the story."
         )
+        visual_style = episode.get("visual_style") or {}
+        if visual_style.get("id") == "aion-illustrated-postcard-v1":
+            style_rule = (
+                "Style: original hand-painted watercolor and gouache illustrated postcard; "
+                "soft rainy-season atmosphere, visible paper grain, gentle pigment blooms, "
+                "warm everyday Southeast Asian setting, and clear educational visual storytelling. "
+                "Do not imitate any named artist, studio, or existing illustration."
+            )
+        else:
+            style_rule = (
+                "Style: original premium family-friendly cinematic 3D character with photorealistic lighting, material texture and environment; "
+                "never imitate a named studio or franchise."
+            )
         return " ".join((
             f"Use case: historical-scene. Asset type: {aspect} educational video scene.",
             f"Scene: {scene.get('visual')}",
@@ -50,8 +63,7 @@ class CreatorSceneProduction:
             presence,
             VisualStoryPolicy.prompt_rules(wardrobe, direction.get("aion_frame_share_max")),
             f"Composition: {aspect}, wide or medium-wide environmental storytelling; never make AION the hero of the frame.",
-            "Style: original premium family-friendly cinematic 3D character with photorealistic lighting, material texture and environment; "
-            "never imitate a named studio or franchise.",
+            style_rule,
             "No words, captions, logos, watermark, UI, or named-studio imitation.",
         ))
 
