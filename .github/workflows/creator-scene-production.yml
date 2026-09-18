@@ -1,10 +1,10 @@
 name: AION - subject-first scene production
 on:
   schedule:
-    # Tuesday creates the Thursday–Sunday release set; Wednesday is the
-    # recovery/QA production shift. This preserves Monday–Wednesday for
-    # research, script, images, audio and a real retry window.
-    - cron: "7 2 * * 2,3"
+    # Monday starts the release buffer; Tuesday and Wednesday complete and
+    # recover it.  No publishing appointment should depend on same-day media
+    # creation.
+    - cron: "7 2 * * 1,2,3"
   workflow_dispatch: {}
 permissions: {contents: write}
 concurrency:

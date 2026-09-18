@@ -77,6 +77,13 @@ class StoryEpisodeStager:
             payload = self._payload(entry)
             if not payload or payload.get("status") not in {"story-ready", "staged-for-studio"}:
                 continue
+            # A handoff can predate the source-integrity gate.  Keep that
+            # audit record available, but never let it repeatedly break the
+            # autonomous scheduler or enter a second production format.
+            if not CreatorSourceIntegrity.assess(
+                payload.get("sources"), payload.get("topic"), payload.get("completion_criteria")
+            )["eligible"]:
+                continue
             root_id = str(payload.get("root_question_id") or payload.get("memory_id") or "research")
             episode_id = self._episode_id(root_id, episode_format)
             if not (self.directory / f"{episode_id}.json").exists():
