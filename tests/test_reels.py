@@ -213,7 +213,7 @@ class ReelCycleTests(unittest.TestCase):
 
 
 class ReelRenderTests(unittest.TestCase):
-    def test_verified_short_voice_is_padded_instead_of_shortening_video(self):
+    def test_short_voice_is_rejected_instead_of_creating_silent_final_scenes(self):
         with tempfile.TemporaryDirectory() as root:
             output = os.path.join(root, "reel.mp4")
             with mock.patch("tools.reel_render.shutil.which", return_value="ffmpeg"), \
@@ -221,11 +221,9 @@ class ReelRenderTests(unittest.TestCase):
                  mock.patch("tools.voice.synthesize_reel_voice", return_value=True), \
                  mock.patch("tools.reel_render._audio_duration", return_value=12.0), \
                  mock.patch("tools.reel_render.subprocess.run") as run:
-                render_reel("A hook", "A thought", output, duration=18)
-            command = run.call_args.args[0]
-            self.assertIn("apad=pad_dur=18", " ".join(command))
-            self.assertNotIn("-shortest", command)
-            self.assertIn("+faststart", command)
+                with self.assertRaisesRegex(Exception, "เสียงจบก่อนภาพ"):
+                    render_reel("A hook", "A thought", output, duration=18)
+            run.assert_not_called()
 
     def test_rejects_a_storyboard_with_scenes_that_are_too_short(self):
         with tempfile.TemporaryDirectory() as root:

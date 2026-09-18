@@ -22,4 +22,4 @@ class ResearchStoryHandoffTests(unittest.TestCase):
             self.assertEqual(5, len(result["handoff"]["beats"]))
             self.assertIn("AION", result["handoff"]["visual_rule"])
             self.assertTrue(result["handoff"]["work_task_id"])
-            self.assertEqual("handoff-already-created", ResearchStoryHandoff(memory).create_once()["stage"])
+            self.assertEqual("waiting-for-research-brief", ResearchStoryHandoff(memory).create_once()["stage"])

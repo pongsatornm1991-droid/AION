@@ -30,8 +30,8 @@ class ResearchToStoryTests(unittest.TestCase):
             question = CuriosityEngine(memory).raise_question(
                 "How do coral reefs recover?", "Compare two cited sources.", priority=4,
             )
-            self._evidence(memory, question, "Source one", "https://example.org/one", "Observation one.")
-            self._evidence(memory, question, "Source two", "https://example.org/two", "Observation two.")
+            self._evidence(memory, question, "Source one", "https://one.test/one", "Observation one.")
+            self._evidence(memory, question, "Source two", "https://two.test/two", "Observation two.")
             pipeline = ResearchToStory(memory)
             result = pipeline.propose_once()
             brief = result["brief"]
@@ -53,7 +53,7 @@ class ResearchToStoryTests(unittest.TestCase):
             question = CuriosityEngine(memory).raise_question(
                 "How did Yakhchal store ice in desert summers?", "Compare two cited sources.", priority=4,
             )
-            self._evidence(memory, question, "Source one", "https://example.org/one", "Observation one.")
-            self._evidence(memory, question, "Source two", "https://example.org/two", "Observation two.")
+            self._evidence(memory, question, "Source one", "https://one.test/one", "Observation one.")
+            self._evidence(memory, question, "Source two", "https://two.test/two", "Observation two.")
             result = ResearchToStory(memory).propose_once()
             self.assertEqual("blocked-duplicate-topic", result["stage"])
