@@ -1,10 +1,10 @@
 {
-  "generated_at": "2026-09-18T11:29:42.675535+00:00",
+  "generated_at": "2026-09-18T11:30:49.575638+00:00",
   "tiles": {
     "total": 40,
-    "ok": 33,
+    "ok": 34,
     "attn": 4,
-    "running": 2
+    "running": 1
   },
   "groups": [
     {
@@ -198,8 +198,8 @@
         {
           "name": "AION - delivery evidence watchdog",
           "file": "publish-delivery-status.yml",
-          "status_class": "running",
-          "status_label": "กำลังรัน",
+          "status_class": "success",
+          "status_label": "สำเร็จ",
           "html_url": "https://github.com/pongsatornm1991-droid/AION/actions/runs/35339856678",
           "created_at": "2026-09-18T11:29:08Z"
         },
@@ -224,8 +224,8 @@
           "file": "publish-workflow-status.yml",
           "status_class": "running",
           "status_label": "กำลังรัน",
-          "html_url": "https://github.com/pongsatornm1991-droid/AION/actions/runs/35339831311",
-          "created_at": "2026-09-18T11:28:49Z"
+          "html_url": "https://github.com/pongsatornm1991-droid/AION/actions/runs/35339917270",
+          "created_at": "2026-09-18T11:29:53Z"
         },
         {
           "name": "AION - system reliability",
