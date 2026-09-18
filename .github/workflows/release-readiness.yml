@@ -13,6 +13,10 @@ on:
 
 permissions:
   contents: write
+  # A shortage is actionable: after a cited storyboard is staged, this
+  # workflow starts the existing bounded Studio production workflow.  It does
+  # not upload or publish anything itself.
+  actions: write
 
 concurrency:
   group: aion-release-readiness
@@ -42,6 +46,27 @@ jobs:
         env:
           AION_MEMORY_ROOT: memory_data
         run: python tools/recover_release_buffer.py | tee release-buffer-recovery.json
+      - name: Start bounded Studio recovery when a new storyboard is ready
+        # Before this handoff existed, a Thursday/Friday shortage could be
+        # planned successfully but then wait until Monday's image shift.  A
+        # fixed release appointment must recover immediately from an eligible,
+        # newly staged storyboard.  The Studio workflow retains all image,
+        # novelty and quality safeguards; this step only dispatches it when
+        # the recovery report explicitly says production is needed.
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          if python -c "import json; print(str(bool(json.load(open('release-buffer-recovery.json', encoding='utf-8')).get('needs_production'))).lower())" | grep -qx true; then
+            curl --fail --silent --show-error --request POST \
+              --header "Accept: application/vnd.github+json" \
+              --header "Authorization: Bearer $GH_TOKEN" \
+              --header "X-GitHub-Api-Version: 2022-11-28" \
+              "https://api.github.com/repos/${GITHUB_REPOSITORY}/actions/workflows/creator-scene-production.yml/dispatches" \
+              --data '{"ref":"main"}'
+            echo "Started bounded Studio recovery for the newly staged release episode."
+          else
+            echo "No asset-complete recovery storyboard is ready; research remains the only safe next step."
+          fi
       - name: Commit the visible readiness record
         run: |
           git config user.name aion-bot
