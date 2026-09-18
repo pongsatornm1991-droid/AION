@@ -31,6 +31,7 @@ class StoryEpisodeStagerTests(unittest.TestCase):
             self.assertEqual(12, len(episode["scenes"]))
             self.assertEqual(5, episode["scene_seconds"])
             self.assertEqual(60, episode["target_duration_seconds"])
+            self.assertEqual("bounded-fallback", episode["visual_style"]["aion_deliberation"]["origin"])
             self.assertEqual("no-story-ready-handoff", StoryEpisodeStager(memory, root).stage_once()["stage"])
 
     def test_studio_shift_stops_after_its_episode_limit(self):

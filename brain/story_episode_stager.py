@@ -17,6 +17,7 @@ from brain.watchability_gate import WatchabilityGate
 from brain.story_genome import StoryGenome
 from brain.creator_source_integrity import CreatorSourceIntegrity
 from brain.aion_visual_director import AionVisualDirector
+from brain.aion_creative_director import AionCreativeDirector
 
 
 class StoryEpisodeStager:
@@ -25,10 +26,11 @@ class StoryEpisodeStager:
     CATEGORY = "creator_research_handoffs"
     SOURCE = "aion-story-episode-stager"
 
-    def __init__(self, memory, root):
+    def __init__(self, memory, root, provider=None):
         self.memory = memory
         self.root = Path(root)
         self.directory = self.root / "content" / "creator_series"
+        self.provider = provider
 
     @staticmethod
     def _payload(entry):
@@ -119,6 +121,11 @@ class StoryEpisodeStager:
             topic,
             "illustrated-narrated-short" if episode_format == "short" else "long-form-illustrated",
         )
+        creative_deliberation = AionCreativeDirector.propose(
+            topic, audience_promise,
+            "illustrated-narrated-short" if episode_format == "short" else "long-form-illustrated",
+            self.provider,
+        )
         episode = {
             "id": episode_id,
             "series": "AION Wonders",
@@ -149,8 +156,9 @@ class StoryEpisodeStager:
             },
             "visual_style": {
                 "id": AionVisualDirector.VERSION,
-                "summary": visual_direction["principle"],
+                "summary": creative_deliberation["premise"],
                 "director": visual_direction,
+                "aion_deliberation": creative_deliberation,
             },
             "visual_identity": {
                 "version": VisualStoryPolicy.IDENTITY_VERSION,

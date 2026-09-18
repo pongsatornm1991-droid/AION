@@ -38,6 +38,10 @@ jobs:
       - name: Stage one evidence-grounded storyboard for AION Studio
         env:
           AION_MEMORY_ROOT: memory_data
+          AI_PROVIDER: ${{ vars.AI_PROVIDER || 'gemini' }}
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+          OPENAI_MODEL: ${{ vars.OPENAI_MODEL || 'gpt-5' }}
         run: python tools/stage_creator_episode.py
       - name: Stage the matching primary-episode storyboard when weekly work begins
         # Saturday's primary episode is planned on Monday, alongside the

@@ -12,6 +12,7 @@ if str(ROOT) not in sys.path:
 
 from brain.memory import MemoryEngine
 from brain.story_episode_stager import StoryEpisodeStager
+from main import build_provider
 
 
 if __name__ == "__main__":
@@ -19,4 +20,8 @@ if __name__ == "__main__":
     parser.add_argument("--format", choices=["short", "long-form"], default="short")
     args = parser.parse_args()
     memory = MemoryEngine(os.getenv("AION_MEMORY_ROOT", "memory"))
-    print(json.dumps(StoryEpisodeStager(memory, ROOT).stage_once(args.format), ensure_ascii=False, indent=2))
+    try:
+        provider = build_provider()
+    except Exception:
+        provider = None
+    print(json.dumps(StoryEpisodeStager(memory, ROOT, provider=provider).stage_once(args.format), ensure_ascii=False, indent=2))
