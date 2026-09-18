@@ -38,3 +38,15 @@ class CompanyWorkRegistryTests(unittest.TestCase):
             result = CompanyWorkRegistry(root).snapshot()
             publishing = next(x for x in result["departments"] if x["department"] == "publishing")
             self.assertEqual("success", publishing["state"])
+
+    def test_quality_requires_the_pre_release_gate_to_report(self):
+        with tempfile.TemporaryDirectory() as root:
+            public = Path(root) / "public"; public.mkdir()
+            quality_workflows = next(workflows for department, _, workflows in CompanyOperations.DEPARTMENTS
+                                     if department == "quality")
+            (public / "aion-workflow-status.json").write_text(json.dumps({
+                "groups": [{"items": [{"file": Path(quality_workflows[0]).name, "status_class": "success"}]}],
+            }), encoding="utf-8")
+            result = CompanyWorkRegistry(root).snapshot()
+            quality = next(x for x in result["departments"] if x["department"] == "quality")
+            self.assertEqual("partial", quality["state"])

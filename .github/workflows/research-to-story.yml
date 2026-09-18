@@ -5,6 +5,12 @@ on:
     # Follows the reference study so new creator lessons are available to the
     # Story Agent without starting both memory writers at once.
     - cron: "55 */3 * * *"
+  # Do not leave a newly qualified evidence record waiting for the next
+  # three-hour sweep.  This is a planning-only handoff; image generation and
+  # publication retain their separate bounded workflows.
+  workflow_run:
+    workflows: [AION - external learning cycle]
+    types: [completed]
   workflow_dispatch: {}
 
 concurrency:
@@ -16,6 +22,7 @@ permissions:
 
 jobs:
   prepare:
+    if: ${{ github.event_name != 'workflow_run' || github.event.workflow_run.conclusion == 'success' }}
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4

@@ -22,7 +22,7 @@ class CompanyOperations:
         ("audio", ("brain/audio_visual_timing.py", "tools/voice.py", "tools/reel_render.py", "tools/assemble_creator_episode.py"),
          (".github/workflows/assemble-creator-episode.yml",)),
         ("quality", ("brain/audio_visual_timing.py", "brain/youtube_quality.py", "brain/video_quality.py", "brain/evidence_qualification.py"),
-         (".github/workflows/tests.yml",)),
+         (".github/workflows/tests.yml", ".github/workflows/creator-queue-quality.yml")),
         ("publishing", ("brain/reels.py", "brain/youtube_creator_queue.py", "tools/youtube.py"),
          (".github/workflows/youtube-creator.yml", ".github/workflows/youtube-longform.yml", ".github/workflows/youtube-release-recovery.yml", ".github/workflows/creator-episode-crosspost.yml")),
         ("growth", ("brain/social_feedback.py", "brain/growth_pulse.py", "brain/growth_to_studio.py"),
