@@ -1,9 +1,9 @@
 {
-  "generated_at": "2026-09-18T18:00:25.309489+00:00",
+  "generated_at": "2026-09-18T18:03:20.180079+00:00",
   "tiles": {
     "total": 39,
     "ok": 34,
-    "attn": 4,
+    "attn": 2,
     "running": 1
   },
   "groups": [
@@ -153,9 +153,9 @@
           "name": "AION - Automation Health Monitor",
           "file": "automation-health.yml",
           "status_class": "success",
-          "status_label": "สำเร็จ",
-          "html_url": "https://github.com/pongsatornm1991-droid/AION/actions/runs/35377187636",
-          "created_at": "2026-09-18T17:55:37Z"
+          "status_label": "ไม่มีเหตุให้ดำเนินการ",
+          "html_url": "https://github.com/pongsatornm1991-droid/AION/actions/runs/35377810748",
+          "created_at": "2026-09-18T18:02:09Z"
         },
         {
           "name": "AION - Cyber Guard defensive audit",
@@ -185,9 +185,9 @@
           "name": "AION - bounded self repair",
           "file": "self-repair.yml",
           "status_class": "success",
-          "status_label": "สำเร็จ",
-          "html_url": "https://github.com/pongsatornm1991-droid/AION/actions/runs/35377187802",
-          "created_at": "2026-09-18T17:55:37Z"
+          "status_label": "ไม่มีเหตุให้ดำเนินการ",
+          "html_url": "https://github.com/pongsatornm1991-droid/AION/actions/runs/35377810774",
+          "created_at": "2026-09-18T18:02:09Z"
         },
         {
           "name": "AION - delivery evidence watchdog",
@@ -200,11 +200,10 @@
         {
           "name": "AION - deterministic tests",
           "file": "tests.yml",
-          "status_class": "failure",
-          "status_label": "ล้มเหลว",
-          "html_url": "https://github.com/pongsatornm1991-droid/AION/actions/runs/35377065849",
-          "created_at": "2026-09-18T17:54:21Z",
-          "detail": "ขั้นที่ล้มเหลว: Run python run_tests.py"
+          "status_class": "success",
+          "status_label": "สำเร็จ",
+          "html_url": "https://github.com/pongsatornm1991-droid/AION/actions/runs/35377683879",
+          "created_at": "2026-09-18T18:00:52Z"
         },
         {
           "name": "AION - media-library hygiene",
@@ -219,16 +218,16 @@
           "file": "publish-workflow-status.yml",
           "status_class": "running",
           "status_label": "กำลังรัน",
-          "html_url": "https://github.com/pongsatornm1991-droid/AION/actions/runs/35377332844",
-          "created_at": "2026-09-18T17:57:11Z"
+          "html_url": "https://github.com/pongsatornm1991-droid/AION/actions/runs/35377825746",
+          "created_at": "2026-09-18T18:02:18Z"
         },
         {
           "name": "AION - system reliability",
           "file": "system-reliability.yml",
           "status_class": "success",
           "status_label": "สำเร็จ",
-          "html_url": "https://github.com/pongsatornm1991-droid/AION/actions/runs/35377065920",
-          "created_at": "2026-09-18T17:54:21Z"
+          "html_url": "https://github.com/pongsatornm1991-droid/AION/actions/runs/35377684013",
+          "created_at": "2026-09-18T18:00:52Z"
         }
       ]
     },
@@ -271,11 +270,10 @@
         {
           "name": "AION - admin operations audit",
           "file": "admin-operations.yml",
-          "status_class": "failure",
-          "status_label": "ล้มเหลว",
-          "html_url": "https://github.com/pongsatornm1991-droid/AION/actions/runs/35377065946",
-          "created_at": "2026-09-18T17:54:21Z",
-          "detail": "ขั้นที่ล้มเหลว: Run python -m unittest tests.test_company_operations tests.test_dashboard tests.test_social -q"
+          "status_class": "success",
+          "status_label": "สำเร็จ",
+          "html_url": "https://github.com/pongsatornm1991-droid/AION/actions/runs/35377683883",
+          "created_at": "2026-09-18T18:00:52Z"
         },
         {
           "name": "AION - audience accessibility checks",
