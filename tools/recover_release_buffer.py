@@ -1,7 +1,7 @@
 """Bounded recovery plan for a missing Creator release buffer.
 
 It never reuses an old reel, publishes, changes credentials, or generates an
-unbounded backlog.  The planner mirrors the real 96-hour appointments: it
+unbounded backlog.  The planner mirrors the real 144-hour appointments: it
 identifies every missing Short *and* primary episode, prepares the next
 research-grounded storyboard when available, and leaves media generation to
 the existing bounded Studio shift.

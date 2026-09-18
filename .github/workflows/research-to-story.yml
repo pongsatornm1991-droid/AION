@@ -27,6 +27,11 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: "3.11"
+      - name: Install the story-planning runtime
+        # stage_creator_episode imports the provider factory from main.py,
+        # which loads dotenv.  Installing the declared runtime here prevents
+        # a healthy research brief from dying at the handoff boundary.
+        run: python -m pip install --disable-pip-version-check -r requirements.txt
       - name: Prepare one evidence-grounded story brief
         env:
           AION_MEMORY_ROOT: memory_data

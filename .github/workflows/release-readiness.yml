@@ -9,6 +9,15 @@ on:
     # produce its release buffer; checking before it would create a false
     # shortage alert while the planned work is still legitimately underway.
     - cron: "30 5 * * *" # 12:30 Asia/Bangkok
+  workflow_run:
+    # Refresh immediately when the production pipeline changes.  The daily
+    # check remains the fallback, while this avoids a stale 96/144-hour board
+    # between scheduled runs.
+    workflows:
+      - AION - Research to story brief
+      - AION - subject-first scene production
+      - AION - assemble illustrated Creator episode
+    types: [completed]
   workflow_dispatch: {}
 
 permissions:
