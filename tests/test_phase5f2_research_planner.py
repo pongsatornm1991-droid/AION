@@ -100,6 +100,20 @@ class ResearchPlannerPhase5F2Tests(
             3,
         )
 
+    def test_specialist_source_does_not_win_an_unrelated_topic(self):
+        registry = FakeRegistry()
+        registry._sources.append({
+            "id": "life_index", "name": "Life index", "tier": "A", "enabled": True,
+            "capabilities": ["general_external"], "scope_keywords": ["biology", "cell", "animal"],
+        })
+        planner = AutonomousResearchPlanner(registry)
+        plan = planner.plan(
+            {"evidence_types": ["general_external"], "required_count": 2},
+            available_adapter_ids=["wikipedia", "arxiv", "life_index"],
+            existing_evidence=[], topic="How did ancient desert buildings preserve ice?",
+        )
+        self.assertNotEqual("life_index", plan["source_id"])
+
     def test_capability_report_uses_registry_not_old_hardcoded_map(self):
         cycle = object.__new__(
             WebLearningCycle

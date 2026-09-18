@@ -104,6 +104,7 @@ class AutonomousResearchPlanner:
         requirement_report,
         available_adapter_ids,
         existing_evidence=None,
+        topic=None,
     ):
         """Create a bounded research plan.
 
@@ -163,6 +164,10 @@ class AutonomousResearchPlanner:
             )
         )
 
+        topic_words = {
+            word for word in str(topic or "").lower().replace("-", " ").split()
+            if len(word) > 2
+        }
         candidates = []
 
         for source in self._enabled_sources():
@@ -178,6 +183,20 @@ class AutonomousResearchPlanner:
                     source
                 )
             )
+
+            # A specialist index must not win merely because its source tier
+            # is high.  Europe PMC is excellent for life sciences, but it is
+            # the wrong first stop for Persian architecture; that mismatch was
+            # causing irrelevant papers to consume a release-buffer research
+            # attempt.  Broad sources omit scope_keywords and remain usable
+            # for every topic.
+            scope_keywords = {
+                str(item).strip().lower()
+                for item in source.get("scope_keywords", [])
+                if str(item).strip()
+            }
+            if scope_keywords and topic_words and not (scope_keywords & topic_words):
+                continue
 
             matched_types = [
                 evidence_type
@@ -220,6 +239,7 @@ class AutonomousResearchPlanner:
                 "capabilities": sorted(
                     capabilities
                 ),
+                "scope_matched": bool(scope_keywords),
                 "matched_evidence_types": (
                     matched_types
                 ),
@@ -302,7 +322,7 @@ class AutonomousResearchPlanner:
             "reason": (
                 "Selected the highest-ranked enabled "
                 "adapter whose declared capabilities "
-                "match the question's evidence "
+                "and subject scope match the question's evidence "
                 "requirements."
             ),
         }

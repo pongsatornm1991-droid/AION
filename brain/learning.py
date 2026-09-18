@@ -1643,6 +1643,7 @@ class WebLearningCycle:
         self,
         requirement_report,
         existing_evidence=None,
+        topic=None,
     ):
         """Describe whether current adapters can satisfy the requirement.
 
@@ -1716,6 +1717,7 @@ class WebLearningCycle:
                     existing_evidence=(
                         existing_evidence
                     ),
+                    topic=topic,
                 )
             )
 
@@ -2851,6 +2853,7 @@ class WebLearningCycle:
                 existing_evidence=(
                     existing_evidence
                 ),
+                topic=question_entry.get("statement"),
             )
         )
 
