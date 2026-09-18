@@ -1,10 +1,10 @@
 {
-  "generated_at": "2026-09-18T08:50:28.454028+00:00",
+  "generated_at": "2026-09-18T08:51:13.864193+00:00",
   "tiles": {
     "total": 41,
-    "ok": 32,
+    "ok": 33,
     "attn": 6,
-    "running": 3
+    "running": 2
   },
   "groups": [
     {
@@ -166,8 +166,8 @@
         {
           "name": "AION - Automation Health Monitor",
           "file": "automation-health.yml",
-          "status_class": "running",
-          "status_label": "กำลังรัน",
+          "status_class": "success",
+          "status_label": "สำเร็จ",
           "html_url": "https://github.com/pongsatornm1991-droid/AION/actions/runs/35326388115",
           "created_at": "2026-09-18T08:50:05Z"
         },
