@@ -16,12 +16,12 @@ class CostumeDirection:
     def brief_for(cls, episode, scene):
         text = " ".join((str(episode.get("title") or ""), str(scene.get("visual") or ""))).lower()
         base = (
-            "AION is an original stylized gender-neutral animated AI guide, with airy silver-white hair, "
-            "large expressive cyan eyes, pearl-light skin with faint constellation filaments, and a small "
-            "faceted cyan crystal core at the sternum; place this character in a realistic cinematic world. "
+            "AION is an original gender-neutral 2D animated-documentary AI guide, with airy silver-white hair, "
+            "expressive cyan eyes, pearl-light skin, and a small faceted cyan crystal pin. Use clean expressive "
+            "linework and a cinematic painted environment; AION remains a small contextual guide. "
             "Never use an all-blue body or outfit. "
-            "AION wears a modest practical field layer: warm ivory collarless travel jacket, charcoal "
-            "utility sash, deep-navy trousers, flat practical boots; no logo, no cape, no armour, no fashion-pose"
+            "AION wears a modest black suit, black shirt and tie, adapted only with practical outer layers when the "
+            "setting needs them; no logo, no cape, no armour, no fashion-pose"
         )
         if any(word in text for word in ("ice", "winter", "cold", "frost", "night")):
             return base + "; add a short pale-sand insulated overshirt for cold night work"

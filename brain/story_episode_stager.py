@@ -142,10 +142,14 @@ class StoryEpisodeStager:
                 "aion_frame_share_max": 0.20,
                 "aion_presence_rationale": "AION is a small guide who helps viewers notice evidence; the subject and environment remain central.",
             },
+            "visual_style": {
+                "id": "aion-animated-documentary-v1",
+                "summary": "Original premium 2D animated documentary: expressive linework, soft cel shading and cinematic painted environments, designed to welcome viewers of every age without imitating a named creator or studio.",
+            },
             "visual_identity": {
                 "version": VisualStoryPolicy.IDENTITY_VERSION,
                 "character": VisualStoryPolicy.IDENTITY_SUMMARY,
-                "environment": "Original premium family-friendly cinematic 3D scenes with realistic light and materials; never imitate a named studio.",
+                "environment": "Original premium 2D animated-documentary scenes with cinematic painted light and depth; never imitate a named creator, channel or studio.",
                 "prohibited": ["all-blue body", "all-blue outfit", "cape", "armour", "fashion pose", "embedded text", "logo", "watermark"],
             },
             "scenes": [

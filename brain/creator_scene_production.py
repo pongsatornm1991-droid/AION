@@ -49,6 +49,13 @@ class CreatorSceneProduction:
                 "warm everyday Southeast Asian setting, and clear educational visual storytelling. "
                 "Do not imitate any named artist, studio, or existing illustration."
             )
+        elif visual_style.get("id") == "aion-animated-documentary-v1":
+            style_rule = (
+                "Style: original premium 2D animated documentary illustration; clean expressive linework, "
+                "soft cel shading, cinematic painted depth and textures, friendly intelligent characters, "
+                "and a beautiful all-ages educational mood. Do not imitate any named artist, studio, channel, "
+                "mascot, franchise, or existing composition."
+            )
         else:
             style_rule = (
                 "Style: original premium family-friendly cinematic 3D character with photorealistic lighting, material texture and environment; "
@@ -57,9 +64,9 @@ class CreatorSceneProduction:
         return " ".join((
             f"Use case: historical-scene. Asset type: {aspect} educational video scene.",
             f"Scene: {scene.get('visual')}",
-            "If AION appears, it is an original stylized gender-neutral animated AI guide with airy silver-white hair, "
-            "expressive cyan eyes, pearl-light skin, subtle constellation filaments, a small faceted cyan crystal core at the sternum, "
-            "and warm-ivory and charcoal practical clothing; place this character in a realistic cinematic world and preserve this identity.",
+            "If AION appears, it is an original gender-neutral 2D animated-documentary AI guide with airy silver-white hair, "
+            "expressive cyan eyes, pearl-light skin, a small faceted cyan crystal pin, and a practical black suit, black shirt and tie; "
+            "keep this character contextual rather than dominant.",
             presence,
             VisualStoryPolicy.prompt_rules(wardrobe, direction.get("aion_frame_share_max")),
             f"Composition: {aspect}, wide or medium-wide environmental storytelling; never make AION the hero of the frame.",

@@ -22,7 +22,16 @@ class CreatorSceneProductionTests(unittest.TestCase):
         )
         self.assertIn("Do not include AION in this scene", prompt)
         self.assertIn("never make AION the hero", prompt)
-        self.assertIn("photorealistic lighting", prompt)
+        self.assertIn("2D animated-documentary", prompt)
+
+    def test_animated_documentary_episode_uses_the_approved_original_style(self):
+        episode = {"format": "illustrated-narrated-short", "visual_direction": {},
+                   "visual_style": {"id": "aion-animated-documentary-v1"}}
+        prompt = CreatorSceneProduction()._prompt(
+            episode, {"visual": "A Roman baker pulls bread from a busy oven."}
+        )
+        self.assertIn("premium 2D animated documentary illustration", prompt)
+        self.assertIn("Do not imitate any named artist", prompt)
 
     def test_creates_bounded_fresh_assets_and_updates_storyboard(self):
         with tempfile.TemporaryDirectory() as root:

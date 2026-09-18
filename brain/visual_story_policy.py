@@ -17,18 +17,21 @@ class VisualStoryPolicy:
     MAX_AION_FRAME_SHARE = 0.35
     DEFAULT_AION_FRAME_SHARE = 0.20
     DEFAULT_AION_ROLE = "contextual-guide"
-    IDENTITY_VERSION = "aion-stylized-guide-real-world-v1"
+    IDENTITY_VERSION = "aion-animated-documentary-guide-v1"
     APPROVED_IDENTITY_VERSIONS = {
         IDENTITY_VERSION,
+        # Previous default episodes remain valid as historical releases. New
+        # storyboards use the more accessible 2D documentary identity.
+        "aion-stylized-guide-real-world-v1",
         # A deliberately limited seasonal/locale special.  The visual medium
         # changes, but AION remains a small contextual guide with the same
         # recognizable silver hair, cyan eyes and crystal signature.
         "aion-realistic-profile-with-illustrated-postcard-adaptation-v1",
     }
     IDENTITY_SUMMARY = (
-        "Original stylized 3D animated AION guide: silver-white hair, expressive cyan eyes, pearl-light skin, "
-        "a small cyan crystal core, and practical ivory, charcoal, and deep-navy field clothing; "
-        "a realistic cinematic world is the setting, never an all-blue body or outfit."
+        "Original 2D animated-documentary AION guide: silver-white hair, expressive cyan eyes, pearl-light skin, "
+        "a small cyan crystal pin, and a practical black suit with black shirt and tie; clean expressive linework "
+        "and cinematic painted environments support the story, never an all-blue body or outfit."
     )
 
     @classmethod
