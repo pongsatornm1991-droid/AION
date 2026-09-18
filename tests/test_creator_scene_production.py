@@ -22,7 +22,7 @@ class CreatorSceneProductionTests(unittest.TestCase):
         )
         self.assertIn("Do not include AION in this scene", prompt)
         self.assertIn("never make AION the hero", prompt)
-        self.assertIn("2D animated-documentary", prompt)
+        self.assertIn("story-specific chosen presence", prompt)
 
     def test_animated_documentary_episode_uses_the_approved_original_style(self):
         episode = {"format": "illustrated-narrated-short", "visual_direction": {},

@@ -11,6 +11,7 @@ class _Provider:
             "world": "memory coast", "mood": "quiet discovery",
             "palette_and_material": "blue hour and translucent glass",
             "aion_role": "a small observer at the edge",
+            "appearance_choice": "a quiet traveller in weatherproof slate layers with a cyan compass pin",
             "rendering_rule": "Original expressive illustration with no named references.",
         })
 
@@ -20,6 +21,7 @@ class AionCreativeDirectorTests(unittest.TestCase):
         result = AionCreativeDirector.propose("Ocean memory", "Learn carefully", provider=_Provider())
         self.assertEqual("aion-model-deliberation", result["origin"])
         self.assertEqual("memory coast", result["world"])
+        self.assertIn("traveller", result["appearance_choice"])
 
     def test_falls_back_without_a_provider(self):
         result = AionCreativeDirector.propose("Ocean memory", "Learn carefully")

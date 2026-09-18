@@ -30,6 +30,7 @@ class AionCreativeDirector:
             "mood": direction["mood"],
             "palette_and_material": direction["palette_and_material"],
             "aion_role": "small contextual guide; never the dominant subject",
+            "appearance_choice": "AION may appear as a small cyan curiosity signal or a practical context-appropriate traveler; no fixed costume is required.",
             "rendering_rule": direction["rendering_rule"],
         }
 
@@ -42,7 +43,7 @@ class AionCreativeDirector:
             "You are AION's creative director. Propose an ORIGINAL visual thoughtscape for one evidence-grounded educational story.",
             "You are not allowed to change facts, add unsupported claims, name or imitate any artist, studio, channel, franchise, character, or existing artwork.",
             "The subject and evidence must lead. AION is a small contextual guide, never a posed hero.",
-            "Return JSON only with these keys: premise, world, mood, palette_and_material, aion_role, rendering_rule.",
+            "Return JSON only with these keys: premise, world, mood, palette_and_material, aion_role, appearance_choice, rendering_rule.",
             "Each field must be concise and usable as an image-production brief. No text in images.",
             f"Topic: {cls._clean(topic)}",
             f"Viewer promise: {cls._clean(audience_promise, 260)}",
@@ -53,7 +54,7 @@ class AionCreativeDirector:
             parsed = json.loads(raw)
             if not isinstance(parsed, dict):
                 raise ValueError("creative response is not an object")
-            required = ("premise", "world", "mood", "palette_and_material", "aion_role", "rendering_rule")
+            required = ("premise", "world", "mood", "palette_and_material", "aion_role", "appearance_choice", "rendering_rule")
             result = {key: cls._clean(parsed.get(key)) for key in required}
             if any(not result[key] for key in required):
                 raise ValueError("creative response missing required fields")

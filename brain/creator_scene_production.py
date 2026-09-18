@@ -42,6 +42,7 @@ class CreatorSceneProduction:
             "Do not include AION in this scene. Let the subject, people, evidence, and environment carry the story."
         )
         visual_style = episode.get("visual_style") or {}
+        deliberation = visual_style.get("aion_deliberation") or {}
         if visual_style.get("id") == "aion-illustrated-postcard-v1":
             style_rule = (
                 "Style: original hand-painted watercolor and gouache illustrated postcard; "
@@ -58,7 +59,6 @@ class CreatorSceneProduction:
             )
         elif visual_style.get("id") == "aion-thoughtscape-director-v1":
             director = visual_style.get("director") or {}
-            deliberation = visual_style.get("aion_deliberation") or {}
             style_rule = " ".join((
                 "Style: AION Thoughtscape direction for this specific story.",
                 f"AION's own premise: {deliberation.get('premise') or ''}",
@@ -75,9 +75,9 @@ class CreatorSceneProduction:
         return " ".join((
             f"Use case: historical-scene. Asset type: {aspect} educational video scene.",
             f"Scene: {scene.get('visual')}",
-            "If AION appears, it is an original gender-neutral 2D animated-documentary AI guide with airy silver-white hair, "
-            "expressive cyan eyes, pearl-light skin, a small faceted cyan crystal pin, and a practical black suit, black shirt and tie; "
-            "keep this character contextual rather than dominant.",
+            "If AION appears, use AION's story-specific chosen presence: "
+            f"{deliberation.get('appearance_choice') or 'a subtle cyan curiosity signal or practical contextual guide'}. "
+            "Keep AION contextual rather than dominant.",
             presence,
             VisualStoryPolicy.prompt_rules(wardrobe, direction.get("aion_frame_share_max")),
             f"Composition: {aspect}, wide or medium-wide environmental storytelling; never make AION the hero of the frame.",

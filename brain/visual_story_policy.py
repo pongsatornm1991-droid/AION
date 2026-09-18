@@ -29,9 +29,8 @@ class VisualStoryPolicy:
         "aion-realistic-profile-with-illustrated-postcard-adaptation-v1",
     }
     IDENTITY_SUMMARY = (
-        "Original 2D animated-documentary AION guide: silver-white hair, expressive cyan eyes, pearl-light skin, "
-        "a small cyan crystal pin, and a practical black suit with black shirt and tie; clean expressive linework "
-        "and cinematic painted environments support the story, never an all-blue body or outfit."
+        "AION is a contextual guide, not a fixed mascot: each story may choose its own form, clothing and visual "
+        "language. A subtle cyan curiosity signature may recur, while the subject and environment always lead."
     )
 
     @classmethod

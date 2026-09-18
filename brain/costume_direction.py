@@ -15,20 +15,20 @@ class CostumeDirection:
     @classmethod
     def brief_for(cls, episode, scene):
         text = " ".join((str(episode.get("title") or ""), str(scene.get("visual") or ""))).lower()
+        deliberation = ((episode.get("visual_style") or {}).get("aion_deliberation") or {})
+        appearance = str(deliberation.get("appearance_choice") or "").strip()
         base = (
-            "AION is an original gender-neutral 2D animated-documentary AI guide, with airy silver-white hair, "
-            "expressive cyan eyes, pearl-light skin, and a small faceted cyan crystal pin. Use clean expressive "
-            "linework and a cinematic painted environment; AION remains a small contextual guide. "
-            "Never use an all-blue body or outfit. "
-            "AION wears a modest black suit, black shirt and tie, adapted only with practical outer layers when the "
-            "setting needs them; no logo, no cape, no armour, no fashion-pose"
+            "AION is an original contextual guide, not a fixed mascot. Keep only a subtle recognisable curiosity "
+            "signature (for example a cyan glint, crystal, ring, or light) when AION appears. "
+            f"AION's chosen appearance for this story: {appearance or 'Choose a practical, understated appearance that belongs to the scene.'} "
+            "AION remains small and never dominates the frame; no logo, no cape, no armour, no fashion-pose."
         )
         if any(word in text for word in ("ice", "winter", "cold", "frost", "night")):
-            return base + "; add a short pale-sand insulated overshirt for cold night work"
+            return base + "; adapt materials for a cold night setting if AION appears"
         if any(word in text for word in ("family", "courtyard", "drink", "builders")):
-            return base + "; soften to a simple warm earth-toned visitor layer, respectful and unobtrusive"
+            return base + "; choose a respectful, unobtrusive local-context layer if AION appears"
         if any(word in text for word in ("source", "evidence", "model", "map", "sketch")):
-            return base + "; add a compact archival satchel, used only as a practical research prop"
+            return base + "; a compact archival prop is allowed only if it supports the scene"
         return base
 
     @classmethod
