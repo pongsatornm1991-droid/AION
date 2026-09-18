@@ -1,10 +1,10 @@
 {
-  "generated_at": "2026-09-18T23:48:56.869105+00:00",
+  "generated_at": "2026-09-18T23:50:27.937756+00:00",
   "tiles": {
     "total": 39,
-    "ok": 33,
+    "ok": 34,
     "attn": 2,
-    "running": 2
+    "running": 1
   },
   "groups": [
     {
@@ -14,8 +14,8 @@
         {
           "name": "AION - Creator queue quality gate",
           "file": "creator-queue-quality.yml",
-          "status_class": "running",
-          "status_label": "กำลังรัน",
+          "status_class": "success",
+          "status_label": "สำเร็จ",
           "html_url": "https://github.com/pongsatornm1991-droid/AION/actions/runs/35407059264",
           "created_at": "2026-09-18T23:47:53Z"
         },
