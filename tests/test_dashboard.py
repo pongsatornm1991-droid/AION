@@ -28,6 +28,7 @@ class DashboardTests(unittest.TestCase):
         # published item, if present, never appears as live production.
         self.assertFalse(published_ids & production_ids)
         self.assertTrue(all(item["status"] != "published" for item in snapshot["release_queue"]))
+        self.assertIn("state", snapshot["release_readiness"])
 
     def test_snapshot_combines_platforms_and_mind(self):
         with tempfile.TemporaryDirectory() as root:

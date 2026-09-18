@@ -684,6 +684,10 @@ def build_studio_snapshot(memory_root=None):
     studio_memory = MemoryEngine(configured_root)
     company = AionCompany(studio_memory, ROOT).board(episodes, queue)
     next_release = _next_studio_release(studio_memory)
+    # Use the same durable 144-hour calculation as Operations. Studio then
+    # explains an empty release queue as a real production shortage rather
+    # than leaving the owner to guess whether the page failed to load.
+    release_readiness = ReleaseReadiness(studio_memory, ROOT).snapshot()
     try:
         episode_details = CreatorSeriesRegistry().episodes()
     except (OSError, ValueError, TypeError):
@@ -812,6 +816,7 @@ def build_studio_snapshot(memory_root=None):
         ],
         "production_episodes": production_episodes,
         "next_release": next_release,
+        "release_readiness": release_readiness,
         "references": snapshot.get("creator_references", {}),
         # Keep the research-to-production chain visible inside Studio.  The
         # observatory has the full activity log, while Studio needs the
