@@ -196,12 +196,12 @@ class OperationsControlTower:
             # memory, while clearly labelling its source below.
             live = ReleaseReadiness(self.memory, self.root).snapshot()
             shortages = live.get("shortages") or []
-            detail = "มีคลิปใหม่พร้อมสำหรับทุกช่วงเผยแพร่ 96 ชั่วโมงข้างหน้า" if not shortages else "ยังขาดบัฟเฟอร์: " + ", ".join(
+            detail = "มีคลิปใหม่พร้อมสำหรับทุกช่วงเผยแพร่ 144 ชั่วโมงข้างหน้า" if not shortages else "ยังขาดบัฟเฟอร์: " + ", ".join(
                 f"{item.get('content_kind')} {item.get('missing')} ตอน" for item in shortages
             )
             return {"state": live.get("state", "waiting"), "label": "บัฟเฟอร์วันเผยแพร่", "detail": detail, "report": live, "source": "local-live-queue"}
         shortages = payload.get("shortages") or []
-        detail = "มีคลิปใหม่พร้อมสำหรับทุกช่วงเผยแพร่ 96 ชั่วโมงข้างหน้า" if not shortages else "ยังขาดบัฟเฟอร์: " + ", ".join(
+        detail = "มีคลิปใหม่พร้อมสำหรับทุกช่วงเผยแพร่ 144 ชั่วโมงข้างหน้า" if not shortages else "ยังขาดบัฟเฟอร์: " + ", ".join(
             f"{item.get('content_kind')} {item.get('missing')} ตอน" for item in shortages
         )
         return {"state": payload.get("state", "waiting"), "label": "บัฟเฟอร์วันเผยแพร่", "detail": detail, "report": payload}

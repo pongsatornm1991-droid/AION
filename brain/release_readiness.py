@@ -18,7 +18,10 @@ class ReleaseReadiness:
     # Thursday/Friday build discovery, Saturday carries the main episode and
     # Sunday closes the weekly arc with a related but non-duplicative Short.
     SHORT_DAYS = {3, 4, 6}  # Thursday, Friday, Sunday
-    HORIZON_HOURS = 96
+    # A complete Thu–Sun release set must be visible even when the check runs
+    # on Wednesday afternoon.  Ninety-six hours ended before Sunday evening,
+    # which could falsely call a one-week buffer healthy.
+    HORIZON_HOURS = 144
 
     def __init__(self, memory, root=None):
         self.memory = memory
@@ -76,5 +79,5 @@ class ReleaseReadiness:
             "slots": slots,
             "available": available,
             "shortages": shortages,
-            "policy": "ตรวจล่วงหน้า 96 ชั่วโมง; นับเฉพาะตอนใหม่ที่ผ่าน Quality Gate พร้อมและไม่ซ้ำ ไม่ใช้คลิปเก่าแทนวันปล่อย",
+            "policy": "ตรวจล่วงหน้า 144 ชั่วโมง; นับเฉพาะตอนใหม่ที่ผ่าน Quality Gate พร้อมและไม่ซ้ำ ไม่ใช้คลิปเก่าแทนวันปล่อย",
         }

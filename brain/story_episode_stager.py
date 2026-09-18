@@ -16,6 +16,7 @@ from brain.aion_director import AionDirector
 from brain.watchability_gate import WatchabilityGate
 from brain.story_genome import StoryGenome
 from brain.creator_source_integrity import CreatorSourceIntegrity
+from brain.aion_visual_director import AionVisualDirector
 
 
 class StoryEpisodeStager:
@@ -114,6 +115,10 @@ class StoryEpisodeStager:
         uncertainty = self._clean(handoff.get("unknown_facts"), 260)
         title = self._clean(handoff.get("working_title"), 100) or f"AION Wonders: {topic}"
         audience_promise = self._clean(handoff.get("audience_value"), 240) or f"A viewer of any age can follow a clear, evidence-backed answer to: {topic}"
+        visual_direction = AionVisualDirector.direct(
+            topic,
+            "illustrated-narrated-short" if episode_format == "short" else "long-form-illustrated",
+        )
         episode = {
             "id": episode_id,
             "series": "AION Wonders",
@@ -143,13 +148,14 @@ class StoryEpisodeStager:
                 "aion_presence_rationale": "AION is a small guide who helps viewers notice evidence; the subject and environment remain central.",
             },
             "visual_style": {
-                "id": "aion-animated-documentary-v1",
-                "summary": "Original premium 2D animated documentary: expressive linework, soft cel shading and cinematic painted environments, designed to welcome viewers of every age without imitating a named creator or studio.",
+                "id": AionVisualDirector.VERSION,
+                "summary": visual_direction["principle"],
+                "director": visual_direction,
             },
             "visual_identity": {
                 "version": VisualStoryPolicy.IDENTITY_VERSION,
                 "character": VisualStoryPolicy.IDENTITY_SUMMARY,
-                "environment": "Original premium 2D animated-documentary scenes with cinematic painted light and depth; never imitate a named creator, channel or studio.",
+                "environment": visual_direction["rendering_rule"],
                 "prohibited": ["all-blue body", "all-blue outfit", "cape", "armour", "fashion pose", "embedded text", "logo", "watermark"],
             },
             "scenes": [

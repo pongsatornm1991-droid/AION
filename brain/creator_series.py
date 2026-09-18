@@ -103,5 +103,6 @@ class CreatorSeriesRegistry:
             "scene_seconds": item["scene_seconds"],
             "pacing_policy": item.get("pacing_policy", "legacy-v1"),
             "visual_direction": item.get("visual_direction", {}),
+            "visual_style": item.get("visual_style", {}),
             "growth_plan": item.get("growth_plan", {}),
         } for item in self.episodes()]

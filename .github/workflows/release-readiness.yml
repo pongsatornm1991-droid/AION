@@ -1,7 +1,7 @@
 name: AION - Creator release readiness
 
 # This is the early-warning layer for the fixed publishing appointments.  It
-# does not generate media or publish anything: it makes a missing 96-hour
+# does not generate media or publish anything: it makes a missing 144-hour
 # buffer visible early enough for the normal Studio shifts to recover it.
 on:
   schedule:

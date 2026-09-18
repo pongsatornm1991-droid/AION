@@ -14,20 +14,20 @@ class ReleaseReadinessTests(unittest.TestCase):
             root = Path(root)
             (root / "content" / "creator_series").mkdir(parents=True)
             (root / "content" / "reels").mkdir(parents=True)
-            for ident in ("one", "two"):
+            for ident, episode_format in (("one", "illustrated-narrated-short"), ("two", "illustrated-narrated-short"), ("three", "illustrated-narrated-short"), ("primary", "long-form-illustrated")):
                 (root / "content" / "reels" / f"{ident}.mp4").write_bytes(b"video")
                 (root / "content" / "reels" / f"{ident}-cover.png").write_bytes(b"cover")
                 (root / "content" / "creator_series" / f"{ident}.json").write_text(json.dumps({
                     "id": ident, "series": "Test", "title": ident, "status": "production-ready-assets-and-script",
-                    "format": "illustrated-narrated-short", "target_duration_seconds": 50, "scene_seconds": 5,
+                    "format": episode_format, "target_duration_seconds": 50 if episode_format == "illustrated-narrated-short" else 120, "scene_seconds": 5,
                     "audience_promise": "A clear evidence-led story with useful value for viewers of every age.",
                     "wonder_hook": "Could a surprising question change what we notice?", "creative_device": "journey",
                     "age_layers": {"children": "Ask.", "family": "Compare.", "deeper": "Check evidence."},
                     "science_boundary": "A boundary.", "sources": [{"url": "https://one.test"}, {"url": "https://two.test"}],
-                    "scenes": [{"n": n, "visual": "The subject leads; AION is a guide.", "narration": "A useful narrated beat."} for n in range(1, 11)],
+                    "scenes": [{"n": n, "visual": "The subject leads; AION is a guide.", "narration": "A useful narrated beat."} for n in range(1, 11 if episode_format == "illustrated-narrated-short" else 25)],
                 }), encoding="utf-8")
             memory = MemoryEngine(root / "memory")
-            for ident in ("one", "two"):
+            for ident in ("one", "two", "three", "primary"):
                 memory.remember("youtube_creator_queue", json.dumps({
                     "episode_id": ident,
                     "quality_gate": {"eligible": True, "reasons": []},
@@ -36,7 +36,8 @@ class ReleaseReadinessTests(unittest.TestCase):
                 datetime(2026, 9, 14, 9, 0, tzinfo=ReleaseReadiness.BANGKOK)
             )
             self.assertEqual("ready", report["state"])
-            self.assertEqual(2, len(report["available"]["short"]))
+            self.assertEqual(3, len(report["available"]["short"]))
+            self.assertEqual(1, len(report["available"]["long-form"]))
 
     def test_does_not_count_a_video_without_a_saved_quality_gate(self):
         with tempfile.TemporaryDirectory() as root:

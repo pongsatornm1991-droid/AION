@@ -33,6 +33,16 @@ class CreatorSceneProductionTests(unittest.TestCase):
         self.assertIn("premium 2D animated documentary illustration", prompt)
         self.assertIn("Do not imitate any named artist", prompt)
 
+    def test_thoughtscape_direction_is_specific_to_the_story_without_copying_a_style(self):
+        episode = {"format": "illustrated-narrated-short", "visual_direction": {},
+                   "visual_style": {"id": "aion-thoughtscape-director-v1", "director": {
+                       "world": "ocean", "mood": "luminous marine curiosity",
+                       "palette_and_material": "glass light", "rendering_rule": "Original work only; never imitate a named studio."}}}
+        prompt = CreatorSceneProduction()._prompt(episode, {"visual": "An octopus moves through coral."})
+        self.assertIn("AION Thoughtscape direction", prompt)
+        self.assertIn("World: ocean", prompt)
+        self.assertIn("never imitate a named studio", prompt)
+
     def test_creates_bounded_fresh_assets_and_updates_storyboard(self):
         with tempfile.TemporaryDirectory() as root:
             root = Path(root)
