@@ -133,6 +133,21 @@ class YouTubeCreatorQueueTests(unittest.TestCase):
             self.assertFalse(gate["eligible"])
             self.assertIn("video-qa:missing-audio-stream", gate["reasons"])
 
+    def test_pre_release_quality_gate_records_a_block_without_uploading(self):
+        with tempfile.TemporaryDirectory() as root:
+            self._episode(root)
+            (Path(root) / "content" / "reels" / "episode.mp4").write_bytes(b"video")
+            policy = Path(root) / "config"; policy.mkdir()
+            (policy / "aion_authority.json").write_text('{"public_publishing":{"enabled":true}}', encoding="utf-8")
+            queue = YouTubeCreatorQueue(MemoryEngine(Path(root) / "memory"), root)
+            queue.prepare_once()
+            with patch("brain.video_quality.VideoQualityGate.assess", return_value={"eligible": False, "reasons": ["missing-audio-stream"]}):
+                report = queue.quality_pending()
+            self.assertEqual(["episode"], report["blocked"])
+            gate = queue.candidates()[0]["quality_gate"]
+            self.assertFalse(gate["eligible"])
+            self.assertIn("video-qa:missing-audio-stream", gate["reasons"])
+
     def test_vertical_feature_uses_shorts_tag_after_passing_qa(self):
         with tempfile.TemporaryDirectory() as root:
             self._episode(root)

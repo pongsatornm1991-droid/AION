@@ -1848,6 +1848,17 @@ def run_prepare_youtube_creator(args):
         print(report["publish_note"])
 
 
+def run_quality_youtube_creator(args):
+    """Persist pre-release Quality Gate evidence without publishing anything."""
+    report = YouTubeCreatorQueue(Thinker().memory).quality_pending(getattr(args, "content_kind", None))
+    print("\nAION YOUTUBE CREATOR QUALITY")
+    print(f"Stage: {report['stage']}")
+    print(f"Passed: {len(report['passed'])}")
+    print(f"Blocked: {len(report['blocked'])}")
+    if report["blocked"]:
+        print(f"Blocked episodes: {', '.join(report['blocked'])}")
+
+
 def run_publish_youtube_creator(args):
     """Upload one quality-gated, authorized AION Studio Creator episode."""
     load_dotenv()
@@ -3723,6 +3734,8 @@ def build_parser():
     youtube_creator_publish_parser.add_argument("--content-kind", choices=("short", "long-form"), help="Publish only the selected YouTube format.")
     youtube_creator_prepare_parser = subparsers.add_parser("prepare-youtube-creator", help="Prepare one rendered Creator Series episode for YouTube review; never uploads it.")
     youtube_creator_prepare_parser.add_argument("--content-kind", choices=("short", "long-form"), help="Prepare only the selected YouTube format.")
+    youtube_creator_quality_parser = subparsers.add_parser("quality-youtube-creator", help="Run and persist the Creator pre-release Quality Gate; never uploads it.")
+    youtube_creator_quality_parser.add_argument("--content-kind", choices=("short", "long-form"), help="Check only the selected YouTube format.")
     subparsers.add_parser("release-private-youtube-creator", help="Release one old, quality-gated private AION Creator video to public.")
     subparsers.add_parser("run-growth-pulse", help="Send one daily Telegram summary of AION's growth and channels.")
 
@@ -3996,6 +4009,9 @@ def main():
 
     if args.command == "prepare-youtube-creator":
         run_prepare_youtube_creator(args)
+        return
+    if args.command == "quality-youtube-creator":
+        run_quality_youtube_creator(args)
         return
 
     if args.command == "run-growth-pulse":

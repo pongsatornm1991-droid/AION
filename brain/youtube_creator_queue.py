@@ -169,8 +169,14 @@ class YouTubeCreatorQueue:
             if existing is None:
                 continue
             entry, payload = existing
+            # A record that has already been fully prepared must not keep
+            # winning this pass forever: that used to leave later completed
+            # episodes invisible behind the first queued one.  Refresh only
+            # genuinely incomplete legacy metadata, then let the next
+            # eligible episode enter the queue.
             if (payload.get("upload_status") != "authorized-for-aion-publish"
-                    or (payload.get("youtube") or {}).get("video_id")):
+                    or (payload.get("youtube") or {}).get("video_id")
+                    or (payload.get("cover_path") and payload.get("subtitle_path"))):
                 continue
             refreshed = {
                 **payload,
@@ -215,6 +221,59 @@ class YouTubeCreatorQueue:
             priority="urgent",
         )
         return {"stage": "authorized-for-publishing" if autonomous else "prepared-for-review", "record": record, **payload}
+
+    def quality_pending(self, content_kind=None):
+        """Run the complete local Quality Gate for queued, unuploaded episodes.
+
+        This is deliberately separate from publishing.  It gives the release
+        buffer an auditable answer before a scheduled slot arrives, while the
+        publish step repeats the same checks immediately before it contacts
+        YouTube.  No account, video privacy, or external platform is changed.
+        """
+        if self.memory is None:
+            raise ValueError("Memory is required to quality-check a creator episode.")
+        records = self._records_by_episode()
+        checked, passed, blocked = [], [], []
+        from brain.youtube_quality import YouTubeQualityGate
+        from brain.video_quality import VideoQualityGate
+        for entry, payload in records.values():
+            if payload.get("upload_status") != "authorized-for-aion-publish":
+                continue
+            if (payload.get("youtube") or {}).get("video_id"):
+                continue
+            if content_kind and payload.get("content_kind") != content_kind:
+                continue
+            prior = [record for _, record in records.values()
+                     if (record.get("youtube") or {}).get("video_id")
+                     and record.get("episode_id") != payload.get("supersedes_episode_id")]
+            quality = YouTubeQualityGate().assess(payload, prior)
+            video_quality = VideoQualityGate(self.root).assess(
+                payload.get("video_path"), payload.get("content_kind") or "short"
+            )
+            if payload.get("content_kind") == "long-form" and not (self.root / str(payload.get("subtitle_path") or "")).is_file():
+                video_quality["eligible"] = False
+                video_quality["reasons"] = list(video_quality.get("reasons") or []) + ["missing-caption-track"]
+            quality["video_qa"] = video_quality
+            if not video_quality["eligible"]:
+                quality["eligible"] = False
+                quality["reasons"] = list(quality.get("reasons") or []) + [
+                    f"video-qa:{item}" for item in video_quality["reasons"]
+                ]
+            updated = {
+                **payload,
+                "quality_gate": {
+                    "state": "passed" if quality["eligible"] else "blocked",
+                    "eligible": bool(quality["eligible"]),
+                    "reasons": list(quality.get("reasons") or []),
+                },
+                # Keep the detailed technical inspection adjacent to the
+                # queue record so the dashboard can explain a block.
+                "quality_review": quality,
+            }
+            self.memory.update(self.CATEGORY, entry["id"], content=json.dumps(updated, ensure_ascii=False))
+            checked.append(payload.get("episode_id"))
+            (passed if quality["eligible"] else blocked).append(payload.get("episode_id"))
+        return {"stage": "quality-gate-complete", "checked": checked, "passed": passed, "blocked": blocked}
 
     def reconcile_owner_confirmed_publication(self, episode_id, video_id, url):
         """Record an already-public video when an earlier delivery lost its audit entry.
@@ -307,12 +366,12 @@ class YouTubeCreatorQueue:
         if not cover_path.is_file():
             work_queue.transition(work_card["task_id"], "waiting", owner="Studio", next_owner="Video QA Agent", detail="รอภาพปกที่ตรวจสอบได้ก่อนเผยแพร่")
             return {"stage": "missing-cover", "episode_id": payload.get("episode_id")}
-        from brain.youtube_quality import YouTubeQualityGate
         records = self._records_by_episode()
         superseded_id = str(payload.get("supersedes_episode_id") or "").strip()
         prior = [record for _, record in records.values()
                  if (record.get("youtube") or {}).get("video_id")
                  and record.get("episode_id") != superseded_id]
+        from brain.youtube_quality import YouTubeQualityGate
         quality = YouTubeQualityGate().assess(payload, prior)
         from brain.video_quality import VideoQualityGate
         video_quality = VideoQualityGate(self.root).assess(payload.get("video_path"), payload.get("content_kind") or "short")

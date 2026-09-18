@@ -52,6 +52,7 @@ CATEGORIES = [
         "social-cycle.yml", "instagram-cycle.yml", "reel-cycle.yml",
         "crosspost-latest-reel.yml", "youtube-shorts.yml", "creator-scene-production.yml",
         "assemble-creator-episode.yml", "youtube-longform.yml", "youtube-creator.yml",
+        "creator-queue-quality.yml",
     }),
     ("think", "ความคิด & การเรียนรู้", {
         "reflection-cycle.yml", "learning-cycle.yml",
