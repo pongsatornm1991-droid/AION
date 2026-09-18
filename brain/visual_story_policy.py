@@ -29,8 +29,9 @@ class VisualStoryPolicy:
         "aion-realistic-profile-with-illustrated-postcard-adaptation-v1",
     }
     IDENTITY_SUMMARY = (
-        "AION is a contextual guide, not a fixed mascot: each story may choose its own form, clothing and visual "
-        "language. A subtle cyan curiosity signature may recur, while the subject and environment always lead."
+        "AION is a contextual guide, not a fixed mascot: each story may choose its own form and clothing, while the "
+        "channel keeps one recognizable Visual DNA—original premium 2D animated-documentary illustration with expressive "
+        "linework, soft cel shading and cinematic painted environments."
     )
 
     @classmethod

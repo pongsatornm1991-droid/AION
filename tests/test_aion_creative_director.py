@@ -22,6 +22,7 @@ class AionCreativeDirectorTests(unittest.TestCase):
         self.assertEqual("aion-model-deliberation", result["origin"])
         self.assertEqual("memory coast", result["world"])
         self.assertIn("traveller", result["appearance_choice"])
+        self.assertIn("2D animated-documentary", result["rendering_rule"])
 
     def test_falls_back_without_a_provider(self):
         result = AionCreativeDirector.propose("Ocean memory", "Learn carefully")

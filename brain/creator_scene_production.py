@@ -66,6 +66,7 @@ class CreatorSceneProduction:
                 f"Mood: {deliberation.get('mood') or director.get('mood') or 'curious, grounded wonder'}.",
                 f"Palette/material: {deliberation.get('palette_and_material') or director.get('palette_and_material') or 'cinematic natural texture'}.",
                 str(deliberation.get('rendering_rule') or director.get('rendering_rule') or "Original all-ages animated-documentary craft; never imitate a named artist, studio, channel, franchise or existing composition."),
+                "Channel Visual DNA must remain original premium 2D animated-documentary illustration with expressive linework, soft cel shading and cinematic painted environments.",
             ))
         else:
             style_rule = (
