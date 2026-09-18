@@ -127,7 +127,31 @@ def fetch_runs(repo, token):
     return runs
 
 
-def build_status(runs):
+def fetch_failure_context(repo, token, run_id):
+    """Return the failed job/step name without downloading private logs.
+
+    The dashboard needs a useful repair handoff, but it must not publish
+    command output, secrets, or arbitrary log lines.  GitHub's job metadata
+    contains only names and conclusions, which is enough to point the owning
+    team at the right workflow run.
+    """
+    url = f"https://api.github.com/repos/{repo}/actions/runs/{run_id}/jobs?per_page=100"
+    req = Request(url, headers={
+        "Accept": "application/vnd.github+json",
+        "Authorization": f"Bearer {token}",
+        "X-GitHub-Api-Version": "2022-11-28",
+        "User-Agent": "AION-status-publisher",
+    })
+    with urlopen(req, timeout=30) as resp:
+        jobs = json.loads(resp.read().decode("utf-8")).get("jobs", [])
+    failed = next((job for job in jobs if job.get("conclusion") in {"failure", "timed_out", "startup_failure"}), None)
+    if not failed:
+        return None
+    step = next((item for item in failed.get("steps") or [] if item.get("conclusion") in {"failure", "timed_out", "startup_failure"}), None)
+    return "ขั้นที่ล้มเหลว: " + (step or failed).get("name", "ไม่ระบุ")
+
+
+def build_status(runs, failure_context=None):
     latest = {}
     for run in runs:
         key = run.get("path") or run.get("name")
@@ -161,14 +185,18 @@ def build_status(runs):
         cls, plabel = pill_for(e["run"])
         run = e["run"]
         fname = (e["path"] or "").rsplit("/", 1)[-1]
-        g["items"].append({
+        item = {
             "name": e["name"],
             "file": fname,
             "status_class": cls,
             "status_label": plabel,
             "html_url": run.get("html_url"),
             "created_at": run.get("created_at"),
-        })
+        }
+        detail = (failure_context or {}).get(run.get("id"))
+        if detail:
+            item["detail"] = detail
+        g["items"].append(item)
 
     for g in groups.values():
         g["items"].sort(key=lambda i: i["name"])
@@ -200,7 +228,18 @@ def main():
         print(f"Failed to fetch workflow runs: {exc}", file=sys.stderr)
         sys.exit(1)
 
-    status = build_status(runs)
+    # Enrich only failed runs.  This remains a small number of safe metadata
+    # requests and keeps successful production workflows lightweight.
+    contexts = {}
+    for run in runs:
+        if run.get("conclusion") in {"failure", "timed_out", "startup_failure"} and run.get("id"):
+            try:
+                detail = fetch_failure_context(repo, token, run["id"])
+            except (HTTPError, URLError, ValueError, TypeError):
+                detail = None
+            if detail:
+                contexts[run["id"]] = detail
+    status = build_status(runs, contexts)
 
     out_path = Path(args.out)
     out_path.parent.mkdir(parents=True, exist_ok=True)

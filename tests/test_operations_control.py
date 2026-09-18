@@ -35,3 +35,12 @@ class OperationsControlTowerTests(unittest.TestCase):
         self.assertIn("Facebook", names)
         self.assertEqual("attention", report["status"])
 
+    def test_stale_release_artifact_never_overrides_current_policy(self):
+        public = self.root / "public"; public.mkdir()
+        (public / "aion-release-readiness.json").write_text(json.dumps({
+            "horizon_hours": 96, "state": "ready", "shortages": [],
+        }), encoding="utf-8")
+        report = OperationsControlTower(self.memory, self.root).snapshot()["release_readiness"]
+        self.assertEqual("local-live-queue-policy-refresh", report["source"])
+        self.assertEqual(96, report["stale_artifact"]["horizon_hours"])
+

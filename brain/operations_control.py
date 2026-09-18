@@ -200,6 +200,28 @@ class OperationsControlTower:
                 f"{item.get('content_kind')} {item.get('missing')} ตอน" for item in shortages
             )
             return {"state": live.get("state", "waiting"), "label": "บัฟเฟอร์วันเผยแพร่", "detail": detail, "report": live, "source": "local-live-queue"}
+        # A committed report is useful evidence, but it must never override a
+        # newer scheduling policy.  In particular, an older 96-hour artifact
+        # made the Dashboard look like it was checking Sunday when it was not.
+        # Recalculate read-only from the same queue until the publisher writes
+        # a report using the current 144-hour policy.
+        if payload.get("horizon_hours") != ReleaseReadiness.HORIZON_HOURS:
+            live = ReleaseReadiness(self.memory, self.root).snapshot()
+            shortages = live.get("shortages") or []
+            detail = "มีคลิปใหม่พร้อมสำหรับทุกช่วงเผยแพร่ 144 ชั่วโมงข้างหน้า" if not shortages else "ยังขาดบัฟเฟอร์: " + ", ".join(
+                f"{item.get('content_kind')} {item.get('missing')} ตอน" for item in shortages
+            )
+            return {
+                "state": live.get("state", "waiting"),
+                "label": "บัฟเฟอร์วันเผยแพร่",
+                "detail": detail,
+                "report": live,
+                "source": "local-live-queue-policy-refresh",
+                "stale_artifact": {
+                    "generated_at": payload.get("generated_at"),
+                    "horizon_hours": payload.get("horizon_hours"),
+                },
+            }
         shortages = payload.get("shortages") or []
         detail = "มีคลิปใหม่พร้อมสำหรับทุกช่วงเผยแพร่ 144 ชั่วโมงข้างหน้า" if not shortages else "ยังขาดบัฟเฟอร์: " + ", ".join(
             f"{item.get('content_kind')} {item.get('missing')} ตอน" for item in shortages
@@ -243,6 +265,7 @@ class OperationsControlTower:
                 "label": "GitHub: งานอัตโนมัติจริง",
                 "detail": "อ่านผล GitHub Actions ล่าสุดที่เผยแพร่โดย workflow สุขภาพระบบ; ไม่แสดงข้อมูลรับรอง",
                 "generated_at": github_generated,
+                "source": company.get("source"),
                 "departments": company.get("departments") or [],
             },
             "refresh": "หน้า Dashboard อ่านสถานะใหม่ทุก 15 วินาที; GitHub จะอัปเดตบันทึกทันทีหลังงานหลักจบ และมีรอบสำรองทุกชั่วโมง",

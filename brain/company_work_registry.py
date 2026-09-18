@@ -54,6 +54,11 @@ class CompanyWorkRegistry:
                     "label": self.LABELS.get(state, state),
                     "url": item.get("html_url"),
                     "updated_at": item.get("created_at"),
+                    # A failed workflow must lead to an inspectable next
+                    # action, rather than a generic red badge in the
+                    # Observatory.  This is public, non-sensitive metadata
+                    # produced by the workflow-health publisher.
+                    "detail": item.get("detail"),
                 })
             states = {item["state"] for item in items}
             # A department must not be reported as fully successful merely
@@ -74,4 +79,8 @@ class CompanyWorkRegistry:
                 "label": self.LABELS[overall],
                 "workflows": items,
             })
-        return {"generated_at": generated_at, "departments": work}
+        return {
+            "generated_at": generated_at,
+            "source": "github-actions-published-status" if generated_at else "no-github-status-yet",
+            "departments": work,
+        }

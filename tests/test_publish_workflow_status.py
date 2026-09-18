@@ -92,6 +92,13 @@ class TestBuildStatus(unittest.TestCase):
         self.assertEqual({"total": 0, "ok": 0, "attn": 0, "running": 0}, status["tiles"])
         self.assertEqual([], status["groups"])
 
+    def test_failed_run_can_expose_a_safe_failed_step_name(self):
+        run = _run(".github/workflows/tests.yml", "tests", "completed", "failure", "2026-09-03T08:00:00Z")
+        run["id"] = 42
+        status = pws.build_status([run], {42: "ขั้นที่ล้มเหลว: regression tests"})
+        item = status["groups"][0]["items"][0]
+        self.assertEqual("ขั้นที่ล้มเหลว: regression tests", item["detail"])
+
 
 class TestMainRequiresToken(unittest.TestCase):
     def test_missing_github_token_exits_nonzero(self):
