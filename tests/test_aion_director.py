@@ -31,6 +31,8 @@ class AionDirectorTests(unittest.TestCase):
         episode["scenes"][2]["visual"] = episode["scenes"][0]["visual"]
         report = WatchabilityGate.assess_storyboard(episode)
         self.assertFalse(report["eligible"])
+        self.assertIn("repeated-visual-direction", report["reasons"])
+        self.assertTrue(any(reason.startswith("silent-storyboard-scenes") for reason in report["reasons"]))
 
     def test_watchability_rejects_a_new_unanswered_question_as_the_ending(self):
         episode = {
@@ -43,6 +45,4 @@ class AionDirectorTests(unittest.TestCase):
         }
         report = WatchabilityGate.assess_storyboard(episode)
         self.assertFalse(report["eligible"])
-        self.assertIn("repeated-visual-direction", report["reasons"])
-        self.assertTrue(any(reason.startswith("silent-storyboard-scenes") for reason in report["reasons"]))
         self.assertIn("ending-opens-a-new-question-instead-of-closing", report["reasons"])
