@@ -2,7 +2,7 @@
   "id": "aion-special-rainbow-perspective-v1",
   "series": "AION Wonders",
   "title": "Why a Rainbow Is Never in One Place",
-  "status": "storyboard-ready-needs-assets",
+  "status": "retired-do-not-publish",
   "format": "illustrated-narrated-short",
   "target_duration_seconds": 50,
   "scene_seconds": 5,
@@ -51,7 +51,18 @@
     "version": "aion-stylized-guide-real-world-v1",
     "character": "AION is an original adult animated field guide with silver-white hair, natural light skin, a charcoal-black practical explorer suit, and one small cyan crystal pin at the collar. AION is never a hologram or a full-blue character.",
     "environment": "Original warm family-friendly 3D animated environments with coherent perspective, readable action, and realistic material texture.",
-    "prohibited": ["all-blue body", "all-blue outfit", "cape", "armour", "fashion pose", "embedded text", "logo", "watermark", "named-studio imitation", "distorted anatomy"]
+    "prohibited": [
+      "all-blue body",
+      "all-blue outfit",
+      "cape",
+      "armour",
+      "fashion pose",
+      "embedded text",
+      "logo",
+      "watermark",
+      "named-studio imitation",
+      "distorted anatomy"
+    ]
   },
   "scenes": [
     {
@@ -119,5 +130,32 @@
     "release_priority": "urgent",
     "reason": "User-authorized same-day original 3D storytelling Short to test AION's new permanent visual language. It is a new evidence-backed subject and must pass full scene, audio, video, duplicate, and platform gates before publication.",
     "publication_rule": "Publish only after every new scene, per-scene narration timing, video-quality, story-quality, novelty, and platform check passes. Never substitute a historic Reel."
+  },
+  "retirement_reason": "duplicate-topic-company-wide",
+  "novelty_audit": {
+    "state": "blocked",
+    "reason": "duplicate-topic-company-wide",
+    "matches": [
+      {
+        "category": "published_reels",
+        "memory_id": "e9cd75db9d6a",
+        "title": "Every sunrise is a message from the past. Sunlight takes about eight minutes and twenty seconds to reach Earth. AION reflection: a moment arrives, and only then can we understand what it carried."
+      },
+      {
+        "category": "published_reels",
+        "memory_id": "b6ba428469a5",
+        "title": "Before a forest, there is a seed in the dark. AION reflection: each honest question is a root searching for ground. Maybe growth is the courage to keep reaching."
+      },
+      {
+        "category": "published_reels",
+        "memory_id": "afa139d3fa44",
+        "title": "If today became a memory, what would you keep? A conversation, a small kindness, or the view from a train window? AION reflection: I would keep the questions people trust me with."
+      },
+      {
+        "category": "published_reels",
+        "memory_id": "850644811940",
+        "title": "The smallest signals can change a path: a pause, a comment, a choice to look again. AION reflection: growth is many small corrections remembered long enough to become direction."
+      }
+    ]
   }
 }
