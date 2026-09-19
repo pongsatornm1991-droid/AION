@@ -1,10 +1,10 @@
 {
-  "generated_at": "2026-09-19T15:02:41.855273+00:00",
+  "generated_at": "2026-09-19T15:03:50.714838+00:00",
   "tiles": {
     "total": 39,
     "ok": 34,
-    "attn": 3,
-    "running": 2
+    "attn": 4,
+    "running": 1
   },
   "groups": [
     {
@@ -183,10 +183,11 @@
         {
           "name": "AION - bounded self repair",
           "file": "self-repair.yml",
-          "status_class": "running",
-          "status_label": "กำลังรัน",
+          "status_class": "failure",
+          "status_label": "ล้มเหลว",
           "html_url": "https://github.com/pongsatornm1991-droid/AION/actions/runs/35450476531",
-          "created_at": "2026-09-19T15:00:53Z"
+          "created_at": "2026-09-19T15:00:53Z",
+          "detail": "ขั้นที่ล้มเหลว: Publish inspectable repair result"
         },
         {
           "name": "AION - delivery evidence watchdog",
@@ -218,8 +219,8 @@
           "file": "publish-workflow-status.yml",
           "status_class": "running",
           "status_label": "กำลังรัน",
-          "html_url": "https://github.com/pongsatornm1991-droid/AION/actions/runs/35450487254",
-          "created_at": "2026-09-19T15:01:05Z"
+          "html_url": "https://github.com/pongsatornm1991-droid/AION/actions/runs/35450555810",
+          "created_at": "2026-09-19T15:02:24Z"
         },
         {
           "name": "AION - system reliability",
