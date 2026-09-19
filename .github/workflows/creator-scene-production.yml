@@ -27,6 +27,13 @@ jobs:
         env:
           AION_MEMORY_ROOT: memory_data
         run: python tools/audit_creator_novelty.py
+      - name: Verify actual narration timing before creating scene images
+        # This uses the same configured voice as final assembly. A long line
+        # returns to Story before any image-production work begins.
+        env:
+          REEL_VOICE_PROVIDER: ${{ vars.REEL_VOICE_PROVIDER || 'edge-tts' }}
+          REEL_VOICE: ${{ vars.REEL_VOICE || 'en-US-AvaMultilingualNeural' }}
+        run: python tools/preflight_creator_narration.py --require-eligible
       - name: Preflight image production configuration
         env:
           OPENAI_IMAGE_API_KEY: ${{ secrets.OPENAI_IMAGE_API_KEY }}
