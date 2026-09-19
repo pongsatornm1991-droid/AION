@@ -61,8 +61,7 @@ class CreatorNoveltyAuditTests(unittest.TestCase):
             }), encoding="utf-8")
             memory = MemoryEngine(root / "memory")
             memory.remember("published_reels", json.dumps({
-                "title": "Every sunrise is a message from the past",
-                "topic_key": "sunlight reaches Earth travel time",
+                "caption": "Every sunrise is a message from the past. AION reflection: a moment arrives.",
             }), memory_type="action")
             report = CreatorNoveltyAudit(memory, root).audit()
             self.assertEqual("no-duplicate-storyboards", report["stage"])

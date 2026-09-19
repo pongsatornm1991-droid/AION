@@ -19,7 +19,7 @@ class TopicNoveltyGate:
         # rainbow explainer was falsely retired merely because old reflective
         # posts also mentioned sunlight.  A duplicate still needs its actual
         # subject token, its source URL, or two meaningful topical terms.
-        "sunlight",
+        "sunlight", "reflection",
     }
 
     @classmethod
