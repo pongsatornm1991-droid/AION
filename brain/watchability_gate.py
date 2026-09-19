@@ -11,6 +11,7 @@ import re
 
 class WatchabilityGate:
     VERSION = "watchability-v1"
+    CLOSING_BEATS = {"takeaway", "recap", "conclusion", "resolution", "invitation"}
 
     @staticmethod
     def _normal(value):
@@ -44,6 +45,16 @@ class WatchabilityGate:
         ending = scenes[-1] if scenes else {}
         if len(cls._normal(ending.get("narration"))) < 12:
             reasons.append("ending-has-no-viewer-takeaway")
+        # A question can be a strong hook, but ending an educational story on
+        # a new unanswered question makes it feel cut off.  The final beat
+        # must land the current story; a follow invitation belongs after that
+        # landing and must not replace it.
+        if str(ending.get("narration") or "").strip().endswith("?"):
+            reasons.append("ending-opens-a-new-question-instead-of-closing")
+        closing_window = scenes[-2:] if len(scenes) >= 2 else scenes
+        if not any(str(scene.get("beat") or "").strip().lower() in cls.CLOSING_BEATS
+                   for scene in closing_window):
+            reasons.append("ending-missing-closing-beat")
         if not episode.get("audience_promise"):
             reasons.append("missing-audience-promise")
         if not episode.get("sources"):
@@ -57,7 +68,7 @@ class WatchabilityGate:
                 "hook": "pass" if "hook-is-not-clear-enough" not in reasons and "hook-has-no-visual-direction" not in reasons else "attention",
                 "narration_coverage": "pass" if not silent else "attention",
                 "visual_variety": "pass" if not repeated else "attention",
-                "ending": "pass" if "ending-has-no-viewer-takeaway" not in reasons else "attention",
+                "ending": "pass" if not any(reason.startswith("ending-") for reason in reasons) else "attention",
                 "viewer_value": "pass" if episode.get("audience_promise") else "attention",
             },
             "detail": "บทพร้อมส่งผลิต" if not reasons else "ส่งกลับฝ่ายเรื่องเล่า: " + ", ".join(reasons),

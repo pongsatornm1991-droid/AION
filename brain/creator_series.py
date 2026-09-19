@@ -4,6 +4,7 @@ from pathlib import Path
 
 from brain.visual_story_policy import VisualStoryPolicy
 from brain.creator_growth import CreatorGrowthGate
+from brain.watchability_gate import WatchabilityGate
 
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -40,6 +41,9 @@ class CreatorSeriesRegistry:
                 growth_check = CreatorGrowthGate.assess(item)
                 if not growth_check["eligible"]:
                     raise ValueError(f"{item.get('id')} violates current creator growth policy: {', '.join(growth_check['reasons'])}")
+                ending_check = WatchabilityGate.assess_storyboard(item)
+                if not ending_check["eligible"]:
+                    raise ValueError(f"{item.get('id')} violates current watchability policy: {', '.join(ending_check['reasons'])}")
             if int(item.get("target_duration_seconds") or 0) != len(scenes) * seconds:
                 raise ValueError(f"{item.get('id')} duration does not match its storyboard.")
             promise = str(item.get("audience_promise") or "").strip()
