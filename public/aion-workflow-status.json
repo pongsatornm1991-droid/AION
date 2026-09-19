@@ -1,10 +1,10 @@
 {
-  "generated_at": "2026-09-19T16:48:14.962549+00:00",
+  "generated_at": "2026-09-19T16:49:38.994816+00:00",
   "tiles": {
     "total": 40,
     "ok": 33,
-    "attn": 2,
-    "running": 3
+    "attn": 3,
+    "running": 2
   },
   "groups": [
     {
@@ -85,10 +85,10 @@
         {
           "name": "AION - audience-independent inquiry",
           "file": "autonomous-inquiry.yml",
-          "status_class": "success",
-          "status_label": "สำเร็จ",
-          "html_url": "https://github.com/pongsatornm1991-droid/AION/actions/runs/35445782027",
-          "created_at": "2026-09-19T13:26:42Z"
+          "status_class": "running",
+          "status_label": "กำลังรัน",
+          "html_url": "https://github.com/pongsatornm1991-droid/AION/actions/runs/35456108125",
+          "created_at": "2026-09-19T16:48:17Z"
         },
         {
           "name": "AION - external learning cycle",
@@ -254,10 +254,11 @@
         {
           "name": "AION - Creator release readiness",
           "file": "release-readiness.yml",
-          "status_class": "running",
-          "status_label": "กำลังรัน",
+          "status_class": "failure",
+          "status_label": "ล้มเหลว",
           "html_url": "https://github.com/pongsatornm1991-droid/AION/actions/runs/35455991135",
-          "created_at": "2026-09-19T16:45:52Z"
+          "created_at": "2026-09-19T16:45:52Z",
+          "detail": "ขั้นที่ล้มเหลว: Commit the visible readiness record"
         },
         {
           "name": "AION - Instagram feedback",
@@ -270,8 +271,8 @@
         {
           "name": "AION - YouTube release-window recovery",
           "file": "youtube-release-recovery.yml",
-          "status_class": "running",
-          "status_label": "กำลังรัน",
+          "status_class": "success",
+          "status_label": "สำเร็จ",
           "html_url": "https://github.com/pongsatornm1991-droid/AION/actions/runs/35456063507",
           "created_at": "2026-09-19T16:47:23Z"
         },
