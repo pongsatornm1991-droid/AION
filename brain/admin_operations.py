@@ -59,7 +59,7 @@ class AdminOperations:
             "purpose": "ดูคิวเผยแพร่ การชนกันของตาราง หลักฐานงาน และการแจ้งข้อผิดพลาดให้ฝ่ายที่รับผิดชอบ",
             "checks": [
                 {"name": "Single publishing source", "state": "pass" if duplicate_guard else "attention", "detail": "เผยแพร่สาธารณะอัตโนมัติผ่าน Creator pipeline เพียงสายเดียว" if duplicate_guard else f"พบสายเก่าที่ตั้งเวลาอยู่: {', '.join(legacy_schedules)}"},
-                {"name": "Publishing cadence", "state": "pass" if not cadence_issues else "attention", "detail": "Shorts เป็นงานหลัก: พฤ./ศ./ส./อา. 20:43 เวลาไทย; จ.–พ. เป็นรอบวิจัย ผลิต และกู้คืนบัฟเฟอร์" if not cadence_issues else "; ".join(cadence_issues)},
+                {"name": "Publishing cadence", "state": "pass" if not cadence_issues else "attention", "detail": "Shorts เป็นงานหลัก: พฤ./ศ./ส./อา. 20:30 เวลาไทย; จ.–พ. เป็นรอบวิจัย ผลิต และกู้คืนบัฟเฟอร์" if not cadence_issues else "; ".join(cadence_issues)},
                 {"name": "Protected authority", "state": "pass", "detail": "ห้ามเปลี่ยนสิทธิ์ บัญชี คีย์ เงิน และสัญญา"},
                 {"name": "Queue handoff", "state": "pass", "detail": "งานเผยแพร่ต้องผ่าน Research → Production → Quality Gate → Publishing"},
             ],

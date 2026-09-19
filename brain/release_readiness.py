@@ -36,7 +36,7 @@ class ReleaseReadiness:
             day = (now + timedelta(days=offset)).date()
             weekday = day.weekday()
             if weekday in cls.SHORT_DAYS:
-                slot = datetime(day.year, day.month, day.day, 20, 43, tzinfo=cls.BANGKOK)
+                slot = datetime(day.year, day.month, day.day, 20, 30, tzinfo=cls.BANGKOK)
                 kind = "short"
             else:
                 continue

@@ -5,8 +5,9 @@ name: AION - YouTube release-window recovery
 # window; they only resume a quality-gated, already-authorized episode.
 on:
   schedule:
-    # 21:13 and 21:43 Bangkok on every Shorts release day.
-    - cron: "13,43 14 * * 0,4,5,6"
+    # 21:05 and 21:35 Bangkok on every Shorts release day. These leave a
+    # clear recovery window after the 20:30 scheduled publication.
+    - cron: "5,35 14 * * 0,4,5,6"
   workflow_dispatch: {}
 
 concurrency:
