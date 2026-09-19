@@ -9,7 +9,16 @@ on:
     # Sunday has one related but distinct Short to bring new viewers back to
     # the episode. Monday–Wednesday stay clear for research and production.
     - cron: "43 13 * * 0,4,5"
-  workflow_dispatch: {}
+    # Saturday 20:15 Asia/Bangkok: primary episode (13:15 UTC).
+    - cron: "15 13 * * 6"
+  workflow_dispatch:
+    inputs:
+      release_kind:
+        description: "Recovery release type; use auto for the scheduled calendar"
+        required: false
+        default: "auto"
+        type: choice
+        options: [auto, short, long-form]
 
 concurrency:
   # Publishing must never wait behind a research/reflection write.  The
@@ -56,10 +65,27 @@ jobs:
         run: python main.py release-private-youtube-creator | tee youtube-release-report.txt
       - name: Verify deterministic safeguards
         run: python -m unittest tests.test_youtube_creator_queue tests.test_youtube_cycle tests.test_youtube_quality tests.test_video_quality -q
+      - name: Select the scheduled release lane
+        # GitHub schedules use UTC.  Keep the decision here, beside the
+        # publication action, so Saturday's primary episode cannot silently
+        # be treated as a Short or be omitted from the calendar again.
+        env:
+          REQUESTED_KIND: ${{ github.event.inputs.release_kind || 'auto' }}
+          SCHEDULE: ${{ github.event.schedule || '' }}
+        run: |
+          if [[ "$REQUESTED_KIND" != "auto" ]]; then
+            RELEASE_KIND="$REQUESTED_KIND"
+          elif [[ "$SCHEDULE" == "15 13 * * 6" ]]; then
+            RELEASE_KIND="long-form"
+          else
+            RELEASE_KIND="short"
+          fi
+          echo "RELEASE_KIND=$RELEASE_KIND" >> "$GITHUB_ENV"
+          echo "Selected $RELEASE_KIND release lane."
       - name: Queue one finished AION Studio episode
         env:
           AION_MEMORY_ROOT: memory_data
-        run: python main.py prepare-youtube-creator --content-kind short
+        run: python main.py prepare-youtube-creator --content-kind "$RELEASE_KIND"
       - name: Publish one authorized Creator episode
         id: creator-publish
         env:
@@ -68,7 +94,7 @@ jobs:
           YOUTUBE_CLIENT_SECRET: ${{ secrets.YOUTUBE_CLIENT_SECRET }}
           YOUTUBE_REFRESH_TOKEN: ${{ secrets.YOUTUBE_REFRESH_TOKEN }}
           YOUTUBE_PRIVACY_STATUS: ${{ vars.YOUTUBE_PRIVACY_STATUS || 'public' }}
-        run: python main.py run-youtube-creator-publish --content-kind short | tee youtube-creator-publish-report.txt
+        run: python main.py run-youtube-creator-publish --content-kind "$RELEASE_KIND" | tee youtube-creator-publish-report.txt
       - name: Record an empty slot; never substitute an old Reel
         # A release slot must contain a newly produced Studio episode.  An old
         # Reel may be technically valid but is not a replacement for today's
@@ -82,9 +108,9 @@ jobs:
           YOUTUBE_PRIVACY_STATUS: ${{ vars.YOUTUBE_PRIVACY_STATUS || 'public' }}
         run: |
           if [[ -f youtube-creator-publish-report.txt ]] && grep -q "Stage: no-authorized-creator-episode" youtube-creator-publish-report.txt; then
-            echo "No new Studio Short is ready; historical Reels are intentionally not uploaded as a fallback."
+            echo "No new Studio episode is ready; historical Reels are intentionally not uploaded as a fallback."
           else
-            echo "Creator Short handled the daily YouTube slot."
+            echo "Creator $RELEASE_KIND handled the scheduled YouTube slot."
           fi
       - name: Persist private memory
         working-directory: memory_data
