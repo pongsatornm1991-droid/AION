@@ -643,7 +643,7 @@ def _next_studio_release(memory):
             before_release = (now.hour, now.minute) < (20, 43)
             return {
                 "entry_id": item.get("episode_id"),
-                "title": item.get("title") or "AION Studio Short",
+                "title": item.get("display_title") or item.get("title") or "AION Studio Short",
                 "status": "พร้อมปล่อยคืนนี้" if today_is_release_day and before_release else "พร้อมสำหรับรอบเผยแพร่ถัดไป",
                 "release_time": "20:43 น. เวลาไทย · พฤหัส / ศุกร์ / อาทิตย์",
                 "preview_url": f"/{video_path}",

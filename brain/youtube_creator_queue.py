@@ -5,6 +5,7 @@ from pathlib import Path
 
 from brain.autonomy_policy import AutonomyPolicy
 from brain.creator_series import CreatorSeriesRegistry
+from brain.episode_numbering import EpisodeNumbering
 from brain.identity_disclosure import append_identity_disclosure
 from brain.visual_story_policy import VisualStoryPolicy
 
@@ -92,6 +93,10 @@ class YouTubeCreatorQueue:
                 "content_kind": content_kind,
                 "format": episode.get("format", "long-form-illustrated"),
                 "title": episode["title"],
+                "episode_number": episode.get("episode_number"),
+                "display_title": EpisodeNumbering.display_title(
+                    episode["title"], episode.get("episode_number")
+                ),
                 "status": "retired" if retired else ("published" if previous and (previous[1].get("youtube") or {}).get("video_id") else "already-prepared" if previous else (
                     "upload-ready" if ready and not release_blockers else "needs-production"
                 )),
@@ -199,6 +204,10 @@ class YouTubeCreatorQueue:
         candidate = eligible[0] if eligible else None
         if candidate is None:
             return {"stage": "no-upload-ready-creator-episode"}
+        # The number is allocated only once a new episode reaches release
+        # preparation.  Drafts cannot consume numbers and old videos retain
+        # their historic titles.
+        candidate = {**candidate, **EpisodeNumbering(self.root).assign(candidate)}
         autonomous = policy.public_publishing_enabled
         payload = {
             **candidate,
@@ -216,7 +225,7 @@ class YouTubeCreatorQueue:
         )
         from brain.work_queue import WorkQueue
         work = WorkQueue(self.memory).ensure(
-            "studio-to-youtube", candidate["episode_id"], "Video QA Agent", candidate["title"],
+            "studio-to-youtube", candidate["episode_id"], "Video QA Agent", candidate["display_title"],
             "YouTube Publishing Agent", status="ready", related=[record.get("id")] if record.get("id") else [],
             priority="urgent",
         )
@@ -440,10 +449,10 @@ class YouTubeCreatorQueue:
             if uploader is None:
                 from tools.youtube import upload_short
                 uploader = upload_short
-                result = uploader(str(path), str(payload.get("title") or "AION Wonders"), description,
+                result = uploader(str(path), str(payload.get("display_title") or payload.get("title") or "AION Wonders"), description,
                                   thumbnail_path=str(cover_path))
             else:
-                result = uploader(str(path), str(payload.get("title") or "AION Wonders"), description)
+                result = uploader(str(path), str(payload.get("display_title") or payload.get("title") or "AION Wonders"), description)
         except Exception as exc:
             # Some provider exceptions have an empty string representation.
             # Preserve their type so the Dashboard and retry log never show a

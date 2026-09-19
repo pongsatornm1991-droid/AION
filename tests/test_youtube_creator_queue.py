@@ -44,6 +44,8 @@ class YouTubeCreatorQueueTests(unittest.TestCase):
             report = queue.prepare_once()
             self.assertEqual("prepared-for-review", report["stage"])
             self.assertEqual("awaiting-human-confirmation", report["upload_status"])
+            self.assertEqual(1, report["episode_number"])
+            self.assertEqual("EP. 001 — A useful question", report["display_title"])
             self.assertEqual("already-prepared", queue.candidates()[0]["status"])
             self.assertEqual("no-upload-ready-creator-episode", queue.prepare_once()["stage"])
 
@@ -78,10 +80,12 @@ class YouTubeCreatorQueueTests(unittest.TestCase):
             with patch("brain.video_quality.VideoQualityGate.assess", return_value={"eligible": True, "reasons": []}):
                 captured = {}
                 def uploader(path, title, description):
+                    captured["title"] = title
                     captured["description"] = description
                     return {"video_id": "abc", "url": "https://youtu.be/abc", "privacy_status": "public"}
                 result = queue.publish_once(uploader)
             self.assertEqual("published", result["stage"])
+            self.assertEqual("EP. 001 — A useful question", captured["title"])
             self.assertIn("#Shorts", captured["description"])
             self.assertEqual("published", queue.candidates()[0]["status"])
             self.assertEqual("no-authorized-creator-episode", queue.publish_once()["stage"])
