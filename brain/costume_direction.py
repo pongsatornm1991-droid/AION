@@ -20,6 +20,8 @@ class CostumeDirection:
         base = (
             "AION is an original contextual guide, not a fixed mascot. Keep only a subtle recognisable curiosity "
             "signature (for example a cyan glint, crystal, ring, or light) when AION appears. "
+            "AION has pearl-light human-toned skin, silver-white hair, cyan eyes and a small cyan crystal core; "
+            "never use an all-blue body or an all-blue outfit. "
             f"AION's chosen appearance for this story: {appearance or 'Choose a practical, understated appearance that belongs to the scene.'} "
             "AION remains small and never dominates the frame; no logo, no cape, no armour, no fashion-pose."
         )

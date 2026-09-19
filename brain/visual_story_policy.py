@@ -33,6 +33,41 @@ class VisualStoryPolicy:
         "channel keeps one recognizable Visual DNA—original premium 2D animated-documentary illustration with expressive "
         "linework, soft cel shading and cinematic painted environments."
     )
+    # This is a production rule, rather than an aesthetic preference: cyan is
+    # AION's small recognition signal, never skin, a full outfit, or the main
+    # subject of a frame.  It prevents the retired translucent-blue mascot
+    # from silently returning when a storyboard is handed to image production.
+    RETIRED_FULL_CYAN_PHRASES = (
+        "translucent cyan ai storyteller",
+        "translucent-cyan character",
+        "cyan humanoid",
+        "cyan body",
+        "all-blue body",
+        "all-blue outfit",
+    )
+
+    @classmethod
+    def validate_identity_contract(cls, episode):
+        """Validate the forward-looking AION appearance contract.
+
+        Kept separately from duration policy so it can protect both Shorts
+        and long-form storyboards.  Historical published episodes are not
+        rewritten; every newly staged current-policy episode must pass it
+        before Studio can request paid scene assets.
+        """
+        identity = episode.get("visual_identity") or {}
+        prohibited = {str(item).strip().lower() for item in identity.get("prohibited") or []}
+        combined = " ".join((
+            str(episode.get("character") or ""),
+            str((episode.get("visual_direction") or {}).get("wardrobe") or ""),
+            str(((episode.get("visual_style") or {}).get("aion_deliberation") or {}).get("appearance_choice") or ""),
+        )).lower()
+        reasons = []
+        if not {"all-blue body", "all-blue outfit"}.issubset(prohibited):
+            reasons.append("missing-no-full-cyan-identity-contract")
+        if any(phrase in combined for phrase in cls.RETIRED_FULL_CYAN_PHRASES[:-2]):
+            reasons.append("retired-full-cyan-aion-identity")
+        return {"eligible": not reasons, "reasons": reasons}
 
     @classmethod
     def validate_episode(cls, episode):
@@ -50,6 +85,8 @@ class VisualStoryPolicy:
         identity = episode.get("visual_identity") or {}
         if identity.get("version") not in cls.APPROVED_IDENTITY_VERSIONS:
             reasons.append("missing-approved-aion-visual-identity")
+        identity_contract = cls.validate_identity_contract(episode)
+        reasons.extend(identity_contract["reasons"])
         visual = episode.get("visual_direction") or {}
         if visual.get("focus") != "subject-first":
             reasons.append("visual-focus-must-be-subject-first")

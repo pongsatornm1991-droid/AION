@@ -24,7 +24,11 @@ class CreatorSceneProduction:
                      if item.get("status") == "storyboard-ready-needs-assets"
                      and (not episode_format or item.get("format") == episode_format)
                      and item.get("pacing_policy") in {VisualStoryPolicy.VERSION, "fast-cut-subject-first-v1"}
-                     and CreatorSourceIntegrity.assess(item.get("sources"), item.get("topic_key"), "").get("eligible")), None)
+                     and CreatorSourceIntegrity.assess(item.get("sources"), item.get("topic_key"), "").get("eligible")
+                     # Current storyboards must carry the new human-toned
+                     # contextual-guide contract before image generation.
+                     and (item.get("pacing_policy") != VisualStoryPolicy.VERSION
+                          or VisualStoryPolicy.validate_identity_contract(item).get("eligible"))), None)
 
     @staticmethod
     def _safe_name(scene):
