@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-09-20T00:20:13.741180+07:00",
+  "generated_at": "2026-09-20T00:21:33.038076+07:00",
   "timezone": "Asia/Bangkok",
   "horizon_hours": 168,
   "state": "attention",
@@ -22,14 +22,16 @@
     }
   ],
   "available": {
-    "short": []
+    "short": [
+      "aion-special-rainbow-perspective-v1"
+    ]
   },
   "shortages": [
     {
       "content_kind": "short",
       "needed": 4,
-      "ready": 0,
-      "missing": 4
+      "ready": 1,
+      "missing": 3
     }
   ],
   "policy": "ตรวจล่วงหน้า 144 ชั่วโมง; นับเฉพาะตอนใหม่ที่ผ่าน Quality Gate พร้อมและไม่ซ้ำ ไม่ใช้คลิปเก่าแทนวันปล่อย"
