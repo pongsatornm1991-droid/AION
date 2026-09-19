@@ -15,6 +15,11 @@ class TopicNoveltyGate:
         # an octopus colour-change story collide with an unrelated reflection
         # merely because both said "can change".
         "can", "could", "would", "should", "change", "become", "quickly", "small", "large",
+        # Broad physical context is not a subject.  Without this, a new
+        # rainbow explainer was falsely retired merely because old reflective
+        # posts also mentioned sunlight.  A duplicate still needs its actual
+        # subject token, its source URL, or two meaningful topical terms.
+        "sunlight",
     }
 
     @classmethod

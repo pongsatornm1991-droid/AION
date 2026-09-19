@@ -47,3 +47,24 @@ class CreatorNoveltyAuditTests(unittest.TestCase):
             self.assertEqual("no-duplicate-storyboards", report["stage"])
             updated = json.loads((series / "new.json").read_text(encoding="utf-8"))
             self.assertEqual("storyboard-ready-needs-assets", updated["status"])
+
+    def test_keeps_a_new_subject_that_only_shares_broad_sunlight_context(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            series = root / "content" / "creator_series"
+            series.mkdir(parents=True)
+            (series / "rainbow.json").write_text(json.dumps({
+                "id": "rainbow", "title": "Why a rainbow is never in one place",
+                "topic_key": "rainbow refraction water droplets observer position",
+                "status": "storyboard-ready-needs-assets",
+                "sources": [{"url": "https://weather.example/rainbow"}],
+            }), encoding="utf-8")
+            memory = MemoryEngine(root / "memory")
+            memory.remember("published_reels", json.dumps({
+                "title": "Every sunrise is a message from the past",
+                "topic_key": "sunlight reaches Earth travel time",
+            }), memory_type="action")
+            report = CreatorNoveltyAudit(memory, root).audit()
+            self.assertEqual("no-duplicate-storyboards", report["stage"])
+            updated = json.loads((series / "rainbow.json").read_text(encoding="utf-8"))
+            self.assertEqual("storyboard-ready-needs-assets", updated["status"])
