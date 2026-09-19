@@ -1,12 +1,8 @@
-name: AION - YouTube long-form Saturday
+name: AION - YouTube long-form archive/manual recovery
 
 on:
-  # Saturday 20:15 Asia/Bangkok, inside the agreed 20:00–22:00 window. Review
-  # after 28 days using YouTube Audience
-  # analytics; this is an initial family-friendly appointment, not a universal
-  # optimum time.
-  schedule:
-    - cron: "15 13 * * 6"
+  # 16:9 production is paused. Retain a human-triggered, fully quality-gated
+  # recovery path without an automatic publishing appointment.
   workflow_dispatch: {}
 
 concurrency:

@@ -5,11 +5,8 @@ name: AION - YouTube release-window recovery
 # window; they only resume a quality-gated, already-authorized episode.
 on:
   schedule:
-    # 21:13 and 21:43 Bangkok on Thursday, Friday and Sunday Shorts.
-    - cron: "13,43 14 * * 0,4,5"
-    # Saturday primary-episode retries at 20:45 and 21:15 Bangkok.
-    - cron: "45 13 * * 6"
-    - cron: "15 14 * * 6"
+    # 21:13 and 21:43 Bangkok on every Shorts release day.
+    - cron: "13,43 14 * * 0,4,5,6"
   workflow_dispatch: {}
 
 concurrency:
@@ -43,9 +40,7 @@ jobs:
           YOUTUBE_PRIVACY_STATUS: ${{ vars.YOUTUBE_PRIVACY_STATUS || 'public' }}
         run: |
           weekday="$(date -u +%u)"
-          kind="long-form"
-          if [[ "$weekday" == "0" || "$weekday" == "4" || "$weekday" == "5" ]]; then kind="short"; fi
-          python main.py run-youtube-creator-publish --content-kind "$kind"
+          python main.py run-youtube-creator-publish --content-kind short
       - name: Persist retry evidence
         working-directory: memory_data
         run: |

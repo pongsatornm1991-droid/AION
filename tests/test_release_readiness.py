@@ -14,7 +14,7 @@ class ReleaseReadinessTests(unittest.TestCase):
             root = Path(root)
             (root / "content" / "creator_series").mkdir(parents=True)
             (root / "content" / "reels").mkdir(parents=True)
-            for ident, episode_format in (("one", "illustrated-narrated-short"), ("two", "illustrated-narrated-short"), ("three", "illustrated-narrated-short"), ("primary", "long-form-illustrated")):
+            for ident, episode_format in (("one", "illustrated-narrated-short"), ("two", "illustrated-narrated-short"), ("three", "illustrated-narrated-short"), ("four", "illustrated-narrated-short")):
                 (root / "content" / "reels" / f"{ident}.mp4").write_bytes(b"video")
                 (root / "content" / "reels" / f"{ident}-cover.png").write_bytes(b"cover")
                 (root / "content" / "creator_series" / f"{ident}.json").write_text(json.dumps({
@@ -27,7 +27,7 @@ class ReleaseReadinessTests(unittest.TestCase):
                     "scenes": [{"n": n, "visual": "The subject leads; AION is a guide.", "narration": "A useful narrated beat."} for n in range(1, 11 if episode_format == "illustrated-narrated-short" else 25)],
                 }), encoding="utf-8")
             memory = MemoryEngine(root / "memory")
-            for ident in ("one", "two", "three", "primary"):
+            for ident in ("one", "two", "three", "four"):
                 memory.remember("youtube_creator_queue", json.dumps({
                     "episode_id": ident,
                     "quality_gate": {"eligible": True, "reasons": []},
@@ -36,8 +36,7 @@ class ReleaseReadinessTests(unittest.TestCase):
                 datetime(2026, 9, 14, 9, 0, tzinfo=ReleaseReadiness.BANGKOK)
             )
             self.assertEqual("ready", report["state"])
-            self.assertEqual(3, len(report["available"]["short"]))
-            self.assertEqual(1, len(report["available"]["long-form"]))
+            self.assertEqual(4, len(report["available"]["short"]))
 
     def test_does_not_count_a_video_without_a_saved_quality_gate(self):
         with tempfile.TemporaryDirectory() as root:

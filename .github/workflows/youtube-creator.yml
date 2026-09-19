@@ -5,12 +5,9 @@ name: AION - YouTube Creator Studio
 # the Bangkok appointments below (or an explicit manual operator dispatch).
 on:
   schedule:
-    # Thursday/Friday discovery Shorts lead into Saturday's primary episode;
-    # Sunday has one related but distinct Short to bring new viewers back to
-    # the episode. Monday–Wednesday stay clear for research and production.
-    - cron: "43 13 * * 0,4,5"
-    # Saturday 20:15 Asia/Bangkok: primary episode (13:15 UTC).
-    - cron: "15 13 * * 6"
+    # Shorts-first cadence: Thursday through Sunday at 20:43 Bangkok.
+    # Monday–Wednesday remain clear for research and production.
+    - cron: "43 13 * * 0,4,5,6"
   workflow_dispatch:
     inputs:
       release_kind:
@@ -66,17 +63,15 @@ jobs:
       - name: Verify deterministic safeguards
         run: python -m unittest tests.test_youtube_creator_queue tests.test_youtube_cycle tests.test_youtube_quality tests.test_video_quality -q
       - name: Select the scheduled release lane
-        # GitHub schedules use UTC.  Keep the decision here, beside the
-        # publication action, so Saturday's primary episode cannot silently
-        # be treated as a Short or be omitted from the calendar again.
+        # The scheduled cadence is Shorts-only while 16:9 production is
+        # paused. A manual long-form recovery remains explicit and cannot
+        # silently consume a scheduled slot.
         env:
           REQUESTED_KIND: ${{ github.event.inputs.release_kind || 'auto' }}
           SCHEDULE: ${{ github.event.schedule || '' }}
         run: |
           if [[ "$REQUESTED_KIND" != "auto" ]]; then
             RELEASE_KIND="$REQUESTED_KIND"
-          elif [[ "$SCHEDULE" == "15 13 * * 6" ]]; then
-            RELEASE_KIND="long-form"
           else
             RELEASE_KIND="short"
           fi

@@ -40,16 +40,15 @@ jobs:
           OPENAI_IMAGE_MODEL: ${{ vars.OPENAI_IMAGE_MODEL || 'gpt-image-2' }}
           OPENAI_IMAGE_QUALITY: ${{ vars.OPENAI_IMAGE_QUALITY || 'medium' }}
         run: |
-          # Build the complete Thursday–Sunday release set in advance: three
-          # distinct Shorts plus Saturday's primary episode. Wednesday retries
+          # Build the complete Thursday–Sunday release set in advance: four
+          # distinct Shorts. Wednesday retries
           # only genuinely unfinished storyboards; it never substitutes an old
           # Reel merely because the buffer is empty.
-          short_limit=3
+          short_limit=4
           # An empty spare slot is a planning signal, not a production failure.
           # Fail only for a real rendering fault so completed images are always
           # committed and can continue to assembly.
           python tools/produce_creator_scenes.py --format short --episode-limit "$short_limit" --batch-size 25 --max-scenes 120 --require-no-failures
-          python tools/produce_creator_scenes.py --format long-form --episode-limit 1 --batch-size 25 --max-scenes 120 --require-no-failures
       - run: |
           git config user.name aion-bot
           git config user.email aion-bot@users.noreply.github.com

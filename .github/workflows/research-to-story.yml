@@ -55,19 +55,6 @@ jobs:
           OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
           OPENAI_MODEL: ${{ vars.OPENAI_MODEL || 'gpt-5' }}
         run: python tools/stage_creator_episode.py
-      - name: Stage the matching primary-episode storyboard when weekly work begins
-        # Saturday's primary episode is planned on Monday, alongside the
-        # three distinct Shorts for Thursday/Friday/Sunday. This only writes a storyboard from
-        # cited evidence; image generation remains in the bounded Studio shift.
-        if: ${{ github.event_name == 'workflow_dispatch' || github.event.schedule == '55 */3 * * *' }}
-        env:
-          AION_MEMORY_ROOT: memory_data
-        run: |
-          if [[ "$(date -u +%u)" == "1" ]]; then
-            python tools/stage_creator_episode.py --format long-form
-          else
-            echo "Primary storyboard is scheduled for Monday's planning shift."
-          fi
       - name: Persist the private brief
         working-directory: memory_data
         run: |

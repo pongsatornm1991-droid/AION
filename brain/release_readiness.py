@@ -15,13 +15,13 @@ class ReleaseReadiness:
     """Keep the fixed Bangkok publishing cadence from failing silently."""
 
     BANGKOK = ZoneInfo("Asia/Bangkok")
-    # Thursday/Friday build discovery, Saturday carries the main episode and
-    # Sunday closes the weekly arc with a related but non-duplicative Short.
-    SHORT_DAYS = {3, 4, 6}  # Thursday, Friday, Sunday
+    # Shorts are the current primary format. Thursday through Sunday gives a
+    # four-release cadence while Monday–Wednesday remain the production buffer.
+    SHORT_DAYS = {3, 4, 5, 6}  # Thursday, Friday, Saturday, Sunday
     # A complete Thu–Sun release set must be visible even when the check runs
-    # on Wednesday afternoon.  Ninety-six hours ended before Sunday evening,
-    # which could falsely call a one-week buffer healthy.
-    HORIZON_HOURS = 144
+    # on Monday morning. A seven-day horizon reaches Sunday evening and avoids
+    # falsely calling a four-Short buffer healthy.
+    HORIZON_HOURS = 168
 
     def __init__(self, memory, root=None):
         self.memory = memory
@@ -38,9 +38,6 @@ class ReleaseReadiness:
             if weekday in cls.SHORT_DAYS:
                 slot = datetime(day.year, day.month, day.day, 20, 43, tzinfo=cls.BANGKOK)
                 kind = "short"
-            elif weekday == 5:
-                slot = datetime(day.year, day.month, day.day, 20, 15, tzinfo=cls.BANGKOK)
-                kind = "long-form"
             else:
                 continue
             if now < slot <= horizon:
@@ -53,7 +50,7 @@ class ReleaseReadiness:
             candidates = YouTubeCreatorQueue(self.memory, root=self.root).candidates()
         except (OSError, ValueError, TypeError):
             candidates = []
-        available = {"short": [], "long-form": []}
+        available = {"short": []}
         for item in candidates:
             is_ready = item.get("status") in {"upload-ready", "already-prepared"}
             is_authorized = item.get("publication_status") == "authorized-for-aion-publish"

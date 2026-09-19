@@ -36,12 +36,11 @@ jobs:
       - run: pip install -r requirements.txt
       - name: Verify queue and video safeguards
         run: python -m unittest tests.test_youtube_creator_queue tests.test_youtube_quality tests.test_video_quality -q
-      - name: Queue the next completed episode of each format
+      - name: Queue the next completed Shorts episode
         env:
           AION_MEMORY_ROOT: memory_data
         run: |
           python main.py prepare-youtube-creator --content-kind short
-          python main.py prepare-youtube-creator --content-kind long-form
       - name: Persist Quality Gate evidence before any publication appointment
         env:
           AION_MEMORY_ROOT: memory_data

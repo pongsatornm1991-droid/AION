@@ -1,10 +1,9 @@
 """Bounded recovery plan for a missing Creator release buffer.
 
 It never reuses an old reel, publishes, changes credentials, or generates an
-unbounded backlog.  The planner mirrors the real 144-hour appointments: it
-identifies every missing Short *and* primary episode, prepares the next
-research-grounded storyboard when available, and leaves media generation to
-the existing bounded Studio shift.
+unbounded backlog. The planner mirrors the Shorts-first 144-hour appointments,
+prepares the next research-grounded storyboard when available, and leaves
+media generation to the existing bounded Studio shift.
 """
 
 import argparse
@@ -27,13 +26,13 @@ from brain.visual_story_policy import VisualStoryPolicy
 
 
 def _active_by_kind(root):
-    active = {"short": [], "long-form": []}
+    active = {"short": []}
     for item in CreatorSeriesRegistry(root).episodes():
         if item.get("pacing_policy") != VisualStoryPolicy.VERSION:
             continue
         if item.get("status") not in {"storyboard-ready-needs-assets", "assets-ready-for-assembly"}:
             continue
-        kind = "short" if item.get("format") == "illustrated-narrated-short" else "long-form"
+        kind = "short" if item.get("format") == "illustrated-narrated-short" else "archived-long-form"
         active.setdefault(kind, []).append(item.get("id"))
     return active
 
@@ -50,14 +49,14 @@ def recover_once(memory, root=ROOT):
     active = _active_by_kind(root)
     planned = {
         kind: max(0, shortages.get(kind, 0) - len(active.get(kind, [])))
-        for kind in ("short", "long-form")
+        for kind in ("short",)
     }
     prepared = []
     # One run may prepare the next missing appointment.  The 3-hour Story
     # shift keeps filling the remaining plan without a user needing to order
     # it.  Deliberately do not fabricate three episodes from one weak source
     # package or start paid media generation in this observer.
-    next_kind = next((kind for kind in ("short", "long-form") if planned[kind]), None)
+    next_kind = next((kind for kind in ("short",) if planned[kind]), None)
     if next_kind:
         brief = ResearchToStory(memory).propose_once()
         handoff = ResearchStoryHandoff(memory).create_once()

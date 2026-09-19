@@ -15,20 +15,20 @@ class ReleaseBufferRecoveryTests(unittest.TestCase):
             root = Path(root)
             (root / "content" / "creator_series").mkdir(parents=True)
             (root / "content" / "reels").mkdir(parents=True)
-            for ident in ("one", "two", "three", "primary"):
+            for ident in ("one", "two", "three", "four"):
                 (root / "content" / "reels" / f"{ident}.mp4").write_bytes(b"video")
                 (root / "content" / "reels" / f"{ident}-cover.png").write_bytes(b"cover")
                 (root / "content" / "creator_series" / f"{ident}.json").write_text(json.dumps({
                     "id": ident, "series": "Test", "title": ident, "status": "production-ready-assets-and-script",
-                    "format": "long-form-illustrated" if ident == "primary" else "illustrated-narrated-short", "target_duration_seconds": 120 if ident == "primary" else 50, "scene_seconds": 5,
+                    "format": "illustrated-narrated-short", "target_duration_seconds": 50, "scene_seconds": 5,
                     "audience_promise": "A clear evidence-led story with useful value for viewers of every age.",
                     "wonder_hook": "Could a surprising question change what we notice?", "creative_device": "journey",
                     "age_layers": {"children": "Ask.", "family": "Compare.", "deeper": "Check evidence."},
                     "science_boundary": "A boundary.", "sources": [{"url": "https://one.test"}, {"url": "https://two.test"}],
-                    "scenes": [{"n": n, "visual": "The subject leads; AION is a guide.", "narration": "A useful narrated beat."} for n in range(1, 25 if ident == "primary" else 11)],
+                    "scenes": [{"n": n, "visual": "The subject leads; AION is a guide.", "narration": "A useful narrated beat."} for n in range(1, 11)],
                 }), encoding="utf-8")
             memory = MemoryEngine(root / "memory")
-            for ident in ("one", "two", "three", "primary"):
+            for ident in ("one", "two", "three", "four"):
                 memory.remember("youtube_creator_queue", json.dumps({
                     "episode_id": ident,
                     "quality_gate": {"eligible": True, "reasons": []},
