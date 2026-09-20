@@ -5,7 +5,7 @@
   "topic_key": "venus flytrap touch counting calcium action potentials",
   "format": "illustrated-narrated-short",
   "language": "en",
-  "status": "storyboard-ready-needs-assets",
+  "status": "assets-ready-for-assembly",
   "pacing_policy": "short-50-180-fact-first-v5",
   "target_duration_seconds": 60,
   "scene_seconds": 5,
@@ -41,7 +41,10 @@
   },
   "visual_identity": {
     "version": "aion-animated-documentary-guide-v1",
-    "prohibited": ["all-blue body", "all-blue outfit"],
+    "prohibited": [
+      "all-blue body",
+      "all-blue outfit"
+    ],
     "summary": "AION appears only as a small human-toned contextual guide or tiny cyan crystal-marker."
   },
   "visual_direction": {
@@ -71,7 +74,20 @@
       "deadline_seconds": 2,
       "visual_question": "Show the open red trap and one untouched trigger hair beside a large unresolved first pulse."
     },
-    "scene_progression": ["question", "hair", "first-signal", "memory", "second-signal", "calcium", "closure", "more-touches", "energy-saving", "chemical-response", "one-touch-boundary", "takeaway"],
+    "scene_progression": [
+      "question",
+      "hair",
+      "first-signal",
+      "memory",
+      "second-signal",
+      "calcium",
+      "closure",
+      "more-touches",
+      "energy-saving",
+      "chemical-response",
+      "one-touch-boundary",
+      "takeaway"
+    ],
     "color_roles": {
       "question": "deep cobalt and red trap interior",
       "evidence": "warm amber pulse from a bent trigger hair",
@@ -94,39 +110,217 @@
       ],
       "rule": "Depict the trigger hairs, electrical signals, calcium threshold and trap movement before decorative atmosphere."
     },
-    "mechanism_flow": ["Show one touch and its signal.", "Show a second quick signal adding before the first fades.", "Show the threshold crossing, closure and later digestion response."],
+    "mechanism_flow": [
+      "Show one touch and its signal.",
+      "Show a second quick signal adding before the first fades.",
+      "Show the threshold crossing, closure and later digestion response."
+    ],
     "creative_boundary": {
       "allowed": "Clear symbolic pulses and colour-coded plant cross-sections may make the invisible signals readable.",
       "prohibited": "Do not depict the plant as conscious, talking, thinking, or using human-made electronics."
     },
     "scene_roles": [
-      {"n": 1, "beat": "question", "role": "question"},
-      {"n": 2, "beat": "evidence", "role": "evidence"},
-      {"n": 3, "beat": "mechanism", "role": "mechanism"},
-      {"n": 4, "beat": "comparison", "role": "comparison"},
-      {"n": 5, "beat": "mechanism", "role": "mechanism"},
-      {"n": 6, "beat": "mechanism", "role": "mechanism"},
-      {"n": 7, "beat": "mechanism", "role": "mechanism"},
-      {"n": 8, "beat": "evidence", "role": "evidence"},
-      {"n": 9, "beat": "boundary", "role": "boundary"},
-      {"n": 10, "beat": "mechanism", "role": "mechanism"},
-      {"n": 11, "beat": "boundary", "role": "boundary"},
-      {"n": 12, "beat": "takeaway", "role": "takeaway"}
+      {
+        "n": 1,
+        "beat": "question",
+        "role": "question"
+      },
+      {
+        "n": 2,
+        "beat": "evidence",
+        "role": "evidence"
+      },
+      {
+        "n": 3,
+        "beat": "mechanism",
+        "role": "mechanism"
+      },
+      {
+        "n": 4,
+        "beat": "comparison",
+        "role": "comparison"
+      },
+      {
+        "n": 5,
+        "beat": "mechanism",
+        "role": "mechanism"
+      },
+      {
+        "n": 6,
+        "beat": "mechanism",
+        "role": "mechanism"
+      },
+      {
+        "n": 7,
+        "beat": "mechanism",
+        "role": "mechanism"
+      },
+      {
+        "n": 8,
+        "beat": "evidence",
+        "role": "evidence"
+      },
+      {
+        "n": 9,
+        "beat": "boundary",
+        "role": "boundary"
+      },
+      {
+        "n": 10,
+        "beat": "mechanism",
+        "role": "mechanism"
+      },
+      {
+        "n": 11,
+        "beat": "boundary",
+        "role": "boundary"
+      },
+      {
+        "n": 12,
+        "beat": "takeaway",
+        "role": "takeaway"
+      }
     ]
   },
   "thumbnail_concept": "Open red Venus flytrap with two amber pulse rings landing on one trigger hair; dark cobalt background; no text.",
   "scenes": [
-    {"n": 1, "beat": "question", "narration": "A Venus flytrap does not snap at every touch. It counts first.", "visual": "AION appears small beside one open red Venus flytrap; one trigger hair carries a single amber pulse while the trap remains open."},
-    {"n": 2, "beat": "evidence", "narration": "Inside each trap are tiny hairs that sense a visitor moving.", "visual": "Macro 2D view of two delicate trigger hairs inside the red trap; AION is only a cyan crystal-marker at the edge."},
-    {"n": 3, "beat": "mechanism", "narration": "One bent hair sends an electrical signal across the leaf.", "visual": "One hair bends under a small insect foot; a single amber pulse travels through a simplified dark-indigo leaf cross-section; AION marker is tiny."},
-    {"n": 4, "beat": "comparison", "narration": "But one signal usually is not enough to close the trap.", "visual": "Split-simple composition: one fading amber pulse on the left and an open trap on the right; AION marker remains tiny."},
-    {"n": 5, "beat": "mechanism", "narration": "A second quick touch arrives before the first signal disappears.", "visual": "Two amber pulses overlap along the same leaf path from two trigger-hair touches; AION marker is small and non-dominant."},
-    {"n": 6, "beat": "mechanism", "narration": "Together they raise a calcium wave inside the trap's cells.", "visual": "Clean cellular cutaway: two amber signals become one rising coral-and-cyan calcium wave; AION marker at the lower edge."},
-    {"n": 7, "beat": "mechanism", "narration": "Cross the threshold, and the two leaf lobes snap shut.", "visual": "One dominant Venus flytrap changes from open to closed around a small insect; green threshold glow marks the mechanism, with a tiny AION marker."},
-    {"n": 8, "beat": "evidence", "narration": "More movement tells the plant that real prey is still inside.", "visual": "Closed trap shown as a calm cutaway; small repeated amber taps continue inside while AION appears as a tiny contextual guide."},
-    {"n": 9, "beat": "boundary", "narration": "So it saves energy instead of reacting to every raindrop.", "visual": "Comparison of a harmless raindrop outside and a closed trap with a few extra pulses inside; no anthropomorphic plant; AION marker only."},
-    {"n": 10, "beat": "mechanism", "narration": "That same signal also starts the trap's next chemical response.", "visual": "A clean close-up shows the closed trap as a single coral signal changes into small digestion-symbol droplets; AION marker remains subtle."},
-    {"n": 11, "beat": "boundary", "narration": "Rain or one touch cannot trigger this full response.", "visual": "A simple split view contrasts a harmless raindrop and one fading amber touch pulse with the still-open trap; AION marker only."},
-    {"n": 12, "beat": "takeaway", "narration": "It uses a tiny biological memory, saving energy for real prey.", "visual": "Final clean poster composition: open-to-closed trap sequence around two amber pulses, AION small at edge with cyan crystal signature."}
-  ]
+    {
+      "n": 1,
+      "beat": "question",
+      "narration": "A Venus flytrap does not snap at every touch. It counts first.",
+      "visual": "AION appears small beside one open red Venus flytrap; one trigger hair carries a single amber pulse while the trap remains open.",
+      "image": "assets/content-library/aion-stories/aion-wonders-005-venus-flytrap-counts/01-question.png",
+      "visual_contract": {
+        "identity_version": "aion-animated-documentary-guide-v1",
+        "costume_brief": "AION is an original contextual guide, not a fixed mascot. Keep only a subtle recognisable curiosity signature (for example a cyan glint, crystal, ring, or light) when AION appears. AION has pearl-light human-toned skin, silver-white hair, cyan eyes and a small cyan crystal core; never use an all-blue body or an all-blue outfit. AION's chosen appearance for this story: Use a small cyan crystal-marker in mechanism shots; use AION as a small human guide only for the opening and ending. AION remains small and never dominates the frame; no logo, no cape, no armour, no fashion-pose."
+      }
+    },
+    {
+      "n": 2,
+      "beat": "evidence",
+      "narration": "Inside each trap are tiny hairs that sense a visitor moving.",
+      "visual": "Macro 2D view of two delicate trigger hairs inside the red trap; AION is only a cyan crystal-marker at the edge.",
+      "image": "assets/content-library/aion-stories/aion-wonders-005-venus-flytrap-counts/02-evidence.png",
+      "visual_contract": {
+        "identity_version": "aion-animated-documentary-guide-v1",
+        "costume_brief": "AION is an original contextual guide, not a fixed mascot. Keep only a subtle recognisable curiosity signature (for example a cyan glint, crystal, ring, or light) when AION appears. AION has pearl-light human-toned skin, silver-white hair, cyan eyes and a small cyan crystal core; never use an all-blue body or an all-blue outfit. AION's chosen appearance for this story: Use a small cyan crystal-marker in mechanism shots; use AION as a small human guide only for the opening and ending. AION remains small and never dominates the frame; no logo, no cape, no armour, no fashion-pose."
+      }
+    },
+    {
+      "n": 3,
+      "beat": "mechanism",
+      "narration": "One bent hair sends an electrical signal across the leaf.",
+      "visual": "One hair bends under a small insect foot; a single amber pulse travels through a simplified dark-indigo leaf cross-section; AION marker is tiny.",
+      "image": "assets/content-library/aion-stories/aion-wonders-005-venus-flytrap-counts/03-mechanism.png",
+      "visual_contract": {
+        "identity_version": "aion-animated-documentary-guide-v1",
+        "costume_brief": "AION is an original contextual guide, not a fixed mascot. Keep only a subtle recognisable curiosity signature (for example a cyan glint, crystal, ring, or light) when AION appears. AION has pearl-light human-toned skin, silver-white hair, cyan eyes and a small cyan crystal core; never use an all-blue body or an all-blue outfit. AION's chosen appearance for this story: Use a small cyan crystal-marker in mechanism shots; use AION as a small human guide only for the opening and ending. AION remains small and never dominates the frame; no logo, no cape, no armour, no fashion-pose."
+      }
+    },
+    {
+      "n": 4,
+      "beat": "comparison",
+      "narration": "But one signal usually is not enough to close the trap.",
+      "visual": "Split-simple composition: one fading amber pulse on the left and an open trap on the right; AION marker remains tiny.",
+      "image": "assets/content-library/aion-stories/aion-wonders-005-venus-flytrap-counts/04-comparison.png",
+      "visual_contract": {
+        "identity_version": "aion-animated-documentary-guide-v1",
+        "costume_brief": "AION is an original contextual guide, not a fixed mascot. Keep only a subtle recognisable curiosity signature (for example a cyan glint, crystal, ring, or light) when AION appears. AION has pearl-light human-toned skin, silver-white hair, cyan eyes and a small cyan crystal core; never use an all-blue body or an all-blue outfit. AION's chosen appearance for this story: Use a small cyan crystal-marker in mechanism shots; use AION as a small human guide only for the opening and ending. AION remains small and never dominates the frame; no logo, no cape, no armour, no fashion-pose."
+      }
+    },
+    {
+      "n": 5,
+      "beat": "mechanism",
+      "narration": "A second quick touch arrives before the first signal disappears.",
+      "visual": "Two amber pulses overlap along the same leaf path from two trigger-hair touches; AION marker is small and non-dominant.",
+      "image": "assets/content-library/aion-stories/aion-wonders-005-venus-flytrap-counts/05-mechanism.png",
+      "visual_contract": {
+        "identity_version": "aion-animated-documentary-guide-v1",
+        "costume_brief": "AION is an original contextual guide, not a fixed mascot. Keep only a subtle recognisable curiosity signature (for example a cyan glint, crystal, ring, or light) when AION appears. AION has pearl-light human-toned skin, silver-white hair, cyan eyes and a small cyan crystal core; never use an all-blue body or an all-blue outfit. AION's chosen appearance for this story: Use a small cyan crystal-marker in mechanism shots; use AION as a small human guide only for the opening and ending. AION remains small and never dominates the frame; no logo, no cape, no armour, no fashion-pose."
+      }
+    },
+    {
+      "n": 6,
+      "beat": "mechanism",
+      "narration": "Together they raise a calcium wave inside the trap's cells.",
+      "visual": "Clean cellular cutaway: two amber signals become one rising coral-and-cyan calcium wave; AION marker at the lower edge.",
+      "image": "assets/content-library/aion-stories/aion-wonders-005-venus-flytrap-counts/06-mechanism.png",
+      "visual_contract": {
+        "identity_version": "aion-animated-documentary-guide-v1",
+        "costume_brief": "AION is an original contextual guide, not a fixed mascot. Keep only a subtle recognisable curiosity signature (for example a cyan glint, crystal, ring, or light) when AION appears. AION has pearl-light human-toned skin, silver-white hair, cyan eyes and a small cyan crystal core; never use an all-blue body or an all-blue outfit. AION's chosen appearance for this story: Use a small cyan crystal-marker in mechanism shots; use AION as a small human guide only for the opening and ending. AION remains small and never dominates the frame; no logo, no cape, no armour, no fashion-pose."
+      }
+    },
+    {
+      "n": 7,
+      "beat": "mechanism",
+      "narration": "Cross the threshold, and the two leaf lobes snap shut.",
+      "visual": "One dominant Venus flytrap changes from open to closed around a small insect; green threshold glow marks the mechanism, with a tiny AION marker.",
+      "image": "assets/content-library/aion-stories/aion-wonders-005-venus-flytrap-counts/07-mechanism.png",
+      "visual_contract": {
+        "identity_version": "aion-animated-documentary-guide-v1",
+        "costume_brief": "AION is an original contextual guide, not a fixed mascot. Keep only a subtle recognisable curiosity signature (for example a cyan glint, crystal, ring, or light) when AION appears. AION has pearl-light human-toned skin, silver-white hair, cyan eyes and a small cyan crystal core; never use an all-blue body or an all-blue outfit. AION's chosen appearance for this story: Use a small cyan crystal-marker in mechanism shots; use AION as a small human guide only for the opening and ending. AION remains small and never dominates the frame; no logo, no cape, no armour, no fashion-pose."
+      }
+    },
+    {
+      "n": 8,
+      "beat": "evidence",
+      "narration": "More movement tells the plant that real prey is still inside.",
+      "visual": "Closed trap shown as a calm cutaway; small repeated amber taps continue inside while AION appears as a tiny contextual guide.",
+      "image": "assets/content-library/aion-stories/aion-wonders-005-venus-flytrap-counts/08-evidence.png",
+      "visual_contract": {
+        "identity_version": "aion-animated-documentary-guide-v1",
+        "costume_brief": "AION is an original contextual guide, not a fixed mascot. Keep only a subtle recognisable curiosity signature (for example a cyan glint, crystal, ring, or light) when AION appears. AION has pearl-light human-toned skin, silver-white hair, cyan eyes and a small cyan crystal core; never use an all-blue body or an all-blue outfit. AION's chosen appearance for this story: Use a small cyan crystal-marker in mechanism shots; use AION as a small human guide only for the opening and ending. AION remains small and never dominates the frame; no logo, no cape, no armour, no fashion-pose."
+      }
+    },
+    {
+      "n": 9,
+      "beat": "boundary",
+      "narration": "So it saves energy instead of reacting to every raindrop.",
+      "visual": "Comparison of a harmless raindrop outside and a closed trap with a few extra pulses inside; no anthropomorphic plant; AION marker only.",
+      "image": "assets/content-library/aion-stories/aion-wonders-005-venus-flytrap-counts/09-boundary.png",
+      "visual_contract": {
+        "identity_version": "aion-animated-documentary-guide-v1",
+        "costume_brief": "AION is an original contextual guide, not a fixed mascot. Keep only a subtle recognisable curiosity signature (for example a cyan glint, crystal, ring, or light) when AION appears. AION has pearl-light human-toned skin, silver-white hair, cyan eyes and a small cyan crystal core; never use an all-blue body or an all-blue outfit. AION's chosen appearance for this story: Use a small cyan crystal-marker in mechanism shots; use AION as a small human guide only for the opening and ending. AION remains small and never dominates the frame; no logo, no cape, no armour, no fashion-pose."
+      }
+    },
+    {
+      "n": 10,
+      "beat": "mechanism",
+      "narration": "That same signal also starts the trap's next chemical response.",
+      "visual": "A clean close-up shows the closed trap as a single coral signal changes into small digestion-symbol droplets; AION marker remains subtle.",
+      "image": "assets/content-library/aion-stories/aion-wonders-005-venus-flytrap-counts/10-mechanism.png",
+      "visual_contract": {
+        "identity_version": "aion-animated-documentary-guide-v1",
+        "costume_brief": "AION is an original contextual guide, not a fixed mascot. Keep only a subtle recognisable curiosity signature (for example a cyan glint, crystal, ring, or light) when AION appears. AION has pearl-light human-toned skin, silver-white hair, cyan eyes and a small cyan crystal core; never use an all-blue body or an all-blue outfit. AION's chosen appearance for this story: Use a small cyan crystal-marker in mechanism shots; use AION as a small human guide only for the opening and ending. AION remains small and never dominates the frame; no logo, no cape, no armour, no fashion-pose."
+      }
+    },
+    {
+      "n": 11,
+      "beat": "boundary",
+      "narration": "Rain or one touch cannot trigger this full response.",
+      "visual": "A simple split view contrasts a harmless raindrop and one fading amber touch pulse with the still-open trap; AION marker only.",
+      "image": "assets/content-library/aion-stories/aion-wonders-005-venus-flytrap-counts/11-boundary.png",
+      "visual_contract": {
+        "identity_version": "aion-animated-documentary-guide-v1",
+        "costume_brief": "AION is an original contextual guide, not a fixed mascot. Keep only a subtle recognisable curiosity signature (for example a cyan glint, crystal, ring, or light) when AION appears. AION has pearl-light human-toned skin, silver-white hair, cyan eyes and a small cyan crystal core; never use an all-blue body or an all-blue outfit. AION's chosen appearance for this story: Use a small cyan crystal-marker in mechanism shots; use AION as a small human guide only for the opening and ending. AION remains small and never dominates the frame; no logo, no cape, no armour, no fashion-pose."
+      }
+    },
+    {
+      "n": 12,
+      "beat": "takeaway",
+      "narration": "It uses a tiny biological memory, saving energy for real prey.",
+      "visual": "Final clean poster composition: open-to-closed trap sequence around two amber pulses, AION small at edge with cyan crystal signature.",
+      "image": "assets/content-library/aion-stories/aion-wonders-005-venus-flytrap-counts/12-takeaway.png",
+      "visual_contract": {
+        "identity_version": "aion-animated-documentary-guide-v1",
+        "costume_brief": "AION is an original contextual guide, not a fixed mascot. Keep only a subtle recognisable curiosity signature (for example a cyan glint, crystal, ring, or light) when AION appears. AION has pearl-light human-toned skin, silver-white hair, cyan eyes and a small cyan crystal core; never use an all-blue body or an all-blue outfit. AION's chosen appearance for this story: Use a small cyan crystal-marker in mechanism shots; use AION as a small human guide only for the opening and ending. AION remains small and never dominates the frame; no logo, no cape, no armour, no fashion-pose."
+      }
+    }
+  ],
+  "cover_path": "content/reels/aion-wonders-005-venus-flytrap-counts-cover.png",
+  "cover_contract": {
+    "kind": "youtube-custom-thumbnail",
+    "version": "vibrant-subject-first-v1",
+    "prompt_rule": "standalone-cover-not-scene-crop"
+  }
 }
