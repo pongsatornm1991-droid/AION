@@ -6,6 +6,7 @@ False, so callers can stop safely rather than reuse a legacy image.
 
 import base64
 import os
+from pathlib import Path
 
 from dotenv import load_dotenv
 
@@ -69,6 +70,39 @@ def generate_scene_image(prompt, out_path):
         config, prompt=str(prompt), out_path=out_path,
         size="1024x1536", timeout=120,
     )
+
+
+def generate_cover_image(prompt, out_path):
+    """Generate a distinct YouTube cover, then deliver it in 16:9 safely.
+
+    Image providers commonly offer a 3:2 landscape frame rather than an
+    exact YouTube ratio.  Cropping after generation avoids treating a vertical
+    scene as a thumbnail and keeps the API-facing asset independent from the
+    finished video frame.
+    """
+    config = _get_config()
+    if config is None:
+        return False
+    destination = Path(out_path)
+    landscape = destination.with_name(f"{destination.stem}.provider-landscape.png")
+    if not _generate_png(config, prompt=str(prompt), out_path=landscape,
+                         size="1536x1024", timeout=120):
+        return False
+    try:
+        from PIL import Image
+        with Image.open(landscape) as image:
+            rgb = image.convert("RGB")
+            width, height = rgb.size
+            crop_height = min(height, round(width * 9 / 16))
+            top = max(0, (height - crop_height) // 2)
+            rgb.crop((0, top, width, top + crop_height)).resize(
+                (1280, 720), Image.Resampling.LANCZOS
+            ).save(destination, "PNG", optimize=True)
+        return destination.is_file() and destination.stat().st_size > 0
+    except Exception:
+        return False
+    finally:
+        landscape.unlink(missing_ok=True)
 
 
 def _generate_png(config, *, prompt, out_path, size, timeout):

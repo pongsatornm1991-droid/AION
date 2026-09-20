@@ -59,7 +59,9 @@ jobs:
       - run: |
           git config user.name aion-bot
           git config user.email aion-bot@users.noreply.github.com
-          git add assets/content-library/aion-stories/ content/creator_series/
+          # Covers are generated with the new scene set and are a hard
+          # pre-publication asset; never leave them behind on the runner.
+          git add assets/content-library/aion-stories/ content/creator_series/ content/reels/*-cover.png
           if ! git diff --cached --quiet; then
             git commit -m "AION: produce subject-first scenes"
             # Other autonomous workflows may update main while images render.

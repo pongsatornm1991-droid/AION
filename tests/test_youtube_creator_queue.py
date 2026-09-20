@@ -18,7 +18,8 @@ class YouTubeCreatorQueueTests(unittest.TestCase):
         for number in range(10):
             (images / f"{number}.png").write_bytes(b"image")
         # Every Creator upload now requires a Studio-produced cover.
-        (reels / "episode-cover.png").write_bytes(b"png")
+        from PIL import Image
+        Image.new("RGB", (1280, 720), color=(30, 110, 160)).save(reels / "episode-cover.png")
         (series / "episode.json").write_text(__import__("json").dumps({
             "id": "episode", "series": "AION Wonders", "title": "A useful question",
             "status": "production-ready-assets-and-script", "format": "illustrated-narrated-short",

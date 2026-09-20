@@ -21,7 +21,8 @@ class CreatorSceneProduction:
 
     def _episode(self, episode_format=None):
         return next((item for item in CreatorSeriesRegistry(self.root).episodes()
-                     if item.get("status") == "storyboard-ready-needs-assets"
+                     if item.get("status") in {"storyboard-ready-needs-assets", "assets-ready-for-assembly"}
+                     and not self._cover_exists(item)
                      and (not episode_format or item.get("format") == episode_format)
                      and item.get("pacing_policy") in {VisualStoryPolicy.VERSION, "fast-cut-subject-first-v1"}
                      and CreatorSourceIntegrity.assess(item.get("sources"), item.get("topic_key"), "").get("eligible")
@@ -29,6 +30,12 @@ class CreatorSceneProduction:
                      # contextual-guide contract before image generation.
                      and (item.get("pacing_policy") != VisualStoryPolicy.VERSION
                           or VisualStoryPolicy.validate_identity_contract(item).get("eligible"))), None)
+
+    def _cover_path(self, episode):
+        return self.root / "content" / "reels" / f"{episode['id']}-cover.png"
+
+    def _cover_exists(self, episode):
+        return self._cover_path(episode).is_file()
 
     @staticmethod
     def _safe_name(scene):
@@ -90,6 +97,25 @@ class CreatorSceneProduction:
             "No words, captions, logos, watermark, UI, or named-studio imitation.",
         ))
 
+    def _cover_prompt(self, episode):
+        """A cover is a separate editorial composition, never a scene crop."""
+        visual_style = episode.get("visual_style") or {}
+        deliberation = visual_style.get("aion_deliberation") or {}
+        direction = episode.get("visual_direction") or {}
+        first_scene = (episode.get("scenes") or [{}])[0]
+        return " ".join((
+            "Use case: YouTube video thumbnail. Asset type: landscape 16:9 cover image.",
+            f"Story question: {episode.get('wonder_hook') or episode.get('title')}.",
+            f"Core visual idea: {episode.get('thumbnail_concept') or first_scene.get('visual') or ''}",
+            "Create one instantly understandable, emotionally intriguing focal moment with one clear subject and generous negative space.",
+            "This is a standalone cover composition, not a crop or duplicate of any video scene.",
+            "The story subject leads; AION appears only if useful and remains a small contextual guide, never a central mascot.",
+            f"Colour direction: {VisualStoryPolicy.COLOR_DIRECTION}",
+            f"Story mood: {deliberation.get('mood') or (visual_style.get('director') or {}).get('mood') or 'curious grounded wonder'}.",
+            "Original warm 3D educational storytelling with rounded appealing forms, tactile natural materials and gentle cinematic light.",
+            "No words, letters, captions, logos, watermark, UI, named artist, studio, franchise, or copied composition.",
+        ))
+
     def produce_once(self, limit=DEFAULT_BATCH_SIZE, episode_format=None):
         episode = self._episode(episode_format)
         if episode is None:
@@ -97,8 +123,14 @@ class CreatorSceneProduction:
         if self.generator is None:
             from tools.openai_image import generate_scene_image
             generator = generate_scene_image
+            from tools.openai_image import generate_cover_image
+            cover_generator = generate_cover_image
         else:
             generator = self.generator
+            # Test and alternative providers receive the same explicit cover
+            # brief; production's OpenAI adapter additionally normalises it
+            # to a real 16:9 file.
+            cover_generator = self.generator
         made, failed = [], []
         changed = False
         folder = self.root / "assets" / "content-library" / "aion-stories" / episode["id"]
@@ -130,7 +162,21 @@ class CreatorSceneProduction:
             else:
                 failed.append(scene["n"])
                 break
-        completed = all(scene.get("image") for scene in episode.get("scenes") or [])
+        scenes_complete = all(scene.get("image") for scene in episode.get("scenes") or [])
+        cover_path = self._cover_path(episode)
+        cover_created = False
+        if scenes_complete and not cover_path.is_file():
+            cover_path.parent.mkdir(parents=True, exist_ok=True)
+            if cover_generator(self._cover_prompt(episode), str(cover_path)):
+                episode["cover_path"] = str(cover_path.relative_to(self.root)).replace("\\", "/")
+                episode["cover_contract"] = {
+                    "kind": "youtube-custom-thumbnail",
+                    "version": "vibrant-subject-first-v1",
+                    "prompt_rule": "standalone-cover-not-scene-crop",
+                }
+                cover_created = True
+                changed = True
+        completed = scenes_complete and cover_path.is_file()
         if completed and episode.get("status") != "assets-ready-for-assembly":
             episode["status"] = "assets-ready-for-assembly"
             changed = True
@@ -141,7 +187,8 @@ class CreatorSceneProduction:
             source.write_text(json.dumps({key: value for key, value in episode.items() if key != "file"}, ensure_ascii=False, indent=2), encoding="utf-8")
         return {"stage": ("scene-assets-complete" if completed else
                           "scene-assets-produced" if made else "scene-generation-unavailable"),
-                "episode_id": episode["id"], "produced": made, "failed": failed}
+                "episode_id": episode["id"], "produced": made, "failed": failed,
+                "cover_created": cover_created, "cover_path": str(cover_path.relative_to(self.root)).replace("\\", "/")}
 
     def produce_episode(self, batch_size=DEFAULT_BATCH_SIZE,
                         max_scenes=MAX_SCENES_PER_EPISODE_RUN, episode_format=None):

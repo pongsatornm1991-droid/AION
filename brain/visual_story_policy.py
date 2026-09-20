@@ -4,7 +4,7 @@
 class VisualStoryPolicy:
     """Inspectable creative constraints for new AION productions."""
 
-    VERSION = "short-50-180-subject-first-v3"
+    VERSION = "short-50-180-subject-first-v4"
     MIN_SCENE_SECONDS = 5
     MAX_SCENE_SECONDS = 5
     MIN_SHORT_DURATION_SECONDS = 50
@@ -19,6 +19,11 @@ class VisualStoryPolicy:
     DEFAULT_AION_ROLE = "contextual-guide"
     IDENTITY_VERSION = "aion-animated-documentary-guide-v1"
     CHANNEL_VISUAL_STYLE = "aion-original-warm-3d-storytelling-v1"
+    COLOR_DIRECTION = (
+        "Vibrant, optimistic colour with a deliberate focal palette: clear warm highlights, "
+        "rich natural local colour, and one restrained cyan AION accent. Preserve readable contrast; "
+        "do not use grey wash, neon clutter, or indiscriminate saturation."
+    )
     APPROVED_IDENTITY_VERSIONS = {
         IDENTITY_VERSION,
         # Previous default episodes remain valid as historical releases. New
@@ -107,5 +112,6 @@ class VisualStoryPolicy:
             f"Visual focus: the historical/scientific subject and environment are primary; "
             f"AION is a {cls.DEFAULT_AION_ROLE}, usually at most {int(target_share * 100)}% "
             f"of the frame when present. Wardrobe: {context}. Use a new scene-specific image. "
+            f"Colour direction: {cls.COLOR_DIRECTION} "
             "No embedded text, logos, watermark, or celebrity/studio imitation."
         )

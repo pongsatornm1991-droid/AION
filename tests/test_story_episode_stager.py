@@ -61,7 +61,8 @@ class StoryEpisodeStagerTests(unittest.TestCase):
             report = CreatorSceneProduction(root, generator=generator).produce_ready_episodes(episode_limit=2, batch_size=3)
             self.assertEqual("studio-shift-complete", report["stage"])
             self.assertEqual(2, len(report["completed_episode_ids"]))
-            self.assertEqual(24, len(made))
+            # Twelve scenes plus one standalone custom YouTube cover per episode.
+            self.assertEqual(26, len(made))
 
     def test_stages_a_distinct_two_minute_primary_episode_from_the_same_evidence(self):
         with tempfile.TemporaryDirectory() as root:

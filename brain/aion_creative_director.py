@@ -31,7 +31,7 @@ class AionCreativeDirector:
             "palette_and_material": direction["palette_and_material"],
             "aion_role": "small contextual guide; never the dominant subject",
             "appearance_choice": "AION may appear as a small cyan curiosity signal or a practical context-appropriate traveler; no fixed costume is required.",
-            "rendering_rule": "Original premium 2D animated-documentary illustration: expressive linework, soft cel shading and cinematic painted environments. Never imitate a named artist, studio, channel, franchise or existing composition.",
+            "rendering_rule": "Original warm 3D educational storytelling: rounded appealing forms, tactile natural materials, gentle cinematic light and vibrant controlled colour. Never imitate a named artist, studio, channel, franchise or existing composition.",
         }
 
     @classmethod
@@ -43,7 +43,7 @@ class AionCreativeDirector:
             "You are AION's creative director. Propose an ORIGINAL visual thoughtscape for one evidence-grounded educational story.",
             "You are not allowed to change facts, add unsupported claims, name or imitate any artist, studio, channel, franchise, character, or existing artwork.",
             "The subject and evidence must lead. AION is a small contextual guide, never a posed hero.",
-            "AION's channel Visual DNA is fixed: original premium 2D animated-documentary illustration with expressive linework, soft cel shading, and cinematic painted environments. You may choose the world, palette, composition and AION's appearance INSIDE this language; do not replace the medium.",
+            "AION's channel Visual DNA is fixed: original warm 3D educational storytelling with rounded appealing forms, tactile materials, gentle cinematic light and vibrant controlled colour. You may choose the world, palette, composition and AION's appearance INSIDE this language; do not replace the medium.",
             "Return JSON only with these keys: premise, world, mood, palette_and_material, aion_role, appearance_choice, rendering_rule.",
             "Each field must be concise and usable as an image-production brief. No text in images.",
             f"Topic: {cls._clean(topic)}",
@@ -63,7 +63,7 @@ class AionCreativeDirector:
             if any(term in " ".join(result.values()).lower() for term in unsafe):
                 raise ValueError("creative response requested imitation")
             result["rendering_rule"] = (
-                "Original premium 2D animated-documentary illustration with expressive linework, soft cel shading and cinematic painted environments. "
+                "Original warm 3D educational storytelling with rounded appealing forms, tactile natural materials, gentle cinematic light and vibrant controlled colour. "
                 + result["rendering_rule"]
             )
             return {"version": cls.VERSION, "origin": "aion-model-deliberation", **result}

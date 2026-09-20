@@ -18,6 +18,20 @@ class YouTubeCreatorQueue:
     RETIRED_STATUS = "retired-do-not-publish"
 
     @staticmethod
+    def _cover_quality(path):
+        """Verify the custom thumbnail is a real readable 16:9 asset."""
+        try:
+            from PIL import Image
+            with Image.open(path) as image:
+                width, height = image.size
+                ratio = width / height if height else 0
+                valid = width >= 1280 and height >= 720 and abs(ratio - (16 / 9)) <= 0.03
+                return {"eligible": valid, "width": width, "height": height,
+                        "reason": None if valid else "cover-must-be-at-least-1280x720-16x9"}
+        except Exception:
+            return {"eligible": False, "width": 0, "height": 0, "reason": "cover-is-not-a-readable-image"}
+
+    @staticmethod
     def _content_kind(episode):
         return "short" if episode.get("format") == "illustrated-narrated-short" else "long-form"
 
@@ -129,6 +143,7 @@ class YouTubeCreatorQueue:
                 "video_exists": video_path.is_file(),
                 "cover_path": f"content/reels/{episode['id']}-cover.png",
                 "cover_exists": (self.root / "content" / "reels" / f"{episode['id']}-cover.png").is_file(),
+                "cover_quality": self._cover_quality(self.root / "content" / "reels" / f"{episode['id']}-cover.png"),
                 "subtitle_path": str(subtitle_path.relative_to(self.root)).replace("\\", "/"),
                 "subtitle_exists": subtitle_path.is_file(),
                 "audience_promise": episode["audience_promise"],
@@ -398,6 +413,10 @@ class YouTubeCreatorQueue:
         if not cover_path.is_file():
             work_queue.transition(work_card["task_id"], "waiting", owner="Studio", next_owner="Video QA Agent", detail="รอภาพปกที่ตรวจสอบได้ก่อนเผยแพร่")
             return {"stage": "missing-cover", "episode_id": payload.get("episode_id")}
+        cover_quality = self._cover_quality(cover_path)
+        if not cover_quality["eligible"]:
+            work_queue.transition(work_card["task_id"], "waiting", owner="Studio", next_owner="Video QA Agent", detail="ภาพปกไม่ผ่านขนาดหรืออ่านไฟล์ไม่ได้ จึงไม่เผยแพร่")
+            return {"stage": "invalid-cover", "episode_id": payload.get("episode_id"), "cover_quality": cover_quality}
         records = self._records_by_episode()
         superseded_id = str(payload.get("supersedes_episode_id") or "").strip()
         prior = [record for _, record in records.values()

@@ -82,4 +82,5 @@ class CreatorSceneProductionTests(unittest.TestCase):
             self.assertEqual("episode-assets-complete", result["stage"])
             self.assertEqual([1, 2, 3], result["produced"])
             self.assertEqual(2, result["batches"])
+            self.assertTrue((root / "content" / "reels" / "episode-cover.png").is_file())
             self.assertIn('"status": "assets-ready-for-assembly"', updated)
