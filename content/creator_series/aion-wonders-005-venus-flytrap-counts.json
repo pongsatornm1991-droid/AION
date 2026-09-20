@@ -71,7 +71,7 @@
       "deadline_seconds": 2,
       "visual_question": "Show the open red trap and one untouched trigger hair beside a large unresolved first pulse."
     },
-    "scene_progression": ["question", "hair", "first-signal", "memory", "second-signal", "calcium", "closure", "more-touches", "digestion", "takeaway"],
+    "scene_progression": ["question", "hair", "first-signal", "memory", "second-signal", "calcium", "closure", "more-touches", "energy-saving", "chemical-response", "one-touch-boundary", "takeaway"],
     "color_roles": {
       "question": "deep cobalt and red trap interior",
       "evidence": "warm amber pulse from a bent trigger hair",
@@ -109,7 +109,9 @@
       {"n": 7, "beat": "mechanism", "role": "mechanism"},
       {"n": 8, "beat": "evidence", "role": "evidence"},
       {"n": 9, "beat": "boundary", "role": "boundary"},
-      {"n": 10, "beat": "takeaway", "role": "takeaway"}
+      {"n": 10, "beat": "mechanism", "role": "mechanism"},
+      {"n": 11, "beat": "boundary", "role": "boundary"},
+      {"n": 12, "beat": "takeaway", "role": "takeaway"}
     ]
   },
   "thumbnail_concept": "Open red Venus flytrap with two amber pulse rings landing on one trigger hair; dark cobalt background; no text.",
