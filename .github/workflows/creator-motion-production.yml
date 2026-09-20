@@ -1,6 +1,9 @@
 name: AION - automatic motion production
 
 on:
+  workflow_run:
+    workflows: [AION - subject-first scene production]
+    types: [completed]
   schedule:
     # Runs after the early-week image shift. It only works on new, complete
     # storyboards and never turns a legacy clip into a substitute release.
@@ -15,6 +18,7 @@ permissions: {contents: write}
 
 jobs:
   produce-motion:
+    if: ${{ github.event_name != 'workflow_run' || github.event.workflow_run.conclusion == 'success' }}
     runs-on: ubuntu-latest
     timeout-minutes: 90
     steps:

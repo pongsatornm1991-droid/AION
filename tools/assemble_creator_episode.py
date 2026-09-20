@@ -6,6 +6,7 @@ remain separate steps.
 """
 import argparse
 import json
+import os
 import sys
 from pathlib import Path
 
@@ -93,6 +94,14 @@ def assemble_once(root=ROOT, episode_id=None, renderer=render_reel):
         return {"stage": "missing-scene-assets", "episode_id": episode["id"]}
     motion = [root / str(scene.get("motion_path") or "") for scene in scenes]
     use_motion = bool(motion) and all(path.is_file() and path.stat().st_size for path in motion)
+    motion_required = os.getenv("AION_REQUIRE_MOTION_VIDEO", "true").strip().lower() not in {"0", "false", "no"}
+    if motion_required and not use_motion:
+        # A completed still-image set is deliberately not a publishable video
+        # under the Auto-video policy.  It stays visible in Studio until the
+        # automatic provider has delivered every motion source.
+        return {"stage": "waiting-for-automatic-motion", "episode_id": episode["id"],
+                "completed_motion_scenes": sum(path.is_file() and path.stat().st_size for path in motion),
+                "required_motion_scenes": len(scenes)}
     seconds = int(episode.get("scene_seconds") or 0)
     if seconds > VisualStoryPolicy.MAX_SCENE_SECONDS:
         return {"stage": "scene-pacing-policy-failed", "episode_id": episode["id"], "scene_seconds": seconds}

@@ -39,6 +39,7 @@ jobs:
         env:
           REEL_VOICE_PROVIDER: ${{ vars.REEL_VOICE_PROVIDER || 'edge-tts' }}
           REEL_VOICE: ${{ vars.REEL_VOICE || 'en-US-AvaMultilingualNeural' }}
+          AION_REQUIRE_MOTION_VIDEO: 'true'
         run: python tools/assemble_creator_episode.py --require-rendered
       - name: Commit only a verified assembly result
         run: |

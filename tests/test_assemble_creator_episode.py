@@ -24,8 +24,9 @@ class AssembleCreatorEpisodeTests(unittest.TestCase):
             # This test isolates orchestration.  The renderer fixture writes
             # only a marker file, so the real media gate is intentionally
             # mocked; dedicated video-quality tests cover the gate itself.
-            with mock.patch("tools.assemble_creator_episode.VideoQualityGate.assess", return_value={"eligible": True}):
-                result = assemble_once(root, renderer=renderer)
+            with mock.patch.dict("os.environ", {"AION_REQUIRE_MOTION_VIDEO": "false"}):
+                with mock.patch("tools.assemble_creator_episode.VideoQualityGate.assess", return_value={"eligible": True}):
+                    result = assemble_once(root, renderer=renderer)
             self.assertEqual("episode-rendered-for-quality", result["stage"])
             self.assertTrue((root / result["subtitle_path"]).is_file())
             self.assertIn("00:00:00,000 --> 00:00:05,000", (root / result["subtitle_path"]).read_text(encoding="utf-8"))
@@ -51,6 +52,16 @@ class AssembleCreatorEpisodeTests(unittest.TestCase):
     def test_does_not_claim_a_video_when_no_episode_is_ready(self):
         with tempfile.TemporaryDirectory() as root:
             self.assertEqual("no-asset-complete-episode", assemble_once(root)["stage"])
+
+    def test_refuses_static_assembly_until_automatic_motion_is_complete(self):
+        with tempfile.TemporaryDirectory() as temp:
+            root = Path(temp)
+            episode_dir = root / "content" / "creator_series"; episode_dir.mkdir(parents=True)
+            assets = root / "assets" / "content-library" / "aion-stories" / "episode"; assets.mkdir(parents=True)
+            for number in (1, 2, 3): (assets / f"{number:02d}.png").write_bytes(b"png")
+            payload = {"id":"episode","series":"AION Wonders","title":"Test story","audience_promise":"An evidence-led story useful to every age.","wonder_hook":"Could this test work?","creative_device":"journey","age_layers":{"children":"Ask.","family":"Talk.","deeper":"Test."},"target_duration_seconds":15,"scene_seconds":5,"format":"illustrated-narrated-short","pacing_policy":"fast-cut-subject-first-v1","visual_direction":{"focus":"subject-first","aion_role":"contextual-guide","aion_frame_share_max":0.20},"history_boundary":"A boundary.","sources":[{"url":"https://one.test"},{"url":"https://two.test"}],"status":"assets-ready-for-assembly","scenes":[{"n":number,"beat":"hook","visual":"AION explores.","narration":"One.","image":f"assets/content-library/aion-stories/episode/{number:02d}.png"} for number in (1, 2, 3)]}
+            (episode_dir / "episode.json").write_text(json.dumps(payload), encoding="utf-8")
+            self.assertEqual("waiting-for-automatic-motion", assemble_once(root)["stage"])
 
     def test_restores_a_missing_caption_track_without_re_rendering(self):
         with tempfile.TemporaryDirectory() as temp:
