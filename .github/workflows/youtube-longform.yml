@@ -45,7 +45,7 @@ jobs:
           if ! git diff --cached --quiet; then
             git commit -m "AION: restore Creator caption track"
             git pull --rebase origin main
-            git push
+            { git push || { git pull --rebase --autostash origin main && git push; } || { sleep 10; git pull --rebase --autostash origin main && git push; } || { sleep 20; git pull --rebase --autostash origin main && git push; }; }
           fi
       - name: Queue one finished long-form AION episode
         env:
@@ -72,5 +72,5 @@ jobs:
           if ! git diff --cached --quiet; then
             git commit -m "AION long-form YouTube update"
             git pull --rebase origin main
-            git push
+            { git push || { git pull --rebase --autostash origin main && git push; } || { sleep 10; git pull --rebase --autostash origin main && git push; } || { sleep 20; git pull --rebase --autostash origin main && git push; }; }
           fi

@@ -63,7 +63,7 @@ jobs:
           git add -A
           if ! git diff --cached --quiet; then
             git commit -m "AION research story brief ($(date -u +%Y-%m-%dT%H:%M:%SZ))"
-            git push
+            { git push || { git pull --rebase --autostash origin main && git push; } || { sleep 10; git pull --rebase --autostash origin main && git push; } || { sleep 20; git pull --rebase --autostash origin main && git push; }; }
           fi
       - name: Persist the Studio storyboard
         run: |
@@ -73,5 +73,5 @@ jobs:
           if ! git diff --cached --quiet; then
             git commit -m "AION: stage research-grounded storyboard"
             git pull --rebase origin main
-            git push
+            { git push || { git pull --rebase --autostash origin main && git push; } || { sleep 10; git pull --rebase --autostash origin main && git push; } || { sleep 20; git pull --rebase --autostash origin main && git push; }; }
           fi

@@ -39,5 +39,5 @@ jobs:
           git add -A content assets
           if ! git diff --cached --quiet; then
             git commit -m "AION: purge expired unreferenced generated media"
-            git push
+            { git push || { git pull --rebase --autostash origin main && git push; } || { sleep 10; git pull --rebase --autostash origin main && git push; } || { sleep 20; git pull --rebase --autostash origin main && git push; }; }
           fi
