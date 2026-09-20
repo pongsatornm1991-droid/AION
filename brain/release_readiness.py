@@ -76,5 +76,11 @@ class ReleaseReadiness:
             "slots": slots,
             "available": available,
             "shortages": shortages,
+            "shorts_buffer": {
+                "target": 4,
+                "quality_ready": len(available.get("short", [])),
+                "state": "ready" if len(available.get("short", [])) >= 4 else "building",
+                "detail": "นับเฉพาะ Shorts ใหม่ที่ผ่าน Quality Gate แล้ว; storyboard หรือภาพครบยังไม่นับเป็นบัฟเฟอร์",
+            },
             "policy": "ตรวจล่วงหน้า 144 ชั่วโมง; นับเฉพาะตอนใหม่ที่ผ่าน Quality Gate พร้อมและไม่ซ้ำ ไม่ใช้คลิปเก่าแทนวันปล่อย",
         }

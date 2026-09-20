@@ -41,6 +41,7 @@ class YouTubeCreatorQueueTests(unittest.TestCase):
             memory = MemoryEngine(Path(root) / "memory")
             queue = YouTubeCreatorQueue(memory, root)
             self.assertEqual("upload-ready", queue.candidates()[0]["status"])
+            self.assertEqual("กำลังตรวจ Quality Gate", queue.candidates()[0]["pipeline_stage"]["label"])
             report = queue.prepare_once()
             self.assertEqual("prepared-for-review", report["stage"])
             self.assertEqual("awaiting-human-confirmation", report["upload_status"])

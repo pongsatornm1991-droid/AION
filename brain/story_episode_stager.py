@@ -155,7 +155,10 @@ class StoryEpisodeStager:
                 "aion_presence_rationale": "AION is a small guide who helps viewers notice evidence; the subject and environment remain central.",
             },
             "visual_style": {
-                "id": AionVisualDirector.VERSION,
+                # The director may choose the setting, wardrobe and story
+                # device, but the channel's medium stays consistent across
+                # ordinary releases.
+                "id": VisualStoryPolicy.CHANNEL_VISUAL_STYLE,
                 "summary": creative_deliberation["premise"],
                 "director": visual_direction,
                 "aion_deliberation": creative_deliberation,

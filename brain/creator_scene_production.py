@@ -61,7 +61,7 @@ class CreatorSceneProduction:
                 "and a beautiful all-ages educational mood. Do not imitate any named artist, studio, channel, "
                 "mascot, franchise, or existing composition."
             )
-        elif visual_style.get("id") == "aion-thoughtscape-director-v1":
+        elif visual_style.get("id") in {"aion-thoughtscape-director-v1", "aion-original-warm-3d-storytelling-v1"}:
             director = visual_style.get("director") or {}
             style_rule = " ".join((
                 "Style: AION Thoughtscape direction for this specific story.",
@@ -69,8 +69,8 @@ class CreatorSceneProduction:
                 f"World: {director.get('world') or 'curiosity-atlas'}.",
                 f"Mood: {deliberation.get('mood') or director.get('mood') or 'curious, grounded wonder'}.",
                 f"Palette/material: {deliberation.get('palette_and_material') or director.get('palette_and_material') or 'cinematic natural texture'}.",
-                str(deliberation.get('rendering_rule') or director.get('rendering_rule') or "Original all-ages animated-documentary craft; never imitate a named artist, studio, channel, franchise or existing composition."),
-                "Channel Visual DNA must remain original premium 2D animated-documentary illustration with expressive linework, soft cel shading and cinematic painted environments.",
+                str(deliberation.get('rendering_rule') or director.get('rendering_rule') or "Original warm 3D educational storytelling; never imitate a named artist, studio, channel, franchise or existing composition."),
+                "Channel Visual DNA must remain original warm 3D educational storytelling: readable staging, rounded appealing forms, tactile natural materials and gentle cinematic light.",
             ))
         else:
             style_rule = (

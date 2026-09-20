@@ -37,6 +37,8 @@ class ReleaseReadinessTests(unittest.TestCase):
             )
             self.assertEqual("ready", report["state"])
             self.assertEqual(4, len(report["available"]["short"]))
+            self.assertEqual("ready", report["shorts_buffer"]["state"])
+            self.assertEqual(4, report["shorts_buffer"]["quality_ready"])
 
     def test_does_not_count_a_video_without_a_saved_quality_gate(self):
         with tempfile.TemporaryDirectory() as root:

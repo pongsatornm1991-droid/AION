@@ -771,6 +771,21 @@ def build_studio_snapshot(memory_root=None):
         ),
     }
 
+    # One card per episode, using the same durable queue that publishing uses.
+    # This prevents a completed image set from masquerading as a ready release.
+    pipeline_now = [
+        {
+            "episode_id": item.get("episode_id"),
+            "title": item.get("display_title") or item.get("title"),
+            "stage": item.get("pipeline_stage") or {"id": "unknown", "label": "กำลังตรวจสถานะ"},
+            "detail": (
+                "; ".join((item.get("quality_gate") or {}).get("reasons") or [])
+                or item.get("status")
+            ),
+        }
+        for item in queue if item.get("status") not in {"published", "retired"}
+    ]
+
     # Studio is a production workspace, not a map of every corporate
     # capability.  These five rooms are the only hand-offs needed to make a
     # video. Finance, operations, research history and safety audits retain
@@ -817,6 +832,7 @@ def build_studio_snapshot(memory_root=None):
         "production_episodes": production_episodes,
         "next_release": next_release,
         "release_readiness": release_readiness,
+        "pipeline_now": pipeline_now,
         "references": snapshot.get("creator_references", {}),
         # Keep the research-to-production chain visible inside Studio.  The
         # observatory has the full activity log, while Studio needs the

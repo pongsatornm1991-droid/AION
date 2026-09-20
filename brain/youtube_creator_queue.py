@@ -21,6 +21,27 @@ class YouTubeCreatorQueue:
     def _content_kind(episode):
         return "short" if episode.get("format") == "illustrated-narrated-short" else "long-form"
 
+    @classmethod
+    def _pipeline_stage(cls, episode, previous, video_exists):
+        """One truthful human-facing stage, never a guessed publish status."""
+        payload = previous[1] if previous else {}
+        if (payload.get("youtube") or {}).get("video_id"):
+            return {"id": "published", "label": "เผยแพร่แล้ว"}
+        if episode.get("status") == cls.RETIRED_STATUS:
+            return {"id": "retired", "label": "ยกเลิกจากคิว"}
+        if episode.get("status") == "storyboard-ready-needs-assets":
+            return {"id": "images", "label": "กำลังสร้างภาพ"}
+        if episode.get("status") == "assets-ready-for-assembly":
+            return {"id": "assembly", "label": "กำลังประกอบวิดีโอ"}
+        gate = payload.get("quality_gate") or {}
+        if not video_exists:
+            return {"id": "assembly", "label": "กำลังประกอบวิดีโอ"}
+        if gate.get("state") == "blocked":
+            return {"id": "blocked", "label": "ต้องแก้ตาม Quality Gate"}
+        if gate.get("eligible") and payload.get("upload_status") == "authorized-for-aion-publish":
+            return {"id": "scheduled", "label": "ผ่าน QA · รอรอบเผยแพร่"}
+        return {"id": "quality", "label": "กำลังตรวจ Quality Gate"}
+
     def __init__(self, memory=None, root=None):
         self.memory = memory
         self.root = Path(root or Path(__file__).resolve().parents[1])
@@ -88,6 +109,7 @@ class YouTubeCreatorQueue:
                     release_blockers.append("short-scenes-must-be-5-seconds")
             retired = episode.get("status") == self.RETIRED_STATUS
             previous = recorded.get(episode["id"])
+            stage = self._pipeline_stage(episode, previous, video_path.is_file())
             result.append({
                 "episode_id": episode["id"],
                 "content_kind": content_kind,
@@ -100,6 +122,7 @@ class YouTubeCreatorQueue:
                 "status": "retired" if retired else ("published" if previous and (previous[1].get("youtube") or {}).get("video_id") else "already-prepared" if previous else (
                     "upload-ready" if ready and not release_blockers else "needs-production"
                 )),
+                "pipeline_stage": stage,
                 "release_eligible": not retired and not release_blockers,
                 "release_blockers": release_blockers,
                 "video_path": str(video_path.relative_to(self.root)).replace("\\", "/"),
@@ -126,7 +149,7 @@ class YouTubeCreatorQueue:
                 "supersedes_episode_id": (episode.get("special_release") or {}).get("supersedes_episode_id"),
                 "source_urls": [source.get("url") for source in (episode.get("sources") or []) if source.get("url")],
                 "viewer_value": episode["audience_promise"],
-                "visual_style": "illustrated-aion-storyboard-v4",
+                "visual_style": (episode.get("visual_style") or {}).get("id") or VisualStoryPolicy.CHANNEL_VISUAL_STYLE,
                 # Queue state is durable and is the source of truth for the
                 # UI.  Keep the friendly display status above for legacy
                 # screens, but never discard the authorization state.

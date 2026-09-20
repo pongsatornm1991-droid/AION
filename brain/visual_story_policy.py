@@ -18,6 +18,7 @@ class VisualStoryPolicy:
     DEFAULT_AION_FRAME_SHARE = 0.20
     DEFAULT_AION_ROLE = "contextual-guide"
     IDENTITY_VERSION = "aion-animated-documentary-guide-v1"
+    CHANNEL_VISUAL_STYLE = "aion-original-warm-3d-storytelling-v1"
     APPROVED_IDENTITY_VERSIONS = {
         IDENTITY_VERSION,
         # Previous default episodes remain valid as historical releases. New
@@ -30,8 +31,8 @@ class VisualStoryPolicy:
     }
     IDENTITY_SUMMARY = (
         "AION is a contextual guide, not a fixed mascot: each story may choose its own form and clothing, while the "
-        "channel keeps one recognizable Visual DNA—original premium 2D animated-documentary illustration with expressive "
-        "linework, soft cel shading and cinematic painted environments."
+        "channel keeps one recognizable Visual DNA—original warm 3D educational storytelling with readable staging, "
+        "rounded appealing forms, tactile natural materials and gentle cinematic light."
     )
     # This is a production rule, rather than an aesthetic preference: cyan is
     # AION's small recognition signal, never skin, a full outfit, or the main
