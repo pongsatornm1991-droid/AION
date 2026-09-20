@@ -37,8 +37,10 @@ jobs:
         run: python -m unittest tests.test_audio_visual_timing tests.test_reel_render tests.test_assemble_creator_episode -q
       - name: Assemble only an asset-complete episode
         env:
-          REEL_VOICE_PROVIDER: ${{ vars.REEL_VOICE_PROVIDER || 'edge-tts' }}
-          REEL_VOICE: ${{ vars.REEL_VOICE || 'en-US-AvaMultilingualNeural' }}
+          REEL_VOICE_PROVIDER: ${{ vars.REEL_VOICE_PROVIDER || 'openai' }}
+          REEL_VOICE: ${{ vars.REEL_VOICE || 'nova' }}
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+          OPENAI_IMAGE_API_KEY: ${{ secrets.OPENAI_IMAGE_API_KEY }}
           AION_REQUIRE_MOTION_VIDEO: 'true'
         run: python tools/assemble_creator_episode.py --require-rendered
       - name: Commit only a verified assembly result
