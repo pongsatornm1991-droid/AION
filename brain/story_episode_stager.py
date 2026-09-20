@@ -15,6 +15,7 @@ from brain.creator_growth import CreatorGrowthGate
 from brain.aion_director import AionDirector
 from brain.watchability_gate import WatchabilityGate
 from brain.story_genome import StoryGenome
+from brain.visual_narrative_gate import VisualNarrativeGate
 from brain.creator_source_integrity import CreatorSourceIntegrity
 from brain.aion_visual_director import AionVisualDirector
 from brain.aion_creative_director import AionCreativeDirector
@@ -245,6 +246,10 @@ class StoryEpisodeStager:
                 "scenes": long_scenes,
                 "content_angle_key": "evidence-walkthrough-primary",
             })
+        episode["visual_narrative"] = VisualNarrativeGate.plan(topic, episode["scenes"])
+        visual_narrative = VisualNarrativeGate.assess(episode)
+        if not visual_narrative["eligible"]:
+            raise ValueError("Storyboard did not pass the AION Visual Narrative Gate.")
         episode["director_plan"] = AionDirector.plan(episode)
         episode["watchability_gate"] = WatchabilityGate.assess_storyboard(episode)
         episode["story_genome"] = StoryGenome(self.memory, self.root).snapshot()

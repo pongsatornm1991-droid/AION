@@ -7,6 +7,7 @@ from brain.creator_series import CreatorSeriesRegistry
 from brain.costume_direction import CostumeDirection
 from brain.visual_story_policy import VisualStoryPolicy
 from brain.creator_source_integrity import CreatorSourceIntegrity
+from brain.visual_narrative_gate import VisualNarrativeGate
 
 
 class CreatorSceneProduction:
@@ -26,6 +27,8 @@ class CreatorSceneProduction:
                      and (not episode_format or item.get("format") == episode_format)
                      and item.get("pacing_policy") in {VisualStoryPolicy.VERSION, "fast-cut-subject-first-v1"}
                      and CreatorSourceIntegrity.assess(item.get("sources"), item.get("topic_key"), "").get("eligible")
+                     and (item.get("pacing_policy") != VisualStoryPolicy.VERSION
+                          or VisualNarrativeGate.assess(item).get("eligible"))
                      # Current storyboards must carry the new human-toned
                      # contextual-guide contract before image generation.
                      and (item.get("pacing_policy") != VisualStoryPolicy.VERSION

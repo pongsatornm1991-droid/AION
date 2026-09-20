@@ -55,7 +55,9 @@ class StoryEpisodeStagerTests(unittest.TestCase):
                 }), encoding="utf-8")
             made = []
             def generator(_prompt, destination):
-                Path(destination).write_bytes(b"image")
+                from PIL import Image
+                size = (1280, 720) if str(destination).endswith("-cover.png") else (100, 100)
+                Image.new("RGB", size, color=(40, 120, 180)).save(destination)
                 made.append(destination)
                 return True
             report = CreatorSceneProduction(root, generator=generator).produce_ready_episodes(episode_limit=2, batch_size=3)

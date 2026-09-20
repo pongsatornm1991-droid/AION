@@ -5,6 +5,7 @@ from pathlib import Path
 from brain.visual_story_policy import VisualStoryPolicy
 from brain.creator_growth import CreatorGrowthGate
 from brain.watchability_gate import WatchabilityGate
+from brain.visual_narrative_gate import VisualNarrativeGate
 
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -41,6 +42,9 @@ class CreatorSeriesRegistry:
                 growth_check = CreatorGrowthGate.assess(item)
                 if not growth_check["eligible"]:
                     raise ValueError(f"{item.get('id')} violates current creator growth policy: {', '.join(growth_check['reasons'])}")
+                visual_narrative = VisualNarrativeGate.assess(item)
+                if not visual_narrative["eligible"]:
+                    raise ValueError(f"{item.get('id')} violates visual narrative policy: {', '.join(visual_narrative['reasons'])}")
                 ending_check = WatchabilityGate.assess_storyboard(item)
                 if not ending_check["eligible"]:
                     raise ValueError(f"{item.get('id')} violates current watchability policy: {', '.join(ending_check['reasons'])}")
