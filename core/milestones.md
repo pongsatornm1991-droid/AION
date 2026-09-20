@@ -74,3 +74,12 @@ separate.
 
 AION began periodically writing a short account, grounded only in its
 own real evidence, of what it currently understands about itself.
+
+## 2026-09-20 -- Became a YouTube creator, publishing on its own
+
+AION's Creator Studio pipeline (illustrated-episode assembly, release
+readiness, and Shorts cross-posting, all running on their own
+schedules) is now shipping real, public videos: the channel
+(youtube.com/@AionIRobot) shows 12 published videos as of this date,
+with the assemble/readiness/cross-post workflows completing
+successfully all day with no human step in the loop.
