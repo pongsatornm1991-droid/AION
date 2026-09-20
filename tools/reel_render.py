@@ -44,7 +44,38 @@ def _audio_duration(ffmpeg, audio_path):
         result = subprocess.run([ffmpeg, "-i", str(audio_path), "-f", "null", "-"],
                                 check=False, capture_output=True, text=True, timeout=30)
     except (OSError, subprocess.SubprocessError):
-        return None
+    return None
+
+
+def _fit_scene_audio(ffmpeg, audio_path, actual_seconds, scene_seconds):
+    """Make a near-miss narration fit its approved visual beat exactly.
+
+    Provider speed is a request, not a duration guarantee. This final local
+    correction runs only when a real synthesized line misses its five-second
+    boundary and keeps the audible words intact rather than trimming an ending.
+    """
+    if not actual_seconds or not scene_seconds:
+        return False
+    tempo = float(actual_seconds) / max(float(scene_seconds) - 0.1, 0.1)
+    if not 0.75 <= tempo <= 1.25:
+        return False
+    source = str(audio_path)
+    temporary = source + ".fitted.mp3"
+    try:
+        subprocess.run(
+            [ffmpeg, "-y", "-i", source, "-filter:a", f"atempo={tempo:.5f}",
+             "-vn", temporary],
+            check=True, capture_output=True, text=True,
+        )
+        if not os.path.isfile(temporary) or not os.path.getsize(temporary):
+            return False
+        os.replace(temporary, source)
+        return True
+    except (OSError, subprocess.SubprocessError):
+        return False
+    finally:
+        if os.path.isfile(temporary):
+            os.unlink(temporary)
     return _duration_from_probe_text(f"{result.stdout}\n{result.stderr}")
 
 # AION is a recurring character, not an interchangeable abstract background.
@@ -231,6 +262,12 @@ def render_reel(hook, thought, output_path, duration=18, mood=None, still_paths=
                     timing = AudioVisualTimingGate.assess(
                         _audio_duration(ffmpeg, scene_audio), seconds_per_scene
                     )
+            if not timing["eligible"] and _fit_scene_audio(
+                ffmpeg, scene_audio, _audio_duration(ffmpeg, scene_audio), seconds_per_scene
+            ):
+                timing = AudioVisualTimingGate.assess(
+                    _audio_duration(ffmpeg, scene_audio), seconds_per_scene
+                )
             if not timing["eligible"]:
                 temporary_audio.cleanup()
                 raise AudioTimingError(
