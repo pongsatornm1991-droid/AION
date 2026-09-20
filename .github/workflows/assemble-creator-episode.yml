@@ -1,6 +1,14 @@
 name: AION - assemble illustrated Creator episode
 
 on:
+  # A completed scene batch or an approved script-timing repair should enter
+  # assembly immediately. The existing hourly timer remains a recovery net,
+  # but a ready episode no longer waits for its next tick.
+  push:
+    branches: [main]
+    paths:
+      - "content/creator_series/**"
+      - "assets/content-library/aion-stories/**"
   workflow_run:
     workflows: [AION - subject-first scene production, AION - Creator release readiness]
     types: [completed]
