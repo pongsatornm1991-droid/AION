@@ -37,9 +37,11 @@ to `main` very frequently (bot commits every few minutes at peak). A bare
 - If rejected, pull --rebase again and retry — don't force-push `main`.
 - Prefer small, focused commits over one giant one; it makes a rebase
   conflict trivial instead of painful.
-- `.github/workflows/instagram-cycle.yml`'s commit+push step has a 5-retry
-  rebase loop as the reference pattern (added 2026-09-20) — most other
-  workflows still use a bare `git push` and carry the same latent race risk.
+- As of 2026-09-20 every workflow that commits+pushes to `main` (51
+  files, starting with `.github/workflows/instagram-cycle.yml`'s
+  original 5-retry rebase loop) uses this retry pattern -- if you add a
+  NEW workflow that commits to `main`, copy the pattern, don't write a
+  bare `git push`.
 
 ## Testing
 
