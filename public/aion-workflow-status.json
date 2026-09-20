@@ -1,10 +1,10 @@
 {
-  "generated_at": "2026-09-20T16:53:32.053698+00:00",
+  "generated_at": "2026-09-20T16:54:42.546644+00:00",
   "tiles": {
     "total": 38,
-    "ok": 27,
-    "attn": 3,
-    "running": 4
+    "ok": 29,
+    "attn": 4,
+    "running": 1
   },
   "groups": [
     {
@@ -22,8 +22,8 @@
         {
           "name": "AION - Creator queue quality gate",
           "file": "creator-queue-quality.yml",
-          "status_class": "running",
-          "status_label": "กำลังรัน",
+          "status_class": "success",
+          "status_label": "สำเร็จ",
           "html_url": "https://github.com/pongsatornm1991-droid/AION/actions/runs/35524072696",
           "created_at": "2026-09-20T16:52:26Z"
         },
@@ -175,10 +175,11 @@
         {
           "name": "AION - Publish public brain summary",
           "file": "publish-public-summary.yml",
-          "status_class": "running",
-          "status_label": "กำลังรัน",
+          "status_class": "failure",
+          "status_label": "ล้มเหลว",
           "html_url": "https://github.com/pongsatornm1991-droid/AION/actions/runs/35524033413",
-          "created_at": "2026-09-20T16:51:40Z"
+          "created_at": "2026-09-20T16:51:40Z",
+          "detail": "ขั้นที่ล้มเหลว: Commit + push the summary to the code repo (if changed)"
         },
         {
           "name": "AION - bounded self repair",
@@ -191,8 +192,8 @@
         {
           "name": "AION - delivery evidence watchdog",
           "file": "publish-delivery-status.yml",
-          "status_class": "running",
-          "status_label": "กำลังรัน",
+          "status_class": "success",
+          "status_label": "สำเร็จ",
           "html_url": "https://github.com/pongsatornm1991-droid/AION/actions/runs/35524093126",
           "created_at": "2026-09-20T16:52:49Z"
         },
@@ -217,8 +218,8 @@
           "file": "publish-workflow-status.yml",
           "status_class": "running",
           "status_label": "กำลังรัน",
-          "html_url": "https://github.com/pongsatornm1991-droid/AION/actions/runs/35524072751",
-          "created_at": "2026-09-20T16:52:26Z"
+          "html_url": "https://github.com/pongsatornm1991-droid/AION/actions/runs/35524119659",
+          "created_at": "2026-09-20T16:53:21Z"
         },
         {
           "name": "AION - system reliability",
