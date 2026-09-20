@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-09-20T23:51:18.198902+07:00",
+  "generated_at": "2026-09-20T23:57:04.048125+07:00",
   "timezone": "Asia/Bangkok",
   "horizon_hours": 168,
   "state": "attention",
@@ -23,20 +23,21 @@
   ],
   "available": {
     "short": [
-      "aion-special-rainbow-perspective-v1"
+      "aion-special-rainbow-perspective-v1",
+      "aion-wonders-005-venus-flytrap-counts"
     ]
   },
   "shortages": [
     {
       "content_kind": "short",
       "needed": 4,
-      "ready": 1,
-      "missing": 3
+      "ready": 2,
+      "missing": 2
     }
   ],
   "shorts_buffer": {
     "target": 4,
-    "quality_ready": 1,
+    "quality_ready": 2,
     "state": "building",
     "detail": "นับเฉพาะ Shorts ใหม่ที่ผ่าน Quality Gate แล้ว; storyboard หรือภาพครบยังไม่นับเป็นบัฟเฟอร์"
   },
