@@ -70,7 +70,17 @@ class CreatorSceneProduction:
         fact_anchor = fact_plan.get("reality_anchor") or {}
         fact_boundary = fact_plan.get("creative_boundary") or {}
         deliberation = visual_style.get("aion_deliberation") or {}
-        if visual_style.get("id") == "aion-illustrated-postcard-v1":
+        if visual_style.get("id") == "aion-vivid-storyworld-2d-v1":
+            style_rule = (
+                "Style: AION Vivid Storyworld 2D—an original flat editorial science illustration with "
+                "clean consistent linework, simplified geometric forms, deliberate paper-grain texture, "
+                "large readable colour blocks and only selective atmospheric depth. "
+                "Use one dominant object or mechanism per frame. Use deep navy/cobalt for the question, "
+                "warm amber for observed evidence, fresh green or coral for the answer, and cyan only "
+                "as AION's tiny signature. No photorealism, no 3D rendering, no anime, no clutter, and "
+                "never imitate a named artist, studio, channel, mascot or franchise."
+            )
+        elif visual_style.get("id") == "aion-illustrated-postcard-v1":
             style_rule = (
                 "Style: original hand-painted watercolor and gouache illustrated postcard; "
                 "soft rainy-season atmosphere, visible paper grain, gentle pigment blooms, "

@@ -1,5 +1,9 @@
 name: AION - subject-first scene production
 on:
+  push:
+    branches: [main]
+    paths:
+      - "content/creator_series/**"
   schedule:
     # Monday starts the release buffer; Tuesday and Wednesday complete and
     # recover it.  No publishing appointment should depend on same-day media

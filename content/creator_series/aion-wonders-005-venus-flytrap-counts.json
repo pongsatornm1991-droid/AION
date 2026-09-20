@@ -1,0 +1,128 @@
+{
+  "id": "aion-wonders-005-venus-flytrap-counts",
+  "series": "AION Wonders",
+  "title": "Why Does a Venus Flytrap Count Touches?",
+  "topic_key": "venus flytrap touch counting calcium action potentials",
+  "format": "illustrated-narrated-short",
+  "language": "en",
+  "status": "storyboard-ready-needs-assets",
+  "pacing_policy": "short-50-180-fact-first-v5",
+  "target_duration_seconds": 50,
+  "scene_seconds": 5,
+  "audience_promise": "See why a Venus flytrap waits for repeated movement before spending energy to close and digest prey.",
+  "wonder_hook": "Why does a Venus flytrap wait for two touches before it snaps shut?",
+  "creative_device": "scale-shift",
+  "age_layers": {
+    "children": "Watch one tiny hair trigger a big plant movement.",
+    "family": "See how the plant avoids wasting energy on one accidental touch.",
+    "deeper": "Follow electrical signals, calcium waves and threshold decisions in a living plant."
+  },
+  "science_boundary": "The storyboard shows the documented touch, electrical and calcium-signal sequence. It does not claim that the plant thinks or makes a conscious decision.",
+  "sources": [
+    {
+      "title": "University of Würzburg: How the Venus Flytrap Counts",
+      "url": "https://www.biozentrum.uni-wuerzburg.de/en/news/archive/news-single/news/how-the-venus-flytrap-counts-1/",
+      "observation": "A prey touching a sensory hair triggers an action potential; two rapid signals overlap as calcium waves and can exceed the threshold for trap closure."
+    },
+    {
+      "title": "Royal Botanic Gardens, Kew: Carnivorous plants explained",
+      "url": "https://www.kew.org/read-and-watch/carnivorous-plants",
+      "observation": "The trap generally closes after two hair touches in a short time and begins releasing digestive enzymes only after additional stimulation."
+    }
+  ],
+  "growth_plan": {
+    "version": "evidence-led-creator-growth-v1",
+    "hook_seconds": 2,
+    "hook_line": "A Venus flytrap does not snap at every touch—it counts first.",
+    "retention_promise": "Each five-second beat reveals why another touch changes what the plant does next.",
+    "follow_reason": "Follow AION for visual explanations of surprising mechanisms in nature and history.",
+    "series_angle": "Plant behaviour is explained as a visible sequence of signals, thresholds and energy choices.",
+    "editing_rule": "Every beat adds one new visible step; no filler, silent holds or repeated compositions."
+  },
+  "visual_identity": {
+    "version": "aion-animated-documentary-guide-v1",
+    "prohibited": ["all-blue body", "all-blue outfit"],
+    "summary": "AION appears only as a small human-toned contextual guide or tiny cyan crystal-marker."
+  },
+  "visual_direction": {
+    "focus": "subject-first",
+    "aion_role": "contextual-guide",
+    "aion_frame_share_max": 0.2,
+    "wardrobe": "black practical coat, silver-white hair, natural skin, tiny cyan crystal pin; use the small crystal-marker rather than a full figure when the mechanism needs the frame",
+    "aion_presence_rationale": "AION is a consistent guide signal but the flytrap mechanism remains the subject."
+  },
+  "visual_style": {
+    "id": "aion-vivid-storyworld-2d-v1",
+    "aion_deliberation": {
+      "premise": "A plant trap behaves like a visible threshold meter: one signal is not enough, two quick signals change the state.",
+      "mood": "vivid, curious, precise and playful without making the science childish",
+      "palette_and_material": "cobalt and indigo for the question, amber for touch evidence, coral and fresh green for the answer, small cyan AION signature, light paper-grain texture",
+      "appearance_choice": "Use a small cyan crystal-marker in mechanism shots; use AION as a small human guide only for the opening and ending.",
+      "rendering_rule": "Original flat 2D editorial science illustration; one dominant visual mechanism per frame; no photorealism or 3D rendering."
+    }
+  },
+  "visual_narrative": {
+    "version": "aion-visual-narrative-v1",
+    "visual_metaphor": {
+      "statement": "A living plant uses two quick touch signals like a threshold meter before it spends energy closing its trap.",
+      "rule": "Every frame advances the same touch-to-signal-to-threshold visual explanation."
+    },
+    "opening": {
+      "deadline_seconds": 2,
+      "visual_question": "Show the open red trap and one untouched trigger hair beside a large unresolved first pulse."
+    },
+    "scene_progression": ["question", "hair", "first-signal", "memory", "second-signal", "calcium", "closure", "more-touches", "digestion", "takeaway"],
+    "color_roles": {
+      "question": "deep cobalt and red trap interior",
+      "evidence": "warm amber pulse from a bent trigger hair",
+      "answer": "fresh green and coral at the closed-trap threshold",
+      "aion_signature": "small cyan crystal only; never AION skin or whole outfit"
+    },
+    "cover": {
+      "primary_focus": "an open Venus flytrap with two bright amber touch pulses",
+      "rule": "One visible question, generous negative space and no embedded text."
+    },
+    "aion_rule": "AION is a contextual guide, never the subject of every frame."
+  },
+  "fact_first_visual": {
+    "version": "aion-fact-first-visual-v1",
+    "reality_anchor": {
+      "topic": "Why a Venus flytrap usually closes after two quick touches",
+      "evidence_claims": [
+        "A touch of a sensory hair triggers an electrical action potential that spreads across the trap.",
+        "Two rapid action potentials can overlap as calcium waves and exceed a threshold that closes the trap."
+      ],
+      "rule": "Depict the trigger hairs, electrical signals, calcium threshold and trap movement before decorative atmosphere."
+    },
+    "mechanism_flow": ["Show one touch and its signal.", "Show a second quick signal adding before the first fades.", "Show the threshold crossing, closure and later digestion response."],
+    "creative_boundary": {
+      "allowed": "Clear symbolic pulses and colour-coded plant cross-sections may make the invisible signals readable.",
+      "prohibited": "Do not depict the plant as conscious, talking, thinking, or using human-made electronics."
+    },
+    "scene_roles": [
+      {"n": 1, "beat": "question", "role": "question"},
+      {"n": 2, "beat": "evidence", "role": "evidence"},
+      {"n": 3, "beat": "mechanism", "role": "mechanism"},
+      {"n": 4, "beat": "comparison", "role": "comparison"},
+      {"n": 5, "beat": "mechanism", "role": "mechanism"},
+      {"n": 6, "beat": "mechanism", "role": "mechanism"},
+      {"n": 7, "beat": "mechanism", "role": "mechanism"},
+      {"n": 8, "beat": "evidence", "role": "evidence"},
+      {"n": 9, "beat": "boundary", "role": "boundary"},
+      {"n": 10, "beat": "takeaway", "role": "takeaway"}
+    ]
+  },
+  "thumbnail_concept": "Open red Venus flytrap with two amber pulse rings landing on one trigger hair; dark cobalt background; no text.",
+  "scenes": [
+    {"n": 1, "beat": "question", "narration": "A Venus flytrap does not snap at every touch. It counts first.", "visual": "AION appears small beside one open red Venus flytrap; one trigger hair carries a single amber pulse while the trap remains open."},
+    {"n": 2, "beat": "evidence", "narration": "Inside each trap are tiny hairs that sense a visitor moving.", "visual": "Macro 2D view of two delicate trigger hairs inside the red trap; AION is only a cyan crystal-marker at the edge."},
+    {"n": 3, "beat": "mechanism", "narration": "One bent hair sends an electrical signal across the leaf.", "visual": "One hair bends under a small insect foot; a single amber pulse travels through a simplified dark-indigo leaf cross-section; AION marker is tiny."},
+    {"n": 4, "beat": "comparison", "narration": "But one signal usually is not enough to close the trap.", "visual": "Split-simple composition: one fading amber pulse on the left and an open trap on the right; AION marker remains tiny."},
+    {"n": 5, "beat": "mechanism", "narration": "A second quick touch arrives before the first signal disappears.", "visual": "Two amber pulses overlap along the same leaf path from two trigger-hair touches; AION marker is small and non-dominant."},
+    {"n": 6, "beat": "mechanism", "narration": "Together they raise a calcium wave inside the trap's cells.", "visual": "Clean cellular cutaway: two amber signals become one rising coral-and-cyan calcium wave; AION marker at the lower edge."},
+    {"n": 7, "beat": "mechanism", "narration": "Cross the threshold, and the two leaf lobes snap shut.", "visual": "One dominant Venus flytrap changes from open to closed around a small insect; green threshold glow marks the mechanism, with a tiny AION marker."},
+    {"n": 8, "beat": "evidence", "narration": "More movement tells the plant that real prey is still inside.", "visual": "Closed trap shown as a calm cutaway; small repeated amber taps continue inside while AION appears as a tiny contextual guide."},
+    {"n": 9, "beat": "boundary", "narration": "Then it can invest more energy in digestion, not on every raindrop.", "visual": "Comparison of a harmless raindrop outside and a closed trap with a few extra pulses inside; no anthropomorphic plant; AION marker only."},
+    {"n": 10, "beat": "takeaway", "narration": "It is not thinking. It uses a tiny biological memory to save energy.", "visual": "Final clean poster composition: open-to-closed trap sequence around two amber pulses, AION small at edge with cyan crystal signature."}
+  ]
+}

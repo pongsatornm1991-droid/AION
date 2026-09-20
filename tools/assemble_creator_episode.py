@@ -141,7 +141,7 @@ if __name__ == "__main__":
     parser.add_argument("--episode-id")
     parser.add_argument("--backfill-subtitles", action="store_true")
     parser.add_argument("--require-rendered", action="store_true",
-                        help="Exit non-zero when an asset-complete episode cannot become a verified video.")
+                        help="Exit non-zero when final production fails; waiting for automatic motion is a valid handoff.")
     args = parser.parse_args()
     report = backfill_subtitles_once() if args.backfill_subtitles else assemble_once(episode_id=args.episode_id)
     print(json.dumps(report, ensure_ascii=False, indent=2))
@@ -149,6 +149,10 @@ if __name__ == "__main__":
     # once it starts on an asset-complete episode, any other result is a real
     # production failure and must be visible to downstream workflows.
     if args.require_rendered and report.get("stage") not in {
-        "episode-rendered-for-quality", "no-asset-complete-episode"
+        "episode-rendered-for-quality", "no-asset-complete-episode",
+        # Veo is intentionally a separate automatic worker.  Images may be
+        # complete while it is creating the matching motion sources; that is
+        # a visible handoff, not an assembly failure.
+        "waiting-for-automatic-motion",
     }:
         raise SystemExit("creator-episode-assembly-failed")
