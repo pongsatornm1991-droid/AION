@@ -1,10 +1,10 @@
 {
-  "generated_at": "2026-09-20T10:46:38.840455+00:00",
+  "generated_at": "2026-09-20T10:48:00.403308+00:00",
   "tiles": {
     "total": 42,
     "ok": 36,
-    "attn": 4,
-    "running": 1
+    "attn": 3,
+    "running": 2
   },
   "groups": [
     {
@@ -54,11 +54,10 @@
         {
           "name": "AION - subject-first scene production",
           "file": "creator-scene-production.yml",
-          "status_class": "failure",
-          "status_label": "ล้มเหลว",
-          "html_url": "https://github.com/pongsatornm1991-droid/AION/actions/runs/35504299049",
-          "created_at": "2026-09-20T10:10:04Z",
-          "detail": "ขั้นที่ล้มเหลว: Verify actual narration timing before creating scene images"
+          "status_class": "running",
+          "status_label": "กำลังรัน",
+          "html_url": "https://github.com/pongsatornm1991-droid/AION/actions/runs/35506005771",
+          "created_at": "2026-09-20T10:46:35Z"
         }
       ]
     },
