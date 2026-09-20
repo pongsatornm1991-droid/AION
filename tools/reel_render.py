@@ -44,7 +44,8 @@ def _audio_duration(ffmpeg, audio_path):
         result = subprocess.run([ffmpeg, "-i", str(audio_path), "-f", "null", "-"],
                                 check=False, capture_output=True, text=True, timeout=30)
     except (OSError, subprocess.SubprocessError):
-    return None
+        return None
+    return _duration_from_probe_text(f"{result.stdout}\n{result.stderr}")
 
 
 def _fit_scene_audio(ffmpeg, audio_path, actual_seconds, scene_seconds):
@@ -76,8 +77,6 @@ def _fit_scene_audio(ffmpeg, audio_path, actual_seconds, scene_seconds):
     finally:
         if os.path.isfile(temporary):
             os.unlink(temporary)
-    return _duration_from_probe_text(f"{result.stdout}\n{result.stderr}")
-
 # AION is a recurring character, not an interchangeable abstract background.
 # These scenes give each narration a recognisable visual presence while still
 # allowing the thought to choose its atmosphere.
