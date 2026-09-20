@@ -1,10 +1,10 @@
 {
-  "generated_at": "2026-09-20T01:18:31.913533+00:00",
+  "generated_at": "2026-09-20T01:19:44.942408+00:00",
   "tiles": {
     "total": 40,
-    "ok": 32,
+    "ok": 33,
     "attn": 1,
-    "running": 4
+    "running": 3
   },
   "groups": [
     {
@@ -14,8 +14,8 @@
         {
           "name": "AION - Creator queue quality gate",
           "file": "creator-queue-quality.yml",
-          "status_class": "running",
-          "status_label": "กำลังรัน",
+          "status_class": "success",
+          "status_label": "สำเร็จ",
           "html_url": "https://github.com/pongsatornm1991-droid/AION/actions/runs/35481003066",
           "created_at": "2026-09-20T01:17:19Z"
         },
@@ -38,8 +38,8 @@
         {
           "name": "AION - assemble illustrated Creator episode",
           "file": "assemble-creator-episode.yml",
-          "status_class": "running",
-          "status_label": "กำลังรัน",
+          "status_class": "success",
+          "status_label": "สำเร็จ",
           "html_url": "https://github.com/pongsatornm1991-droid/AION/actions/runs/35481018452",
           "created_at": "2026-09-20T01:17:40Z"
         },
@@ -60,10 +60,10 @@
         {
           "name": "AION - Research to story brief",
           "file": "research-to-story.yml",
-          "status_class": "success",
-          "status_label": "สำเร็จ",
-          "html_url": "https://github.com/pongsatornm1991-droid/AION/actions/runs/35477015589",
-          "created_at": "2026-09-19T23:46:21Z"
+          "status_class": "running",
+          "status_label": "กำลังรัน",
+          "html_url": "https://github.com/pongsatornm1991-droid/AION/actions/runs/35481048889",
+          "created_at": "2026-09-20T01:18:23Z"
         },
         {
           "name": "AION - Scientific Discovery Lab",
@@ -92,8 +92,8 @@
         {
           "name": "AION - external learning cycle",
           "file": "learning-cycle.yml",
-          "status_class": "running",
-          "status_label": "กำลังรัน",
+          "status_class": "success",
+          "status_label": "สำเร็จ",
           "html_url": "https://github.com/pongsatornm1991-droid/AION/actions/runs/35481000993",
           "created_at": "2026-09-20T01:17:16Z"
         },
@@ -160,8 +160,8 @@
           "file": "automation-health.yml",
           "status_class": "success",
           "status_label": "ไม่มีเหตุให้ดำเนินการ",
-          "html_url": "https://github.com/pongsatornm1991-droid/AION/actions/runs/35481018505",
-          "created_at": "2026-09-20T01:17:40Z"
+          "html_url": "https://github.com/pongsatornm1991-droid/AION/actions/runs/35481048934",
+          "created_at": "2026-09-20T01:18:23Z"
         },
         {
           "name": "AION - Cyber Guard defensive audit",
@@ -199,10 +199,10 @@
         {
           "name": "AION - delivery evidence watchdog",
           "file": "publish-delivery-status.yml",
-          "status_class": "success",
-          "status_label": "สำเร็จ",
-          "html_url": "https://github.com/pongsatornm1991-droid/AION/actions/runs/35475598543",
-          "created_at": "2026-09-19T23:15:13Z"
+          "status_class": "running",
+          "status_label": "กำลังรัน",
+          "html_url": "https://github.com/pongsatornm1991-droid/AION/actions/runs/35481063950",
+          "created_at": "2026-09-20T01:18:44Z"
         },
         {
           "name": "AION - deterministic tests",
@@ -225,8 +225,8 @@
           "file": "publish-workflow-status.yml",
           "status_class": "running",
           "status_label": "กำลังรัน",
-          "html_url": "https://github.com/pongsatornm1991-droid/AION/actions/runs/35481018464",
-          "created_at": "2026-09-20T01:17:40Z"
+          "html_url": "https://github.com/pongsatornm1991-droid/AION/actions/runs/35481048883",
+          "created_at": "2026-09-20T01:18:23Z"
         },
         {
           "name": "AION - system reliability",
