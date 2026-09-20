@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-09-20T21:40:48.166360+07:00",
+  "generated_at": "2026-09-20T21:42:47.039112+07:00",
   "timezone": "Asia/Bangkok",
   "horizon_hours": 168,
   "state": "attention",
@@ -22,19 +22,21 @@
     }
   ],
   "available": {
-    "short": []
+    "short": [
+      "aion-special-rainbow-perspective-v1"
+    ]
   },
   "shortages": [
     {
       "content_kind": "short",
       "needed": 4,
-      "ready": 0,
-      "missing": 4
+      "ready": 1,
+      "missing": 3
     }
   ],
   "shorts_buffer": {
     "target": 4,
-    "quality_ready": 0,
+    "quality_ready": 1,
     "state": "building",
     "detail": "นับเฉพาะ Shorts ใหม่ที่ผ่าน Quality Gate แล้ว; storyboard หรือภาพครบยังไม่นับเป็นบัฟเฟอร์"
   },
