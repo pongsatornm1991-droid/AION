@@ -1,9 +1,9 @@
 {
-  "generated_at": "2026-09-20T01:17:14.474185+00:00",
+  "generated_at": "2026-09-20T01:18:31.913533+00:00",
   "tiles": {
     "total": 40,
-    "ok": 33,
-    "attn": 0,
+    "ok": 32,
+    "attn": 1,
     "running": 4
   },
   "groups": [
@@ -14,10 +14,10 @@
         {
           "name": "AION - Creator queue quality gate",
           "file": "creator-queue-quality.yml",
-          "status_class": "success",
-          "status_label": "สำเร็จ",
-          "html_url": "https://github.com/pongsatornm1991-droid/AION/actions/runs/35480887813",
-          "created_at": "2026-09-20T01:14:50Z"
+          "status_class": "running",
+          "status_label": "กำลังรัน",
+          "html_url": "https://github.com/pongsatornm1991-droid/AION/actions/runs/35481003066",
+          "created_at": "2026-09-20T01:17:19Z"
         },
         {
           "name": "AION - YouTube Creator Studio",
@@ -40,8 +40,8 @@
           "file": "assemble-creator-episode.yml",
           "status_class": "running",
           "status_label": "กำลังรัน",
-          "html_url": "https://github.com/pongsatornm1991-droid/AION/actions/runs/35480938099",
-          "created_at": "2026-09-20T01:15:53Z"
+          "html_url": "https://github.com/pongsatornm1991-droid/AION/actions/runs/35481018452",
+          "created_at": "2026-09-20T01:17:40Z"
         },
         {
           "name": "AION - subject-first scene production",
@@ -92,10 +92,10 @@
         {
           "name": "AION - external learning cycle",
           "file": "learning-cycle.yml",
-          "status_class": "success",
-          "status_label": "สำเร็จ",
-          "html_url": "https://github.com/pongsatornm1991-droid/AION/actions/runs/35475526325",
-          "created_at": "2026-09-19T23:13:45Z"
+          "status_class": "running",
+          "status_label": "กำลังรัน",
+          "html_url": "https://github.com/pongsatornm1991-droid/AION/actions/runs/35481000993",
+          "created_at": "2026-09-20T01:17:16Z"
         },
         {
           "name": "AION - self-narrative",
@@ -160,8 +160,8 @@
           "file": "automation-health.yml",
           "status_class": "success",
           "status_label": "ไม่มีเหตุให้ดำเนินการ",
-          "html_url": "https://github.com/pongsatornm1991-droid/AION/actions/runs/35480968099",
-          "created_at": "2026-09-20T01:16:33Z"
+          "html_url": "https://github.com/pongsatornm1991-droid/AION/actions/runs/35481018505",
+          "created_at": "2026-09-20T01:17:40Z"
         },
         {
           "name": "AION - Cyber Guard defensive audit",
@@ -182,10 +182,11 @@
         {
           "name": "AION - Publish public brain summary",
           "file": "publish-public-summary.yml",
-          "status_class": "running",
-          "status_label": "กำลังรัน",
+          "status_class": "failure",
+          "status_label": "ล้มเหลว",
           "html_url": "https://github.com/pongsatornm1991-droid/AION/actions/runs/35480943418",
-          "created_at": "2026-09-20T01:15:59Z"
+          "created_at": "2026-09-20T01:15:59Z",
+          "detail": "ขั้นที่ล้มเหลว: Commit + push the summary to the code repo (if changed)"
         },
         {
           "name": "AION - bounded self repair",
@@ -224,8 +225,8 @@
           "file": "publish-workflow-status.yml",
           "status_class": "running",
           "status_label": "กำลังรัน",
-          "html_url": "https://github.com/pongsatornm1991-droid/AION/actions/runs/35480938125",
-          "created_at": "2026-09-20T01:15:53Z"
+          "html_url": "https://github.com/pongsatornm1991-droid/AION/actions/runs/35481018464",
+          "created_at": "2026-09-20T01:17:40Z"
         },
         {
           "name": "AION - system reliability",
@@ -252,8 +253,8 @@
         {
           "name": "AION - Creator release readiness",
           "file": "release-readiness.yml",
-          "status_class": "running",
-          "status_label": "กำลังรัน",
+          "status_class": "success",
+          "status_label": "สำเร็จ",
           "html_url": "https://github.com/pongsatornm1991-droid/AION/actions/runs/35480968131",
           "created_at": "2026-09-20T01:16:33Z"
         },
