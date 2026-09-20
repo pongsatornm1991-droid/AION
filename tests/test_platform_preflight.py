@@ -13,3 +13,8 @@ class PlatformPreflightTests(unittest.TestCase):
         report = PlatformPreflight({}).check("instagram")
         self.assertEqual("waiting-for-owner-configuration", report["state"])
         self.assertEqual(2, len(report["missing"]))
+
+    def test_video_preflight_accepts_the_configured_provider_key(self):
+        report = PlatformPreflight({"GEMINI_API_KEY": "configured"}).check("video")
+        self.assertTrue(report["configured"])
+        self.assertEqual("video", report["platform"])

@@ -10,7 +10,7 @@ from brain.platform_preflight import PlatformPreflight
 
 
 parser = argparse.ArgumentParser()
-parser.add_argument("--require", choices=("image", "youtube", "facebook", "instagram"))
+parser.add_argument("--require", choices=("image", "video", "youtube", "facebook", "instagram"))
 args = parser.parse_args()
 report = PlatformPreflight().check(args.require) if args.require else PlatformPreflight().snapshot()
 print(json.dumps(report, ensure_ascii=False))
