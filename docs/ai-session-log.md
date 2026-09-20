@@ -15,6 +15,14 @@ Commits: <hash> [, <hash> ...]
 
 ---
 
+## 2026-09-21 — Codex — Fixed truthful Creator Shorts release handoff
+
+Found the actual release block: a valid 1080×1920 Short cover was incorrectly rejected as a 16:9 long-form thumbnail, while the workflow still appeared green without checking for `Stage: published`. Shorts now accept vertical covers, manual releases can target one exact episode, run a persisted Quality Gate first, and fail visibly if YouTube did not confirm publication.
+
+Verified release evidence: the automatic lane published `aion-special-rainbow-perspective-v1` publicly as `https://www.youtube.com/watch?v=ujytX6ba7jY`. `aion-wonders-005-venus-flytrap-counts` remains authorized and has not been claimed as published. Added `docs/ai-active-task.md` as an expiring live-claim board for Codex/Claude coordination.
+
+Commits: f77c4bf
+
 ## 2026-09-20 — Claude — Retried git push race across all 50 remaining commit+push workflows
 
 Follow-up to the instagram-cycle.yml fix below, at the user's request after
