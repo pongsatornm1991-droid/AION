@@ -44,16 +44,28 @@ def _eligible_episode(root, episode_id=None):
 
 
 def _timestamp(seconds):
-    return f"{seconds // 3600:02}:{(seconds % 3600) // 60:02}:{seconds % 60:02},000"
+    milliseconds = round(float(seconds) * 1000)
+    hours, remainder = divmod(milliseconds, 3_600_000)
+    minutes, remainder = divmod(remainder, 60_000)
+    whole_seconds, milliseconds = divmod(remainder, 1000)
+    return f"{hours:02}:{minutes:02}:{whole_seconds:02},{milliseconds:03}"
 
 
 def _write_subtitles(episode, output):
     """Create an inspectable SRT track from the approved storyboard narration."""
     seconds = int(episode["scene_seconds"])
+    timing_file = output.with_suffix(".timing.json")
+    try:
+        durations = json.loads(timing_file.read_text(encoding="utf-8")).get("scene_durations") or []
+    except (OSError, ValueError, TypeError):
+        durations = []
     blocks = []
+    start = 0
     for index, scene in enumerate(episode.get("scenes") or [], 1):
-        start = (index - 1) * seconds
-        blocks.append(f"{index}\n{_timestamp(start)} --> {_timestamp(start + seconds)}\n{str(scene.get('narration') or '').strip()}\n")
+        scene_duration = float(durations[index - 1]) if len(durations) >= index else seconds
+        end = start + scene_duration
+        blocks.append(f"{index}\n{_timestamp(start)} --> {_timestamp(end)}\n{str(scene.get('narration') or '').strip()}\n")
+        start = end
     subtitle = output.with_suffix(".srt")
     subtitle.write_text("\n".join(blocks), encoding="utf-8")
     return subtitle
@@ -113,7 +125,7 @@ def assemble_once(root=ROOT, episode_id=None, renderer=render_reel):
                  duration=int(episode["target_duration_seconds"]),
                  still_paths=[str(image) for image in images],
                  motion_paths=[str(path) for path in motion] if use_motion else None,
-                 max_scene_seconds=VisualStoryPolicy.MAX_SCENE_SECONDS,
+                 max_scene_seconds=VisualStoryPolicy.MAX_RENDERED_SCENE_SECONDS,
                  frame_size=frame_size,
                  scene_narrations=[str(scene.get("narration") or "").strip() for scene in scenes])
     except AudioTimingError as exc:

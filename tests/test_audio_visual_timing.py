@@ -13,7 +13,9 @@ class AudioVisualTimingGateTests(unittest.TestCase):
         report = AudioVisualTimingGate.assess(145.54, 120)
         self.assertFalse(report["eligible"])
         self.assertEqual("return-to-story", report["state"])
-        self.assertEqual(6, report["minimum_extra_visual_beats"])
+        # Rendered picture beats may now extend to seven seconds before
+        # narration is sent back for rewriting.
+        self.assertEqual(4, report["minimum_extra_visual_beats"])
         self.assertIn("ย่อบท", report["detail"])
 
     def test_rejects_silent_final_scenes(self):

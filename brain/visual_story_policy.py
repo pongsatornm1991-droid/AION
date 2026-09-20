@@ -6,7 +6,11 @@ class VisualStoryPolicy:
 
     VERSION = "short-50-180-fact-first-v5"
     MIN_SCENE_SECONDS = 5
+    # Five seconds is the authored storyboard beat.  The renderer may extend
+    # that picture interval for a naturally spoken line without changing the
+    # approved story plan.
     MAX_SCENE_SECONDS = 5
+    MAX_RENDERED_SCENE_SECONDS = 7
     MIN_SHORT_DURATION_SECONDS = 50
     MIN_SHORT_SCENES = 10
     MAX_SHORT_DURATION_SECONDS = 180

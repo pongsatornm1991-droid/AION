@@ -4,10 +4,25 @@ import unittest
 from unittest import mock
 from pathlib import Path
 
-from tools.assemble_creator_episode import assemble_once, backfill_subtitles_once
+from tools.assemble_creator_episode import _write_subtitles, assemble_once, backfill_subtitles_once
 
 
 class AssembleCreatorEpisodeTests(unittest.TestCase):
+    def test_subtitles_follow_renderer_scene_extensions(self):
+        with tempfile.TemporaryDirectory() as temp:
+            output = Path(temp) / "episode.mp4"
+            output.write_bytes(b"mp4")
+            output.with_suffix(".timing.json").write_text(
+                json.dumps({"scene_durations": [5.5, 5.0]}), encoding="utf-8"
+            )
+            episode = {"scene_seconds": 5, "scenes": [
+                {"narration": "First."}, {"narration": "Second."},
+            ]}
+            subtitle = _write_subtitles(episode, output)
+            text = subtitle.read_text(encoding="utf-8")
+            self.assertIn("00:00:00,000 --> 00:00:05,500", text)
+            self.assertIn("00:00:05,500 --> 00:00:10,500", text)
+
     def test_assembles_every_scene_then_advances_only_that_episode(self):
         with tempfile.TemporaryDirectory() as temp:
             root = Path(temp)

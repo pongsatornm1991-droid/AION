@@ -17,7 +17,7 @@ class AudioVisualTimingGate:
     # One short breath / codec tail is acceptable, but anything longer means
     # Story must add narration or Visual must shorten the approved plan.
     MAX_TRAILING_SILENCE_SECONDS = 0.50
-    MAX_SCENE_SECONDS = 5
+    MAX_SCENE_SECONDS = 7
 
     @classmethod
     def assess(cls, audio_seconds, visual_seconds, max_trailing_silence=None):

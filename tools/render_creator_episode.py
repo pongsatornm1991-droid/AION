@@ -28,7 +28,7 @@ def render_episode(episode_id, output=None):
         duration=episode["target_duration_seconds"],
         mood={"color": "#22d3ee"},
         still_paths=[str(path) for path in stills],
-        max_scene_seconds=(VisualStoryPolicy.MAX_SCENE_SECONDS
+        max_scene_seconds=(VisualStoryPolicy.MAX_RENDERED_SCENE_SECONDS
                            if episode.get("pacing_policy") == VisualStoryPolicy.VERSION else 10),
     )
     return destination

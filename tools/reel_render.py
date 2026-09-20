@@ -7,6 +7,7 @@ publishing logic.
 """
 
 import hashlib
+import json
 import os
 import re
 import shutil
@@ -238,6 +239,7 @@ def render_reel(hook, thought, output_path, duration=18, mood=None, still_paths=
 
     has_voice = False
     scene_audio_paths = []
+    scene_durations = []
     temporary_audio = None
     if scene_narrations:
         temporary_audio = tempfile.TemporaryDirectory(prefix="aion-scene-voice-")
@@ -249,7 +251,12 @@ def render_reel(hook, thought, output_path, duration=18, mood=None, still_paths=
             # A visual may breathe briefly after a sentence, but never for an
             # entire scene. The final full-episode check remains stricter.
             actual_seconds = _audio_duration(ffmpeg, scene_audio)
-            timing = AudioVisualTimingGate.assess(actual_seconds, seconds_per_scene)
+            # Preserve natural narration: a five-second beat may expand to
+            # seven seconds, and only then do we repair unusually long audio.
+            visual_seconds = seconds_per_scene
+            if actual_seconds and actual_seconds > seconds_per_scene + 0.25:
+                visual_seconds = min(float(actual_seconds) + 0.1, float(max_scene_seconds))
+            timing = AudioVisualTimingGate.assess(actual_seconds, visual_seconds)
             if not timing["eligible"] and actual_seconds:
                 # Use the same bounded automatic timing correction as the
                 # preflight. This prevents an image-ready episode from
@@ -259,13 +266,13 @@ def render_reel(hook, thought, output_path, duration=18, mood=None, still_paths=
                 speed = max(0.75, min(1.25, float(actual_seconds) / target))
                 if synthesize_reel_voice(narration, scene_audio, speed=speed):
                     timing = AudioVisualTimingGate.assess(
-                        _audio_duration(ffmpeg, scene_audio), seconds_per_scene
+                        _audio_duration(ffmpeg, scene_audio), visual_seconds
                     )
             if not timing["eligible"] and _fit_scene_audio(
-                ffmpeg, scene_audio, _audio_duration(ffmpeg, scene_audio), seconds_per_scene
+                ffmpeg, scene_audio, _audio_duration(ffmpeg, scene_audio), visual_seconds
             ):
                 timing = AudioVisualTimingGate.assess(
-                    _audio_duration(ffmpeg, scene_audio), seconds_per_scene
+                    _audio_duration(ffmpeg, scene_audio), visual_seconds
                 )
             if not timing["eligible"]:
                 temporary_audio.cleanup()
@@ -273,6 +280,7 @@ def render_reel(hook, thought, output_path, duration=18, mood=None, still_paths=
                     f"audio-visual-timing-failed: ฉาก {index + 1}: {timing['detail']}"
                 )
             scene_audio_paths.append(scene_audio)
+            scene_durations.append(visual_seconds)
         has_voice = True
     else:
         has_voice = synthesize_reel_voice(f"{hook}. {thought}", audio)
@@ -286,6 +294,7 @@ def render_reel(hook, thought, output_path, duration=18, mood=None, still_paths=
     cover = os.path.splitext(output_path)[0] + "-cover.png"
     render_reel_cover(hook, thought, cover, mood=mood, still_paths=stills)
     command = [ffmpeg, "-y"]
+    rendered_duration = sum(scene_durations) if scene_durations else duration
     for index, still in enumerate(stills):
         # Give each still an explicit five-second video input.  The prior
         # zoompan approach started from a one-frame, one-fps source and could
@@ -296,9 +305,9 @@ def render_reel(hook, thought, output_path, duration=18, mood=None, still_paths=
             # Veo outputs are longer than one five-second narrative beat.
             # Trim each automatically generated source at the approved beat
             # boundary so narration, subtitles, and picture stay aligned.
-            command.extend(["-stream_loop", "-1", "-t", str(seconds_per_scene), "-i", motion[index]])
+            command.extend(["-stream_loop", "-1", "-t", str(scene_durations[index] if scene_durations else seconds_per_scene), "-i", motion[index]])
         else:
-            command.extend(["-loop", "1", "-framerate", "30", "-t", str(seconds_per_scene), "-i", still])
+            command.extend(["-loop", "1", "-framerate", "30", "-t", str(scene_durations[index] if scene_durations else seconds_per_scene), "-i", still])
     scene_filters = [
         f"[{index}:v]scale={width}:{height}:force_original_aspect_ratio=increase,crop={width}:{height},fps=30,format=yuv420p[v{index}]"
         for index in range(len(stills))
@@ -312,7 +321,7 @@ def render_reel(hook, thought, output_path, duration=18, mood=None, still_paths=
             # Every scene owns its complete picture interval.  Pad shorter
             # narration all the way to its boundary; never concatenate a
             # fractional audio stream that can shorten the whole output.
-            f"[{len(stills) + index}:a]apad=pad_dur={seconds_per_scene},atrim=duration={seconds_per_scene}[a{index}]"
+            f"[{len(stills) + index}:a]apad=pad_dur={scene_durations[index]},atrim=duration={scene_durations[index]}[a{index}]"
             for index in range(len(scene_audio_paths))
         ]
         joined_audio = "".join(f"[a{index}]" for index in range(len(scene_audio_paths)))
@@ -325,10 +334,13 @@ def render_reel(hook, thought, output_path, duration=18, mood=None, still_paths=
         command.extend(["-i", audio, "-filter_complex", f"{video_filter};[{audio_index}:a]apad=pad_dur=0.5[a]", "-map", "[v]", "-map", "[a]"])
     else:
         command.extend(["-filter_complex", video_filter, "-map", "[v]", "-an"])
-    command.extend(["-t", str(duration), "-r", "30", "-c:v", "libx264", "-pix_fmt", "yuv420p", "-movflags", "+faststart", output_path])
+    command.extend(["-t", str(rendered_duration), "-r", "30", "-c:v", "libx264", "-pix_fmt", "yuv420p", "-movflags", "+faststart", output_path])
     try:
         subprocess.run(command, check=True, capture_output=True, text=True)
     finally:
         if temporary_audio is not None:
             temporary_audio.cleanup()
+    if scene_durations:
+        with open(os.path.splitext(output_path)[0] + ".timing.json", "w", encoding="utf-8") as timing_file:
+            json.dump({"scene_durations": scene_durations}, timing_file)
     return output_path
