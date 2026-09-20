@@ -1,10 +1,10 @@
 {
-  "generated_at": "2026-09-20T17:38:51.668247+00:00",
+  "generated_at": "2026-09-20T17:40:02.781677+00:00",
   "tiles": {
     "total": 41,
-    "ok": 32,
+    "ok": 34,
     "attn": 3,
-    "running": 3
+    "running": 1
   },
   "groups": [
     {
@@ -161,8 +161,8 @@
           "file": "automation-health.yml",
           "status_class": "success",
           "status_label": "ไม่มีเหตุให้ดำเนินการ",
-          "html_url": "https://github.com/pongsatornm1991-droid/AION/actions/runs/35526470577",
-          "created_at": "2026-09-20T17:37:44Z"
+          "html_url": "https://github.com/pongsatornm1991-droid/AION/actions/runs/35526520075",
+          "created_at": "2026-09-20T17:38:40Z"
         },
         {
           "name": "AION - Cyber Guard defensive audit",
@@ -200,10 +200,10 @@
         {
           "name": "AION - delivery evidence watchdog",
           "file": "publish-delivery-status.yml",
-          "status_class": "running",
-          "status_label": "กำลังรัน",
-          "html_url": "https://github.com/pongsatornm1991-droid/AION/actions/runs/35526470582",
-          "created_at": "2026-09-20T17:37:44Z"
+          "status_class": "success",
+          "status_label": "สำเร็จ",
+          "html_url": "https://github.com/pongsatornm1991-droid/AION/actions/runs/35526520077",
+          "created_at": "2026-09-20T17:38:40Z"
         },
         {
           "name": "AION - deterministic tests",
@@ -226,8 +226,8 @@
           "file": "publish-workflow-status.yml",
           "status_class": "running",
           "status_label": "กำลังรัน",
-          "html_url": "https://github.com/pongsatornm1991-droid/AION/actions/runs/35526470536",
-          "created_at": "2026-09-20T17:37:44Z"
+          "html_url": "https://github.com/pongsatornm1991-droid/AION/actions/runs/35526548338",
+          "created_at": "2026-09-20T17:39:14Z"
         },
         {
           "name": "AION - system reliability",
@@ -334,8 +334,8 @@
         {
           "name": "AION - cross-post verified Creator Short",
           "file": "creator-episode-crosspost.yml",
-          "status_class": "running",
-          "status_label": "กำลังรัน",
+          "status_class": "success",
+          "status_label": "สำเร็จ",
           "html_url": "https://github.com/pongsatornm1991-droid/AION/actions/runs/35526470587",
           "created_at": "2026-09-20T17:37:44Z"
         },
