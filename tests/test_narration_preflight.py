@@ -8,7 +8,7 @@ class NarrationPreflightTests(unittest.TestCase):
         report = NarrationPreflight.assess_episode(
             {"id": "fit", "scene_seconds": 5, "scenes": [{"narration": "A short clear line."}]},
             synthesize=lambda _text, _path: True,
-            duration_reader=lambda _path: 4.2,
+            duration_reader=lambda _path: 4.7,
         )
         self.assertTrue(report["eligible"])
         self.assertEqual("pass", report["state"])
@@ -22,3 +22,21 @@ class NarrationPreflightTests(unittest.TestCase):
         self.assertFalse(report["eligible"])
         self.assertEqual("return-to-story", report["state"])
         self.assertIn("scene-1:audio-overruns-storyboard", report["reasons"])
+
+    def test_repairs_a_small_voice_timing_difference_automatically(self):
+        durations = iter((5.3, 4.9))
+        speeds = []
+
+        def synthesize(_text, _path, speed=None):
+            speeds.append(speed)
+            return True
+
+        report = NarrationPreflight.assess_episode(
+            {"id": "repair", "scene_seconds": 5, "scenes": [{"narration": "A line."}]},
+            synthesize=synthesize,
+            duration_reader=lambda _path: next(durations),
+        )
+        self.assertTrue(report["eligible"])
+        self.assertTrue(report["checks"][0]["auto_timed"])
+        self.assertIsNone(speeds[0])
+        self.assertGreater(speeds[1], 1)

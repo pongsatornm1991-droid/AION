@@ -218,10 +218,19 @@ def render_reel(hook, thought, output_path, duration=18, mood=None, still_paths=
                 raise AudioTimingError(f"audio-visual-timing-failed: สร้างเสียงสำหรับฉาก {index + 1} ไม่สำเร็จ")
             # A visual may breathe briefly after a sentence, but never for an
             # entire scene. The final full-episode check remains stricter.
-            timing = AudioVisualTimingGate.assess(
-                _audio_duration(ffmpeg, scene_audio), seconds_per_scene,
-                max_trailing_silence=2.0,
-            )
+            actual_seconds = _audio_duration(ffmpeg, scene_audio)
+            timing = AudioVisualTimingGate.assess(actual_seconds, seconds_per_scene)
+            if not timing["eligible"] and actual_seconds:
+                # Use the same bounded automatic timing correction as the
+                # preflight. This prevents an image-ready episode from
+                # failing later just because the natural voice cadence moved
+                # by a fraction of a second between two provider calls.
+                target = max(seconds_per_scene - 0.1, 0.1)
+                speed = max(0.75, min(1.25, float(actual_seconds) / target))
+                if synthesize_reel_voice(narration, scene_audio, speed=speed):
+                    timing = AudioVisualTimingGate.assess(
+                        _audio_duration(ffmpeg, scene_audio), seconds_per_scene
+                    )
             if not timing["eligible"]:
                 temporary_audio.cleanup()
                 raise AudioTimingError(

@@ -21,9 +21,11 @@ on:
       - AION - YouTube public audience signals
       - AION - external learning cycle
       - AION - Cyber Guard defensive audit
-      - AION - system reliability
-      - AION - bounded self repair
-      - AION - deterministic tests
+      # Engineering observers are intentionally excluded here. A status
+      # commit itself runs tests; listening to that test completion made the
+      # board create a new commit and restart the same loop. Their failures
+      # still alert through Automation Health Monitor and appear in the next
+      # hourly status refresh.
       - AION - Creator release readiness
       - AION - admin operations audit
     types: [completed]

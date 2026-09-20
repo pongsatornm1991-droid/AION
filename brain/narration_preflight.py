@@ -51,9 +51,23 @@ class NarrationPreflight:
                 if not narration or not synthesize(narration, audio):
                     checks.append({"scene": index, "eligible": False, "reason": "voice-synthesis-failed"})
                     continue
-                timing = AudioVisualTimingGate.assess(
-                    duration_reader(audio), scene_seconds, max_trailing_silence=2.0
-                )
+                actual_seconds = duration_reader(audio)
+                timing = AudioVisualTimingGate.assess(actual_seconds, scene_seconds)
+                # The previous design merely reported a 0.26-second mismatch
+                # and required a person to rewrite the beat.  OpenAI speech
+                # supports a safe speed range, so repair the timing first and
+                # only return a genuine provider/asset failure to Story.
+                if not timing["eligible"] and actual_seconds:
+                    target = max(scene_seconds - 0.1, 0.1)
+                    speed = max(0.75, min(1.25, float(actual_seconds) / target))
+                    try:
+                        repaired = synthesize(narration, audio, speed=speed)
+                    except TypeError:
+                        repaired = False
+                    if repaired:
+                        timing = AudioVisualTimingGate.assess(duration_reader(audio), scene_seconds)
+                        timing["auto_timed"] = timing["eligible"]
+                        timing["speed"] = round(speed, 3)
                 checks.append({"scene": index, **timing})
         failures = [item for item in checks if not item.get("eligible")]
         return {

@@ -244,6 +244,24 @@ def main():
 
     out_path = Path(args.out)
     out_path.parent.mkdir(parents=True, exist_ok=True)
+    # A timestamp-only rewrite used to create a new commit. That commit then
+    # started deterministic tests, whose completion started this observer
+    # again: an expensive self-induced loop that crowded real production.
+    # Keep a fresh timestamp in memory, but retain the existing file when the
+    # actual workflow facts are unchanged.
+    existing = None
+    if out_path.is_file():
+        try:
+            existing = json.loads(out_path.read_text(encoding="utf-8"))
+        except (OSError, ValueError, TypeError):
+            existing = None
+    comparable = dict(status)
+    comparable.pop("generated_at", None)
+    previous = dict(existing or {})
+    previous.pop("generated_at", None)
+    if existing is not None and comparable == previous:
+        print(f"Workflow facts unchanged; kept {out_path} without a timestamp-only commit")
+        return
     out_path.write_text(json.dumps(status, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
     print(
         f"Wrote {out_path} "
