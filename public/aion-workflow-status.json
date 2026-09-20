@@ -1,10 +1,10 @@
 {
-  "generated_at": "2026-09-20T14:54:08.859709+00:00",
+  "generated_at": "2026-09-20T14:55:29.917744+00:00",
   "tiles": {
     "total": 40,
-    "ok": 29,
+    "ok": 31,
     "attn": 4,
-    "running": 4
+    "running": 2
   },
   "groups": [
     {
@@ -22,8 +22,8 @@
         {
           "name": "AION - Creator queue quality gate",
           "file": "creator-queue-quality.yml",
-          "status_class": "running",
-          "status_label": "กำลังรัน",
+          "status_class": "success",
+          "status_label": "สำเร็จ",
           "html_url": "https://github.com/pongsatornm1991-droid/AION/actions/runs/35517843556",
           "created_at": "2026-09-20T14:53:04Z"
         },
@@ -38,8 +38,8 @@
         {
           "name": "AION - assemble illustrated Creator episode",
           "file": "assemble-creator-episode.yml",
-          "status_class": "running",
-          "status_label": "กำลังรัน",
+          "status_class": "success",
+          "status_label": "สำเร็จ",
           "html_url": "https://github.com/pongsatornm1991-droid/AION/actions/runs/35517844352",
           "created_at": "2026-09-20T14:53:05Z"
         },
