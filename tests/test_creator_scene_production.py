@@ -74,7 +74,9 @@ class CreatorSceneProductionTests(unittest.TestCase):
             source.write_text('''{"id":"episode","series":"AION Wonders","title":"Test story","audience_promise":"A useful evidence-led story for every age.","wonder_hook":"Could this work?","creative_device":"journey","age_layers":{"children":"Ask.","family":"Talk.","deeper":"Test."},"target_duration_seconds":15,"scene_seconds":5,"format":"illustrated-narrated-short","pacing_policy":"fast-cut-subject-first-v1","visual_direction":{"focus":"subject-first","aion_role":"contextual-guide","aion_frame_share_max":0.20},"history_boundary":"A boundary.","sources":[{"url":"https://one.test"},{"url":"https://two.test"}],"status":"storyboard-ready-needs-assets","scenes":[{"n":1,"beat":"hook","visual":"AION explores a historical place.","narration":"One."},{"n":2,"beat":"reveal","visual":"AION observes the subject.","narration":"Two."},{"n":3,"beat":"end","visual":"AION shares a question.","narration":"Three."}]}''', encoding="utf-8")
 
             def generator(_, destination):
-                Path(destination).write_bytes(b"png")
+                from PIL import Image
+                size = (1280, 720) if str(destination).endswith("-cover.png") else (100, 100)
+                Image.new("RGB", size, color=(40, 120, 180)).save(destination)
                 return True
 
             result = CreatorSceneProduction(root, generator).produce_episode(batch_size=2, max_scenes=25)

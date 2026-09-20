@@ -21,7 +21,7 @@ class CreatorSceneProduction:
 
     def _episode(self, episode_format=None):
         return next((item for item in CreatorSeriesRegistry(self.root).episodes()
-                     if item.get("status") in {"storyboard-ready-needs-assets", "assets-ready-for-assembly"}
+                     if item.get("status") in {"storyboard-ready-needs-assets", "assets-ready-for-assembly", "production-ready-assets-and-script"}
                      and not self._cover_exists(item)
                      and (not episode_format or item.get("format") == episode_format)
                      and item.get("pacing_policy") in {VisualStoryPolicy.VERSION, "fast-cut-subject-first-v1"}
@@ -35,7 +35,14 @@ class CreatorSceneProduction:
         return self.root / "content" / "reels" / f"{episode['id']}-cover.png"
 
     def _cover_exists(self, episode):
-        return self._cover_path(episode).is_file()
+        path = self._cover_path(episode)
+        try:
+            from PIL import Image
+            with Image.open(path) as image:
+                width, height = image.size
+                return width >= 1280 and height >= 720 and abs((width / height) - (16 / 9)) <= 0.03
+        except Exception:
+            return False
 
     @staticmethod
     def _safe_name(scene):
@@ -176,7 +183,7 @@ class CreatorSceneProduction:
                 }
                 cover_created = True
                 changed = True
-        completed = scenes_complete and cover_path.is_file()
+        completed = scenes_complete and self._cover_exists(episode)
         if completed and episode.get("status") != "assets-ready-for-assembly":
             episode["status"] = "assets-ready-for-assembly"
             changed = True
