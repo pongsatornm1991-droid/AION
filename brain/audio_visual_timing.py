@@ -58,7 +58,7 @@ class AudioVisualTimingGate:
         reasons = []
         if delta > cls.TOLERANCE_SECONDS:
             reasons.append("audio-overruns-storyboard")
-        if trailing_silence > cls.MAX_TRAILING_SILENCE_SECONDS:
+        if trailing_silence > allowed_trailing_silence:
             reasons.append("narration-ends-before-final-scene")
         report = {
             "eligible": eligible,

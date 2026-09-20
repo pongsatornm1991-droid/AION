@@ -23,6 +23,11 @@ class AudioVisualTimingGateTests(unittest.TestCase):
         self.assertEqual(10, report["trailing_silence_seconds"])
         self.assertIn("ห้ามประกอบคลิป", report["detail"])
 
+    def test_allows_a_short_breath_when_scene_policy_explicitly_permits_it(self):
+        report = AudioVisualTimingGate.assess(3.8, 5, max_trailing_silence=2.0)
+        self.assertTrue(report["eligible"])
+        self.assertEqual([], report["reasons"])
+
     def test_rejects_unreadable_audio_duration(self):
         report = AudioVisualTimingGate.assess(None, 120)
         self.assertFalse(report["eligible"])
