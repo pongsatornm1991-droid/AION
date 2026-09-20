@@ -9,6 +9,14 @@ on:
     paths:
       - "content/creator_series/**"
       - "assets/content-library/aion-stories/**"
+      # A renderer/timing repair must also retry the already-ready episode;
+      # otherwise an urgent fix waits for the hourly recovery schedule.
+      - "brain/audio_visual_timing.py"
+      - "brain/visual_story_policy.py"
+      - "tools/reel_render.py"
+      - "tools/assemble_creator_episode.py"
+      - "tools/render_creator_episode.py"
+      - ".github/workflows/assemble-creator-episode.yml"
   workflow_run:
     # Commits made by a GitHub Actions token do not reliably create a new
     # push-triggered run. Listen directly for motion completion so a finished
