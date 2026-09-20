@@ -125,7 +125,26 @@ jobs:
             echo "HAS_IMAGE=false" >> "$GITHUB_ENV"
           else
             git commit -m "AION: add drafted Instagram image ($(date -u +%Y-%m-%dT%H:%M:%SZ))"
-            git push
+            # Many other AION workflows also commit+push straight to main on
+            # their own schedules (workflow-health refreshes, release
+            # readiness, etc.), so a plain `git push` here can race one of
+            # them and get rejected as non-fast-forward -- this is exactly
+            # what broke run #17 (2026-09-20 audit). Retry with a rebase
+            # instead of failing the whole cycle over a harmless collision.
+            pushed=false
+            for attempt in 1 2 3 4 5; do
+              if git push; then
+                pushed=true
+                break
+              fi
+              echo "git push rejected (attempt $attempt/5) -- another workflow pushed first, rebasing and retrying..."
+              git pull --rebase --autostash origin main
+              sleep $((attempt * 5))
+            done
+            if [ "$pushed" != "true" ]; then
+              echo "::error::git push kept failing after 5 attempts -- giving up this run."
+              exit 1
+            fi
             echo "HAS_IMAGE=true" >> "$GITHUB_ENV"
           fi
 
