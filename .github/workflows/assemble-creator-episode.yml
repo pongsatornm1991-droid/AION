@@ -22,7 +22,10 @@ on:
     # push-triggered run. Listen directly for motion completion so a finished
     # new scene set always proceeds to assembly without waiting for the hourly
     # recovery schedule.
-    workflows: [AION - subject-first scene production, AION - automatic motion production, AION - Creator release readiness]
+    # Readiness observes the finished result; it must never re-trigger
+    # assembly or it becomes an observer-to-producer loop.  Only production
+    # workflows are allowed to hand work into this stage.
+    workflows: [AION - subject-first scene production, AION - automatic motion production]
     types: [completed]
   schedule:
     - cron: "15 * * * *"
