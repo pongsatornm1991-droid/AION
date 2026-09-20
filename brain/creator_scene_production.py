@@ -8,6 +8,7 @@ from brain.costume_direction import CostumeDirection
 from brain.visual_story_policy import VisualStoryPolicy
 from brain.creator_source_integrity import CreatorSourceIntegrity
 from brain.visual_narrative_gate import VisualNarrativeGate
+from brain.fact_first_visual_gate import FactFirstVisualGate
 
 
 class CreatorSceneProduction:
@@ -29,6 +30,8 @@ class CreatorSceneProduction:
                      and CreatorSourceIntegrity.assess(item.get("sources"), item.get("topic_key"), "").get("eligible")
                      and (item.get("pacing_policy") != VisualStoryPolicy.VERSION
                           or VisualNarrativeGate.assess(item).get("eligible"))
+                     and (item.get("pacing_policy") != VisualStoryPolicy.VERSION
+                          or FactFirstVisualGate.assess(item).get("eligible"))
                      # Current storyboards must carry the new human-toned
                      # contextual-guide contract before image generation.
                      and (item.get("pacing_policy") != VisualStoryPolicy.VERSION
@@ -63,6 +66,9 @@ class CreatorSceneProduction:
             "Do not include AION in this scene. Let the subject, people, evidence, and environment carry the story."
         )
         visual_style = episode.get("visual_style") or {}
+        fact_plan = episode.get("fact_first_visual") or {}
+        fact_anchor = fact_plan.get("reality_anchor") or {}
+        fact_boundary = fact_plan.get("creative_boundary") or {}
         deliberation = visual_style.get("aion_deliberation") or {}
         if visual_style.get("id") == "aion-illustrated-postcard-v1":
             style_rule = (
@@ -97,6 +103,9 @@ class CreatorSceneProduction:
         return " ".join((
             f"Use case: historical-scene. Asset type: {aspect} educational video scene.",
             f"Scene: {scene.get('visual')}",
+            f"Reality anchor: {fact_anchor.get('rule') or 'Show the documented subject and mechanism first.'}",
+            f"Documented claims to preserve: {' | '.join(fact_anchor.get('evidence_claims') or [])}",
+            f"Creative boundary: {fact_boundary.get('prohibited') or 'Do not let atmosphere replace the documented mechanism.'}",
             "If AION appears, use AION's story-specific chosen presence: "
             f"{deliberation.get('appearance_choice') or 'a subtle cyan curiosity signal or practical contextual guide'}. "
             "Keep AION contextual rather than dominant.",

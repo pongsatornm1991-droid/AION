@@ -4,7 +4,7 @@
 class VisualStoryPolicy:
     """Inspectable creative constraints for new AION productions."""
 
-    VERSION = "short-50-180-subject-first-v4"
+    VERSION = "short-50-180-fact-first-v5"
     MIN_SCENE_SECONDS = 5
     MAX_SCENE_SECONDS = 5
     MIN_SHORT_DURATION_SECONDS = 50

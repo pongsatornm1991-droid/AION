@@ -6,6 +6,7 @@ from brain.visual_story_policy import VisualStoryPolicy
 from brain.creator_growth import CreatorGrowthGate
 from brain.watchability_gate import WatchabilityGate
 from brain.visual_narrative_gate import VisualNarrativeGate
+from brain.fact_first_visual_gate import FactFirstVisualGate
 
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -45,6 +46,9 @@ class CreatorSeriesRegistry:
                 visual_narrative = VisualNarrativeGate.assess(item)
                 if not visual_narrative["eligible"]:
                     raise ValueError(f"{item.get('id')} violates visual narrative policy: {', '.join(visual_narrative['reasons'])}")
+                fact_visual = FactFirstVisualGate.assess(item)
+                if not fact_visual["eligible"]:
+                    raise ValueError(f"{item.get('id')} violates fact-first visual policy: {', '.join(fact_visual['reasons'])}")
                 ending_check = WatchabilityGate.assess_storyboard(item)
                 if not ending_check["eligible"]:
                     raise ValueError(f"{item.get('id')} violates current watchability policy: {', '.join(ending_check['reasons'])}")
