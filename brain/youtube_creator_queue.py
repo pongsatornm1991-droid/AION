@@ -18,16 +18,23 @@ class YouTubeCreatorQueue:
     RETIRED_STATUS = "retired-do-not-publish"
 
     @staticmethod
-    def _cover_quality(path):
-        """Verify the custom thumbnail is a real readable 16:9 asset."""
+    def _cover_quality(path, content_kind=None):
+        """Verify a readable cover in the aspect ratio used by its release lane.
+
+        Shorts are composed vertically, so a 9:16 cover is valid evidence for
+        the Studio/dashboard and may be offered to YouTube. Long-form still
+        requires a conventional 16:9 thumbnail.
+        """
         try:
             from PIL import Image
             with Image.open(path) as image:
                 width, height = image.size
                 ratio = width / height if height else 0
-                valid = width >= 1280 and height >= 720 and abs(ratio - (16 / 9)) <= 0.03
+                is_vertical_short = content_kind == "short" and abs(ratio - (9 / 16)) <= 0.03 and width >= 720 and height >= 1280
+                is_widescreen = width >= 1280 and height >= 720 and abs(ratio - (16 / 9)) <= 0.03
+                valid = is_vertical_short or is_widescreen
                 return {"eligible": valid, "width": width, "height": height,
-                        "reason": None if valid else "cover-must-be-at-least-1280x720-16x9"}
+                        "reason": None if valid else "cover-must-be-vertical-720x1280-or-widescreen-1280x720"}
         except Exception:
             return {"eligible": False, "width": 0, "height": 0, "reason": "cover-is-not-a-readable-image"}
 
@@ -143,7 +150,7 @@ class YouTubeCreatorQueue:
                 "video_exists": video_path.is_file(),
                 "cover_path": f"content/reels/{episode['id']}-cover.png",
                 "cover_exists": (self.root / "content" / "reels" / f"{episode['id']}-cover.png").is_file(),
-                "cover_quality": self._cover_quality(self.root / "content" / "reels" / f"{episode['id']}-cover.png"),
+                "cover_quality": self._cover_quality(self.root / "content" / "reels" / f"{episode['id']}-cover.png", content_kind),
                 "subtitle_path": str(subtitle_path.relative_to(self.root)).replace("\\", "/"),
                 "subtitle_exists": subtitle_path.is_file(),
                 "audience_promise": episode["audience_promise"],
@@ -177,7 +184,7 @@ class YouTubeCreatorQueue:
             })
         return result
 
-    def prepare_once(self, content_kind=None):
+    def prepare_once(self, content_kind=None, episode_id=None):
         """Record one upload-ready episode; never calls YouTube directly."""
         if self.memory is None:
             raise ValueError("Memory is required to prepare a creator episode.")
@@ -208,6 +215,8 @@ class YouTubeCreatorQueue:
         for candidate in self.candidates():
             if content_kind and candidate.get("content_kind") != content_kind:
                 continue
+            if episode_id and candidate.get("episode_id") != episode_id:
+                continue
             existing = records.get(candidate["episode_id"])
             if existing is None:
                 continue
@@ -234,7 +243,8 @@ class YouTubeCreatorQueue:
         eligible = [item for item in self.candidates()
                     if item["status"] == "upload-ready"
                     and item.get("release_eligible")
-                    and (not content_kind or item.get("content_kind") == content_kind)]
+                    and (not content_kind or item.get("content_kind") == content_kind)
+                    and (not episode_id or item.get("episode_id") == episode_id)]
         # A documented corrective release may go first, but it can never
         # bypass the normal quality gates below. This prevents a stale ready
         # file from winning merely because its filename sorts earlier.
@@ -269,7 +279,7 @@ class YouTubeCreatorQueue:
         )
         return {"stage": "authorized-for-publishing" if autonomous else "prepared-for-review", "record": record, **payload}
 
-    def quality_pending(self, content_kind=None):
+    def quality_pending(self, content_kind=None, episode_id=None):
         """Run the complete local Quality Gate for queued, unuploaded episodes.
 
         This is deliberately separate from publishing.  It gives the release
@@ -289,6 +299,8 @@ class YouTubeCreatorQueue:
             if (payload.get("youtube") or {}).get("video_id"):
                 continue
             if content_kind and payload.get("content_kind") != content_kind:
+                continue
+            if episode_id and payload.get("episode_id") != episode_id:
                 continue
             prior = [record for _, record in records.values()
                      if (record.get("youtube") or {}).get("video_id")
@@ -373,7 +385,7 @@ class YouTubeCreatorQueue:
             )
         return {"stage": "reconciled-published", "record": entry, **payload}
 
-    def publish_once(self, uploader=None, content_kind=None):
+    def publish_once(self, uploader=None, content_kind=None, episode_id=None):
         """Upload one authorized Creator episode exactly once."""
         if self.memory is None:
             raise ValueError("Memory is required to publish a creator episode.")
@@ -382,6 +394,7 @@ class YouTubeCreatorQueue:
         target = next((item for item in self._records_by_episode().values()
                        if item[1].get("upload_status") == "authorized-for-aion-publish"
                        and (not content_kind or item[1].get("content_kind") == content_kind)
+                       and (not episode_id or item[1].get("episode_id") == episode_id)
                        and not (item[1].get("youtube") or {}).get("video_id")), None)
         if target is None:
             return {"stage": "no-authorized-creator-episode"}
@@ -413,7 +426,7 @@ class YouTubeCreatorQueue:
         if not cover_path.is_file():
             work_queue.transition(work_card["task_id"], "waiting", owner="Studio", next_owner="Video QA Agent", detail="รอภาพปกที่ตรวจสอบได้ก่อนเผยแพร่")
             return {"stage": "missing-cover", "episode_id": payload.get("episode_id")}
-        cover_quality = self._cover_quality(cover_path)
+        cover_quality = self._cover_quality(cover_path, payload.get("content_kind"))
         if not cover_quality["eligible"]:
             work_queue.transition(work_card["task_id"], "waiting", owner="Studio", next_owner="Video QA Agent", detail="ภาพปกไม่ผ่านขนาดหรืออ่านไฟล์ไม่ได้ จึงไม่เผยแพร่")
             return {"stage": "invalid-cover", "episode_id": payload.get("episode_id"), "cover_quality": cover_quality}

@@ -27,6 +27,9 @@ AION's own constitution) before `brain/`.
 3. Check GitHub Actions health before assuming the repo is green:
    `https://github.com/pongsatornm1991-droid/AION/actions` — a red run is
    often more informative than anything in this file.
+4. Read `docs/ai-active-task.md`. If it names another assistant and its
+   lease has not expired, do not overlap that scope; take a clearly separate
+   task instead. Claim your own nontrivial work there before editing.
 
 ## Git discipline (read this — it is not optional)
 

@@ -16,6 +16,10 @@ on:
         default: "auto"
         type: choice
         options: [auto, short, long-form]
+      episode_id:
+        description: "Optional exact Creator episode id for an immediate, audited release"
+        required: false
+        type: string
 
 concurrency:
   # Publishing must never wait behind a research/reflection write.  The
@@ -80,7 +84,19 @@ jobs:
       - name: Queue one finished AION Studio episode
         env:
           AION_MEMORY_ROOT: memory_data
-        run: python main.py prepare-youtube-creator --content-kind "$RELEASE_KIND"
+          EPISODE_ID: ${{ github.event.inputs.episode_id || '' }}
+        run: |
+          args=(--content-kind "$RELEASE_KIND")
+          if [[ -n "$EPISODE_ID" ]]; then args+=(--episode-id "$EPISODE_ID"); fi
+          python main.py prepare-youtube-creator "${args[@]}"
+      - name: Persist a pre-release Quality Gate decision
+        env:
+          AION_MEMORY_ROOT: memory_data
+          EPISODE_ID: ${{ github.event.inputs.episode_id || '' }}
+        run: |
+          args=(--content-kind "$RELEASE_KIND")
+          if [[ -n "$EPISODE_ID" ]]; then args+=(--episode-id "$EPISODE_ID"); fi
+          python main.py quality-youtube-creator "${args[@]}" | tee youtube-creator-quality-report.txt
       - name: Publish one authorized Creator episode
         id: creator-publish
         env:
@@ -89,7 +105,15 @@ jobs:
           YOUTUBE_CLIENT_SECRET: ${{ secrets.YOUTUBE_CLIENT_SECRET }}
           YOUTUBE_REFRESH_TOKEN: ${{ secrets.YOUTUBE_REFRESH_TOKEN }}
           YOUTUBE_PRIVACY_STATUS: ${{ vars.YOUTUBE_PRIVACY_STATUS || 'public' }}
-        run: python main.py run-youtube-creator-publish --content-kind "$RELEASE_KIND" | tee youtube-creator-publish-report.txt
+          EPISODE_ID: ${{ github.event.inputs.episode_id || '' }}
+        run: |
+          args=(--content-kind "$RELEASE_KIND")
+          if [[ -n "$EPISODE_ID" ]]; then args+=(--episode-id "$EPISODE_ID"); fi
+          python main.py run-youtube-creator-publish "${args[@]}" | tee youtube-creator-publish-report.txt
+          if [[ "${{ github.event_name }}" == "workflow_dispatch" ]] && ! grep -q "Stage: published" youtube-creator-publish-report.txt; then
+            echo "An explicitly requested release did not reach YouTube; refusing a false-green run."
+            exit 1
+          fi
       - name: Record an empty slot; never substitute an old Reel
         # A release slot must contain a newly produced Studio episode.  An old
         # Reel may be technically valid but is not a replacement for today's

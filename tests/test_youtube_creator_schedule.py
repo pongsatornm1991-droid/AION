@@ -15,3 +15,6 @@ class YouTubeCreatorScheduleTests(unittest.TestCase):
         self.assertNotIn('SCHEDULE" == "15 13 * * 6"', workflow)
         self.assertIn('RELEASE_KIND="short"', workflow)
         self.assertIn('--content-kind "$RELEASE_KIND"', workflow)
+        self.assertIn('episode_id:', workflow)
+        self.assertIn('quality-youtube-creator', workflow)
+        self.assertIn('Stage: published', workflow)

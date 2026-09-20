@@ -51,6 +51,22 @@ class YouTubeCreatorQueueTests(unittest.TestCase):
             self.assertEqual("already-prepared", queue.candidates()[0]["status"])
             self.assertEqual("no-upload-ready-creator-episode", queue.prepare_once()["stage"])
 
+    def test_vertical_short_cover_is_release_eligible(self):
+        with tempfile.TemporaryDirectory() as root:
+            self._episode(root)
+            root = Path(root)
+            from PIL import Image
+            Image.new("RGB", (1080, 1920), color=(30, 110, 160)).save(
+                root / "content" / "reels" / "episode-cover.png"
+            )
+            cover = YouTubeCreatorQueue._cover_quality(
+                root / "content" / "reels" / "episode-cover.png", "short"
+            )
+            self.assertTrue(cover["eligible"])
+            self.assertFalse(YouTubeCreatorQueue._cover_quality(
+                root / "content" / "reels" / "episode-cover.png", "long-form"
+            )["eligible"])
+
     def test_skips_a_legacy_short_instead_of_letting_it_consume_a_release_slot(self):
         with tempfile.TemporaryDirectory() as root:
             self._episode(root)
