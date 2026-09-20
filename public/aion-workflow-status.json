@@ -1,10 +1,10 @@
 {
-  "generated_at": "2026-09-20T16:40:10.109366+00:00",
+  "generated_at": "2026-09-20T16:41:06.228554+00:00",
   "tiles": {
     "total": 38,
-    "ok": 29,
-    "attn": 3,
-    "running": 2
+    "ok": 30,
+    "attn": 4,
+    "running": 1
   },
   "groups": [
     {
@@ -24,16 +24,17 @@
           "file": "creator-queue-quality.yml",
           "status_class": "success",
           "status_label": "ไม่มีเหตุให้ดำเนินการ",
-          "html_url": "https://github.com/pongsatornm1991-droid/AION/actions/runs/35522908821",
-          "created_at": "2026-09-20T16:30:08Z"
+          "html_url": "https://github.com/pongsatornm1991-droid/AION/actions/runs/35523431981",
+          "created_at": "2026-09-20T16:40:08Z"
         },
         {
           "name": "AION - assemble illustrated Creator episode",
           "file": "assemble-creator-episode.yml",
-          "status_class": "running",
-          "status_label": "กำลังรัน",
+          "status_class": "failure",
+          "status_label": "ล้มเหลว",
           "html_url": "https://github.com/pongsatornm1991-droid/AION/actions/runs/35523376228",
-          "created_at": "2026-09-20T16:39:04Z"
+          "created_at": "2026-09-20T16:39:04Z",
+          "detail": "ขั้นที่ล้มเหลว: Assemble only an asset-complete episode"
         },
         {
           "name": "AION - subject-first scene production",
@@ -152,9 +153,9 @@
           "name": "AION - Automation Health Monitor",
           "file": "automation-health.yml",
           "status_class": "success",
-          "status_label": "ไม่มีเหตุให้ดำเนินการ",
-          "html_url": "https://github.com/pongsatornm1991-droid/AION/actions/runs/35523376298",
-          "created_at": "2026-09-20T16:39:04Z"
+          "status_label": "สำเร็จ",
+          "html_url": "https://github.com/pongsatornm1991-droid/AION/actions/runs/35523432052",
+          "created_at": "2026-09-20T16:40:08Z"
         },
         {
           "name": "AION - Cyber Guard defensive audit",
@@ -218,8 +219,8 @@
           "file": "publish-workflow-status.yml",
           "status_class": "running",
           "status_label": "กำลังรัน",
-          "html_url": "https://github.com/pongsatornm1991-droid/AION/actions/runs/35523376195",
-          "created_at": "2026-09-20T16:39:04Z"
+          "html_url": "https://github.com/pongsatornm1991-droid/AION/actions/runs/35523431991",
+          "created_at": "2026-09-20T16:40:08Z"
         },
         {
           "name": "AION - system reliability",
