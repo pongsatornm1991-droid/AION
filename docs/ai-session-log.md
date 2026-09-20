@@ -15,6 +15,26 @@ Commits: <hash> [, <hash> ...]
 
 ---
 
+## 2026-09-20 — Claude — Retried git push race across all 50 remaining commit+push workflows
+
+Follow-up to the instagram-cycle.yml fix below, at the user's request after
+explaining the tradeoffs. Every other workflow that commits+pushes to main
+(50 files) used a bare `git push` with the same latent non-fast-forward
+race risk. Mechanically substituted a drop-in retry-with-rebase expression
+for every standalone `git push` occurrence (one regex substitution per
+file, validated every touched file still parses as YAML afterward, spot-
+checked 3 diffs by hand for both the one-liner and multi-line styles).
+
+Deliberately did NOT refactor this into a shared composite GitHub Action
+(`.github/actions/...`) to cut the duplication -- that would need
+restructuring each file's step rather than a pure substitution, which is
+riskier to get right across 50 varied files in one pass. Worth doing as a
+follow-up if this pattern needs to change again.
+
+Commits: 81b2ce6
+
+---
+
 ## 2026-09-20 — Claude — Full status audit + one race-condition fix + this coordination protocol
 
 Full audit at the user's request ("developed far ahead with Codex, go read
