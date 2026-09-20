@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-09-20T08:34:29.151904+07:00",
+  "generated_at": "2026-09-20T12:33:49.727763+07:00",
   "timezone": "Asia/Bangkok",
   "horizon_hours": 168,
   "state": "attention",
@@ -34,5 +34,11 @@
       "missing": 3
     }
   ],
+  "shorts_buffer": {
+    "target": 4,
+    "quality_ready": 1,
+    "state": "building",
+    "detail": "นับเฉพาะ Shorts ใหม่ที่ผ่าน Quality Gate แล้ว; storyboard หรือภาพครบยังไม่นับเป็นบัฟเฟอร์"
+  },
   "policy": "ตรวจล่วงหน้า 144 ชั่วโมง; นับเฉพาะตอนใหม่ที่ผ่าน Quality Gate พร้อมและไม่ซ้ำ ไม่ใช้คลิปเก่าแทนวันปล่อย"
 }
