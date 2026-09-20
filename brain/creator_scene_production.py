@@ -80,6 +80,17 @@ class CreatorSceneProduction:
                 "as AION's tiny signature. No photorealism, no 3D rendering, no anime, no clutter, and "
                 "never imitate a named artist, studio, channel, mascot or franchise."
             )
+        elif visual_style.get("id") == "aion-neon-graphic-science-v1":
+            style_rule = (
+                "Style: AION Neon Graphic Science—an original graphic 2.5D science illustration with strong "
+                "dark-navy ink outlines, controlled halftone-dot texture, shallow cel-shaded depth, and clean "
+                "geometric colour shapes. Use a near-black indigo edge-to-electric-cobalt radial gradient that "
+                "brightens only behind the one focal mechanism. Amber represents observed inputs, coral represents "
+                "the answer or threshold, fresh green is the subject, and cyan is reserved only for AION's tiny "
+                "crystal signature. Keep the image readable within one second: one mechanism, sparse background, "
+                "no text, no logos, no photorealism, no anime, no visual clutter, and never imitate a named artist, "
+                "studio, channel, mascot or franchise."
+            )
         elif visual_style.get("id") == "aion-illustrated-postcard-v1":
             style_rule = (
                 "Style: original hand-painted watercolor and gouache illustrated postcard; "
