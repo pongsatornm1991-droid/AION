@@ -8,6 +8,7 @@ class PlatformPreflight:
 
     REQUIREMENTS = {
         "image": ("OPENAI_IMAGE_API_KEY", "OPENAI_API_KEY"),
+        "video": ("GEMINI_API_KEY",),
         "youtube": ("YOUTUBE_CLIENT_ID", "YOUTUBE_CLIENT_SECRET", "YOUTUBE_REFRESH_TOKEN"),
         "facebook": ("FACEBOOK_PAGE_ACCESS_TOKEN", "FACEBOOK_PAGE_ID"),
         "instagram": ("INSTAGRAM_ACCESS_TOKEN", "INSTAGRAM_BUSINESS_ACCOUNT_ID"),

@@ -1,0 +1,43 @@
+name: AION - automatic motion production
+
+on:
+  schedule:
+    # Runs after the early-week image shift. It only works on new, complete
+    # storyboards and never turns a legacy clip into a substitute release.
+    - cron: "37 3 * * 1,2,3"
+  workflow_dispatch: {}
+
+concurrency:
+  group: aion-creator-motion
+  cancel-in-progress: false
+
+permissions: {contents: write}
+
+jobs:
+  produce-motion:
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: {python-version: "3.11"}
+      - run: pip install -r requirements.txt
+      - name: Preflight automatic video provider
+        env:
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+        run: python tools/run_platform_preflight.py --require video
+      - name: Create real motion for the approved episode
+        env:
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+          AION_VIDEO_MODEL: ${{ vars.AION_VIDEO_MODEL || 'veo-3.1-lite-generate-preview' }}
+        run: python tools/produce_creator_motion.py --require-complete
+      - name: Persist completed motion sources
+        run: |
+          git config user.name aion-bot
+          git config user.email aion-bot@users.noreply.github.com
+          git add assets/content-library/aion-stories/ content/creator_series/
+          if ! git diff --cached --quiet; then
+            git commit -m "AION: create automatic Veo motion scenes"
+            git pull --rebase origin main
+            git push
+          fi

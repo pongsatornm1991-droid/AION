@@ -745,6 +745,13 @@ def build_studio_snapshot(memory_root=None):
         else "github-actions" if cloud_image_workflow_ready
         else "unconfigured"
     )
+    local_video_provider_ready = bool(os.getenv("GEMINI_API_KEY"))
+    cloud_video_workflow_ready = (
+        os.getenv("AION_CLOUD_VIDEO_WORKFLOW", "github-actions").strip().lower() == "github-actions"
+        and (ROOT / ".github" / "workflows" / "creator-motion-production.yml").is_file()
+    )
+    motion_completed = sum(1 for scene in (active_episode or {}).get("scenes") or []
+                           if scene.get("motion_path"))
     scene_production = {
         "episode_id": (active_episode or {}).get("id"),
         "title": (active_episode or {}).get("title"),
@@ -755,6 +762,16 @@ def build_studio_snapshot(memory_root=None):
         "episode_ceiling": 120,
         "provider_ready": image_provider_ready,
         "provider_mode": provider_mode,
+        "motion": {
+            "completed_scenes": motion_completed,
+            "required_scenes": required_scenes,
+            "workflow_scheduled": cloud_video_workflow_ready,
+            "provider_ready": local_video_provider_ready or cloud_video_workflow_ready,
+            "provider_mode": "local-gemini" if local_video_provider_ready else "github-actions" if cloud_video_workflow_ready else "unconfigured",
+            "detail": "คลิปเคลื่อนไหวครบแล้ว กำลังประกอบกับเสียง" if required_scenes and motion_completed == required_scenes
+            else f"สร้างคลิปเคลื่อนไหวแล้ว {motion_completed} จาก {required_scenes} ฉาก" if motion_completed
+            else "ระบบจะสร้างคลิปเคลื่อนไหวจากภาพที่ผ่านการตรวจ โดยไม่ต้องเปิด Meta หรือกดเอง",
+        },
         "status": (
             "ready-for-assembly" if (active_episode or {}).get("status") == "assets-ready-for-assembly"
             else "rendered-for-quality" if (active_episode or {}).get("status") == "production-ready-assets-and-script"

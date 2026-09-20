@@ -91,6 +91,8 @@ def assemble_once(root=ROOT, episode_id=None, renderer=render_reel):
     images = [root / str(scene.get("image") or "") for scene in scenes]
     if not images or any(not image.is_file() for image in images):
         return {"stage": "missing-scene-assets", "episode_id": episode["id"]}
+    motion = [root / str(scene.get("motion_path") or "") for scene in scenes]
+    use_motion = bool(motion) and all(path.is_file() and path.stat().st_size for path in motion)
     seconds = int(episode.get("scene_seconds") or 0)
     if seconds > VisualStoryPolicy.MAX_SCENE_SECONDS:
         return {"stage": "scene-pacing-policy-failed", "episode_id": episode["id"], "scene_seconds": seconds}
@@ -101,6 +103,7 @@ def assemble_once(root=ROOT, episode_id=None, renderer=render_reel):
         renderer(episode["wonder_hook"], narration, str(output),
                  duration=int(episode["target_duration_seconds"]),
                  still_paths=[str(image) for image in images],
+                 motion_paths=[str(path) for path in motion] if use_motion else None,
                  max_scene_seconds=VisualStoryPolicy.MAX_SCENE_SECONDS,
                  frame_size=frame_size,
                  scene_narrations=[str(scene.get("narration") or "").strip() for scene in scenes])

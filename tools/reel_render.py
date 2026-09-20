@@ -167,7 +167,8 @@ def render_reel_cover(hook, thought, output_path, mood=None, still_paths=None):
 
 
 def render_reel(hook, thought, output_path, duration=18, mood=None, still_paths=None,
-                max_scene_seconds=10, frame_size=REEL_SIZE, scene_narrations=None):
+                max_scene_seconds=10, frame_size=REEL_SIZE, scene_narrations=None,
+                motion_paths=None):
     """Create a paced AION video in vertical or true widescreen format."""
     ffmpeg = shutil.which("ffmpeg")
     if not ffmpeg:
@@ -184,6 +185,9 @@ def render_reel(hook, thought, output_path, duration=18, mood=None, still_paths=
     # autonomous Reels keep the selected AION story arc above.
     stills = [str(path) for path in (still_paths or []) if os.path.isfile(path)]
     stills = stills or _story_still_paths(hook, thought) or [output_path]
+    motion = [str(path) for path in (motion_paths or []) if os.path.isfile(path)]
+    if motion and len(motion) != len(stills):
+        raise ValueError("Creator motion must contain exactly one source video for each visual scene.")
     seconds_per_scene = duration / len(stills)
     if not 5 <= seconds_per_scene <= max_scene_seconds:
         raise ValueError(
@@ -237,13 +241,19 @@ def render_reel(hook, thought, output_path, duration=18, mood=None, still_paths=
     cover = os.path.splitext(output_path)[0] + "-cover.png"
     render_reel_cover(hook, thought, cover, mood=mood, still_paths=stills)
     command = [ffmpeg, "-y"]
-    for still in stills:
+    for index, still in enumerate(stills):
         # Give each still an explicit five-second video input.  The prior
         # zoompan approach started from a one-frame, one-fps source and could
         # end early after concat, creating a 27-second file for a 60-second
         # storyboard.  Duration is now controlled at the input boundary and
         # is therefore measurable before any platform quality gate runs.
-        command.extend(["-loop", "1", "-framerate", "30", "-t", str(seconds_per_scene), "-i", still])
+        if motion:
+            # Veo outputs are longer than one five-second narrative beat.
+            # Trim each automatically generated source at the approved beat
+            # boundary so narration, subtitles, and picture stay aligned.
+            command.extend(["-stream_loop", "-1", "-t", str(seconds_per_scene), "-i", motion[index]])
+        else:
+            command.extend(["-loop", "1", "-framerate", "30", "-t", str(seconds_per_scene), "-i", still])
     scene_filters = [
         f"[{index}:v]scale={width}:{height}:force_original_aspect_ratio=increase,crop={width}:{height},fps=30,format=yuv420p[v{index}]"
         for index in range(len(stills))
