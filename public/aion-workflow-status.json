@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-09-20T16:50:17.933054+00:00",
+  "generated_at": "2026-09-20T16:51:26.108039+00:00",
   "tiles": {
     "total": 38,
     "ok": 28,
@@ -30,11 +30,10 @@
         {
           "name": "AION - assemble illustrated Creator episode",
           "file": "assemble-creator-episode.yml",
-          "status_class": "failure",
-          "status_label": "ล้มเหลว",
-          "html_url": "https://github.com/pongsatornm1991-droid/AION/actions/runs/35523849457",
-          "created_at": "2026-09-20T16:48:09Z",
-          "detail": "ขั้นที่ล้มเหลว: Assemble only an asset-complete episode"
+          "status_class": "running",
+          "status_label": "กำลังรัน",
+          "html_url": "https://github.com/pongsatornm1991-droid/AION/actions/runs/35523969741",
+          "created_at": "2026-09-20T16:50:26Z"
         },
         {
           "name": "AION - subject-first scene production",
@@ -154,8 +153,8 @@
           "file": "automation-health.yml",
           "status_class": "success",
           "status_label": "ไม่มีเหตุให้ดำเนินการ",
-          "html_url": "https://github.com/pongsatornm1991-droid/AION/actions/runs/35523908422",
-          "created_at": "2026-09-20T16:49:17Z"
+          "html_url": "https://github.com/pongsatornm1991-droid/AION/actions/runs/35523942805",
+          "created_at": "2026-09-20T16:49:58Z"
         },
         {
           "name": "AION - Cyber Guard defensive audit",
@@ -219,8 +218,8 @@
           "file": "publish-workflow-status.yml",
           "status_class": "running",
           "status_label": "กำลังรัน",
-          "html_url": "https://github.com/pongsatornm1991-droid/AION/actions/runs/35523906217",
-          "created_at": "2026-09-20T16:49:15Z"
+          "html_url": "https://github.com/pongsatornm1991-droid/AION/actions/runs/35523942921",
+          "created_at": "2026-09-20T16:49:58Z"
         },
         {
           "name": "AION - system reliability",
@@ -247,10 +246,11 @@
         {
           "name": "AION - Creator release readiness",
           "file": "release-readiness.yml",
-          "status_class": "running",
-          "status_label": "กำลังรัน",
+          "status_class": "failure",
+          "status_label": "ล้มเหลว",
           "html_url": "https://github.com/pongsatornm1991-droid/AION/actions/runs/35523908431",
-          "created_at": "2026-09-20T16:49:17Z"
+          "created_at": "2026-09-20T16:49:17Z",
+          "detail": "ขั้นที่ล้มเหลว: Commit the visible readiness record"
         },
         {
           "name": "AION - Instagram feedback",
