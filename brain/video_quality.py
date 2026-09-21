@@ -10,10 +10,23 @@ import json
 import re
 import shutil
 import subprocess
+import sys
 import tempfile
 from pathlib import Path
 
 from PIL import Image, ImageStat
+
+
+# Windows only: subprocess.run() on a console app (ffprobe.exe/ffmpeg.exe)
+# briefly flashes a new, empty console window for every call unless told
+# not to. This gate is invoked synchronously from tools/dashboard.py's
+# _next_studio_release() on every dashboard page load -- up to 4 ffprobe/
+# ffmpeg calls per release candidate -- so left unset it looks like a burst
+# of blank cmd windows every time the dashboard is opened (found 2026-09-21,
+# reported by the owner; the first, narrower fix to tools/sync_memory_from_
+# github.py's git calls did not resolve it -- this is the actual/primary
+# source since it fires on page load, not just from a background loop).
+_NO_WINDOW = subprocess.CREATE_NO_WINDOW if sys.platform == "win32" else 0
 
 
 class VideoQualityGate:
@@ -55,7 +68,7 @@ class VideoQualityGate:
                     [executable, "-v", "error", "-show_entries",
                      "format=duration:stream=codec_type,width,height",
                      "-of", "json", str(path)],
-                    capture_output=True, text=True, check=False, timeout=20,
+                    capture_output=True, text=True, check=False, timeout=20, creationflags=_NO_WINDOW,
                 )
                 if not result.returncode:
                     return json.loads(result.stdout), None
@@ -66,7 +79,7 @@ class VideoQualityGate:
                 return None, "ffprobe-unavailable"
             result = self.runner(
                 [ffmpeg, "-i", str(path), "-f", "null", "-"],
-                capture_output=True, text=True, check=False, timeout=30,
+                capture_output=True, text=True, check=False, timeout=30, creationflags=_NO_WINDOW,
             )
             text = f"{result.stdout}\n{result.stderr}"
             duration_match = re.search(r"Duration:\s*(\d+):(\d+):(\d+(?:\.\d+)?)", text)
@@ -101,7 +114,7 @@ class VideoQualityGate:
                     output = Path(temp) / f"frame-{index}.jpg"
                     result = self.runner(
                         [executable, "-ss", f"{moment:.2f}", "-i", str(path), "-frames:v", "1", "-q:v", "3", "-y", str(output)],
-                        capture_output=True, text=True, check=False, timeout=30,
+                        capture_output=True, text=True, check=False, timeout=30, creationflags=_NO_WINDOW,
                     )
                     if result.returncode or not output.is_file():
                         continue

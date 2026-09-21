@@ -475,3 +475,34 @@ Owner reported that after running Start-AION-Observatory.bat, blank cmd windows 
 Fixed in `tools/sync_memory_from_github.py`'s `_run()` (the single chokepoint every git call in the file goes through): added `creationflags=subprocess.CREATE_NO_WINDOW`, guarded by `sys.platform == "win32"` so it's a no-op on the Linux CI runners this repo also targets. `tests/test_sync_memory.py` mocks `_run()` directly rather than `subprocess.run`, so all 6 of its tests are unaffected and still pass.
 
 Note for the owner (and whoever reads this next): the fix only takes effect on the NEXT time the sync loop starts -- the currently-running background `python tools\sync_memory_from_github.py` process on their machine (if still running) has the old code loaded in memory and will keep flashing windows until it's restarted. They need to close/kill that process (or just close the still-open "AION Memory Sync" cmd window if they can find it, or log off/restart) and re-run Start-AION-Observatory.bat once this commit is pulled.
+
+## 2026-09-21 20:10 Asia/Bangkok -- Claude
+Second pass on the repeating-cmd-window bug: owner confirmed the first fix
+(tools/sync_memory_from_github.py, commit e765841) did not resolve it
+("ยังเด้ง" -- still flashing). Owner had also confirmed via tasklist that no
+python.exe/pythonw.exe process was running when they saw the issue, ruling
+out the background sync loop as the live cause at that moment.
+Re-traced: tools/dashboard.py's _next_studio_release() calls
+VideoQualityGate(ROOT).assess(video_path, "short") for every release-queue
+candidate on every dashboard page load, and VideoQualityGate had 3 unguarded
+self.runner(...) (subprocess.run) call sites in brain/video_quality.py
+(_probe: ffprobe then ffmpeg fallback; _sample_frames: up to 3 ffmpeg frame
+grabs) -- a much better match for a burst of blank windows right when the
+dashboard opens.
+Fix: added creationflags=subprocess.CREATE_NO_WINDOW to all 3 call sites,
+guarded by `sys.platform == "win32"` (no-op on Linux, matches the pattern
+already used in sync_memory_from_github.py). Verified the guard is safe on
+Linux with a direct interpreter check before editing.
+Tests: test_video_quality.py (4 passed) plus every other test file that
+references VideoQualityGate -- test_assemble_creator_episode.py,
+test_creator_episode_crosspost.py, test_youtube_creator_queue.py,
+test_youtube_cycle.py -- 35 passed total, no test changes needed.
+Also grepped brain/ and tools/ for other bare subprocess.run() calls:
+tools/reel_render.py and tools/produce_creator_motion.py have some, but
+neither is imported by tools/dashboard.py, so they're not part of this
+symptom and were left alone.
+Committed on top of the already-synced main (git fetch confirmed no
+divergence before this change). Owner must `git pull` then re-test the
+dashboard; if it *still* flashes, the next candidate is
+Start-AION-Observatory.bat's own launch mechanics, which have not yet been
+inspected in this investigation.
