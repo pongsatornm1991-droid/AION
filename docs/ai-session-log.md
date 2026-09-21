@@ -13,6 +13,38 @@ Format:
 Commits: <hash> [, <hash> ...]
 ```
 
+## 2026-09-21 — Claude — Published the Venus flytrap short, found a real "false Stage: published" bug
+
+Ran the missing step first (`prepare-youtube-creator --episode-id
+aion-wonders-005-venus-flytrap-counts` -- no queue record existed yet,
+which is why publish had returned no-authorized-creator-episode), then
+`run-youtube-creator-publish`. It printed Stage: published with a real
+video ID (https://www.youtube.com/watch?v=mdMF5AebtmY), but the
+browser confirmed the video was actually Private.
+
+Root cause: `tools/youtube.py`'s `upload_short()` defaults privacy to
+`os.getenv("YOUTUBE_PRIVACY_STATUS", "private")` when no privacy_status
+is passed, and `publish_once()` never passed one -- it only behaves
+correctly inside GitHub Actions because youtube-creator.yml explicitly
+sets that env var. Any manual/local run silently uploads private while
+still claiming success. Fixed `publish_once()` to pass privacy_status
+explicitly (default "public", matching the workflow's own default) and
+added a post-upload check: if the result isn't actually public, it
+tries once to self-heal via `set_video_privacy`, and if that still
+fails it records the honest state and returns `uploaded-but-not-public`
+instead of `published`. Two regression tests added; one existing test's
+bare uploader mock updated to declare privacy_status explicitly. Full
+suite: 906/906 relevant tests pass (2 pre-existing failures in this
+sandbox only, from a broken OneDrive memory symlink, unrelated).
+
+Still open: the live Venus video itself is still Private -- the owner
+needs to run `python main.py release-private-youtube-creator` once to
+flip it public, since this sandbox cannot reach YouTube's API. Will
+update this entry / close the active-task board once confirmed public.
+
+Commits: 3f39356 (active-task claim), 5c11923 (the fix + tests),
+9af6a73 (durable episode_number recorded on the source episode).
+
 ---
 
 ## 2026-09-21 — Codex — Fixed truthful Creator Shorts release handoff
