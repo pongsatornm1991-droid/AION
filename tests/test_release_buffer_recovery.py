@@ -21,6 +21,7 @@ class ReleaseBufferRecoveryTests(unittest.TestCase):
                 (root / "content" / "creator_series" / f"{ident}.json").write_text(json.dumps({
                     "id": ident, "series": "Test", "title": ident, "status": "production-ready-assets-and-script",
                     "format": "illustrated-narrated-short", "target_duration_seconds": 50, "scene_seconds": 5,
+                    "visual_style": {"id": "aion-original-warm-3d-storytelling-v1", "approved": True},
                     "audience_promise": "A clear evidence-led story with useful value for viewers of every age.",
                     "wonder_hook": "Could a surprising question change what we notice?", "creative_device": "journey",
                     "age_layers": {"children": "Ask.", "family": "Compare.", "deeper": "Check evidence."},

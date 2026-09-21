@@ -129,6 +129,17 @@ class YouTubeCreatorQueue:
                     release_blockers.append("short-must-have-at-least-10-scenes")
                 if int(episode.get("scene_seconds") or 0) != VisualStoryPolicy.MIN_SCENE_SECONDS:
                     release_blockers.append("short-scenes-must-be-5-seconds")
+            # Style lock: an episode may only enter the release queue once a
+            # human/Studio has explicitly marked its visual style approved.
+            # This is opt-in on purpose -- silence is never approval -- so a
+            # one-off experimental style (or an "urgent" special release that
+            # skips the normal queue order) can never win an automatic slot
+            # just by existing. This is what let an old-style urgent special
+            # release get published ahead of correctly styled new work; a
+            # historical episode already published is unaffected, since this
+            # only gates new entries to the upload-ready queue.
+            if (episode.get("visual_style") or {}).get("approved") is not True:
+                release_blockers.append("visual-style-not-approved-for-release")
             retired = episode.get("status") == self.RETIRED_STATUS
             previous = recorded.get(episode["id"])
             stage = self._pipeline_stage(episode, previous, video_path.is_file())

@@ -24,6 +24,7 @@ class YouTubeCreatorQueueTests(unittest.TestCase):
             "id": "episode", "series": "AION Wonders", "title": "A useful question",
             "status": "production-ready-assets-and-script", "format": "illustrated-narrated-short",
             "target_duration_seconds": 50, "scene_seconds": 5,
+            "visual_style": {"id": "aion-original-warm-3d-storytelling-v1", "approved": True},
             "audience_promise": "Viewers learn how a careful question can make a mystery easier to explore.",
             "wonder_hook": "Could a small question change how we see the world?", "creative_device": "journey",
             "age_layers": {"children": "Ask why.", "family": "Talk together.", "deeper": "Test a claim."},
@@ -84,6 +85,60 @@ class YouTubeCreatorQueueTests(unittest.TestCase):
             self.assertEqual("upload-ready", candidates["episode"]["status"])
             self.assertEqual("prepared-for-review", queue.prepare_once()["stage"])
             self.assertEqual("episode", __import__("json").loads(queue.memory.all(queue.CATEGORY)[0]["content"])["episode_id"])
+
+    def test_never_lets_an_unapproved_or_experimental_style_enter_the_release_queue(self):
+        with tempfile.TemporaryDirectory() as root:
+            self._episode(root)
+            root = Path(root)
+            experimental = __import__("json").loads((root / "content" / "creator_series" / "episode.json").read_text(encoding="utf-8"))
+            # A style without an explicit approval must never win a release
+            # slot, even when it declares urgent priority the way a "special
+            # release" would -- this is exactly how an old-style clip won an
+            # automatic slot ahead of correctly styled new work.
+            experimental.update({
+                "id": "experimental", "title": "Old style test",
+                "visual_style": {"id": "illustrated-aion-storyboard-v4"},
+                "special_release": {"release_priority": "urgent", "reason": "one-off style test"},
+            })
+            (root / "content" / "creator_series" / "experimental.json").write_text(
+                __import__("json").dumps(experimental), encoding="utf-8"
+            )
+            (root / "content" / "reels" / "episode.mp4").write_bytes(b"new")
+            (root / "content" / "reels" / "experimental.mp4").write_bytes(b"old")
+            (root / "content" / "reels" / "experimental-cover.png").write_bytes(b"png")
+            queue = YouTubeCreatorQueue(MemoryEngine(root / "memory"), root)
+            candidates = {item["episode_id"]: item for item in queue.candidates()}
+            self.assertFalse(candidates["experimental"]["release_eligible"])
+            self.assertIn("visual-style-not-approved-for-release", candidates["experimental"]["release_blockers"])
+            # The correctly approved episode wins automatic selection instead
+            # of the urgent-priority unapproved one.
+            report = queue.prepare_once()
+            self.assertEqual("prepared-for-review", report["stage"])
+            self.assertEqual("episode", report["episode_id"])
+            # Explicitly targeting the unapproved episode by id must also
+            # refuse it -- style lock is not something --episode-id bypasses.
+            self.assertEqual(
+                "no-upload-ready-creator-episode",
+                queue.prepare_once(episode_id="experimental")["stage"],
+            )
+
+    def test_missing_visual_style_field_entirely_also_blocks_release(self):
+        with tempfile.TemporaryDirectory() as root:
+            self._episode(root)
+            root = Path(root)
+            nostyle = __import__("json").loads((root / "content" / "creator_series" / "episode.json").read_text(encoding="utf-8"))
+            nostyle.update({"id": "nostyle", "title": "No declared style"})
+            del nostyle["visual_style"]
+            (root / "content" / "creator_series" / "nostyle.json").write_text(
+                __import__("json").dumps(nostyle), encoding="utf-8"
+            )
+            (root / "content" / "reels" / "episode.mp4").write_bytes(b"new")
+            (root / "content" / "reels" / "nostyle.mp4").write_bytes(b"other")
+            (root / "content" / "reels" / "nostyle-cover.png").write_bytes(b"png")
+            queue = YouTubeCreatorQueue(MemoryEngine(root / "memory"), root)
+            candidates = {item["episode_id"]: item for item in queue.candidates()}
+            self.assertFalse(candidates["nostyle"]["release_eligible"])
+            self.assertIn("visual-style-not-approved-for-release", candidates["nostyle"]["release_blockers"])
 
     def test_publishes_authorized_episode_once_when_project_policy_delegates_it(self):
         with tempfile.TemporaryDirectory() as root:

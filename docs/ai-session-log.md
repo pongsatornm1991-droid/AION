@@ -55,6 +55,68 @@ fcd5872 (this entry's first half).
 
 ---
 
+## 2026-09-21 — Claude — Style lock: a clip needs explicit approval to enter the release queue
+
+Follow-up to the same session's Venus publish. The user asked that the
+system lock visual style before publishing: no clip without an approved
+primary visual style should enter the release queue, and no
+experimental/old-style clip should win a slot in place of new work --
+directly describing how the earlier rainbow clip (old
+`illustrated-aion-storyboard-v4` style, `urgent` release_priority) won an
+automatic release slot.
+
+First attempt was wrong and never committed: gating on
+`pacing_policy == VisualStoryPolicy.VERSION` or on a single hardcoded
+`visual_style.id` would have blocked almost every real in-flight episode,
+since the channel legitimately runs several concurrent styles at once
+(Venus = Neon Graphic Science, the Thailand/rain episodes = Illustrated
+Postcard, others declare no style at all yet) -- only the rainbow clip's
+own style happened to match the one hardcoded constant. Caught this by
+inspecting the real content/creator_series/*.json files before shipping,
+discarded that version, and asked the user how "approved" should be
+defined.
+
+Shipped instead: an explicit opt-in flag. `YouTubeCreatorQueue.candidates()`
+now blocks any episode from `release_eligible` unless
+`visual_style.approved is True` (blocker id
+`visual-style-not-approved-for-release`), checked before either automatic
+selection or an explicit `--episode-id` request -- style lock is not
+something episode targeting can bypass. `story_episode_stager.py` stamps
+`approved: true` on every newly staged AION Wonders episode automatically,
+so the normal pipeline is unaffected. Backfilled `approved: true` onto the
+six episodes currently sitting production-ready-and-unpublished
+(aion-gentle-thailand-rice-journey-v1, aion-illustrated-postcard-after-rain-v1,
+aion-longform-001-yakhchal, aion-special-octopus-chromatophores-v1,
+aion-wonders-003-roman-nobody, aion-wonders-005-venus-flytrap-counts) since
+they were already legitimately in the ready queue -- this only formalizes
+their existing state under the new field, it does not approve anything new.
+Deliberately left aion-special-rainbow-perspective-v1's style unapproved,
+even though it is already published, so it can never again win an
+automatic slot for any reason.
+
+Two existing tests (test_release_readiness, test_release_buffer_recovery)
+used fixture episodes with no visual_style at all and started correctly
+failing under the new gate; updated their fixtures to declare an approved
+style, matching what real content now needs. Two new regression tests
+added to test_youtube_creator_queue.py: an unapproved/experimental style
+with urgent priority is rejected from both automatic selection and
+explicit `--episode-id` targeting; an episode with no visual_style field
+at all is also rejected. Full suite re-run in chunks: 908 tests across all
+four chunks, 2 pre-existing failures confirmed unrelated by reproducing
+them on the unmodified tree first (the broken OneDrive memory symlink in
+this sandbox only, and one direct-message dedup test unrelated to this
+change).
+
+Also correcting an earlier note in this session: I had flagged
+`public/aion-release-readiness.json` showing Venus as still "available"
+after publishing as a possible bug in `brain/release_readiness.py`. It is
+not -- that file is a CI-generated snapshot (`.github/workflows/publish-workflow-status.yml`,
+hourly cron) and was simply stale at the moment I read it; the underlying
+logic was already correct per the passing
+`test_does_not_count_a_video_without_a_saved_quality_gate` test.
+
+Commits: (this entry's own commit follows).
+
 ## 2026-09-21 — Codex — Fixed truthful Creator Shorts release handoff
 
 Found the actual release block: a valid 1080×1920 Short cover was incorrectly rejected as a 16:9 long-form thumbnail, while the workflow still appeared green without checking for `Stage: published`. Shorts now accept vertical covers, manual releases can target one exact episode, run a persisted Quality Gate first, and fail visibly if YouTube did not confirm publication.

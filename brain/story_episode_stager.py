@@ -159,8 +159,12 @@ class StoryEpisodeStager:
             "visual_style": {
                 # The director may choose the setting, wardrobe and story
                 # device, but the channel's medium stays consistent across
-                # ordinary releases.
+                # ordinary releases. Auto-staged through the current policy
+                # pipeline, so it is pre-approved for release; a manually
+                # placed or experimental episode must be approved explicitly
+                # before it can win a release slot (see YouTubeCreatorQueue).
                 "id": VisualStoryPolicy.CHANNEL_VISUAL_STYLE,
+                "approved": True,
                 "summary": creative_deliberation["premise"],
                 "director": visual_direction,
                 "aion_deliberation": creative_deliberation,
