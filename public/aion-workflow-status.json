@@ -1,10 +1,10 @@
 {
-  "generated_at": "2026-09-21T10:54:05.652581+00:00",
+  "generated_at": "2026-09-21T11:03:06.788088+00:00",
   "tiles": {
     "total": 42,
     "ok": 33,
     "attn": 3,
-    "running": 1
+    "running": 2
   },
   "groups": [
     {
@@ -22,10 +22,10 @@
         {
           "name": "AION - Creator queue quality gate",
           "file": "creator-queue-quality.yml",
-          "status_class": "success",
-          "status_label": "ไม่มีเหตุให้ดำเนินการ",
-          "html_url": "https://github.com/pongsatornm1991-droid/AION/actions/runs/35586368466",
-          "created_at": "2026-09-21T10:00:20Z"
+          "status_class": "running",
+          "status_label": "กำลังรัน",
+          "html_url": "https://github.com/pongsatornm1991-droid/AION/actions/runs/35591880008",
+          "created_at": "2026-09-21T11:02:01Z"
         },
         {
           "name": "AION - YouTube Creator Studio",
@@ -169,8 +169,8 @@
           "file": "automation-health.yml",
           "status_class": "success",
           "status_label": "ไม่มีเหตุให้ดำเนินการ",
-          "html_url": "https://github.com/pongsatornm1991-droid/AION/actions/runs/35591105209",
-          "created_at": "2026-09-21T10:53:11Z"
+          "html_url": "https://github.com/pongsatornm1991-droid/AION/actions/runs/35591869753",
+          "created_at": "2026-09-21T11:01:54Z"
         },
         {
           "name": "AION - Cyber Guard defensive audit",
@@ -234,8 +234,8 @@
           "file": "publish-workflow-status.yml",
           "status_class": "running",
           "status_label": "กำลังรัน",
-          "html_url": "https://github.com/pongsatornm1991-droid/AION/actions/runs/35591105236",
-          "created_at": "2026-09-21T10:53:11Z"
+          "html_url": "https://github.com/pongsatornm1991-droid/AION/actions/runs/35591869746",
+          "created_at": "2026-09-21T11:01:54Z"
         },
         {
           "name": "AION - system reliability",
@@ -264,8 +264,8 @@
           "file": "release-readiness.yml",
           "status_class": "success",
           "status_label": "สำเร็จ",
-          "html_url": "https://github.com/pongsatornm1991-droid/AION/actions/runs/35591043794",
-          "created_at": "2026-09-21T10:52:29Z"
+          "html_url": "https://github.com/pongsatornm1991-droid/AION/actions/runs/35591781465",
+          "created_at": "2026-09-21T11:00:57Z"
         },
         {
           "name": "AION - Instagram feedback",
