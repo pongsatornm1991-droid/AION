@@ -108,6 +108,56 @@ class YouTubeCreatorQueueTests(unittest.TestCase):
             self.assertEqual("published", queue.candidates()[0]["status"])
             self.assertEqual("no-authorized-creator-episode", queue.publish_once()["stage"])
 
+    def test_never_reports_published_when_youtube_leaves_the_upload_private_but_self_heals(self):
+        # Regression for a real incident: a manual `run-youtube-creator-publish`
+        # run whose environment never set YOUTUBE_PRIVACY_STATUS left the
+        # uploaded video private on YouTube's side, while the CLI still
+        # printed "Stage: published" -- publish_once must catch and correct
+        # this instead of trusting the upload call blindly.
+        with tempfile.TemporaryDirectory() as root:
+            self._episode(root)
+            (Path(root) / "content" / "reels" / "episode.mp4").write_bytes(b"video")
+            policy = Path(root) / "config"; policy.mkdir()
+            (policy / "aion_authority.json").write_text('{"public_publishing":{"enabled":true}}', encoding="utf-8")
+            memory = MemoryEngine(Path(root) / "memory")
+            queue = YouTubeCreatorQueue(memory, root)
+            self.assertEqual("authorized-for-publishing", queue.prepare_once()["stage"])
+
+            def uploader(path, title, description):
+                return {"video_id": "abc", "url": "https://youtu.be/abc", "privacy_status": "private"}
+
+            with patch("brain.video_quality.VideoQualityGate.assess", return_value={"eligible": True, "reasons": []}), \
+                 patch("tools.youtube.set_video_privacy", return_value={"video_id": "abc", "privacy_status": "public"}) as released:
+                result = queue.publish_once(uploader)
+            released.assert_called_once_with("abc", "public")
+            self.assertEqual("published", result["stage"])
+            self.assertEqual("public", result["privacy_status"])
+            record = __import__("json").loads(queue.memory.all(queue.CATEGORY)[0]["content"])
+            self.assertEqual("published", record["upload_status"])
+            self.assertEqual("public", record["youtube"]["privacy_status"])
+
+    def test_reports_the_truth_instead_of_published_when_the_video_cannot_be_made_public(self):
+        with tempfile.TemporaryDirectory() as root:
+            self._episode(root)
+            (Path(root) / "content" / "reels" / "episode.mp4").write_bytes(b"video")
+            policy = Path(root) / "config"; policy.mkdir()
+            (policy / "aion_authority.json").write_text('{"public_publishing":{"enabled":true}}', encoding="utf-8")
+            memory = MemoryEngine(Path(root) / "memory")
+            queue = YouTubeCreatorQueue(memory, root)
+            self.assertEqual("authorized-for-publishing", queue.prepare_once()["stage"])
+
+            def uploader(path, title, description):
+                return {"video_id": "abc", "url": "https://youtu.be/abc", "privacy_status": "private"}
+
+            with patch("brain.video_quality.VideoQualityGate.assess", return_value={"eligible": True, "reasons": []}), \
+                 patch("tools.youtube.set_video_privacy", side_effect=RuntimeError("quota exceeded")):
+                result = queue.publish_once(uploader)
+            self.assertEqual("uploaded-but-not-public", result["stage"])
+            self.assertNotEqual("published", result["stage"])
+            record = __import__("json").loads(queue.memory.all(queue.CATEGORY)[0]["content"])
+            self.assertEqual("uploaded-not-public", record["upload_status"])
+            self.assertNotEqual("published", record["upload_status"])
+
     def test_migrates_old_confirmation_record_when_policy_is_delegated(self):
         with tempfile.TemporaryDirectory() as root:
             self._episode(root)
@@ -199,7 +249,7 @@ class YouTubeCreatorQueueTests(unittest.TestCase):
             legacy.pop("subtitle_path", None)
             memory.update(queue.CATEGORY, entry["id"], content=__import__("json").dumps(legacy))
             with patch("brain.video_quality.VideoQualityGate.assess", return_value={"eligible": True, "reasons": [], "technical": {}}):
-                result = queue.publish_once(lambda *_: {"video_id": "abc"})
+                result = queue.publish_once(lambda *_: {"video_id": "abc", "privacy_status": "public"})
             self.assertEqual("published", result["stage"])
 
     def test_records_an_actionable_error_when_uploader_exception_has_no_message(self):

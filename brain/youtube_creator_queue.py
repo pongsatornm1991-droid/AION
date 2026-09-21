@@ -1,6 +1,7 @@
 """Prepare finished AION Creator episodes for an auditable YouTube upload."""
 
 import json
+import os
 from pathlib import Path
 
 from brain.autonomy_policy import AutonomyPolicy
@@ -505,6 +506,7 @@ class YouTubeCreatorQueue:
                 from tools.youtube import upload_short
                 uploader = upload_short
                 result = uploader(str(path), str(payload.get("display_title") or payload.get("title") or "AION Wonders"), description,
+                                  privacy_status=os.getenv("YOUTUBE_PRIVACY_STATUS", "public"),
                                   thumbnail_path=str(cover_path))
             else:
                 result = uploader(str(path), str(payload.get("display_title") or payload.get("title") or "AION Wonders"), description)
@@ -515,6 +517,27 @@ class YouTubeCreatorQueue:
             error = str(exc).strip() or type(exc).__name__
             work_queue.transition(work_card["task_id"], "waiting", owner="YouTube Publishing Agent", next_owner="YouTube Publishing Agent", detail="อัปโหลดไม่สำเร็จชั่วคราว: เก็บงานเดิมไว้ retry")
             return {"stage": "upload-failed", "episode_id": payload.get("episode_id"), "error": error}
+        if result.get("privacy_status") != "public":
+            # The upload call can succeed while the video stays private
+            # (for example a manual run whose environment never set
+            # YOUTUBE_PRIVACY_STATUS). Never report "published" on trust
+            # alone: try once to correct it, then tell the truth about
+            # whatever the final state actually is.
+            try:
+                from tools.youtube import set_video_privacy
+                result = {**result, **set_video_privacy(result["video_id"], "public")}
+            except Exception as exc:
+                result = {**result, "privacy_release_error": str(exc).strip() or type(exc).__name__}
+        if result.get("privacy_status") != "public":
+            not_public = {
+                **payload,
+                "youtube": {**result, "quality": quality},
+                "quality_gate": {"state": "passed", "eligible": True, "reasons": []},
+                "upload_status": "uploaded-not-public",
+            }
+            self.memory.update(self.CATEGORY, entry["id"], content=json.dumps(not_public, ensure_ascii=False))
+            work_queue.transition(work_card["task_id"], "waiting", owner="YouTube Publishing Agent", next_owner="YouTube Publishing Agent", detail="อัปโหลดสำเร็จแต่ยังไม่เป็นสาธารณะ ต้องแก้ไขก่อนถือว่าเผยแพร่แล้ว")
+            return {"stage": "uploaded-but-not-public", "episode_id": payload.get("episode_id"), **result}
         updated = {
             **payload,
             "youtube": {**result, "quality": quality},
