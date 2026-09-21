@@ -1,10 +1,10 @@
 {
-  "generated_at": "2026-09-21T17:13:17.829287+00:00",
+  "generated_at": "2026-09-21T17:53:05.860629+00:00",
   "tiles": {
     "total": 42,
-    "ok": 34,
-    "attn": 3,
-    "running": 2
+    "ok": 33,
+    "attn": 2,
+    "running": 4
   },
   "groups": [
     {
@@ -16,8 +16,8 @@
           "file": "reel-cycle.yml",
           "status_class": "failure",
           "status_label": "ล้มเหลว",
-          "html_url": "https://github.com/pongsatornm1991-droid/AION/actions/runs/35599647855",
-          "created_at": "2026-09-21T12:27:31Z"
+          "html_url": "https://github.com/pongsatornm1991-droid/AION/actions/runs/35634636859",
+          "created_at": "2026-09-21T17:51:16Z"
         },
         {
           "name": "AION - Creator queue quality gate",
@@ -38,19 +38,18 @@
         {
           "name": "AION - assemble illustrated Creator episode",
           "file": "assemble-creator-episode.yml",
-          "status_class": "success",
-          "status_label": "สำเร็จ",
-          "html_url": "https://github.com/pongsatornm1991-droid/AION/actions/runs/35610833355",
-          "created_at": "2026-09-21T14:14:38Z"
+          "status_class": "running",
+          "status_label": "กำลังรัน",
+          "html_url": "https://github.com/pongsatornm1991-droid/AION/actions/runs/35634638270",
+          "created_at": "2026-09-21T17:51:17Z"
         },
         {
           "name": "AION - subject-first scene production",
           "file": "creator-scene-production.yml",
-          "status_class": "failure",
-          "status_label": "ล้มเหลว",
-          "html_url": "https://github.com/pongsatornm1991-droid/AION/actions/runs/35586268416",
-          "created_at": "2026-09-21T09:59:12Z",
-          "detail": "ขั้นที่ล้มเหลว: Complete the planned Studio shift in recoverable 25-scene batches"
+          "status_class": "running",
+          "status_label": "กำลังรัน",
+          "html_url": "https://github.com/pongsatornm1991-droid/AION/actions/runs/35634638214",
+          "created_at": "2026-09-21T17:51:17Z"
         }
       ]
     },
@@ -85,8 +84,8 @@
         {
           "name": "AION - audience-independent inquiry",
           "file": "autonomous-inquiry.yml",
-          "status_class": "running",
-          "status_label": "กำลังรัน",
+          "status_class": "success",
+          "status_label": "สำเร็จ",
           "html_url": "https://github.com/pongsatornm1991-droid/AION/actions/runs/35630404580",
           "created_at": "2026-09-21T17:11:25Z"
         },
@@ -169,8 +168,8 @@
           "file": "automation-health.yml",
           "status_class": "success",
           "status_label": "ไม่มีเหตุให้ดำเนินการ",
-          "html_url": "https://github.com/pongsatornm1991-droid/AION/actions/runs/35630444959",
-          "created_at": "2026-09-21T17:11:47Z"
+          "html_url": "https://github.com/pongsatornm1991-droid/AION/actions/runs/35634715897",
+          "created_at": "2026-09-21T17:52:03Z"
         },
         {
           "name": "AION - Cyber Guard defensive audit",
@@ -202,8 +201,8 @@
           "file": "self-repair.yml",
           "status_class": "success",
           "status_label": "ไม่มีเหตุให้ดำเนินการ",
-          "html_url": "https://github.com/pongsatornm1991-droid/AION/actions/runs/35599795784",
-          "created_at": "2026-09-21T12:29:05Z"
+          "html_url": "https://github.com/pongsatornm1991-droid/AION/actions/runs/35634716054",
+          "created_at": "2026-09-21T17:52:03Z"
         },
         {
           "name": "AION - delivery evidence watchdog",
@@ -216,10 +215,10 @@
         {
           "name": "AION - deterministic tests",
           "file": "tests.yml",
-          "status_class": "success",
-          "status_label": "สำเร็จ",
-          "html_url": "https://github.com/pongsatornm1991-droid/AION/actions/runs/35599649234",
-          "created_at": "2026-09-21T12:27:32Z"
+          "status_class": "running",
+          "status_label": "กำลังรัน",
+          "html_url": "https://github.com/pongsatornm1991-droid/AION/actions/runs/35634638289",
+          "created_at": "2026-09-21T17:51:17Z"
         },
         {
           "name": "AION - media-library hygiene",
@@ -234,16 +233,16 @@
           "file": "publish-workflow-status.yml",
           "status_class": "running",
           "status_label": "กำลังรัน",
-          "html_url": "https://github.com/pongsatornm1991-droid/AION/actions/runs/35630444777",
-          "created_at": "2026-09-21T17:11:47Z"
+          "html_url": "https://github.com/pongsatornm1991-droid/AION/actions/runs/35634690955",
+          "created_at": "2026-09-21T17:51:48Z"
         },
         {
           "name": "AION - system reliability",
           "file": "system-reliability.yml",
           "status_class": "success",
           "status_label": "สำเร็จ",
-          "html_url": "https://github.com/pongsatornm1991-droid/AION/actions/runs/35599649210",
-          "created_at": "2026-09-21T12:27:32Z"
+          "html_url": "https://github.com/pongsatornm1991-droid/AION/actions/runs/35634638341",
+          "created_at": "2026-09-21T17:51:17Z"
         }
       ]
     },
@@ -328,8 +327,8 @@
           "file": "costume-briefs.yml",
           "status_class": "success",
           "status_label": "สำเร็จ",
-          "html_url": "https://github.com/pongsatornm1991-droid/AION/actions/runs/35586268417",
-          "created_at": "2026-09-21T09:59:12Z"
+          "html_url": "https://github.com/pongsatornm1991-droid/AION/actions/runs/35634638256",
+          "created_at": "2026-09-21T17:51:17Z"
         },
         {
           "name": "AION - creator reference study",
@@ -352,8 +351,8 @@
           "file": "autonomic-drive.yml",
           "status_class": "success",
           "status_label": "สำเร็จ",
-          "html_url": "https://github.com/pongsatornm1991-droid/AION/actions/runs/35592516852",
-          "created_at": "2026-09-21T11:09:00Z"
+          "html_url": "https://github.com/pongsatornm1991-droid/AION/actions/runs/35630557768",
+          "created_at": "2026-09-21T17:12:50Z"
         },
         {
           "name": "AION - platform delivery recovery",
