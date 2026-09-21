@@ -38,6 +38,15 @@ import sys
 import time
 from pathlib import Path
 
+# Windows only: subprocess.run() on a console app (git.exe) briefly flashes
+# a new, empty console window for every call unless told not to -- normally
+# invisible with one git call, but this script calls it every interval
+# forever, so left unset it looks like an endless stream of blank cmd
+# windows popping up and closing themselves (found 2026-09-21, reported by
+# the owner while this loop was actually running -- confirmed live via the
+# aion-memory-data-sync/ clone's own fresh timestamps, not just theory).
+_NO_WINDOW = subprocess.CREATE_NO_WINDOW if sys.platform == "win32" else 0
+
 ROOT = Path(__file__).resolve().parents[1]
 CLONE_DIR = ROOT / "aion-memory-data-sync"
 REPO = "pongsatornm1991-droid/aion-memory-data"
@@ -70,7 +79,7 @@ def _load_token():
 
 
 def _run(args, cwd=None):
-    return subprocess.run(args, cwd=cwd, capture_output=True, text=True)
+    return subprocess.run(args, cwd=cwd, capture_output=True, text=True, creationflags=_NO_WINDOW)
 
 
 def _redact(text, token):
