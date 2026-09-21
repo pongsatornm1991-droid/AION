@@ -194,18 +194,28 @@ Also noticed in passing, not yet investigated: Venus's own episode file has
 numbering stored in the file does not match what actually went out. Separate
 pre-existing issue, not caused by today's work.
 
-STILL OPEN, urgent: the owner needs to give the real YouTube video id/URL for
-all three episodes above (and confirm whether "AION Wonders: How can an
-octopus change color so..." published 16 Sep is a distinct fourth video or a
-duplicate/earlier draft of the octopus episode) so
-`reconcile-youtube-creator` can be run for each -- and the stray rice-journey
-memory record needs reconciling, not progressing through
-quality-youtube-creator/run-youtube-creator-publish. Do not run those two
-commands on these three episode ids until this board is back to clear.
+RESOLVED same day: owner sent the three real YouTube URLs
+(youtube.com/shorts/7Z1JCECq1KM, /JXG5VGosstk, /fmkUR8tWHz4). Before writing
+anything, fetched each page's title with WebFetch to confirm which episode it
+actually belonged to -- the owner's paste order did not match the order I had
+assumed (I would have swapped octopus and rice-journey if I had not checked):
+7Z1JCECq1KM = "How an Octopus Changes Color in Seconds" ->
+aion-special-octopus-chromatophores-v1; JXG5VGosstk = "After the Rain: Where
+Does the Water Go?" -> aion-illustrated-postcard-after-rain-v1; fmkUR8tWHz4 =
+"How One Grain of Rice Reaches Your Bowl" -> aion-gentle-thailand-rice-journey-v1.
+Owner ran `reconcile-youtube-creator` for all three; all three returned
+`Stage: reconciled-published`. The stray rice-journey record from the earlier
+mistaken `prepare-youtube-creator` call is now correctly overwritten. None of
+the three will be offered for upload again.
 
-Commits: (this entry's own commit follows -- main.py only; docs and the
-episode_number revert are not code changes worth separate commits, the
-revert was via git checkout and never staged).
+Still open, not blocking: whether "AION Wonders: How can an octopus change
+color so..." (16 Sep) is a distinct fourth video or a duplicate/draft of the
+octopus episode -- asked the owner, awaiting answer. Also still open, low
+priority: Venus's file has episode_number:1 but its real published title
+reads "EP. 002" -- not investigated.
+
+Commits: c9e8bff (reconcile-youtube-creator CLI); this entry's own commit
+follows (docs only).
 
 ## 2026-09-21 — Codex — Fixed truthful Creator Shorts release handoff
 
