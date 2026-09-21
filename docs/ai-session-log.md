@@ -360,3 +360,65 @@ looks like the same bare-git-push-race class already flagged (and only
 partly fixed, for one other workflow) in the 2026-09-20 entry above.
 
 Commits: (pending, see this entry's own commit)
+
+## 2026-09-21 -- Claude -- "Fix everything, 100% automatic" + monitoring-gap audit
+
+Owner asked to fix everything found so far and make it fully automatic, plus
+what should be improved next to remove bottlenecks. Fixed the two remaining
+issues flagged earlier this session, then went looking for the next real
+weak point instead of stopping at "looks done":
+
+1. reel-cycle.yml: removed the duplicate OPENAI_API_KEY env key.
+
+2. publish-public-summary.yml: this workflow independently regenerated and
+   committed public/aion-workflow-status.json on its own hourly schedule,
+   even though publish-workflow-status.yml already owns that file (hourly +
+   right after 15 production workflows complete). Confirmed via the actual
+   failed run's log (#110) that this was a genuine content conflict on
+   `git pull --rebase` ("CONFLICT (content): Merge conflict in
+   public/aion-workflow-status.json"), not a timing race -- so the existing
+   3-tier retry could never have fixed it, no matter how many attempts or
+   how long the sleeps. Removed the duplicate write; one owner per file now.
+
+3. While looking for why nobody had noticed either failure sooner, checked
+   automation-health.yml (the Telegram failure-alert workflow) against every
+   real workflow name in the repo. Only 27 of 56 production workflows were
+   actually wired to alert on failure -- including, ironically, several
+   whose entire job is recovery/watchdog duty (platform-recovery.yml,
+   publish-delivery-status.yml, self-repair.yml, youtube-release-
+   recovery.yml) and, concretely, publish-public-summary.yml itself, whose
+   real failures from bug #2 had been going out with zero alert. This is
+   almost certainly why both bugs sat unnoticed until a manual CI-log dig
+   this session. Added all 29 missing workflows, and separately found and
+   fixed one stale pre-existing entry ("AION - YouTube long-form Saturday")
+   that no longer matched any real workflow name -- renamed at some point,
+   never updated here, a quieter instance of the exact same blind-spot
+   class. Verified programmatically: the watch list now has exactly one
+   entry per real workflow (56), no gaps, no stale names, no duplicates.
+
+Also checked two things flagged as open risk in earlier entries, to close
+them out with real evidence rather than carrying them forward as guesses:
+- The 2026-09-20 entry flagged "~50 other workflows" as still missing the
+  git-push retry loop. Actually checked all 51 files using `git push`:
+  every one already has the 3-tier pull-rebase retry pattern. That risk is
+  not open; the entry was stale.
+- Whether the scene-production fix (previous entry) actually unblocks the
+  Shorts buffer, not just removes the bug: checked research-to-story.yml
+  (runs every 3h) and release-readiness.yml (daily + reactive) -- both
+  green and healthy. The buffer should self-heal once a new short-format
+  storyboard lands from that healthy pipeline; no further code change is
+  needed for that specifically.
+
+4 commits this session (episode-number fix, scene-production cover fix,
+these two CI fixes, and the monitoring-gap fix) -- none pushed yet as of
+this entry.
+
+Bigger recommendations given to the owner, not yet started (owner has not
+said go/no-go): (a) an automated drift-check between YouTube's real public
+video list and the Studio memory queue -- would have caught this session's
+"lost audit entry" incident automatically instead of needing the owner to
+notice by chance in YouTube Studio; (b) refactor the hand-duplicated
+git-push-retry bash idiom (51 files) into one shared composite GitHub
+Action, so a future change to it does not need a file-by-file audit again.
+
+Commits: (pending, see the 3 commits after 26928c0)
