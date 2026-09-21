@@ -7,6 +7,22 @@ name: AION - Publish public brain summary
 # out and why) and commits it into THIS public code repo, at
 # public/aion-brain-summary.json.
 #
+# This workflow used to ALSO regenerate public/aion-workflow-status.json
+# (via tools/publish_workflow_status.py) on its own separate hourly
+# schedule. That file already has one dedicated owner --
+# publish-workflow-status.yml, which refreshes it hourly AND right after
+# every production workflow completes -- so a second, independent writer
+# here served no purpose except to occasionally regenerate the exact
+# same file, with a different "generated_at" timestamp, at nearly the
+# same moment as the other writer. When that happened, both commits
+# touched the same lines of the same file, so `git pull --rebase` hit a
+# genuine content conflict (not a timing race a retry/backoff can fix)
+# and this workflow's push step failed outright (confirmed 2026-09-21,
+# run #110: "CONFLICT (content): Merge conflict in
+# public/aion-workflow-status.json"). Removed the duplicate step and
+# stopped committing that file here -- one writer per file removes the
+# conflict at its source, instead of only retrying around it.
+#
 # Why this exists (2026-09-03): the user asked for the public "AION
 # Pulse" status page (a hosted web page with no access to any private
 # credential) to also show a look into AION's actual thinking, the
@@ -73,11 +89,6 @@ jobs:
           AION_MEMORY_ROOT: memory_data
         run: python tools/publish_public_summary.py
 
-      - name: Build the public workflow-health summary
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: python tools/publish_workflow_status.py
-
       - name: Commit + push the summary to the code repo (if changed)
         run: |
           git config user.name "aion-bot"
@@ -88,7 +99,7 @@ jobs:
           # own "mkdir -p" step, so this creates it unconditionally
           # first.
           mkdir -p public
-          git add public/aion-brain-summary.json public/aion-workflow-status.json
+          git add public/aion-brain-summary.json
           if git diff --cached --quiet; then
             echo "No change in AION's public summary this run -- nothing to publish."
           else
