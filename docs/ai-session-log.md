@@ -37,13 +37,21 @@ bare uploader mock updated to declare privacy_status explicitly. Full
 suite: 906/906 relevant tests pass (2 pre-existing failures in this
 sandbox only, from a broken OneDrive memory symlink, unrelated).
 
-Still open: the live Venus video itself is still Private -- the owner
-needs to run `python main.py release-private-youtube-creator` once to
-flip it public, since this sandbox cannot reach YouTube's API. Will
-update this entry / close the active-task board once confirmed public.
+Owner then hit two auth snags running `release-private-youtube-creator`
+locally (`invalid_scope`, then `invalid_client`) -- root cause was a
+stale/placeholder `YOUTUBE_CLIENT_ID`/`YOUTUBE_CLIENT_SECRET` pair in
+`.env` left over from a prior edit, plus a refresh token that needed
+`youtube.force-ssl` scope. Owner re-ran `tools/youtube_authorize.py`
+themselves and pasted the new refresh token in; `.env`'s client
+id/secret were repaired to match `client_secret.json`. Release then
+succeeded: `Stage: released-public`, Privacy: public. Independently
+re-verified via browser (no "Private" label, comments enabled, channel
+public-video count moved from 12 to 14) -- confirmed genuinely public,
+not just CLI-reported. Active-task board closed back to clear.
 
 Commits: 3f39356 (active-task claim), 5c11923 (the fix + tests),
-9af6a73 (durable episode_number recorded on the source episode).
+9af6a73 (durable episode_number recorded on the source episode),
+fcd5872 (this entry's first half).
 
 ---
 
