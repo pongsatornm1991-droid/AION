@@ -1,8 +1,8 @@
 {
-  "generated_at": "2026-09-21T06:35:03.432679+00:00",
+  "generated_at": "2026-09-21T06:37:49.862919+00:00",
   "tiles": {
-    "total": 41,
-    "ok": 33,
+    "total": 42,
+    "ok": 34,
     "attn": 4,
     "running": 1
   },
@@ -136,6 +136,14 @@
       "label": "การเติบโต",
       "items": [
         {
+          "name": "AION - Daily Growth Pulse",
+          "file": "growth-pulse.yml",
+          "status_class": "success",
+          "status_label": "สำเร็จ",
+          "html_url": "https://github.com/pongsatornm1991-droid/AION/actions/runs/35569171123",
+          "created_at": "2026-09-21T06:35:51Z"
+        },
+        {
           "name": "AION - YouTube public audience signals",
           "file": "youtube-audience.yml",
           "status_class": "success",
@@ -162,8 +170,8 @@
           "file": "automation-health.yml",
           "status_class": "success",
           "status_label": "ไม่มีเหตุให้ดำเนินการ",
-          "html_url": "https://github.com/pongsatornm1991-droid/AION/actions/runs/35568646812",
-          "created_at": "2026-09-21T06:28:25Z"
+          "html_url": "https://github.com/pongsatornm1991-droid/AION/actions/runs/35569232531",
+          "created_at": "2026-09-21T06:36:42Z"
         },
         {
           "name": "AION - Cyber Guard defensive audit",
@@ -227,8 +235,8 @@
           "file": "publish-workflow-status.yml",
           "status_class": "running",
           "status_label": "กำลังรัน",
-          "html_url": "https://github.com/pongsatornm1991-droid/AION/actions/runs/35569025710",
-          "created_at": "2026-09-21T06:33:50Z"
+          "html_url": "https://github.com/pongsatornm1991-droid/AION/actions/runs/35569232525",
+          "created_at": "2026-09-21T06:36:42Z"
         },
         {
           "name": "AION - system reliability",
