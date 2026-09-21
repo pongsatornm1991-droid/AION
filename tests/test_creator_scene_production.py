@@ -33,6 +33,21 @@ class CreatorSceneProductionTests(unittest.TestCase):
         self.assertIn("premium 2D animated documentary illustration", prompt)
         self.assertIn("Do not imitate any named artist", prompt)
 
+    def test_neon_graphic_science_blends_a_restrained_magenta_or_yellow_accent(self):
+        episode = {"format": "illustrated-narrated-short", "visual_direction": {},
+                   "visual_style": {"id": "aion-neon-graphic-science-v1"}}
+        prompt = CreatorSceneProduction()._prompt(
+            episode, {"visual": "A Venus flytrap closes on a second touch."}
+        )
+        self.assertIn("AION Neon Graphic Science", prompt)
+        # The base functional colour roles stay in place...
+        self.assertIn("cyan is reserved only for AION's tiny", prompt)
+        # ...and a magenta/yellow neon accent is blended in, restrained and
+        # scoped to one element, never replacing the base roles.
+        self.assertIn("hot-magenta or cyber-yellow", prompt)
+        self.assertIn("blended into this palette rather than replacing it", prompt)
+        self.assertIn("never as general scene lighting", prompt)
+
     def test_thoughtscape_direction_is_specific_to_the_story_without_copying_a_style(self):
         episode = {"format": "illustrated-narrated-short", "visual_direction": {},
                    "visual_style": {"id": "aion-thoughtscape-director-v1", "director": {

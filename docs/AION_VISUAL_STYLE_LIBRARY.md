@@ -42,14 +42,13 @@ set of hues: amber = observed input, coral = the answer/threshold, fresh green
 per frame, sparse background, no text/logos/photorealism/anime/clutter, never
 imitating a named artist, studio, channel, mascot or franchise.
 
-Note for review: the functional colour roles above (amber/coral/green, cyan
-reserved for AION) are narrower than "electric cyan, hot magenta, cyber
-yellow" as literal palette entries -- cyan is deliberately held back for
-AION's identity signature across the whole channel (see
-`core/visual_identity.md`), not used as a general neon accent. If magenta/
-yellow-style neon accents are wanted in the mechanism/energy elements
-themselves, that is a deliberate palette change to make in
-`creator_scene_production.py`, not just a documentation update.
+The base functional colour roles (amber/coral/green, cyan reserved for
+AION's identity signature -- see `core/visual_identity.md`) stay in place.
+Blended into that, a restrained hot-magenta or cyber-yellow neon accent may
+mark one specific electrical, energetic, or signal-like moment in the
+mechanism -- confirmed by the user 2026-09-21, "mix it with what's there."
+It is scoped to a single element at a time, never general scene lighting,
+and never displaces the base roles above.
 
 ## aion-illustrated-postcard-v1 -- Illustrated Postcard
 

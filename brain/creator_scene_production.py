@@ -87,8 +87,12 @@ class CreatorSceneProduction:
                 "geometric colour shapes. Use a near-black indigo edge-to-electric-cobalt radial gradient that "
                 "brightens only behind the one focal mechanism. Amber represents observed inputs, coral represents "
                 "the answer or threshold, fresh green is the subject, and cyan is reserved only for AION's tiny "
-                "crystal signature. Keep the image readable within one second: one mechanism, sparse background, "
-                "no text, no logos, no photorealism, no anime, no visual clutter, and never imitate a named artist, "
+                "crystal signature. Where the mechanism itself is electrical, energetic, or signal-like, a "
+                "restrained hot-magenta or cyber-yellow neon accent may mark that one specific pulse or moment, "
+                "blended into this palette rather than replacing it -- used sparingly on a single element at a "
+                "time, never as general scene lighting and never displacing the amber/coral/green/cyan roles "
+                "above. Keep the image readable within one second: one mechanism, sparse background, no text, "
+                "no logos, no photorealism, no anime, no visual clutter, and never imitate a named artist, "
                 "studio, channel, mascot or franchise."
             )
         elif visual_style.get("id") == "aion-illustrated-postcard-v1":

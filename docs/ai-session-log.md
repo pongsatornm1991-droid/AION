@@ -117,6 +117,40 @@ logic was already correct per the passing
 
 Commits: (this entry's own commit follows).
 
+## 2026-09-21 — Claude — Documented the Neon Graphic Science style, blended in a magenta/yellow accent per owner confirmation
+
+Follow-up to the same session's style-lock work. The owner wrote out a full
+artistic definition of "AION Neon Graphic Science" / Sci-Fi Graphic Novel
+Illustration (Pop-Science Halftone Style): halftone comic-print texture,
+high-contrast ink-navy outlines, a meaningful (not scattered) neon palette,
+and dramatic radial vignette lighting. No named-style catalog existed in the
+repo (styles only lived as inline prompt strings in
+`brain/creator_scene_production.py`), so added
+`docs/AION_VISUAL_STYLE_LIBRARY.md` cataloging every `visual_style.id` the
+render pipeline recognizes (Neon Graphic Science, Illustrated Postcard, Vivid
+Storyworld 2D, Animated Documentary, Thoughtscape/Original Warm 3D, and the
+fallback), cross-checked against the current code.
+
+Flagged one gap to the owner: the code's Neon Graphic Science palette assigns
+colour by narrative role (amber = observed input, coral = the answer, fresh
+green = the subject, cyan reserved only for AION's identity signature) rather
+than using the owner's example neon colours (electric cyan, hot magenta,
+cyber yellow) directly. Owner confirmed: "ใช่จริงครับ ผสมกับสิ่งที่มี" (yes,
+blend it with what's already there) -- not a replacement. Updated
+`creator_scene_production.py`'s `aion-neon-graphic-science-v1` prompt rule to
+allow a restrained hot-magenta or cyber-yellow neon accent on one specific
+electrical/energetic/signal-like moment in the mechanism, explicitly scoped
+to a single element (never general scene lighting, never displacing the base
+amber/coral/green/cyan roles). Added a regression test
+(`test_neon_graphic_science_blends_a_restrained_magenta_or_yellow_accent`)
+asserting both the base roles and the new accent language are present.
+Updated the style-library doc to record the decision instead of leaving it
+open. Full targeted suite re-run clean (test_creator_scene_production,
+test_story_episode_stager, test_youtube_creator_queue).
+
+Commits: (this entry's own commits follow -- the doc, then the code+test
+change).
+
 ## 2026-09-21 — Codex — Fixed truthful Creator Shorts release handoff
 
 Found the actual release block: a valid 1080×1920 Short cover was incorrectly rejected as a 16:9 long-form thumbnail, while the workflow still appeared green without checking for `Stage: published`. Shorts now accept vertical covers, manual releases can target one exact episode, run a persisted Quality Gate first, and fail visibly if YouTube did not confirm publication.
