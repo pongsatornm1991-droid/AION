@@ -273,3 +273,37 @@ no written context about what Claude sessions had done, and vice versa.
 
 Commits: 6678759 (instagram-cycle retry fix), plus AGENTS.md + this file
 (pending commit as of this entry).
+
+## 2026-09-21 -- Claude -- Fix episode-number collision risk after owner's manual "EP. 002" YouTube title correction
+
+Owner manually corrected Venus's real published YouTube title to "EP. 002"
+(episode numbering on the channel was getting confusing, so the owner wants
+new releases to run clearly as Ep.xxx going forward). The repo's own
+`episode_number` for Venus (`content/creator_series/aion-wonders-005-venus-
+flytrap-counts.json`) was still `1` from when `EpisodeNumbering.assign()`
+first numbered it -- and that assigner always computes a new episode's
+number as `max(existing episode_number values) + 1`. Left at 1, the *next*
+new episode would also have auto-titled as "EP. 002" (`EpisodeNumbering.
+display_title`), directly colliding with Venus's real, already-published
+title -- the exact confusion the owner is trying to eliminate.
+
+Checked all of `content/creator_series/*.json` first: Venus is the only file
+with an `episode_number` assigned so far, so bumping it from 1 to 2 needed no
+other renumbering. File is CRLF-encoded (echoing an earlier CRLF gotcha this
+session), so this was a raw-bytes single-token replace, not a text-mode edit
+-- `git diff -w -b` confirms exactly the one intended line changed.
+
+Verified with the full relevant test suite (pytest wasn't preinstalled in
+this device shell; `pip install --user pytest` first): `test_youtube_
+creator_queue.py`, `test_release_readiness.py`, `test_release_buffer_
+recovery.py`, `test_episode_numbering.py` -- 24 tests, all green.
+
+Next new Creator episode will now correctly auto-title "EP. 003" instead of
+colliding with "EP. 002".
+
+Still open (owner does not know either): whether "AION Wonders: How can an
+octopus change color so..." (published 16 Sep) is a genuine 4th video or a
+duplicate/draft of `aion-special-octopus-chromatophores-v1`. No further
+action possible on this until it's identified one way or the other.
+
+Commits: (pending, see this entry's own commit)
