@@ -1,9 +1,17 @@
 {
-  "generated_at": "2026-09-22T00:55:08.469022+07:00",
+  "generated_at": "2026-09-22T02:37:35.583847+07:00",
   "timezone": "Asia/Bangkok",
   "horizon_hours": 168,
   "state": "attention",
   "slots": [
+    {
+      "at": "2026-09-22T20:30:00+07:00",
+      "content_kind": "short"
+    },
+    {
+      "at": "2026-09-23T20:30:00+07:00",
+      "content_kind": "short"
+    },
     {
       "at": "2026-09-24T20:30:00+07:00",
       "content_kind": "short"
@@ -19,6 +27,10 @@
     {
       "at": "2026-09-27T20:30:00+07:00",
       "content_kind": "short"
+    },
+    {
+      "at": "2026-09-28T20:30:00+07:00",
+      "content_kind": "short"
     }
   ],
   "available": {
@@ -29,13 +41,13 @@
   "shortages": [
     {
       "content_kind": "short",
-      "needed": 4,
+      "needed": 7,
       "ready": 1,
-      "missing": 3
+      "missing": 6
     }
   ],
   "shorts_buffer": {
-    "target": 4,
+    "target": 7,
     "quality_ready": 1,
     "state": "building",
     "detail": "นับเฉพาะ Shorts ใหม่ที่ผ่าน Quality Gate แล้ว; storyboard หรือภาพครบยังไม่นับเป็นบัฟเฟอร์"
