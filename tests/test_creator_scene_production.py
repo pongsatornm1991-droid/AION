@@ -101,3 +101,36 @@ class CreatorSceneProductionTests(unittest.TestCase):
             self.assertEqual(2, result["batches"])
             self.assertTrue((root / "content" / "reels" / "episode-cover.png").is_file())
             self.assertIn('"status": "assets-ready-for-assembly"', updated)
+
+    def test_already_complete_short_with_a_valid_vertical_cover_is_not_reselected(self):
+        """Regression: an already-published Short with all scenes rendered and a
+        real vertical 9:16 cover must be recognised as complete, never picked
+        as a production candidate again. Before this fix, _cover_exists()
+        only accepted a landscape 16:9 cover, so a finished Short's correct
+        vertical cover looked "missing" forever -- the episode kept getting
+        re-selected every scheduled shift, produced nothing (all scenes
+        already had images), and starved every other episode queued behind
+        it out of that shift (this is exactly what happened to a real
+        already-published episode in production).
+        """
+        with tempfile.TemporaryDirectory() as root:
+            root = Path(root)
+            episode_dir = root / "content" / "creator_series"; episode_dir.mkdir(parents=True)
+            reels_dir = root / "content" / "reels"; reels_dir.mkdir(parents=True)
+            source = episode_dir / "episode.json"
+            source.write_text('''{"id":"episode","series":"AION Wonders","title":"Test story","audience_promise":"A useful evidence-led story for every age.","wonder_hook":"Could this work?","creative_device":"journey","age_layers":{"children":"Ask.","family":"Talk.","deeper":"Test."},"target_duration_seconds":15,"scene_seconds":5,"format":"illustrated-narrated-short","pacing_policy":"fast-cut-subject-first-v1","visual_direction":{"focus":"subject-first","aion_role":"contextual-guide","aion_frame_share_max":0.20},"history_boundary":"A boundary.","sources":[{"url":"https://one.test"},{"url":"https://two.test"}],"status":"production-ready-assets-and-script","scenes":[{"n":1,"beat":"hook","visual":"AION explores a historical place.","narration":"One.","image":"assets/content-library/aion-stories/episode/01-hook.png"},{"n":2,"beat":"reveal","visual":"AION observes the subject.","narration":"Two.","image":"assets/content-library/aion-stories/episode/02-reveal.png"},{"n":3,"beat":"end","visual":"AION shares a question.","narration":"Three.","image":"assets/content-library/aion-stories/episode/03-end.png"}]}''', encoding="utf-8")
+            from PIL import Image
+            Image.new("RGB", (1080, 1920), color=(20, 30, 40)).save(reels_dir / "episode-cover.png")
+            scenes_dir = root / "assets" / "content-library" / "aion-stories" / "episode"; scenes_dir.mkdir(parents=True)
+            for name in ("01-hook.png", "02-reveal.png", "03-end.png"):
+                (scenes_dir / name).write_bytes(b"png")
+
+            def generator(*_):
+                raise AssertionError("a real generator call means the fix did not stop re-selection")
+
+            production = CreatorSceneProduction(root, generator)
+            self.assertIsNone(production._episode())
+            # With no eligible candidate left, produce_once must report there
+            # is nothing to do rather than ever calling the generator again.
+            result = production.produce_once(limit=5)
+            self.assertEqual("no-subject-first-storyboard-ready", result["stage"])

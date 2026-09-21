@@ -307,3 +307,56 @@ duplicate/draft of `aion-special-octopus-chromatophores-v1`. No further
 action possible on this until it's identified one way or the other.
 
 Commits: (pending, see this entry's own commit)
+
+## 2026-09-21 -- Claude -- Root-caused and fixed why the Shorts release buffer was stuck at 1/4
+
+Owner asked "what's next / where are the weak points" -- rather than guess,
+checked the live GitHub Actions status (public/aion-workflow-status.json,
+then the owner's own signed-in Chrome to read the actual job logs, since
+this device shell can't see repo secrets or full CI logs). Found
+`AION - subject-first scene production` -- the Mon/Tue/Wed workflow that
+builds the Thu-Sun Shorts release set -- has been hard-failing every run.
+
+Root cause: `CreatorSceneProduction._cover_exists()` only accepted a
+landscape 16:9 cover. `YouTubeCreatorQueue._cover_quality()` (the check that
+actually gates release) has long accepted vertical 9:16 for Shorts. Venus's
+real, correct 1080x1920 cover therefore always looked "missing" to this
+module, so `_episode()` kept re-selecting the already-published Venus every
+single shift. `produce_once()` found no scenes left to render, and because
+`cover_path.is_file()` was already true it never even tried to fix the
+cover -- it returned "scene-generation-unavailable". `produce_ready_episodes`
+stops the whole shift after the first non-complete report, and
+`produce_creator_scenes.py --require-no-failures` treats that stage as a
+hard CI failure. Every scheduled shift died on Venus before it could ever
+reach a real new storyboard -- the actual reason the buffer never moved
+past 1/4, not a lack of Story output as first assumed.
+
+Fix: made `_cover_exists()` and `_cover_prompt()` format-aware, mirroring
+`_cover_quality()` exactly (vertical 9:16 OR widescreen 16:9 both valid;
+short-format cover prompts now ask for a vertical asset). Made
+`produce_once()`'s cover-generation guard call `_cover_exists()` instead of
+the weaker `cover_path.is_file()`, so a genuinely bad cover actually gets
+regenerated instead of silently skipped forever. Added a regression test
+encoding this exact scenario (test_creator_scene_production.py). Verified
+against the real repo content, not just the test suite: `_episode(
+'illustrated-narrated-short')` now correctly returns None instead of
+Venus. Ran the full suite in 4 chunks (907+ tests): all green except 3
+pre-existing failures, all from this device shell's own `memory` symlink
+I/O error (confirmed unrelated -- none touch this module).
+
+Caveat for whoever reads this: this only removes the blocking bug. It does
+NOT create new Shorts by itself -- there is genuinely no new short-format
+storyboard staged right now (`_episode('illustrated-narrated-short')`
+against real content returns None). Story/Studio still needs to draft and
+stage new storyboards for the buffer to actually reach 4/4.
+
+Also found, not yet fixed (lower priority, not currently blocking anything
+automatic): `.github/workflows/reel-cycle.yml` has `OPENAI_API_KEY` defined
+twice (lines 45, 53) -- a YAML duplicate-key error that hard-fails it at
+config-parse time. It is `workflow_dispatch`-only (its own header calls it
+a manual legacy repair tool), so nothing scheduled depends on it. Also,
+`AION - Publish public brain summary` failed today with exit code 128 --
+looks like the same bare-git-push-race class already flagged (and only
+partly fixed, for one other workflow) in the 2026-09-20 entry above.
+
+Commits: (pending, see this entry's own commit)

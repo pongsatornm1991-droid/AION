@@ -41,12 +41,26 @@ class CreatorSceneProduction:
         return self.root / "content" / "reels" / f"{episode['id']}-cover.png"
 
     def _cover_exists(self, episode):
+        """Whether the on-disk cover already meets the release lane's bar.
+
+        Shorts are composed vertically, so a 9:16 cover is valid evidence
+        here too -- this mirrors YouTubeCreatorQueue._cover_quality, the
+        check that actually gates release. A long-form episode still
+        requires a conventional 16:9 widescreen thumbnail. Without this,
+        an already-published Short with a correct vertical cover keeps
+        looking "incomplete" here and gets re-selected for production
+        forever, starving every other episode behind it in the shift.
+        """
         path = self._cover_path(episode)
         try:
             from PIL import Image
             with Image.open(path) as image:
                 width, height = image.size
-                return width >= 1280 and height >= 720 and abs((width / height) - (16 / 9)) <= 0.03
+                ratio = width / height if height else 0
+                is_short = episode.get("format") == "illustrated-narrated-short"
+                is_vertical_short = is_short and abs(ratio - (9 / 16)) <= 0.03 and width >= 720 and height >= 1280
+                is_widescreen = width >= 1280 and height >= 720 and abs(ratio - (16 / 9)) <= 0.03
+                return is_vertical_short or is_widescreen
         except Exception:
             return False
 
@@ -147,8 +161,10 @@ class CreatorSceneProduction:
         deliberation = visual_style.get("aion_deliberation") or {}
         direction = episode.get("visual_direction") or {}
         first_scene = (episode.get("scenes") or [{}])[0]
+        is_short = episode.get("format") == "illustrated-narrated-short"
+        asset_type = "vertical 9:16 cover image" if is_short else "landscape 16:9 cover image"
         return " ".join((
-            "Use case: YouTube video thumbnail. Asset type: landscape 16:9 cover image.",
+            f"Use case: YouTube video thumbnail. Asset type: {asset_type}.",
             f"Story question: {episode.get('wonder_hook') or episode.get('title')}.",
             f"Core visual idea: {episode.get('thumbnail_concept') or first_scene.get('visual') or ''}",
             "Create one instantly understandable, emotionally intriguing focal moment with one clear subject and generous negative space.",
@@ -209,7 +225,7 @@ class CreatorSceneProduction:
         scenes_complete = all(scene.get("image") for scene in episode.get("scenes") or [])
         cover_path = self._cover_path(episode)
         cover_created = False
-        if scenes_complete and not cover_path.is_file():
+        if scenes_complete and not self._cover_exists(episode):
             cover_path.parent.mkdir(parents=True, exist_ok=True)
             if cover_generator(self._cover_prompt(episode), str(cover_path)):
                 episode["cover_path"] = str(cover_path.relative_to(self.root)).replace("\\", "/")
