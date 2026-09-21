@@ -151,6 +151,62 @@ test_story_episode_stager, test_youtube_creator_queue).
 Commits: (this entry's own commits follow -- the doc, then the code+test
 change).
 
+## 2026-09-21 — Claude — URGENT: found published Shorts with no Studio queue record; added the missing reconcile CLI
+
+While explaining a shorts-buffer shortage to the owner, I incorrectly guessed
+the cause (no saved Quality Gate) without being able to check the real
+memory-backed queue records from this sandbox (the OneDrive memory symlink
+is inaccessible here -- durable, sandbox-only limitation). The owner
+corrected me and sent a YouTube Studio screenshot: aion-gentle-thailand-rice-journey-v1
+("How One Grain of Rice Reaches Your Bowl", public since 19 Sep, 1,015
+views), aion-illustrated-postcard-after-rain-v1 ("After the Rain: Where Does
+the Water Go?", public since 18 Sep, 73 views), and
+aion-special-octopus-chromatophores-v1 ("How an Octopus Changes Color in
+Seconds", public since 17 Sep, 181 views) are all already live -- confirming
+they were never missing a Quality Gate at all, they were simply already
+published through a path that never wrote (or later lost) a Studio queue
+memory record for them.
+
+I had already told the owner to run `prepare-youtube-creator --episode-id
+aion-gentle-thailand-rice-journey-v1` as a "safe" diagnostic before this came
+to light. It was not safe for an already-published episode: since no queue
+record existed, it created a fresh "authorized-for-aion-publish" record (and,
+as a side effect, wrote `episode_number: 2` into the episode's source file
+via EpisodeNumbering.assign()) -- exactly the stray-record situation that
+risks a duplicate upload if quality-youtube-creator / run-youtube-creator-publish
+are run next. Reverted the stray episode_number write (git checkout, never
+committed). The stray memory record itself lives in the owner's real memory
+store, which this sandbox cannot reach or fix directly.
+
+`brain/youtube_creator_queue.py` already had exactly the right recovery
+method for this, `reconcile_owner_confirmed_publication(episode_id, video_id,
+url)` -- "a narrow recovery path... preventing Studio from offering the same
+video for upload again" -- but it had no CLI entry point, so there was no way
+for the owner to actually use it. Added `reconcile-youtube-creator
+--episode-id --video-id --url` to main.py (never calls YouTube, never
+uploads, never changes privacy -- purely a memory-record write). Verified
+`--help` output and confirmed the underlying method already has full test
+coverage (`test_owner_confirmed_reconciliation_removes_a_public_video_from_release_queue`
+in test_youtube_creator_queue.py, still passing).
+
+Also noticed in passing, not yet investigated: Venus's own episode file has
+`episode_number: 1`, but its real published title reads "EP. 002" -- the
+numbering stored in the file does not match what actually went out. Separate
+pre-existing issue, not caused by today's work.
+
+STILL OPEN, urgent: the owner needs to give the real YouTube video id/URL for
+all three episodes above (and confirm whether "AION Wonders: How can an
+octopus change color so..." published 16 Sep is a distinct fourth video or a
+duplicate/earlier draft of the octopus episode) so
+`reconcile-youtube-creator` can be run for each -- and the stray rice-journey
+memory record needs reconciling, not progressing through
+quality-youtube-creator/run-youtube-creator-publish. Do not run those two
+commands on these three episode ids until this board is back to clear.
+
+Commits: (this entry's own commit follows -- main.py only; docs and the
+episode_number revert are not code changes worth separate commits, the
+revert was via git checkout and never staged).
+
 ## 2026-09-21 — Codex — Fixed truthful Creator Shorts release handoff
 
 Found the actual release block: a valid 1080×1920 Short cover was incorrectly rejected as a 16:9 long-form thumbnail, while the workflow still appeared green without checking for `Stage: published`. Shorts now accept vertical covers, manual releases can target one exact episode, run a persisted Quality Gate first, and fail visibly if YouTube did not confirm publication.

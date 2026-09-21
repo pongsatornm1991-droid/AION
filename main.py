@@ -1848,6 +1848,24 @@ def run_prepare_youtube_creator(args):
         print(report["publish_note"])
 
 
+def run_reconcile_youtube_creator(args):
+    """Record an already-public video the Studio queue lost track of.
+
+    Narrow recovery command: never calls YouTube, never uploads anything.
+    Use it when a video is confirmed public on the channel (checked by a
+    human) but the Studio queue has no record of it, or offers it again as
+    though it still needs to be published.
+    """
+    report = YouTubeCreatorQueue(Thinker().memory).reconcile_owner_confirmed_publication(
+        args.episode_id, args.video_id, args.url,
+    )
+    print("\nAION YOUTUBE CREATOR RECONCILE")
+    print(f"Stage: {report['stage']}")
+    print(f"Episode: {report.get('episode_id')}")
+    print(f"Video: {report.get('youtube', {}).get('url')}")
+    print(report.get("publish_note", ""))
+
+
 def run_quality_youtube_creator(args):
     """Persist pre-release Quality Gate evidence without publishing anything."""
     report = YouTubeCreatorQueue(Thinker().memory).quality_pending(getattr(args, "content_kind", None), getattr(args, "episode_id", None))
@@ -3736,6 +3754,11 @@ def build_parser():
     youtube_creator_prepare_parser = subparsers.add_parser("prepare-youtube-creator", help="Prepare one rendered Creator Series episode for YouTube review; never uploads it.")
     youtube_creator_prepare_parser.add_argument("--content-kind", choices=("short", "long-form"), help="Prepare only the selected YouTube format.")
     youtube_creator_prepare_parser.add_argument("--episode-id", help="Prepare only this finished Creator episode.")
+    youtube_creator_reconcile_parser = subparsers.add_parser(
+        "reconcile-youtube-creator", help="Record an already-public video the Studio queue lost track of; never uploads or changes privacy.")
+    youtube_creator_reconcile_parser.add_argument("--episode-id", required=True, help="The Creator episode this public video belongs to.")
+    youtube_creator_reconcile_parser.add_argument("--video-id", required=True, help="The YouTube video id, confirmed public by a human.")
+    youtube_creator_reconcile_parser.add_argument("--url", required=True, help="The full YouTube video URL.")
     youtube_creator_quality_parser = subparsers.add_parser("quality-youtube-creator", help="Run and persist the Creator pre-release Quality Gate; never uploads it.")
     youtube_creator_quality_parser.add_argument("--content-kind", choices=("short", "long-form"), help="Check only the selected YouTube format.")
     youtube_creator_quality_parser.add_argument("--episode-id", help="Check only this queued Creator episode.")
@@ -4012,6 +4035,10 @@ def main():
 
     if args.command == "prepare-youtube-creator":
         run_prepare_youtube_creator(args)
+        return
+
+    if args.command == "reconcile-youtube-creator":
+        run_reconcile_youtube_creator(args)
         return
     if args.command == "quality-youtube-creator":
         run_quality_youtube_creator(args)
