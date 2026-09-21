@@ -23,9 +23,8 @@ jobs:
         run: python tools/run_content_experiment_evaluator.py
       - env: {AION_MEMORY_ROOT: memory_data}
         run: python tools/run_growth_to_studio.py
-      - working-directory: memory_data
-        run: |
-          git config user.name aion-bot
-          git config user.email aion-bot@users.noreply.github.com
-          git add -A
-          if ! git diff --cached --quiet; then git commit -m "AION content experiment result"; { git push || { git pull --rebase --autostash origin main && git push; } || { sleep 10; git pull --rebase --autostash origin main && git push; } || { sleep 20; git pull --rebase --autostash origin main && git push; }; }; fi
+      - uses: ./.github/actions/commit-and-push
+        with:
+          paths: "-A"
+          message: "AION content experiment result"
+          cwd: memory_data

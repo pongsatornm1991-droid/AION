@@ -33,9 +33,8 @@ jobs:
           AION_MEMORY_ROOT: memory_data
         run: python main.py run-evolution-cycle
       - name: Persist private evolution record
-        working-directory: memory_data
-        run: |
-          git config user.name "aion-bot"
-          git config user.email "aion-bot@users.noreply.github.com"
-          git add -A
-          if ! git diff --cached --quiet; then git commit -m "AION weekly evolution review"; { git push || { git pull --rebase --autostash origin main && git push; } || { sleep 10; git pull --rebase --autostash origin main && git push; } || { sleep 20; git pull --rebase --autostash origin main && git push; }; }; fi
+        uses: ./.github/actions/commit-and-push
+        with:
+          paths: "-A"
+          message: "AION weekly evolution review"
+          cwd: memory_data

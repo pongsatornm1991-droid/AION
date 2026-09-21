@@ -1,0 +1,63 @@
+name: Commit and push (with rebase retry)
+description: >
+  Stage the given paths, commit only if something actually changed, and
+  push to the current branch with a rebase-and-retry loop, so a routine
+  collision with another workflow that pushed to main first is a retry,
+  not a failed run. Every AION workflow that commits its own output
+  straight back to a shared branch used to hand-duplicate this same
+  bash block (audited 2026-09-21: 50 near-identical copies); this is the
+  one place it lives now.
+inputs:
+  paths:
+    description: >
+      Space-separated paths to `git add`. A path ending in "/" is
+      treated as a directory and created with it exists; any other path
+      has its parent directory created -- so a first-ever output file
+      never hits git's "did not match any files" error on an empty repo.
+    required: true
+  message:
+    description: >
+      The commit message. It may contain a literal $(...) command
+      substitution (e.g. a timestamp) -- that is evaluated by the shell
+      at commit time, exactly as if it had been written inline in the
+      old per-workflow step.
+    required: true
+  cwd:
+    description: >
+      Directory to run every git command in. Matches a step's own
+      working-directory for a checkout done into a subfolder (e.g. the
+      private memory-data repo checked out under memory_data/).
+    required: false
+    default: "."
+outputs:
+  committed:
+    description: >
+      "true" if a commit was made and pushed this run, "false" if there
+      was nothing staged to commit. A workflow whose later steps used to
+      branch on a GITHUB_ENV flag set by the old inline step should
+      branch on this output instead.
+    value: ${{ steps.commit-and-push.outputs.committed }}
+runs:
+  using: composite
+  steps:
+    - id: commit-and-push
+      shell: bash
+      working-directory: ${{ inputs.cwd }}
+      run: |
+        git config user.name "aion-bot"
+        git config user.email "aion-bot@users.noreply.github.com"
+        for path in ${{ inputs.paths }}; do
+          case "$path" in
+            */) mkdir -p "$path" ;;
+            *) mkdir -p "$(dirname "$path")" ;;
+          esac
+        done
+        git add ${{ inputs.paths }}
+        if git diff --cached --quiet; then
+          echo "No change -- nothing to commit."
+          echo "committed=false" >> "$GITHUB_OUTPUT"
+        else
+          git commit -m "${{ inputs.message }}"
+          { git push || { git pull --rebase --autostash origin main && git push; } || { sleep 10; git pull --rebase --autostash origin main && git push; } || { sleep 20; git pull --rebase --autostash origin main && git push; }; }
+          echo "committed=true" >> "$GITHUB_OUTPUT"
+        fi

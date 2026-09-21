@@ -42,12 +42,8 @@ jobs:
           OPENAI_COMPATIBLE_API_KEY: ${{ secrets.OPENAI_COMPATIBLE_API_KEY }}
         run: python tools/run_autonomous_inquiry.py
       - name: Persist the new inquiry
-        working-directory: memory_data
-        run: |
-          git config user.name "aion-bot"
-          git config user.email "aion-bot@users.noreply.github.com"
-          git add -A
-          if ! git diff --cached --quiet; then
-            git commit -m "AION autonomous inquiry ($(date -u +%Y-%m-%dT%H:%M:%SZ))"
-            { git push || { git pull --rebase --autostash origin main && git push; } || { sleep 10; git pull --rebase --autostash origin main && git push; } || { sleep 20; git pull --rebase --autostash origin main && git push; }; }
-          fi
+        uses: ./.github/actions/commit-and-push
+        with:
+          paths: "-A"
+          message: "AION autonomous inquiry ($(date -u +%Y-%m-%dT%H:%M:%SZ))"
+          cwd: memory_data
