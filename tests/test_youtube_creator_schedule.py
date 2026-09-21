@@ -5,9 +5,11 @@ from pathlib import Path
 
 
 class YouTubeCreatorScheduleTests(unittest.TestCase):
-    def test_has_four_day_shorts_first_cron(self):
+    def test_has_daily_shorts_first_cron(self):
+        # Scaled from a 4-day (Thu-Sun) to a daily cadence on 2026-09-21,
+        # once creator-scene-production.yml also became a daily shift.
         workflow = (Path(__file__).resolve().parents[1] / ".github" / "workflows" / "youtube-creator.yml").read_text(encoding="utf-8")
-        self.assertIn('cron: "30 13 * * 0,4,5,6"', workflow)
+        self.assertIn('cron: "30 13 * * *"', workflow)
         self.assertNotIn('cron: "15 13 * * 6"', workflow)
 
     def test_scheduled_release_lane_is_short(self):

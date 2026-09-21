@@ -15,7 +15,7 @@ class ReleaseBufferRecoveryTests(unittest.TestCase):
             root = Path(root)
             (root / "content" / "creator_series").mkdir(parents=True)
             (root / "content" / "reels").mkdir(parents=True)
-            for ident in ("one", "two", "three", "four"):
+            for ident in ("one", "two", "three", "four", "five", "six", "seven"):
                 (root / "content" / "reels" / f"{ident}.mp4").write_bytes(b"video")
                 (root / "content" / "reels" / f"{ident}-cover.png").write_bytes(b"cover")
                 (root / "content" / "creator_series" / f"{ident}.json").write_text(json.dumps({
@@ -29,7 +29,7 @@ class ReleaseBufferRecoveryTests(unittest.TestCase):
                     "scenes": [{"n": n, "visual": "The subject leads; AION is a guide.", "narration": "A useful narrated beat."} for n in range(1, 11)],
                 }), encoding="utf-8")
             memory = MemoryEngine(root / "memory")
-            for ident in ("one", "two", "three", "four"):
+            for ident in ("one", "two", "three", "four", "five", "six", "seven"):
                 memory.remember("youtube_creator_queue", json.dumps({
                     "episode_id": ident,
                     "quality_gate": {"eligible": True, "reasons": []},

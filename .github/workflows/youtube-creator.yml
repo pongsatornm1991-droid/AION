@@ -5,9 +5,12 @@ name: AION - YouTube Creator Studio
 # the Bangkok appointments below (or an explicit manual operator dispatch).
 on:
   schedule:
-    # Shorts-first cadence: Thursday through Sunday at 20:30 Bangkok.
-    # Monday–Wednesday remain clear for research and production.
-    - cron: "30 13 * * 0,4,5,6"
+    # Shorts-first cadence: every day at 20:30 Bangkok. Scaled up from the
+    # original Thursday-Sunday-only appointment (2026-09-21) once
+    # creator-scene-production.yml was also moved to a daily production
+    # shift -- publishing more days than the pipeline produces would just
+    # drain the buffer, so the two cadences must change together.
+    - cron: "30 13 * * *"
   workflow_dispatch:
     inputs:
       release_kind:

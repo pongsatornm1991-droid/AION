@@ -5,10 +5,12 @@ on:
     paths:
       - "content/creator_series/**"
   schedule:
-    # Monday starts the release buffer; Tuesday and Wednesday complete and
-    # recover it.  No publishing appointment should depend on same-day media
-    # creation.
-    - cron: "7 2 * * 1,2,3"
+    # Daily production shift (2026-09-21: publishing moved from a 4-day to
+    # a 7-day cadence, so production must keep pace every day too -- see
+    # youtube-creator.yml). No publishing appointment should depend on
+    # same-day media creation; each day's shift tops the buffer back up
+    # for a later release slot, never today's own.
+    - cron: "7 2 * * *"
   workflow_dispatch: {}
 permissions: {contents: write}
 concurrency:
@@ -53,11 +55,12 @@ jobs:
           OPENAI_IMAGE_MODEL: ${{ vars.OPENAI_IMAGE_MODEL || 'gpt-image-2' }}
           OPENAI_IMAGE_QUALITY: ${{ vars.OPENAI_IMAGE_QUALITY || 'medium' }}
         run: |
-          # Build the complete Thursday–Sunday release set in advance: four
-          # distinct Shorts. Wednesday retries
-          # only genuinely unfinished storyboards; it never substitutes an old
-          # Reel merely because the buffer is empty.
-          short_limit=4
+          # Keep a full week of the daily release set in advance: seven
+          # distinct Shorts (2026-09-21: raised from four to match the move
+          # to daily publishing). Every day's run retries only genuinely
+          # unfinished storyboards; it never substitutes an old Reel merely
+          # because the buffer is empty.
+          short_limit=7
           # An empty spare slot is a planning signal, not a production failure.
           # Fail only for a real rendering fault so completed images are always
           # committed and can continue to assembly.

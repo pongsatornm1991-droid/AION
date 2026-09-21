@@ -15,12 +15,15 @@ class ReleaseReadiness:
     """Keep the fixed Bangkok publishing cadence from failing silently."""
 
     BANGKOK = ZoneInfo("Asia/Bangkok")
-    # Shorts are the current primary format. Thursday through Sunday gives a
-    # four-release cadence while Monday–Wednesday remain the production buffer.
-    SHORT_DAYS = {3, 4, 5, 6}  # Thursday, Friday, Saturday, Sunday
-    # A complete Thu–Sun release set must be visible even when the check runs
-    # on Monday morning. A seven-day horizon reaches Sunday evening and avoids
-    # falsely calling a four-Short buffer healthy.
+    # Shorts are the current primary format, published every day since
+    # 2026-09-21 (previously Thursday-Sunday only, with Monday-Wednesday
+    # reserved as a production-only buffer window). Kept as an explicit set
+    # rather than "every day" in code so a future format change (e.g.
+    # carving a day back out for research) is a one-line edit here.
+    SHORT_DAYS = {0, 1, 2, 3, 4, 5, 6}  # every day
+    # A complete week of release slots must be visible even when the check
+    # runs first thing in the morning. A seven-day horizon reaches a full
+    # week out and avoids falsely calling a seven-Short buffer healthy.
     HORIZON_HOURS = 168
 
     def __init__(self, memory, root=None):
@@ -77,9 +80,9 @@ class ReleaseReadiness:
             "available": available,
             "shortages": shortages,
             "shorts_buffer": {
-                "target": 4,
+                "target": len(self.SHORT_DAYS),
                 "quality_ready": len(available.get("short", [])),
-                "state": "ready" if len(available.get("short", [])) >= 4 else "building",
+                "state": "ready" if len(available.get("short", [])) >= len(self.SHORT_DAYS) else "building",
                 "detail": "นับเฉพาะ Shorts ใหม่ที่ผ่าน Quality Gate แล้ว; storyboard หรือภาพครบยังไม่นับเป็นบัฟเฟอร์",
             },
             "policy": "ตรวจล่วงหน้า 144 ชั่วโมง; นับเฉพาะตอนใหม่ที่ผ่าน Quality Gate พร้อมและไม่ซ้ำ ไม่ใช้คลิปเก่าแทนวันปล่อย",

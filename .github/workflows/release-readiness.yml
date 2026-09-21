@@ -5,9 +5,10 @@ name: AION - Creator release readiness
 # buffer visible early enough for the normal Studio shifts to recover it.
 on:
   schedule:
-    # Run after the Tuesday/Wednesday 09:07 Studio shifts have had time to
-    # produce its release buffer; checking before it would create a false
-    # shortage alert while the planned work is still legitimately underway.
+    # Run after the day's 09:07 Studio shift (daily since 2026-09-21) has
+    # had time to produce its release buffer; checking before it would
+    # create a false shortage alert while the planned work is still
+    # legitimately underway.
     - cron: "30 5 * * *" # 12:30 Asia/Bangkok
   workflow_run:
     # Refresh immediately when the production pipeline changes.  The daily
