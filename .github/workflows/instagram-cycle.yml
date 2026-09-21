@@ -186,5 +186,12 @@ jobs:
             echo "No memory changes this run -- nothing to commit."
           else
             git commit -m "AION memory update ($(date -u +%Y-%m-%dT%H:%M:%SZ))"
-            git push
+            # This repo is also written by several workflows outside the
+            # aion-memory-data concurrency group this workflow belongs to
+            # (e.g. youtube-creator.yml, release-readiness.yml each retry
+            # their own memory_data push already) -- a bare push here can
+            # still race one of those and fail the whole run over a
+            # harmless collision, the same class of bug fixed everywhere
+            # else in this repo (see AGENTS.md's git discipline section).
+            { git push || { git pull --rebase --autostash origin main && git push; } || { sleep 10; git pull --rebase --autostash origin main && git push; } || { sleep 20; git pull --rebase --autostash origin main && git push; }; }
           fi
