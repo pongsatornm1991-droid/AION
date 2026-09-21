@@ -73,7 +73,23 @@ permissions:
 
 jobs:
   notify-on-failure:
-    if: ${{ github.event.workflow_run.conclusion != 'success' && github.event.workflow_run.conclusion != 'skipped' }}
+    # 'cancelled' is deliberately excluded alongside success/skipped.
+    # Audited 2026-09-21 against real run history: several of the
+    # workflows in the watch list above (publish-workflow-status.yml,
+    # release-readiness.yml, and others) are triggered by workflow_run
+    # off many upstream workflows and share a concurrency group with
+    # cancel-in-progress: false. GitHub only keeps one run queued per
+    # group, so when several upstream completions land close together
+    # (common with 58 workflows on tight schedules) the older queued
+    # run is cancelled in favour of the newest one -- routine, harmless
+    # queue eviction, not a real failure. In one ~10h window this
+    # produced 17 cancelled conclusions from just two workflows, which
+    # would have meant 17 false "needs attention" pages -- exactly the
+    # alert-fatigue failure mode this monitor exists to avoid causing.
+    # A workflow that is genuinely stuck still surfaces: either its own
+    # run eventually completes as failure, or the next scheduled/cron
+    # run of the same workflow does, and that alerts normally.
+    if: ${{ github.event.workflow_run.conclusion != 'success' && github.event.workflow_run.conclusion != 'skipped' && github.event.workflow_run.conclusion != 'cancelled' }}
     runs-on: ubuntu-latest
     steps:
       - name: Notify AION owner
