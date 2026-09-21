@@ -155,3 +155,62 @@ def reply_to_youtube_comment(comment_id, message):
         "snippet": {"parentId": str(comment_id), "textOriginal": str(message).strip()},
     }).execute()
     return {"comment_id": response.get("id"), "parent_id": str(comment_id)}
+
+
+def list_uploaded_videos(limit=200):
+    """List every video already on the channel: id, title, privacy, publish time.
+
+    Read-only drift-detection helper. Deliberately reuses YOUTUBE_COMMENT_SCOPE
+    (already granted for comment moderation / set_video_privacy) rather than
+    asking for a new OAuth scope and a fresh owner consent just to list videos.
+    Includes private and unlisted uploads, not only public ones, because the
+    owner's own "uploads" playlist returns all of them -- this is deliberate:
+    an already-public video with no Studio queue record is a duplicate-upload
+    risk, but a video that silently stayed private after a swallowed publish
+    error is worth surfacing too.
+    """
+    from googleapiclient.discovery import build
+
+    youtube = build("youtube", "v3", credentials=youtube_credentials([YOUTUBE_COMMENT_SCOPE]), cache_discovery=False)
+    channels = youtube.channels().list(part="contentDetails", mine=True).execute()
+    items = channels.get("items") or []
+    if not items:
+        return []
+    uploads_playlist_id = items[0]["contentDetails"]["relatedPlaylists"]["uploads"]
+
+    entries = []
+    page_token = None
+    while len(entries) < limit:
+        response = youtube.playlistItems().list(
+            part="contentDetails,snippet",
+            playlistId=uploads_playlist_id,
+            maxResults=min(50, limit - len(entries)),
+            pageToken=page_token,
+        ).execute()
+        for item in response.get("items", []):
+            content = item.get("contentDetails") or {}
+            snippet = item.get("snippet") or {}
+            video_id = content.get("videoId")
+            if video_id:
+                entries.append({
+                    "video_id": video_id,
+                    "title": snippet.get("title"),
+                    "published_at": content.get("videoPublishedAt"),
+                })
+        page_token = response.get("nextPageToken")
+        if not page_token:
+            break
+
+    # A second, batched call for privacyStatus: playlistItems never carries
+    # it, and videos.list accepts at most 50 ids per call.
+    privacy_by_id = {}
+    ids = [entry["video_id"] for entry in entries]
+    for start in range(0, len(ids), 50):
+        batch = ids[start:start + 50]
+        response = youtube.videos().list(part="status", id=",".join(batch)).execute()
+        for item in response.get("items", []):
+            privacy_by_id[item.get("id")] = (item.get("status") or {}).get("privacyStatus")
+
+    for entry in entries:
+        entry["privacy_status"] = privacy_by_id.get(entry["video_id"])
+    return entries

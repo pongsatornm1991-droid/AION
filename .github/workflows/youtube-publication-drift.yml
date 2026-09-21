@@ -1,0 +1,73 @@
+name: AION - YouTube publication drift check
+
+# Detects the exact condition found and manually fixed on 2026-09-21: a
+# video genuinely public on YouTube with no record at all in the Creator
+# Studio memory queue. Left alone, a queue-less published episode looks
+# exactly like an unpublished one to the rest of Studio and can be
+# re-offered for upload -- a real duplicate-upload risk. That day it was
+# only caught because the owner happened to check YouTube Studio and paste
+# the real URLs in chat; this runs the same check on a schedule instead.
+#
+# This is a DETECTOR ONLY, deliberately. It never writes to memory and
+# never calls a YouTube write endpoint -- see
+# tools/check_youtube_publication_drift.py's own docstring for why: title
+# alone is not always enough to safely match a video to an episode (a real
+# near-miss that same day), so reconciliation always stays a human,
+# one-video-at-a-time decision via the existing reconcile-youtube-creator
+# command. A hit here only ever sends a Telegram alert; it does not fail
+# the build, the same "early warning, never fails" design already used by
+# release-readiness.yml for the same reason -- an alert with no urgent
+# fix path is still useful, a red X that blocks nothing is just noise.
+#
+# Daily is enough: drift can only appear right after a publish, and
+# publishing itself happens at most a few times a week.
+
+on:
+  schedule:
+    - cron: "40 1 * * *" # 08:40 Asia/Bangkok, well clear of the Tue/Wed Studio shifts
+  workflow_run:
+    workflows:
+      - AION - YouTube Creator Studio
+    types: [completed]
+  workflow_dispatch: {}
+
+concurrency:
+  group: aion-youtube-publication-drift
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  check-drift:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout AION code
+        uses: actions/checkout@v4
+
+      - name: Checkout AION memory (private repo, read-only use)
+        uses: actions/checkout@v4
+        with:
+          repository: pongsatornm1991-droid/aion-memory-data
+          token: ${{ secrets.MEMORY_REPO_PAT }}
+          path: memory_data
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: Compare the real channel against the Studio queue
+        env:
+          AION_MEMORY_ROOT: memory_data
+          YOUTUBE_CLIENT_ID: ${{ secrets.YOUTUBE_CLIENT_ID }}
+          YOUTUBE_CLIENT_SECRET: ${{ secrets.YOUTUBE_CLIENT_SECRET }}
+          YOUTUBE_REFRESH_TOKEN: ${{ secrets.YOUTUBE_REFRESH_TOKEN }}
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+        run: |
+          python tools/check_youtube_publication_drift.py --notify | tee drift-report.json
+          cat drift-report.json >> "$GITHUB_STEP_SUMMARY"
