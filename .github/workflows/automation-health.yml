@@ -13,7 +13,7 @@ on:
       - AION - social post cycle
       - AION - YouTube Shorts cycle
       - AION - YouTube Creator Studio
-      - AION - YouTube long-form Saturday
+      - AION - YouTube long-form archive/manual recovery
       - AION - Creator release readiness
       - AION - subject-first scene production
       - AION - assemble illustrated Creator episode
@@ -30,6 +30,41 @@ on:
       - AION - system reliability
       - AION - Cyber Guard defensive audit
       - AION - admin operations audit
+      # Audited 2026-09-21: everything below was a real production
+      # workflow with no failure alert at all -- more than half the
+      # fleet was silently unmonitored, which is how a genuine content
+      # conflict in publish-public-summary.yml went unnoticed. Added
+      # every remaining workflow so a silent failure is never the way
+      # one gets found again.
+      - AION - Creator intention cycle
+      - AION - OpenAI connection test
+      - AION - Publish public brain summary
+      - AION - Render Creator episode
+      - AION - Render Creator episode 002
+      - AION - Render Creator episode 003
+      - AION - Render Creator episode 004
+      - AION - Render Creator library
+      - AION - Scientific Discovery Lab
+      - AION - YouTube discovery learning
+      - AION - YouTube public audience signals
+      - AION - YouTube release-window recovery
+      - AION - approved content experiment runner
+      - AION - audience accessibility checks
+      - AION - audience-independent inquiry
+      - AION - automatic motion production
+      - AION - autonomous internal improvement cycle
+      - AION - bounded self repair
+      - AION - content experiment evaluator
+      - AION - creator reference study
+      - AION - delivery evidence watchdog
+      - AION - event-aware cognitive drive
+      - AION - improvement approval check
+      - AION - media-library hygiene
+      - AION - platform delivery recovery
+      - AION - publish workflow health
+      - AION - revenue readiness
+      - AION - self-improvement proposals
+      - AION - self-narrative
     types: [completed]
 
 permissions:
