@@ -1,0 +1,56 @@
+name: AION - YouTube release watchdog
+
+# Self-heals a missed daily youtube-creator.yml schedule. Found 2026-09-22:
+# youtube-creator.yml's own cron (20:30 Bangkok) silently did not fire for
+# 2 consecutive days, even though dozens of other scheduled workflows in
+# this repo fired normally in the same window, no run of it was ever left
+# queued/in_progress, and it was never disabled -- pointing at GitHub's
+# own Actions scheduler dropping this specific cron, not a bug in this
+# repo's code. automation-health.yml cannot catch this class of failure:
+# it only reacts to a workflow_run event, and a schedule that never fires
+# produces no such event to react to.
+#
+# Runs on its own cron, at an offset minute, independently of
+# youtube-creator.yml's schedule -- deliberately not chained to it, so the
+# two are not both vulnerable to whatever caused the original drop.
+# tools/youtube_release_watchdog.py only ever dispatches youtube-creator.yml
+# when NO run of it exists yet today past its scheduled hour; see that
+# module's own docstring for why this can never cause a duplicate/extra
+# publish even if it overlaps with a delayed real trigger.
+on:
+  schedule:
+    - cron: "12,42 * * * *"
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: "Report what would happen without dispatching anything"
+        required: false
+        default: false
+        type: boolean
+
+concurrency:
+  # Only the latest check matters; an older queued tick is redundant the
+  # moment a newer one is about to run.
+  group: aion-youtube-release-watchdog
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+  actions: write
+
+jobs:
+  watchdog:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: {python-version: "3.11"}
+      - name: Check today's YouTube release schedule
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          if [[ "${{ github.event.inputs.dry_run }}" == "true" ]]; then
+            python tools/youtube_release_watchdog.py --dry-run
+          else
+            python tools/youtube_release_watchdog.py
+          fi
