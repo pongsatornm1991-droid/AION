@@ -155,6 +155,17 @@ class YouTubeCreatorQueue:
             # either way as an audit record.
             if (episode.get("quality_incident") or {}).get("state") == "blocked":
                 release_blockers.append("unresolved-quality-incident")
+            # Same class of gap, found the same day while auditing every
+            # status value actually in use: Research can return a staged
+            # draft with `status: "research-returned-source-integrity"`
+            # plus a `return_reason` (e.g. sources that are not
+            # independent/traceable enough), and nothing enforced that
+            # either -- it was safe only because that status string also
+            # doesn't match READY_STATUS. Enforced explicitly for the same
+            # reason: a later status edit must not silently un-quarantine
+            # a draft Research already rejected.
+            if episode.get("status") == "research-returned-source-integrity":
+                release_blockers.append("returned-for-insufficient-source-integrity")
             retired = episode.get("status") == self.RETIRED_STATUS
             previous = recorded.get(episode["id"])
             stage = self._pipeline_stage(episode, previous, video_path.is_file())

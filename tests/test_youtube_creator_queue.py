@@ -207,6 +207,33 @@ class YouTubeCreatorQueueTests(unittest.TestCase):
             candidates = {item["episode_id"]: item for item in queue.candidates()}
             self.assertNotIn("unresolved-quality-incident", candidates["fixed"]["release_blockers"])
 
+    def test_research_returned_for_source_integrity_blocks_release(self):
+        # Same class of gap, found the same day auditing every status value
+        # in real use: Research can return a draft with status
+        # "research-returned-source-integrity" + a return_reason, and
+        # nothing enforced it either -- also safe only by accident of not
+        # matching READY_STATUS.
+        with tempfile.TemporaryDirectory() as root:
+            self._episode(root)
+            root = Path(root)
+            returned = __import__("json").loads((root / "content" / "creator_series" / "episode.json").read_text(encoding="utf-8"))
+            returned.update({
+                "id": "returned",
+                "title": "Sources not independent enough",
+                "status": "research-returned-source-integrity",
+                "return_reason": "Two discussion-thread comments are not independent factual sources.",
+            })
+            (root / "content" / "creator_series" / "returned.json").write_text(
+                __import__("json").dumps(returned), encoding="utf-8"
+            )
+            (root / "content" / "reels" / "episode.mp4").write_bytes(b"new")
+            (root / "content" / "reels" / "returned.mp4").write_bytes(b"defective")
+            (root / "content" / "reels" / "returned-cover.png").write_bytes(b"png")
+            queue = YouTubeCreatorQueue(MemoryEngine(root / "memory"), root)
+            candidates = {item["episode_id"]: item for item in queue.candidates()}
+            self.assertFalse(candidates["returned"]["release_eligible"])
+            self.assertIn("returned-for-insufficient-source-integrity", candidates["returned"]["release_blockers"])
+
     def test_publishes_authorized_episode_once_when_project_policy_delegates_it(self):
         with tempfile.TemporaryDirectory() as root:
             self._episode(root)
