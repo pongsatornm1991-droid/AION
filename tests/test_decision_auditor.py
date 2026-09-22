@@ -14,6 +14,15 @@ PROJECT_ROOT = Path(__file__).resolve().parents[1]
 if str(PROJECT_ROOT) not in sys.path:
     sys.path.insert(0, str(PROJECT_ROOT))
 
+# Windows only: subprocess.run() on a console app (python.exe running
+# main.py) briefly flashes a new, empty console window per call unless
+# told not to -- the same class of bug already found and fixed in
+# tools/sync_memory_from_github.py, brain/video_quality.py, and
+# tools/reel_render.py. These tests invoke main.py as a real subprocess
+# and run locally on the owner's Windows machine (e.g. via `python
+# run_tests.py` or an IDE's test runner), not only in CI. Found by a
+# follow-up audit (2026-09-22), not yet reported as an observed symptom.
+_NO_WINDOW = subprocess.CREATE_NO_WINDOW if sys.platform == "win32" else 0
 
 from brain.auditor import CognitiveAuditor
 from brain.decision import DecisionEngine
@@ -249,6 +258,7 @@ class DecisionAndAuditTests(unittest.TestCase):
             capture_output=True,
             text=True,
             check=False,
+            creationflags=_NO_WINDOW,
         )
 
         self.assertEqual(result.returncode, 0, result.stderr)
@@ -265,6 +275,7 @@ class DecisionAndAuditTests(unittest.TestCase):
             capture_output=True,
             text=True,
             check=False,
+            creationflags=_NO_WINDOW,
         )
 
         self.assertEqual(result.returncode, 0, result.stderr)
