@@ -7,6 +7,15 @@ import subprocess
 import sys
 from pathlib import Path
 
+# Windows only: subprocess.run() on a console app (ffmpeg.exe) briefly
+# flashes a new, empty console window per call unless told not to -- the
+# same class of bug already found and fixed in tools/sync_memory_from_
+# github.py, brain/video_quality.py, and tools/reel_render.py. This module
+# has its own `if __name__ == "__main__":` CLI entry point below, so it can
+# run directly on the owner's Windows machine, not only from CI. Found by
+# a follow-up audit (2026-09-22), not yet reported as an observed symptom.
+_NO_WINDOW = subprocess.CREATE_NO_WINDOW if sys.platform == "win32" else 0
+
 ROOT = Path(__file__).resolve().parents[1]
 if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
@@ -47,7 +56,7 @@ def render_kinetic_fallback(source_image, destination, *, aspect_ratio="9:16", s
             [_ffmpeg(), "-y", "-loop", "1", "-i", str(source), "-vf", filtergraph,
              "-t", str(seconds), "-r", "30", "-an", "-c:v", "libx264", "-pix_fmt", "yuv420p",
              "-movflags", "+faststart", str(target)],
-            check=True, capture_output=True, text=True,
+            check=True, capture_output=True, text=True, creationflags=_NO_WINDOW,
         )
         return target.is_file() and target.stat().st_size > 0
     except (OSError, subprocess.SubprocessError, RuntimeError):
