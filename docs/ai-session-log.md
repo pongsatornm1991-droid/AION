@@ -13,6 +13,49 @@ Format:
 Commits: <hash> [, <hash> ...]
 ```
 
+## 2026-09-22 — Claude Code — Rewrote the Shorts hook and ending template; confirmed cadence, flagged the Venus fix to the owner
+
+Owner confirmed the channel is Shorts-only now and asked what to develop
+next. Recommended the hook (first ~3s) and ending as the highest-leverage
+targets, since they most directly affect Shorts completion/rewatch rate;
+owner said do it immediately.
+
+`StoryEpisodeStager`'s short-form template previously opened every single
+episode with the identical "Today we are asking: {topic}" and closed
+every one with the identical "Keep asking better questions, and check the
+evidence with me," regardless of subject -- pure filler with zero
+topic-specific content on both the strongest and weakest-retention
+moments of a Short. Hook now leads with the first source's own sourced
+observation, then lands the question (same "fact first, then why" shape
+as the connection-beat fix from the previous entry). Ending now closes on
+the actual topic instead of a generic sign-off, while still respecting
+WatchabilityGate's rule against ending on "?". Nothing invented beyond
+what research's sources actually said. 4 new regression tests; full
+tests.test_story_episode_stager (8 tests) and run_tests.py green.
+
+Confirmed, no change needed: youtube-creator.yml's daily automated cadence
+already defaults content-kind to "short" only, so Shorts-only is already
+how the live automation runs.
+
+Investigated the still-open Venus release-readiness staleness (public/
+aion-release-readiness.json keeps showing aion-wonders-005-venus-flytrap-
+counts as available) far enough to hand the owner an exact fix rather than
+leave it as a vague flag: it needs one local run of
+`python main.py reconcile-youtube-creator --episode-id
+aion-wonders-005-venus-flytrap-counts --video-id mdMF5AebtmY --url
+https://www.youtube.com/watch?v=mdMF5AebtmY`. Did not build automation to
+run this myself -- checked youtube-publication-drift.yml's own docstring
+first, which documents a deliberate design: reconciliation stays a human,
+one-video-at-a-time decision after a real near-miss on 2026-09-21 (title
+alone wasn't always enough to safely match a video to an episode).
+Automating around that would undercut an existing safety choice, not fix
+a gap.
+
+Commits: ff086a9 (hook/ending fix + task claim); this entry's own commit
+follows (log + closing the board).
+
+---
+
 ## 2026-09-22 — Claude Code — Dropped the Thai-rooted identity pillar; fixed the exact bug behind today's quality_incident
 
 Owner made a deliberate creative-direction call: drop the Thai-rooted
