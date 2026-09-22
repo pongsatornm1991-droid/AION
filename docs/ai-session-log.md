@@ -13,6 +13,74 @@ Format:
 Commits: <hash> [, <hash> ...]
 ```
 
+## 2026-09-22 — Claude Code — Channel-naming and visual-style discussion with the owner (no code changed, decisions still open) -- read this before touching branding or `core/*.md` again
+
+Pure discussion entry, no commits. Recording it because the owner
+explicitly asked that both Claude and Codex have this context before
+continuing, and none of it lives anywhere else yet.
+
+**Channel renaming (still OPEN, not decided):** Owner wants a new channel
+name for memorability + SEO. Current name "Aion I Robot" has a real SEO
+problem: it collides with the search term for the film/book "I, Robot".
+Discussed and studied two real channels at the owner's request
+(youtube.com/@KokBisa -- 6.4M subs, Indonesian, name is literally the
+colloquial exclamation "How is that possible?"; youtube.com/@Dr_Healthcare1
+-- 955K subs, simple descriptive "Dr. [topic]" persona name, comedic
+tone) plus re-examined kurzgesagt properly (see below). Current leading
+recommendation: **"Wait, How?"** -- an English equivalent of Kok Bisa's
+naming trick (a natural spoken exclamation of surprise as the brand name,
+doubles as a hook opener for every video). Backups discussed: "No Way,
+Really?", "Huh, Wait", "AION Wonders" (zero rebrand cost, already the
+flagship series name baked into every episode title), "AION Explains".
+Owner also asked "why does it have to have AION in it at all" -- fair
+challenge: "AION" itself has a real SEO collision too (the NCSoft MMORPG
+"Aion"), and the channel currently has ~3 subscribers so the switching
+cost of dropping it entirely is close to zero. The character in the
+videos can stay named AION regardless of what the channel itself is
+called -- those are independent. Availability of any of these names on
+YouTube has NOT been checked yet. Nothing about this has been decided;
+next session should ask the owner directly rather than assume "Wait, How?"
+won.
+
+**Visual style (CONFIRMED, no action needed -- I got this wrong mid-
+conversation and the owner corrected me):** I speculated the owner might
+want to move toward a flat-2D-vector look to match kurzgesagt more
+closely. Owner clarified this is already decided and shipped:
+`aion-neon-diorama-3d-v1` (glossy 3D miniature-diorama renders, saturated
+magenta/cyan/orange neon on near-black, one clear focal point) is the
+channel's actual signature style, set as
+`VisualStoryPolicy.CHANNEL_VISUAL_STYLE` and documented in the 2026-09-21
+entries above (commits cfdef81/7c9862c, from the parallel Codex/Claude-
+Cowork session, before this session started). Verified this still matches
+the current codebase exactly before replying. Also re-checked kurzgesagt
+directly (both /videos and /shorts, with real screenshots this time,
+correcting an earlier wrong guess in this same session that they avoid
+text on thumbnails -- they don't; bold rounded-font text is on nearly
+every thumbnail, e.g. "CAN YOU EVOLVE TO NEVER SLEEP?", "GRAVITY
+10.8 m/s²"). Net takeaway for whoever picks this up: do not suggest
+switching AION away from the neon-diorama style again without a new,
+specific reason -- that door is closed. If a future style decision needs
+kurzgesagt as a reference, the actual transferable principle is "one
+clear focal point, bold-but-tasteful thumbnail text, direct-address or
+curiosity-gap phrasing," not "must be flat 2D."
+
+**Still open from earlier today, unrelated to the above, not touched this
+entry:** (1) a newly-qualifying evidence group was observed failing
+CreatorSourceIntegrity's check in real time this afternoon -- worth
+checking whether that gate is now too strict for the 5x throughput
+increase, or working exactly as intended; (2) the long-form template's
+"compare" bridge beat still has the same generic-filler shape the
+short-form hook/connection/ending beats had before today's fixes, lower
+priority now that Shorts is the daily focus; (3) confirm the two
+long-form episodes published today (aion-longform-001-yakhchal,
+aion-wonders-003) actually used a real visual_style consistent with the
+current signature look, not an unset/legacy one -- not checked this
+entry.
+
+Commits: none (discussion only).
+
+---
+
 ## 2026-09-22 — Claude Code — Finished the Venus reconciliation: local-only fix wasn't enough, pushed the real correction to aion-memory-data
 
 Direct follow-up to the previous entry's handoff. Owner ran the exact
