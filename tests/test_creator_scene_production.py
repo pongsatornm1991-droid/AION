@@ -75,6 +75,33 @@ class CreatorSceneProductionTests(unittest.TestCase):
         self.assertNotIn("warm 3D educational storytelling with rounded appealing forms", cover_prompt)
         self.assertNotIn("do not use grey wash, neon clutter", cover_prompt)
 
+    def test_neon_diorama_3d_is_glossy_and_replaces_the_restrained_palette(self):
+        episode = {"format": "illustrated-narrated-short", "visual_direction": {},
+                   "visual_style": {"id": "aion-neon-diorama-3d-v1"}}
+        prompt = CreatorSceneProduction()._prompt(
+            episode, {"visual": "A bioluminescent jellyfish pulses in the deep sea."}
+        )
+        self.assertIn("AION Neon Diorama 3D", prompt)
+        self.assertIn("glossy 3D-rendered miniature-diorama", prompt)
+        self.assertIn("shallow depth of field", prompt)
+        self.assertIn("electric pink/magenta", prompt)
+        self.assertIn("REPLACES the channel's usual restrained palette", prompt)
+        self.assertIn("cyan", prompt)
+        self.assertIn("never a full body colour", prompt)
+        self.assertIn("never imitate a named artist, studio, channel, mascot or franchise", prompt)
+
+    def test_neon_diorama_3d_cover_matches_the_scene_style_instead_of_warm_3d(self):
+        episode = {
+            "format": "illustrated-narrated-short",
+            "wonder_hook": "Why do jellyfish glow?",
+            "scenes": [{"visual": "A jellyfish glows in dark water."}],
+            "visual_style": {"id": "aion-neon-diorama-3d-v1"},
+        }
+        cover_prompt = CreatorSceneProduction()._cover_prompt(episode)
+        self.assertIn("AION Neon Diorama 3D", cover_prompt)
+        self.assertNotIn("warm 3D educational storytelling with rounded appealing forms", cover_prompt)
+        self.assertNotIn("do not use grey wash, neon clutter", cover_prompt)
+
     def test_thoughtscape_direction_is_specific_to_the_story_without_copying_a_style(self):
         episode = {"format": "illustrated-narrated-short", "visual_direction": {},
                    "visual_style": {"id": "aion-thoughtscape-director-v1", "director": {

@@ -16,6 +16,13 @@ class CreatorSceneProduction:
 
     DEFAULT_BATCH_SIZE = 25
     MAX_SCENES_PER_EPISODE_RUN = 120
+    # Style ids whose own style_rule already sets a bold, self-contained
+    # palette and explicitly REPLACES VisualStoryPolicy.COLOR_DIRECTION
+    # rather than layering on top of it (see _style_rule/_cover_prompt).
+    _REPLACES_COLOR_DIRECTION_STYLE_IDS = frozenset({
+        "aion-neon-vector-shorts-v1",
+        "aion-neon-diorama-3d-v1",
+    })
 
     def __init__(self, root=None, generator=None):
         self.root = Path(root or Path(__file__).resolve().parents[1])
@@ -87,6 +94,24 @@ class CreatorSceneProduction:
                 "still reserved only for AION's tiny crystal signature, never a full body colour. No text, "
                 "logos, watermark, fine texture, grain, photorealism, 3D rendering, or anime, and never "
                 "imitate a named artist, studio, channel, mascot or franchise."
+            )
+        if style_id == "aion-neon-diorama-3d-v1":
+            return (
+                "Style: AION Neon Diorama 3D—an original glossy 3D-rendered miniature-diorama "
+                "illustration, the channel's premium alternate neon house style. Small rounded, "
+                "simplified forms with smooth glossy plastic or frosted-glass materials, soft "
+                "studio-quality key and rim lighting, gentle ambient occlusion, soft reflections, "
+                "and a shallow depth of field that blurs the background into soft bokeh. This "
+                "preset's colour direction REPLACES the channel's usual restrained palette: use "
+                "the same bright, high-contrast, neon-leaning palette as the dominant colour scheme "
+                "of every frame -- electric pink/magenta, vivid cobalt or cyan-blue, saturated "
+                "orange, and acid green, glowing against a deep dark or near-black background. Keep "
+                "exactly one clear focal mechanism or subject per frame, generous negative space, "
+                "and instant one-second readability -- this is deliberate vivid saturation, not "
+                "clutter. Cyan beyond the background palette is still reserved only for AION's tiny "
+                "crystal signature, never a full body colour. No text, logos, watermark, "
+                "photorealistic human skin, grain, or anime, and never imitate a named artist, "
+                "studio, channel, mascot or franchise."
             )
         if style_id == "aion-vivid-storyworld-2d-v1":
             return (
@@ -185,11 +210,11 @@ class CreatorSceneProduction:
         is_short = episode.get("format") == "illustrated-narrated-short"
         asset_type = "vertical 9:16 cover image" if is_short else "landscape 16:9 cover image"
         style_rule = self._style_rule(visual_style, deliberation)
-        # aion-neon-vector-shorts-v1's style_rule already sets its own bold
-        # palette and explicitly REPLACES the channel default restrained
-        # direction; every other preset keeps the shared colour direction
-        # line alongside its own style_rule so a cover still matches its
-        # scenes instead of always saying "warm 3D".
+        # The neon presets in _REPLACES_COLOR_DIRECTION_STYLE_IDS already set
+        # their own bold palette in style_rule and explicitly REPLACE the
+        # channel default restrained direction; every other preset keeps the
+        # shared colour direction line alongside its own style_rule so a
+        # cover still matches its scenes instead of always saying "warm 3D".
         parts = [
             f"Use case: YouTube video thumbnail. Asset type: {asset_type}.",
             f"Story question: {episode.get('wonder_hook') or episode.get('title')}.",
@@ -198,7 +223,7 @@ class CreatorSceneProduction:
             "This is a standalone cover composition, not a crop or duplicate of any video scene.",
             "The story subject leads; AION appears only if useful and remains a small contextual guide, never a central mascot.",
         ]
-        if visual_style.get("id") != "aion-neon-vector-shorts-v1":
+        if visual_style.get("id") not in self._REPLACES_COLOR_DIRECTION_STYLE_IDS:
             parts.append(f"Colour direction: {VisualStoryPolicy.COLOR_DIRECTION}")
         parts.append(f"Story mood: {deliberation.get('mood') or (visual_style.get('director') or {}).get('mood') or 'curious grounded wonder'}.")
         parts.append(style_rule)
