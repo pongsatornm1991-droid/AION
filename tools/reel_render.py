@@ -12,7 +12,20 @@ import os
 import re
 import shutil
 import subprocess
+import sys
 import tempfile
+
+# Windows only: subprocess.run() on a console app (ffmpeg.exe) briefly
+# flashes a new, empty console window per call unless told not to. This
+# module is reached from tools/dashboard.py's live request path via
+# brain/operations_control.py's OperationsControlTower.snapshot() ->
+# _audio_timing(), which calls _audio_duration() once per episode with
+# an existing narration file on every dashboard page load -- found
+# 2026-09-22 as a third, still-unfixed source of the same class of bug
+# already patched in tools/sync_memory_from_github.py and
+# brain/video_quality.py (the owner reported the flashing persisted
+# after both of those, which is why this file was re-audited).
+_NO_WINDOW = subprocess.CREATE_NO_WINDOW if sys.platform == "win32" else 0
 
 from PIL import Image, ImageDraw, ImageFont, ImageOps
 
@@ -43,7 +56,8 @@ def _audio_duration(ffmpeg, audio_path):
     """Return the synthesized audio duration, or None when it cannot be read."""
     try:
         result = subprocess.run([ffmpeg, "-i", str(audio_path), "-f", "null", "-"],
-                                check=False, capture_output=True, text=True, timeout=30)
+                                check=False, capture_output=True, text=True, timeout=30,
+                                creationflags=_NO_WINDOW)
     except (OSError, subprocess.SubprocessError):
         return None
     return _duration_from_probe_text(f"{result.stdout}\n{result.stderr}")
@@ -67,7 +81,7 @@ def _fit_scene_audio(ffmpeg, audio_path, actual_seconds, scene_seconds):
         subprocess.run(
             [ffmpeg, "-y", "-i", source, "-filter:a", f"atempo={tempo:.5f}",
              "-vn", temporary],
-            check=True, capture_output=True, text=True,
+            check=True, capture_output=True, text=True, creationflags=_NO_WINDOW,
         )
         if not os.path.isfile(temporary) or not os.path.getsize(temporary):
             return False
@@ -336,7 +350,7 @@ def render_reel(hook, thought, output_path, duration=18, mood=None, still_paths=
         command.extend(["-filter_complex", video_filter, "-map", "[v]", "-an"])
     command.extend(["-t", str(rendered_duration), "-r", "30", "-c:v", "libx264", "-pix_fmt", "yuv420p", "-movflags", "+faststart", output_path])
     try:
-        subprocess.run(command, check=True, capture_output=True, text=True)
+        subprocess.run(command, check=True, capture_output=True, text=True, creationflags=_NO_WINDOW)
     finally:
         if temporary_audio is not None:
             temporary_audio.cleanup()

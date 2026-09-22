@@ -561,3 +561,39 @@ Net: the owner's report correctly spotted a real cluster of failures but
 mischaracterized them as one bug with one cause. Fixed the one that was
 actually a code defect (#1, the majority of the 11 runs); documented the
 other two as real-but-separate and intentionally left them for later.
+
+## 2026-09-22 05:10 UTC -- Claude
+Owner confirmed the repeating-cmd-window bug was STILL happening
+("ยังไม่หายเลย") after both prior fixes (sync_memory_from_github.py's git
+calls, video_quality.py's ffprobe/ffmpeg calls). Re-audited
+tools/dashboard.py's live request path more carefully this time, following
+local/in-function imports rather than only top-level ones (the earlier
+pass's "not imported by dashboard.py" check for tools/reel_render.py was
+wrong for exactly this reason).
+Real chain: tools/dashboard.py -> OperationsControlTower(...).snapshot()
+(called on every page load, lines 901 & 996) -> _audio_timing()
+(brain/operations_control.py:142) -> tools/reel_render.py's
+_audio_duration(), called once per episode with an existing narration
+.mp3 file. Each call is an unguarded subprocess.run([ffmpeg, ...]) --
+exactly the same class of bug, in a third file neither prior fix touched.
+Fixed all 3 subprocess.run() sites in tools/reel_render.py with the usual
+sys.platform=="win32" CREATE_NO_WINDOW guard. Ran
+test_reel_render.py + test_operations_control.py + test_audio_visual_timing.py
++ test_reels.py -- 22 passed.
+Could NOT commit this from the device bridge: .git/index.lock was held/
+recreated on every one of 15 straight retry attempts (not a stale lock --
+those clear with one mv, this kept coming back), meaning something on the
+owner's machine is actively running git operations against this exact
+repo right now. The fix is saved to the real file on disk (device_bash
+writes directly there) but not yet committed. Left full detail + owner
+instructions in docs/ai-active-task.md; asked the owner to either close
+whatever has the repo open (VS Code/GitHub Desktop/etc.) or just commit +
+push it themselves, since their own terminal had zero lock trouble all
+session.
+Also flagged for whoever debugs this next, if it recurs a 4th time: three
+rounds of "read the source, find an unguarded subprocess call, patch it"
+have each turned out to fix a REAL but PARTIAL cause. That pattern
+strongly suggests it is time to stop guessing from source and instead
+empirically trace the live process tree while the owner runs the .bat
+(Process Monitor or a PowerShell WMI process-creation watcher), so the
+exact offending command line is captured directly instead of inferred.

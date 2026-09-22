@@ -8,63 +8,55 @@ session never blocks the company indefinitely.
 
 Status: clear
 Owner: Claude
-Started: 2026-09-22 03:33 UTC
+Started: 2026-09-22 05:10 UTC
 Lease expires: n/a
-Scope: RESOLVED (partial) -- owner connected a separate Claude Code session
-that scanned the repo and reported "workflow ล้มเหลวพร้อมกันที่ขั้นตอน
-commit-and-push" across 11 runs, with a working theory of push-retry
-exhaustion (not enough attempts/jitter for the commit frequency). That
-theory does not survive a timing check: every failing run's commit-and-push
-step completed in 0-1 seconds, which rules out a chain whose fallbacks
-sleep 10s then 20s between attempts -- a real retry exhaustion would show
-at least ~30s of step duration.
-Read the real logs instead (via the owner's own logged-in browser -- job
-log downloads 403 without repo-admin auth, confirmed again this session).
-Found THREE distinct, unrelated failure modes bundled under that one
-"commit-and-push failed" label:
-1. (FIXED, commit 2efbe45) .github/actions/commit-and-push/action.yml's
-   mkdir-parent-directory loop calls `dirname "$path"`. Every workflow that
-   passes paths: "-A" (9 of the 11 failing runs) hits `dirname: invalid
-   option -- 'A'` because dirname treats a leading-dash argument as an
-   option, not a filename -- mkdir -p "" then fails, and the step (shell:
-   bash defaults to -eo pipefail) aborts before git add/commit/push ever
-   runs. That is the real cause of the 0s-duration failures. Fixed with
-   `dirname -- "$path"`. Reproduced the crash and verified the fix with
-   the exact shell snippet from the file before editing.
-2. (NOT fixed, believed self-healing, lower priority) release-readiness.yml
-   can hit a genuine `git rebase` content conflict on
-   public/aion-release-readiness.json when two near-simultaneous runs of
-   that workflow both regenerate it -- confirmed via a real "CONFLICT
-   (content): Merge conflict in public/aion-release-readiness.json" in run
-   35634789860's log. Not a retry-count problem; a real conflicting diff on
-   a machine-generated snapshot file. The next successful run overwrites
-   the file fresh, so a single missed refresh is a stale readiness board
-   for a few hours, not data loss. Left untouched -- a real fix needs
-   either serializing this file's writers more tightly or switching to a
-   regenerate-on-conflict strategy (abort rebase, rerun the generator
-   against the new HEAD, recommit) rather than trying to text-merge JSON.
-3. (NOT a bug, working as intended) creator-scene-production.yml run
-   35634638214 failed with a "scene-generation-unavailable" stage --
-   brain/creator_scene_production.py deliberately leaves the storyboard
-   byte-for-byte untouched and reports this stage when the image-generation
-   provider produced nothing, specifically so a failed scheduled run stays
-   observable instead of silently looking like it worked. This is a real
-   image-provider outage/config issue at that moment, not a code defect;
-   the workflow going red is the intended signal.
-A fourth run (reel-cycle.yml, run 35634636859) had 0 jobs at all (startup
-failure on a `push` trigger) -- a single occurrence, not investigated
-further; low priority unless it recurs.
-Files this session touched: `.github/actions/commit-and-push/action.yml`,
-`docs/ai-active-task.md`, `docs/ai-session-log.md`.
-Note for whoever works in this repo next via the desktop bridge: something
-on the owner's machine (not this session -- each device_bash call is its
-own fresh, isolated process) was repeatedly recreating .git/index.lock
-during this session's commit, requiring several retries. Likely an IDE or
-git GUI polling this exact repo. Not chased down; mention it to the owner
-if git operations here keep stalling.
+Scope: STILL OPEN -- the repeating-cmd-window bug (first reported when the
+owner ran Start-AION-Observatory.bat). Two prior fixes landed and were
+pulled by the owner (tools/sync_memory_from_github.py commit e765841;
+brain/video_quality.py commit 5ab185a/1498ea6), but the owner confirmed
+after both that the flashing was "ยังไม่หายเลย" (still there, no change at
+all). That is a strong signal a THIRD source exists that neither prior fix
+touched.
+Found it (not yet committed -- see below): tools/dashboard.py calls
+OperationsControlTower(...).snapshot() on every page load (lines 901 and
+996). snapshot() calls its own _audio_timing() method
+(brain/operations_control.py:142), which loops over every episode that has
+an existing narration .mp3 and calls tools/reel_render.py's
+_audio_duration() for each one -- an unguarded
+`subprocess.run([ffmpeg, ...])` per episode, every page load. This file
+was WRONGLY written off as "not imported by tools/dashboard.py" during the
+video_quality.py fix (previous entry in this file) -- that check only
+traced brain/video_quality.py's own importers and missed this separate
+path, and it also only walked top-level imports; the real import is a
+local (in-function) `from tools.reel_render import _audio_duration` inside
+_audio_timing(), which a naive "grep for top-level imports" check misses.
+Fixed all 3 subprocess.run() call sites in tools/reel_render.py with the
+same sys.platform=="win32"-guarded CREATE_NO_WINDOW pattern already used
+in the other two files. Ran the full relevant test set (test_reel_render,
+test_operations_control, test_audio_visual_timing, test_reels -- 22
+passed).
+BLOCKED ON COMMIT: something on the owner's machine is holding/recreating
+`.git/index.lock` continuously right now (15 straight retry attempts from
+this session all failed with "Another git process seems to be running").
+This is NOT a stale leftover lock (those were cleared earlier this same
+session with a simple mv) -- something is actively re-acquiring it. The
+fix is saved on disk at tools/reel_render.py (device_bash writes directly
+to the owner's real files) but is NOT YET a git commit. The owner needs to
+either (a) close whatever program has this repo open and is polling it
+(VS Code with the Git panel open, GitHub Desktop, TortoiseGit, etc.), or
+(b) just commit+push it themselves from their own terminal -- their
+terminal has had zero lock trouble all session, so it is likely only this
+sandboxed session's device_bash racing against that other process, not a
+problem for the owner's own shell.
+Files touched, not yet committed: `tools/reel_render.py`,
+`docs/ai-active-task.md` (this file), `docs/ai-session-log.md`.
 Handoff: read `AGENTS.md` and the last 10 session-log entries before
-working. If failures matching "commit-and-push" recur, check the actual
-paths input first (a literal "-A"/"-x"-style flag vs. a real path) before
-assuming it is #1 again -- this fix only covers the leading-dash-argument
-case. #2 and #3 above are still open and belong to whoever wants to invest
-in them next; neither is urgent.
+working. Before declaring this bug fixed, get the owner to actually
+confirm it empirically (run Start-AION-Observatory.bat, watch for
+flashing) -- two "should be the last one" fixes have already turned out to
+be incomplete, so treat a third static-analysis fix with the same caution
+until it's been verified live. If it recurs a 4th time, do NOT repeat
+static code reading again -- use a live Windows-native process trace
+(Process Monitor, or a PowerShell WMI Win32_Process creation-event
+watcher) while running the .bat, to see the actual offending command
+line and its parent process directly, instead of guessing from source.
