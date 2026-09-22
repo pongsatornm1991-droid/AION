@@ -13,6 +13,87 @@ Format:
 Commits: <hash> [, <hash> ...]
 ```
 
+## 2026-09-22 — Claude Code — Root-caused the real content-production bottleneck; fixed evidence-gathering throughput and a watchdog side effect
+
+Follow-up to this same session's watchdog work above. Owner asked for a
+full pipeline audit, an immediate fix of whatever bottleneck is stopping
+new Shorts from completing production, and a durable fix so it cannot
+silently stall again.
+
+Investigated with the most reliable sources available rather than this
+sandbox's memory/ symlink (independently confirmed stale/unreliable this
+session -- `story_research_briefs`/`creator_research_handoffs` reads
+showed timestamps from 2026-09-18, and the two local aion-memory-data
+clones (.aion-memory-inspect/, aion-memory-data-sync/) haven't advanced
+past 2026-09-17/18 either, since their 45s sync loop only runs while the
+Observatory dashboard is open with .env.memory_sync present):
+`git log --diff-filter=A` on content/creator_series/*.json (tracked
+directly in this repo, fully reliable) showed the last genuinely new
+episode staged was 2026-09-20 17:09 -- over 2 days with zero new episodes,
+despite every upstream/midstream workflow (autonomous-inquiry,
+scientific-discovery, learning-cycle, youtube-learning,
+creator-reference-study, research-to-story) running on schedule and
+reporting success, and despite today's earlier batch-processing fix
+(propose_batch/create_batch/stage_batch) being live.
+
+Traced the actual evidence producer by grepping for every caller of
+ResearchEvidenceStore (the memory category ResearchToStory.MIN_SOURCES=2
+depends on): only `python main.py run-learning-cycle`
+(WebLearningCycle.research_once(), via learning-cycle.yml, hourly) writes
+to it. research_once() always investigates only the single top-ranked open
+question; if that one is blocked (capability, budget, disabled source),
+the whole hourly tick produces nothing even when other open questions are
+answerable -- the same class of arbitrary per-run cap already fixed
+earlier today one stage downstream, just one level further upstream.
+
+Fixed: added `WebLearningCycle.research_batch(limit=1)` to
+brain/learning.py (ranks open questions the same way research_once() does
+internally, then attempts up to `limit` distinct ranked entries by passing
+each explicitly as question_entry; research_once() itself is completely
+untouched). Wired `main.py run_learning_cycle` via a new `--limit` flag
+(default 1 = unchanged behavior) that switches to research_batch() when
+>1; had to loop the existing per-report printing/notification block rather
+than extract it to a helper, since
+tests.test_learning_notification_policy asserts via AST that the literal
+`if stage == "answered":` line lives inside run_learning_cycle's own body
+-- verified still passing. learning-cycle.yml now runs `--limit 5`. 9 new
+tests (5 for research_batch, offline via a DisabledRegistry fixture).
+
+Also confirmed, so as not to re-fix already-handled ground:
+creator-scene-production.yml already batches up to 7 episodes per run and
+correctly treats "nothing ready yet" as a non-failure (`--require-no-
+failures` already allow-lists that stage) -- it isn't the constraint, it
+simply has nothing to do yet. Confirmed live: the watchdog's very first
+real dispatch fired automatically at 15:52 UTC (zero human involvement,
+exactly as designed) -- but youtube-creator.yml's own strict
+workflow_dispatch check ("an explicit operator request that doesn't reach
+YouTube is a failure") doesn't distinguish a human's deliberate run from
+the watchdog's routine self-heal, so with nothing new to publish it
+correctly-by-its-own-logic-but-wrongly-here turned an honest "nothing
+ready" into a red failure. Fixed by adding a `scheduled_recovery`
+workflow_dispatch input the watchdog now sets, exempting only automated
+recovery dispatches from that strict check (a genuine human "run this now"
+still fails loudly if it doesn't reach YouTube, unchanged).
+
+Flagged to the owner, not acted on without asking: (1) the octopus-topic
+duplicate question from 2026-09-21 is still open and still blocking
+`aion-auto-85365510840c-00c30e5d`; (2) two fully upload-ready long-form
+episodes (aion-wonders-003-roman-nobody, aion-longform-001-yakhchal) sit
+idle because the daily cron only ever requests --content-kind short, and
+youtube-creator.yml's own comment says 16:9 production is deliberately
+paused -- did not reverse what looks like an intentional decision; (3)
+three legacy episodes still lack visual_style.approved from before the
+style-lock feature existed, missed by the original 2026-09-21 backfill,
+though none is currently close to ready regardless.
+
+Full run_tests.py green after every change in this entry. Active-task
+board closed back to clear.
+
+Commits: 69a712d (active-task claim), 2fb6289 (research_batch fix),
+ea8ce74 (watchdog false-failure fix).
+
+---
+
 ## 2026-09-22 — Claude Code — Root-caused "no clip published today" and made the YouTube release schedule self-healing
 
 Owner asked why nothing published today, then asked for the pipeline to be
