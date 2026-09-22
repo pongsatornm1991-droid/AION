@@ -1,8 +1,8 @@
 {
-  "generated_at": "2026-09-22T05:05:11.316546+00:00",
+  "generated_at": "2026-09-22T05:06:19.803917+00:00",
   "tiles": {
     "total": 42,
-    "ok": 28,
+    "ok": 29,
     "attn": 8,
     "running": 3
   },
@@ -22,8 +22,8 @@
         {
           "name": "AION - Creator queue quality gate",
           "file": "creator-queue-quality.yml",
-          "status_class": "running",
-          "status_label": "กำลังรัน",
+          "status_class": "success",
+          "status_label": "สำเร็จ",
           "html_url": "https://github.com/pongsatornm1991-droid/AION/actions/runs/35689269804",
           "created_at": "2026-09-22T05:04:18Z"
         },
@@ -170,10 +170,10 @@
         {
           "name": "AION - Automation Health Monitor",
           "file": "automation-health.yml",
-          "status_class": "success",
-          "status_label": "ไม่มีเหตุให้ดำเนินการ",
-          "html_url": "https://github.com/pongsatornm1991-droid/AION/actions/runs/35689269935",
-          "created_at": "2026-09-22T05:04:18Z"
+          "status_class": "running",
+          "status_label": "กำลังรัน",
+          "html_url": "https://github.com/pongsatornm1991-droid/AION/actions/runs/35689347543",
+          "created_at": "2026-09-22T05:05:30Z"
         },
         {
           "name": "AION - Cyber Guard defensive audit",
@@ -236,8 +236,8 @@
           "file": "publish-workflow-status.yml",
           "status_class": "running",
           "status_label": "กำลังรัน",
-          "html_url": "https://github.com/pongsatornm1991-droid/AION/actions/runs/35689269840",
-          "created_at": "2026-09-22T05:04:18Z"
+          "html_url": "https://github.com/pongsatornm1991-droid/AION/actions/runs/35689319843",
+          "created_at": "2026-09-22T05:05:04Z"
         },
         {
           "name": "AION - system reliability",
@@ -266,8 +266,8 @@
           "file": "release-readiness.yml",
           "status_class": "running",
           "status_label": "กำลังรัน",
-          "html_url": "https://github.com/pongsatornm1991-droid/AION/actions/runs/35689269817",
-          "created_at": "2026-09-22T05:04:18Z"
+          "html_url": "https://github.com/pongsatornm1991-droid/AION/actions/runs/35689347534",
+          "created_at": "2026-09-22T05:05:30Z"
         },
         {
           "name": "AION - Instagram feedback",
