@@ -6,31 +6,39 @@ a historical log: replace this block when taking a task, and set status to
 `clear` when handing off. A claim expires at its stated time so a crashed
 session never blocks the company indefinitely.
 
-Status: clear
+Status: in-progress
 Owner: Claude Code
-Started: 2026-09-22 17:38 UTC
-Lease expires: n/a
-Scope: RESOLVED. Almost published a genuinely broken episode (octopus
-topic) that owner had authorized -- reading its full JSON first surfaced
-a `quality_incident` block (narration cuts off mid-word, confirmed by
-reading the actual scenes) nothing in the codebase enforced. Retired the
-episode instead (matching its already-retired -short/-long siblings) and
-shipped the durable fix owner asked for: candidates() now blocks release
-on quality_incident.state == "blocked" regardless of the status field.
-While building the requested audit test, found a second real instance of
-the same gap (aion-auto-9eebf33916e1-095c51d2-short, status
-"research-returned-source-integrity" + an unenforced return_reason) and
-fixed it the same way. Added tests/test_creator_series_status_hygiene.py,
-which scans every real content/creator_series/*.json against a
-deliberately-reviewed status allow-list so a third unenforced quarantine
-status fails run_tests.py loudly instead of needing someone to notice by
-hand. Full run_tests.py green throughout. See docs/ai-session-log.md's
-newest 2026-09-22 entry for full detail.
-Handoff: read AGENTS.md and the last 10 session-log entries before
-working. Still open from earlier entries: release-readiness.yml can hit a
-genuine git rebase conflict on public/aion-release-readiness.json
-(self-healing, not urgent); creator-scene-production.yml's
-"scene-generation-unavailable" is working-as-intended, not a bug. Also
-worth checking in 1-2 days: does the evidence-gathering throughput fix
-(research_batch, learning-cycle.yml --limit 5) actually translate into
-new episodes reaching content/creator_series/*.json.
+Started: 2026-09-22 18:22 UTC
+Lease expires: 2026-09-22 21:22 UTC
+Scope: Owner made a deliberate creative-direction pivot: drop the
+Thai-rooted identity pillar entirely (core/manifesto.md,
+core/creator_bible.md, core/visual_identity.md all currently mandate it),
+reposition toward a globally-appealing, highly memorable style with
+kurzgesagt (youtube.com/@kurzgesagt) as the explicit reference point, and
+strengthen content quality so the exact hollow-content failure found
+earlier today (octopus episode: followed the narrative template shape but
+never actually explained its own topic) can't recur. Owner said "develop
+it right now."
+Plan: (1) rewrite the Thai-rooted sections of the three core/*.md identity
+docs into a global-first positioning, keeping AION's own already-built,
+distinctive visual identity (translucent cyan being, colour-coded
+computational states) since that IS a real asset, just no longer
+Thai-anchored; (2) add a concrete, testable requirement to
+StoryEpisodeStager's scene template -- a real "perspective-shift" ending
+beat and an explicit requirement that the mechanism/answer to the
+episode's own wonder_hook must appear in the narration -- closing the
+exact gap that produced the octopus incident, not just a style tweak;
+(3) full test suite green; (4) leave content/creator_series/*.json files
+alone -- this changes the template for future episodes, not a retroactive
+rewrite of existing ones.
+Handoff: if this board still says in-progress after 2026-09-22 21:22 UTC,
+the lease has expired -- check git log / this session's own log entry (if
+any) for how far it got before picking it up. Unrelated, still open:
+public/aion-release-readiness.json still shows aion-wonders-005-venus-
+flytrap-counts as available (a real, already-published episode) --
+root-caused to the private aion-memory-data repo's own queue record
+likely never having had youtube.video_id written back after that
+publish, not the counting-logic bug fixed yesterday. Needs a
+reconcile-youtube-creator run from a context with real access to that
+private repo (this local sandbox's memory/ symlink already shows it
+correctly, which is why local checks didn't catch this).
