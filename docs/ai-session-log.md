@@ -801,3 +801,70 @@ than batching further edits, per the lesson from the earlier stash incident.
 Pushed by the owner from their own terminal, per this session's established
 pattern (device_bash has no stored git credentials and always fails
 `git push` with "could not read Username").
+
+## 2026-09-22 10:26 UTC -- Claude (Cowork) -- Found and fixed the real Shorts-buffer bottleneck
+
+Owner asked why the release-readiness buffer was stuck at 1/7 ready despite
+the 2026-09-21 daily-cadence switch, then asked to fix the bottleneck so
+production does not wait in a queue.
+
+Traced the full research-to-story pipeline (.github/workflows/research-to-story.yml,
+cron every 3h -- up to 8 attempts/day): ResearchToStory.propose_once() ->
+ResearchStoryHandoff.create_once() -> StoryEpisodeStager.stage_once(),
+each called exactly once per workflow run. Read every one of these three
+methods' selection logic: all three pick the FIRST eligible item from a
+pool that can legitimately hold more than one (propose_once's own
+`candidates()` list, create_once's own comment -- "selecting [the latest
+brief] again used to prevent older, equally-qualified briefs from ever
+reaching Studio" -- and stage_once's `_next_handoff()` scan over all
+`story-ready` entries), then process exactly one and stop. None of the
+three are gated by an LLM call or spend budget -- they are deterministic
+selection over already-qualified evidence -- so this is a pure per-run
+throughput cap left over from when the pipeline only needed to keep pace
+with a 4-day publishing cadence, not a quality control. Confirmed this by
+grep: no provider/LLM import in either research_to_story.py or
+research_story_handoff.py.
+
+Fix: added propose_batch()/create_batch()/stage_batch() to
+brain/research_to_story.py, brain/research_story_handoff.py and
+brain/story_episode_stager.py, each a bounded loop (default limit=5)
+mirroring CreatorSceneProduction.produce_ready_episodes()'s existing
+pattern -- try up to `limit` items, stop early once nothing is left.
+stage_batch() additionally catches a ValueError from a single handoff
+failing the Fact-First Visual or Watchability gate, skips just that one
+handoff for the rest of the call (via a new `exclude_ids` param on
+_next_handoff(), the handoff's stored status is untouched so a later run
+can still retry it), and continues to the next candidate instead of
+aborting the whole shift. Refactored stage_once() to share its body via a
+new `_stage_entry()` helper without changing stage_once()'s own behavior
+or signature at all -- it and propose_once()/create_once() are still used
+unchanged by tools/recover_release_buffer.py and the pre-existing tests.
+
+Rewired the three CLI entry points (tools/run_research_to_story.py,
+tools/run_research_story_handoff.py, tools/stage_creator_episode.py) to
+call the new batch method with a --limit flag defaulting to 5, so
+research-to-story.yml picks this up automatically on its next scheduled
+run with no workflow-file change needed.
+
+Added 3 new unit tests, one per stage, each seeding two independent
+qualified items and asserting a single batch call processes both (and
+that a second batch call correctly reports nothing left). All pass; full
+targeted suite 10/10 green; full run_tests.py shows the same 5
+pre-existing unrelated failures/errors as every prior check this session
+(test_dashboard x2, test_direct_message x1, test_new_workspaces x1,
+test_self_improvement_resilience x1).
+
+Honest caveat, recorded on the board too: this removes an artificial cap,
+it does not manufacture evidence. If the real constraint turns out to be
+evidence *volume* (the 6-hourly upstream research/evidence-gathering
+workflows not producing enough qualified candidates per day) rather than
+this per-run cap, the buffer will still lag and the next fix has to look
+further upstream. Told the owner to check back in 2-3 days.
+
+Before touching any file this round, found brain/creator_scene_production.py,
+brain/visual_story_policy.py, docs/ai-active-task.md and
+tests/test_creator_scene_production.py again showing as locally modified
+with git status. Diffed with `--ignore-all-space` and confirmed 0 real
+lines changed (same CRLF/tmp_obj_* mount noise documented in the previous
+entry) -- left those untouched rather than re-normalizing them, and staged
+only this round's actual files plus a fresh rewrite of ai-active-task.md.
