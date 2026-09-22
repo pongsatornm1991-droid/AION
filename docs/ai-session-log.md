@@ -685,3 +685,58 @@ the same repo AT THE SAME TIME is what caused most of this session's git
 lock-contention pain earlier (see the 2026-09-22 04:0x UTC entry above)
 -- better to treat them as sequential, not concurrent, unless the task is
 split across genuinely different files.
+
+## 2026-09-22 07:40 UTC -- Claude (Cowork)
+Owner asked for AION's Shorts/thumbnails to look closer to a flat-vector,
+neon-bright explainer illustration style (own words: "closest match, emphasise
+vivid neon colour"). Researched the target look (web search: bright
+high-contrast palette, gradient-shaded vector shapes, rounded simplified
+geometry, generous negative space, no photorealism -- not naming the
+inspiration channel in any prompt, consistent with this repo's existing
+"never imitate a named artist/studio/channel/franchise" rule on every
+preset). Found the codebase already has a pluggable per-episode visual_style
+system in CreatorSceneProduction._prompt() with several presets, but only
+one channel-wide default (VisualStoryPolicy.CHANNEL_VISUAL_STYLE, currently
+aion-original-warm-3d-storytelling-v1 -- cinematic, not flat).
+Added a new preset, aion-neon-vector-shorts-v1: flat 2D vector, no thick ink
+outlines, two-tone gradient shading, neon-leaning palette (pink/magenta,
+vivid blue, orange, acid green) that explicitly overrides
+VisualStoryPolicy.COLOR_DIRECTION's usual "avoid neon clutter" line for this
+preset only. Refactored the style if/elif chain out of _prompt() into a
+shared _style_rule() helper and fixed a real bug found along the way:
+_cover_prompt() always hardcoded "Original warm 3D..." regardless of the
+episode's chosen visual_style, so thumbnails never matched scenes for any
+non-default preset (aion-vivid-storyworld-2d-v1, aion-neon-graphic-science-v1,
+etc. included, not just the new one). Now both use the same style_rule.
+Switched CHANNEL_VISUAL_STYLE to the new id so new auto-staged episodes get
+it by default; older/manually-placed episodes on other style ids are
+unaffected. Added 2 unit tests (tests.test_creator_scene_production). Ran
+the targeted suite (53 tests) clean, then the full run_tests.py: 5
+pre-existing failures/errors, all unrelated to this change (memory
+write-lock contention and an I/O error against the local `memory` path in
+test_dashboard/test_new_workspaces/test_self_improvement_resilience --
+environment/concurrency artifacts, not this change -- plus one unrelated
+test_direct_message failure). Commit 84f9cb7.
+Also worth recording for whoever debugs a similar situation: this work
+overlapped in time with Claude Code's own subprocess-flash audit on this
+same repo (its commits de8770f..aa714d0 landed while this was in progress).
+Claude Code handled the overlap well -- it stashed this session's dirty,
+uncommitted files twice (with clear "do not lose" messages) rather than
+discarding them, committed its own unrelated work, and left the active-task
+board clear. But neither its stash pop nor this session's own recovery
+attempt happened cleanly: both stashes ended up dropped with no ref and no
+reflog entry before this session got to apply them (most likely a race --
+this session listed `git stash list`, then this session's own `git
+checkout --` attempt on the now-clean-looking files failed with "unable to
+unlink" as usual for this bridge, and somewhere in that gap the stash refs
+were gone). They were still recoverable this time via `git fsck
+--unreachable` + `git cat-file --batch-all-objects` to find the two orphaned
+merge-commit objects by their stash commit message, then `git show
+<hash>:<path>` to pull each file's content back out directly -- but this
+was close to a real loss of work, purely from ordinary device-bridge lock/
+permission friction compounding with a second concurrent agent's normal
+stash-based courtesy. If two AI sessions must genuinely overlap on this repo
+again, a safer pattern than "stash, commit, hope the other session pops
+cleanly" would help -- for example, the finishing session leaving the
+stash ref name in ai-active-task.md instead of relying on an implicit pop,
+so recovery does not depend on fsck forensics.
