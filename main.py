@@ -805,6 +805,46 @@ def run_metacognition(args):
         )
 
 
+def run_compare_video_engagement(args):
+    """Compare one published video's real like-to-view ratio against
+    others AION has already captured -- deterministic, no AI provider
+    call, and no network access of its own (reads only what
+    youtube-audience.yml / YouTubeAudienceCycle already recorded).
+
+    Exists because AION's own curiosity engine raised exactly this
+    comparison as a question (root_question_id b89b0b48c59c, 2026-09-22)
+    and had no way to answer it -- see brain/performance_feedback.py's
+    own docstring for the full story.
+    """
+    from brain.performance_feedback import PerformanceFeedback
+
+    memory = Thinker().memory
+    report = PerformanceFeedback(memory).compare_engagement(
+        args.video_id, min_group_size=args.min_group_size
+    )
+
+    print("\nAION PERFORMANCE FEEDBACK")
+    print(f"Stage: {report['stage']}")
+    print(f"Video: {report['video_id']}")
+
+    if report["stage"] == "compared":
+        print(f"This video's like-to-view ratio: {report['target_ratio']}")
+        print(f"Compared against {report['comparison_group_size']} other video(s), median ratio: {report['median_ratio']}")
+        print(f"Difference: {report['difference_pct']}% ({report['verdict']})")
+    elif report["stage"] == "insufficient-comparison-data":
+        print(f"This video's like-to-view ratio: {report['target_ratio']}")
+        print(
+            f"Only {report['comparison_group_size']} other video(s) have captured statistics; "
+            f"need at least {report['required_group_size']} for an honest comparison."
+        )
+    elif report["stage"] == "no-statistics-for-video":
+        print("No captured statistics for this video id yet -- has youtube-audience.yml run since it published?")
+    elif report["stage"] == "video-has-no-views-yet":
+        print("This video has 0 recorded views so far; nothing to compare yet.")
+
+    return report
+
+
 def _build_tool_lifecycle():
     """The lifecycle manager used by the CLI: only genuinely read-only
     tools are wired in right now (see brain.tools.build_builtin_tools)
@@ -3489,6 +3529,23 @@ def build_parser():
         help="Maximum lesson sources to list (default: 10).",
     )
 
+    compare_engagement_parser = subparsers.add_parser(
+        "compare-video-engagement",
+        help="Compare one published video's like-to-view ratio against "
+             "others AION has already captured (pure code, no AI call, "
+             "no network access of its own).",
+    )
+    compare_engagement_parser.add_argument(
+        "--video-id", required=True,
+        help="YouTube video id to compare (the id from its watch URL).",
+    )
+    compare_engagement_parser.add_argument(
+        "--min-group-size", type=int, default=3,
+        help="Minimum number of other videos with statistics required "
+             "before comparing (default: 3) -- refuses to compare "
+             "against too small a group.",
+    )
+
     subparsers.add_parser(
         "tools",
         help="List every tool AION currently has registered.",
@@ -3914,6 +3971,10 @@ def main():
 
     if args.command == "metacognition":
         run_metacognition(args)
+        return
+
+    if args.command == "compare-video-engagement":
+        run_compare_video_engagement(args)
         return
 
     if args.command == "tools":
