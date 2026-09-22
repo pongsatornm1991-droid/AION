@@ -597,3 +597,49 @@ strongly suggests it is time to stop guessing from source and instead
 empirically trace the live process tree while the owner runs the .bat
 (Process Monitor or a PowerShell WMI process-creation watcher), so the
 exact offending command line is captured directly instead of inferred.
+
+## 2026-09-22 06:40 UTC -- Claude
+Owner asked what to do next / whether to hand anything to the separate
+Claude Code session. Verified the 2 remaining "attn" workflows from
+public/aion-workflow-status.json against live GitHub Actions run history
+(via the owner's browser, not the API -- unauthenticated GitHub API quota
+was exhausted this session from earlier polling, confirmed via a 403
+"API rate limit exceeded" response):
+
+- reel-cycle.yml (run 35634636859, commit 26928c0): failed at YAML
+  parse time -- "Invalid workflow file ... 'OPENAI_API_KEY' is already
+  defined" (line 45 and line 53 both declared it). Confirmed via
+  `git show 26928c0:.github/workflows/reel-cycle.yml | grep -n
+  OPENAI_API_KEY` that the duplicate was real at that commit. BUT this
+  was already fixed 48 minutes later, same evening, by commit 87cf99a
+  ("Fix two CI workflows: duplicate env key, and a real dual-writer
+  conflict") -- confirmed via `grep -n OPENAI_API_KEY` on current main:
+  only one occurrence now (line 53 is OPENAI_IMAGE_API_KEY, a different
+  key). Not a live bug. The dashboard's "attn" flag is just stale because
+  reel-cycle.yml is workflow_dispatch-only now (Creator Studio owns the
+  scheduled path per its own header comment) and nobody has manually
+  re-run it since the fix landed, so there is no newer run to flip the
+  status tile to green.
+- creator-scene-production.yml (run 35634638214, same commit 26928c0):
+  still fails at the same "Complete the planned Studio shift in
+  recoverable 25-scene batches" step confirmed in the prior session as
+  the deliberate scene-generation-unavailable safety gate (real, but not
+  a code defect -- see the entry above and
+  brain/creator_scene_production.py:~249). No new information here beyond
+  reconfirming the same step/behavior at a later commit; did not chase
+  whether the underlying image-provider outage has since cleared, since
+  that is outside this repo and self-resolves on its own schedule.
+
+Net: nothing currently needs a code fix. Recommended to the owner: (1)
+manually re-run reel-cycle.yml once, purely to clear the stale red tile
+on the dashboard -- not required for correctness; (2) no work item for
+the separate Claude Code session right now, since nothing outstanding
+needs the local Windows machine specifically (that session is best used
+for things this cloud session structurally cannot do: live Windows
+process tracing, testing the actual .bat/.exe locally, or debugging
+something only reproducible on the owner's desktop). Also noted for the
+owner: running this session and the separate Claude Code session against
+the same repo AT THE SAME TIME is what caused most of this session's git
+lock-contention pain earlier (see the 2026-09-22 04:0x UTC entry above)
+-- better to treat them as sequential, not concurrent, unless the task is
+split across genuinely different files.

@@ -39,3 +39,14 @@ Separately, still open from the earlier commit-and-push investigation
 rebase conflict on public/aion-release-readiness.json (self-healing, not
 urgent); creator-scene-production.yml's "scene-generation-unavailable" is
 working-as-intended, not a bug. Neither is touched by this entry.
+2026-09-22 06:40 UTC verification pass (see session log for full detail):
+both remaining "attn" tiles on the dashboard checked against live run
+history. reel-cycle.yml's duplicate-OPENAI_API_KEY YAML error was already
+fixed by commit 87cf99a; the tile is just stale (workflow_dispatch-only,
+nobody re-ran it since the fix) -- a manual re-run would clear it but
+nothing needs fixing. creator-scene-production.yml is still hitting the
+same known scene-generation-unavailable gate, unchanged from the prior
+finding. No code changes made this pass. No task currently needs the
+separate Claude Code session; do not run it concurrently with this
+session against the same repo (that caused this session's earlier git
+lock contention).
