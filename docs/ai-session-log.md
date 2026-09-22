@@ -740,3 +740,64 @@ again, a safer pattern than "stash, commit, hope the other session pops
 cleanly" would help -- for example, the finishing session leaving the
 stash ref name in ai-active-task.md instead of relying on an implicit pop,
 so recovery does not depend on fsck forensics.
+
+## 2026-09-22 09:23 UTC -- Claude (Cowork) -- 3D neon becomes the channel signature style
+
+Owner generated real preview images from both the flat aion-neon-vector-shorts-v1
+preset and a hand-written comparison prompt for a glossy 3D neon-diorama look
+(same lightning-rod scene, both images shared back). Owner then asked for my
+opinion on which is better and directed that 3D neon become the channel's
+signature style ("3D neon ดีกว่ามั้ย เป็นลายเซ็นของช่องไปเลย").
+
+My opinion, given directly in chat rather than just implemented blind: 3D
+diorama neon is the stronger *single-image* pick -- glossier, more premium,
+more scroll-stopping as a thumbnail. The tradeoff is that AION renders scenes
+unattended at scale across many separate diffusion calls, where flat vector
+tends to hold its palette/composition rules more consistently across a large
+batch than a photoreal-lit 3D render does; that consistency risk is worth
+watching once this preset has been in production a while, not a reason to
+block the switch now.
+
+Implementation: added aion-neon-diorama-3d-v1 to
+CreatorSceneProduction._style_rule() (glossy miniature-diorama rendering,
+same electric-pink/cobalt/orange/acid-green-on-near-black neon palette as the
+flat preset, shallow depth of field, no photorealistic human skin). Replaced
+_cover_prompt()'s hardcoded `if id != "aion-neon-vector-shorts-v1"` check
+with a class-level `_REPLACES_COLOR_DIRECTION_STYLE_IDS` frozenset containing
+both neon preset ids, so any further "replaces the shared colour direction"
+preset only needs adding to that set instead of another hardcoded branch.
+Switched VisualStoryPolicy.CHANNEL_VISUAL_STYLE to the new 3D id; the flat
+preset stays valid for older/manually-placed episodes.
+
+Before touching any file, found docs/ai-active-task.md already back to
+`Status: clear` (Claude Code's subprocess-audit task had closed out cleanly)
+but `git status --short` showed brain/creator_scene_production.py,
+brain/visual_story_policy.py, docs/ai-active-task.md, tests/test_creator_scene_production.py
+and several public/*.json snapshots all as locally "modified". Diffed each
+file (`git diff --ignore-all-space` and then a full `git diff`) before
+touching anything and confirmed the working tree byte-for-byte matched HEAD
+(e3c8477) -- pure CRLF/stat noise from this connected-folder mount, not real
+edits, consistent with this session's earlier stash-recovery incident. Did
+not discard anything destructively; rewrote each affected file from
+`git show HEAD:<path>` via a direct in-place Python write (unlink is blocked
+on this mount, so `git checkout --` itself cannot restore files here) purely
+to normalize line endings before editing. `git status`/`git pull --rebase`
+kept reporting phantom unstaged changes even after the diff was confirmed
+empty, because `.git/index.lock` and `.git/objects/**/tmp_obj_*` files keep
+reappearing and can't be unlinked on this mount either -- renamed the lock
+out of the way (`mv ... .stale-$(date +%s%N)`) before every git call, as
+established earlier this session. `git fetch` succeeded despite dozens of
+"unable to unlink tmp_obj_*" warnings (the objects are still written
+correctly via rename; only the temp-file cleanup fails), which confirms
+these warnings are cosmetic, not corrupting.
+
+Ran the targeted suite (13/13 green, including the 2 new tests) and the full
+run_tests.py: same 5 pre-existing failures/errors as the last check in this
+session (test_dashboard x2, test_direct_message x1, test_new_workspaces x1,
+test_self_improvement_resilience x1), none touching creator_scene_production
+or visual_story_policy. Committed promptly as one commit (703d3c4) rather
+than batching further edits, per the lesson from the earlier stash incident.
+
+Pushed by the owner from their own terminal, per this session's established
+pattern (device_bash has no stored git credentials and always fails
+`git push` with "could not read Username").
