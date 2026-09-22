@@ -25,6 +25,15 @@ name: AION - external learning cycle
 # Shares the same private memory_data repo as check-comments.yml (see
 # that file's header comment for why memory/ is not tracked in this
 # public repo).
+#
+# --limit 5 (2026-09-22): run-learning-cycle used to investigate only the
+# single top-ranked open question every hour; if that one question was
+# blocked (capability, budget, disabled source), the whole hourly tick
+# produced nothing even when other open questions were answerable right
+# now. This starves ResearchToStory of qualifying evidence groups, which
+# starves the entire Creator Shorts pipeline downstream -- found while
+# tracing why no new episode had been staged in over 2 days. --limit 5
+# attempts up to 5 distinct ranked questions per run instead of 1.
 
 on:
   schedule:
@@ -100,7 +109,7 @@ jobs:
           OPENAI_COMPATIBLE_API_KEY: ${{ secrets.OPENAI_COMPATIBLE_API_KEY }}
           TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
           TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
-        run: python main.py run-learning-cycle
+        run: python main.py run-learning-cycle --limit 5
 
       - name: Persist memory changes back to the private repo
         working-directory: memory_data

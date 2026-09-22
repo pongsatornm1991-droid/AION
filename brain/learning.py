@@ -4298,3 +4298,45 @@ class WebLearningCycle:
                 belief_mutation
             ),
         }
+
+    def research_batch(self, limit=1):
+        """Attempt research on up to `limit` distinct open questions.
+
+        research_once() always investigates only the single top-ranked open
+        question (question_entry=None); if that one is blocked (capability,
+        budget, or a disabled source), the whole cycle produces nothing
+        useful even when several other open questions are answerable right
+        now -- found 2026-09-22, the same class of arbitrary per-run cap
+        already fixed the same day one stage further downstream
+        (ResearchToStory.propose_batch(), ResearchStoryHandoff.create_batch(),
+        StoryEpisodeStager.stage_batch()).
+
+        This ranks the open questions once, the same way research_once()
+        itself does, then attempts each of up to `limit` distinct entries in
+        ranked order by passing it explicitly as `question_entry`. Passing
+        an explicit question_entry makes research_once() record
+        learning_mode as "direct" rather than computing exploration/focus
+        itself -- an accepted, pre-existing part of research_once()'s own
+        contract, not a new behavior introduced here. research_once() is
+        not otherwise modified; a caller wanting the single natural pick
+        keeps calling it directly (default limit=1 here does exactly that
+        for the top-ranked question).
+        """
+        open_questions = self.curiosity.open_questions()
+        if not open_questions:
+            return {"stage": "no-open-questions", "results": []}
+        exploration = self._learning_mode() == "exploration"
+        ranked = self.curiosity_constitution.rank_questions(open_questions, exploration=exploration)
+        if not ranked:
+            return {"stage": "no-eligible-questions", "results": []}
+        results = [
+            self.research_once(question_entry=question_entry)
+            for question_entry, _assessment in ranked[:max(1, int(limit))]
+        ]
+        researched = [r for r in results if r.get("researched")]
+        return {
+            "stage": "learning-batch-complete" if researched else results[-1].get("stage"),
+            "researched_count": len(researched),
+            "attempted_count": len(results),
+            "results": results,
+        }

@@ -2179,133 +2179,149 @@ def run_learning_cycle(args):
         },
     )
 
-    report = cycle.research_once()
+    # research_once() always investigates only the single top-ranked open
+    # question; if that one is blocked (capability, budget, or a disabled
+    # source), the whole tick produces nothing even when other open
+    # questions are answerable right now -- found 2026-09-22, the same
+    # class of arbitrary per-run cap already fixed today one stage further
+    # downstream (propose_batch/create_batch/stage_batch). --limit > 1
+    # attempts that many distinct ranked questions in one shift instead;
+    # --limit 1 (the default) calls research_once() exactly as before, so
+    # this is purely additive for any existing caller.
+    if args.limit <= 1:
+        reports = [cycle.research_once()]
+    else:
+        reports = cycle.research_batch(limit=args.limit).get("results") or [
+            {"stage": "no-open-questions", "question": None}
+        ]
 
     print("\nAION LEARNING CYCLE")
     print(f"Initiative: {initiative['stage']}")
-    print(f"Stage: {report['stage']}")
 
-    question = report.get("question")
-    if question is not None:
-        print(
-            f"Question: "
-            f"{question.get('statement', '')}"
-        )
+    for report in reports:
+        print(f"Stage: {report['stage']}")
 
-        criteria = question.get("criteria")
-        if criteria:
-            print(f"Criteria: {criteria}")
+        question = report.get("question")
+        if question is not None:
+            print(
+                f"Question: "
+                f"{question.get('statement', '')}"
+            )
 
-    source = report.get("source")
-    if source and source.get("title"):
-        print(
-            f"Source: "
-            f"{source['title']} "
-            f"({source.get('url', '')})"
-        )
+            criteria = question.get("criteria")
+            if criteria:
+                print(f"Criteria: {criteria}")
 
-    draft = report.get("draft")
-    if draft is not None:
-        print("-" * 60)
-        print(draft)
-        print("-" * 60)
+        source = report.get("source")
+        if source and source.get("title"):
+            print(
+                f"Source: "
+                f"{source['title']} "
+                f"({source.get('url', '')})"
+            )
 
-    stage = report.get("stage")
+        draft = report.get("draft")
+        if draft is not None:
+            print("-" * 60)
+            print(draft)
+            print("-" * 60)
 
-    # Stages where AION did not complete the learning cycle.
-    #
-    # Important:
-    # criteria-check-failed is different from
-    # insufficient-evidence.
-    #
-    # criteria-check-failed:
-    #     the completion-criteria evaluator itself failed.
-    #
-    # insufficient-evidence:
-    #     the evaluator worked correctly and concluded that the
-    #     evidence does not satisfy the question's criteria.
-    failure_or_incomplete_stages = {
-        "search-failed",
-        "no-search-results",
-        "fetch-failed",
-        "empty-source",
-        "draft-failed",
-        "blocked-safety",
-        "blocked-style",
-        "criteria-check-failed",
-        "insufficient-evidence",
-    }
+        stage = report.get("stage")
 
-    if stage in failure_or_incomplete_stages:
-        reason = (
-            report.get("reason")
-            or report.get("error")
-            or report.get("criteria_reason")
-            or "No additional reason was provided."
-        )
+        # Stages where AION did not complete the learning cycle.
+        #
+        # Important:
+        # criteria-check-failed is different from
+        # insufficient-evidence.
+        #
+        # criteria-check-failed:
+        #     the completion-criteria evaluator itself failed.
+        #
+        # insufficient-evidence:
+        #     the evaluator worked correctly and concluded that the
+        #     evidence does not satisfy the question's criteria.
+        failure_or_incomplete_stages = {
+            "search-failed",
+            "no-search-results",
+            "fetch-failed",
+            "empty-source",
+            "draft-failed",
+            "blocked-safety",
+            "blocked-style",
+            "criteria-check-failed",
+            "insufficient-evidence",
+        }
 
-        print(f"Reason: {reason}")
+        if stage in failure_or_incomplete_stages:
+            reason = (
+                report.get("reason")
+                or report.get("error")
+                or report.get("criteria_reason")
+                or "No additional reason was provided."
+            )
 
-    if stage == "criteria-check-failed":
-        print(
-            "Result: Completion Criteria Gate could not be "
-            "evaluated. The question remains open."
-        )
+            print(f"Reason: {reason}")
 
-    elif stage == "insufficient-evidence":
-        print(
-            "Result: Evidence does not yet satisfy the "
-            "completion criteria. The question remains open."
-        )
+        if stage == "criteria-check-failed":
+            print(
+                "Result: Completion Criteria Gate could not be "
+                "evaluated. The question remains open."
+            )
 
-        attempted_question = report.get("attempted_question")
-        if attempted_question:
-            attempts = attempted_question.get("attempts")
-            budget = attempted_question.get("budget")
+        elif stage == "insufficient-evidence":
+            print(
+                "Result: Evidence does not yet satisfy the "
+                "completion criteria. The question remains open."
+            )
 
-            if attempts is not None and budget is not None:
-                print(
-                    f"Attempts: {attempts}/{budget}"
-                )
+            attempted_question = report.get("attempted_question")
+            if attempted_question:
+                attempts = attempted_question.get("attempts")
+                budget = attempted_question.get("budget")
 
-    elif stage == "answered":
-        print(
-            "Result: Completion criteria passed. "
-            "Knowledge was recorded and the question was resolved."
-        )
+                if attempts is not None and budget is not None:
+                    print(
+                        f"Attempts: {attempts}/{budget}"
+                    )
 
-    elif stage == "no-open-questions":
-        print(
-            "Result: There are currently no open questions "
-            "available for research."
-        )
+        elif stage == "answered":
+            print(
+                "Result: Completion criteria passed. "
+                "Knowledge was recorded and the question was resolved."
+            )
 
-    elif stage == "no-eligible-questions":
-        print(
-            "Result: Open questions exist, but none are currently "
-            "eligible for this learning cycle."
-        )
+        elif stage == "no-open-questions":
+            print(
+                "Result: There are currently no open questions "
+                "available for research."
+            )
 
-    # Telegram is for meaningful outcomes, not a noisy mirror of the
-    # Dashboard. Routine no-result/retry states remain in Learning Lab;
-    # workflow failures are handled separately by Automation Health.
-    notified = None
-    if stage == "answered":
-        notified = _notify_report(
-            report,
-            formatter=_format_learning_telegram_report,
-        )
+        elif stage == "no-eligible-questions":
+            print(
+                "Result: Open questions exist, but none are currently "
+                "eligible for this learning cycle."
+            )
 
-    if notified is True:
-        print("Notified via Telegram.")
+        # Telegram is for meaningful outcomes, not a noisy mirror of the
+        # Dashboard. Routine no-result/retry states remain in Learning Lab;
+        # workflow failures are handled separately by Automation Health.
+        notified = None
+        if stage == "answered":
+            notified = _notify_report(
+                report,
+                formatter=_format_learning_telegram_report,
+            )
 
-    elif notified is False:
-        print(
-            "Telegram notification attempted but failed "
-            "(see above)."
-        )
+        if notified is True:
+            print("Notified via Telegram.")
 
-    return report
+        elif notified is False:
+            print(
+                "Telegram notification attempted but failed "
+                "(see above)."
+            )
+
+    return reports[-1] if reports else {"stage": "no-open-questions", "question": None}
 
 
 def _format_self_improvement_telegram_report(report):
@@ -3650,6 +3666,12 @@ def build_parser():
         "--min-claim-safety", type=int, default=5,
         help="Minimum claim_safety score (0-5) required to accept "
              "the drafted answer (default: 5).",
+    )
+    learning_cycle_parser.add_argument(
+        "--limit", type=int, default=1,
+        help="Attempt this many distinct ranked open questions in one "
+             "shift instead of only the single top-ranked one (default: 1, "
+             "i.e. today's existing behavior).",
     )
 
     self_improvement_parser = subparsers.add_parser(

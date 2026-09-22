@@ -1681,5 +1681,73 @@ class FallbackLearningSourceTests(
         )
 
 
+class WebLearningCycleBatchTests(BaseLearningTest):
+    """research_batch() must attempt several distinct open questions in one
+    shift instead of only research_once()'s single top-ranked pick.
+    """
+
+    class DisabledRegistry:
+        """Deterministically forces every attempt to "source-disabled" so
+        the batch loop's own iteration logic is what's under test, not the
+        real search/draft/evaluate pipeline (already covered elsewhere)."""
+
+        def source(self, source_id):
+            return {"id": source_id, "enabled": False}
+
+    def _cycle(self):
+        return WebLearningCycle(
+            self.memory,
+            self.curiosity,
+            WebLearningGenerator(SafeProvider()),
+            search_fn=fake_search([]),
+            fetch_fn=fake_fetch({}),
+            source_registry=self.DisabledRegistry(),
+        )
+
+    def test_no_open_questions_returns_that_stage_with_no_results(self):
+        report = self._cycle().research_batch(limit=5)
+
+        self.assertEqual(report["stage"], "no-open-questions")
+        self.assertEqual(report["results"], [])
+
+    def test_default_limit_attempts_only_the_top_ranked_question(self):
+        self._raise_question("Why do plants look green?")
+        self._raise_question("How do bees navigate home?")
+
+        report = self._cycle().research_batch()
+
+        self.assertEqual(1, report["attempted_count"])
+        self.assertEqual(1, len(report["results"]))
+
+    def test_limit_attempts_that_many_distinct_questions(self):
+        self._raise_question("Why do plants look green?")
+        self._raise_question("How do bees navigate home?")
+        self._raise_question("Why does bread rise when baked?")
+
+        report = self._cycle().research_batch(limit=2)
+
+        self.assertEqual(2, report["attempted_count"])
+        statements = {r["question"]["statement"] for r in report["results"]}
+        self.assertEqual(2, len(statements), "each attempt must target a distinct question")
+        for result in report["results"]:
+            self.assertEqual("source-disabled", result["stage"])
+
+    def test_limit_higher_than_available_questions_attempts_all_of_them(self):
+        self._raise_question("Why do plants look green?")
+        self._raise_question("How do bees navigate home?")
+
+        report = self._cycle().research_batch(limit=10)
+
+        self.assertEqual(2, report["attempted_count"])
+
+    def test_stage_reflects_no_progress_when_nothing_was_researched(self):
+        self._raise_question("Why do plants look green?")
+
+        report = self._cycle().research_batch(limit=3)
+
+        self.assertEqual(0, report["researched_count"])
+        self.assertEqual("source-disabled", report["stage"])
+
+
 if __name__ == "__main__":
     unittest.main()
