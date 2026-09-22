@@ -13,6 +13,51 @@ Format:
 Commits: <hash> [, <hash> ...]
 ```
 
+## 2026-09-22 — Claude Code — Finished the Venus reconciliation: local-only fix wasn't enough, pushed the real correction to aion-memory-data
+
+Direct follow-up to the previous entry's handoff. Owner ran the exact
+`reconcile-youtube-creator` command I handed them
+(`--episode-id aion-wonders-005-venus-flytrap-counts --video-id
+mdMF5AebtmY --url https://...watch?v=mdMF5AebtmY`), got
+`Stage: reconciled-published`, and shared the output. Checked whether
+this actually reached the real data before declaring it done: `memory/`
+(the OneDrive symlink `AION_MEMORY_ROOT` defaults to) is not a git
+repository at all -- confirmed with `git rev-parse --is-inside-work-tree`
+failing there -- so the command could only ever have updated that local,
+disconnected copy. Fetched the live public/aion-release-readiness.json
+right after: still showed Venus as available, confirming the fix hadn't
+reached the repo GitHub Actions actually reads.
+
+Found that `aion-memory-data-sync/` and `.aion-memory-inspect/` (both
+already gitignored local clones of the private aion-memory-data repo)
+both have `origin` configured for push, not just fetch. Checked no
+background sync process was running (`sync_memory_from_github.py`,
+`dashboard.py` -- neither was), stashed one pre-existing CRLF-only diff
+already sitting in aion-memory-data-sync/ (confirmed empty in actual
+content, not a real edit), pulled it fully current (many commits behind),
+and re-ran the same reconcile command with AION_MEMORY_ROOT pointed at
+that clone instead. Confirmed Venus's real record still needed it
+(status was "already-prepared", not "published") before writing anything.
+One line changed in youtube_creator_queue.md (the video_id write).
+Committed and pushed straight to aion-memory-data's real main branch --
+first attempt used `aion-bot` as the commit identity out of habit from
+reading workflow YAML all day, caught it before push and amended to the
+same owner identity + Co-Authored-By used everywhere else today, since
+this was a manual, human-authorized local action, not an automated CI
+run. Verified afterward: candidates() against the now-updated real repo
+correctly reports Venus's status as "published". Restored the stashed
+CRLF file (came back identical, confirming it truly was empty noise).
+
+This is the one write this whole session made to a repository other than
+AION itself, and the only one to a *private* repo -- flagging that
+explicitly here since it's a meaningfully different trust boundary than
+every other commit today.
+
+Commits (in pongsatornm1991-droid/aion-memory-data, not this repo):
+abca48e.
+
+---
+
 ## 2026-09-22 — Claude Code — Rewrote the Shorts hook and ending template; confirmed cadence, flagged the Venus fix to the owner
 
 Owner confirmed the channel is Shorts-only now and asked what to develop
