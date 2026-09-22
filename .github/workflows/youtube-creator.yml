@@ -23,6 +23,11 @@ on:
         description: "Optional exact Creator episode id for an immediate, audited release"
         required: false
         type: string
+      scheduled_recovery:
+        description: "Internal: set by youtube-release-watchdog.yml when self-healing a missed cron. Treats a no-authorized-creator-episode outcome the same as a real schedule tick would (not a failure) instead of the strict human-operator check below."
+        required: false
+        default: false
+        type: boolean
 
 concurrency:
   # Publishing must never wait behind a research/reflection write.  The
@@ -113,7 +118,7 @@ jobs:
           args=(--content-kind "$RELEASE_KIND")
           if [[ -n "$EPISODE_ID" ]]; then args+=(--episode-id "$EPISODE_ID"); fi
           python main.py run-youtube-creator-publish "${args[@]}" | tee youtube-creator-publish-report.txt
-          if [[ "${{ github.event_name }}" == "workflow_dispatch" ]] && ! grep -q "Stage: published" youtube-creator-publish-report.txt; then
+          if [[ "${{ github.event_name }}" == "workflow_dispatch" && "${{ github.event.inputs.scheduled_recovery }}" != "true" ]] && ! grep -q "Stage: published" youtube-creator-publish-report.txt; then
             echo "An explicitly requested release did not reach YouTube; refusing a false-green run."
             exit 1
           fi

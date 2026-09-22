@@ -23,7 +23,12 @@ group and its candidate-selection logic (brain/youtube_creator_queue.py
 only ever offers an episode still at status "upload-ready") are what make
 an accidental overlap with a delayed real trigger safe too -- this
 script's job is only to make sure at least one attempt happens each day,
-never to decide what gets published.
+never to decide what gets published. The dispatch also sets
+youtube-creator.yml's `scheduled_recovery` input so its own strict
+human-operator check (fail loudly if an explicit workflow_dispatch didn't
+reach YouTube) does not misfire on this routine, automated self-heal --
+"nothing new to publish today" must stay a quiet, honest non-event here,
+exactly as it already is for a real schedule tick.
 
 Run with: python tools/youtube_release_watchdog.py [--dry-run]
 Needs GITHUB_TOKEN with `actions: write` (the default GITHUB_TOKEN already
@@ -61,8 +66,14 @@ def _get(url, token):
 
 def _dispatch_run(repo, token):
     url = f"https://api.github.com/repos/{repo}/actions/workflows/{WORKFLOW_FILE}/dispatches"
+    # scheduled_recovery=true tells youtube-creator.yml this is a self-heal
+    # dispatch, not a human operator explicitly demanding a release right
+    # now -- without it, its own workflow_dispatch strict check turns an
+    # honest "nothing new to publish today" into a red failure (found
+    # 2026-09-22, the watchdog's very first real dispatch).
+    payload = {"ref": "main", "inputs": {"scheduled_recovery": "true"}}
     req = Request(
-        url, method="POST", data=json.dumps({"ref": "main"}).encode("utf-8"),
+        url, method="POST", data=json.dumps(payload).encode("utf-8"),
         headers={**_HEADERS_BASE, "Authorization": f"Bearer {token}", "Content-Type": "application/json"},
     )
     with urlopen(req, timeout=30) as resp:
