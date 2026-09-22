@@ -17,9 +17,22 @@ name: AION - YouTube release watchdog
 # when NO run of it exists yet today past its scheduled hour; see that
 # module's own docstring for why this can never cause a duplicate/extra
 # publish even if it overlaps with a delayed real trigger.
+#
+# Also runs on completion of AION - Automation Health Monitor (2026-09-22:
+# added because a brand-new `schedule` trigger can sit for a while before
+# GitHub activates its first real tick -- the exact class of delay this
+# workflow exists to work around, now affecting itself. Automation Health
+# Monitor completes on almost every other workflow's own completion, so
+# this gives the watchdog a near-immediate, event-driven first chance to
+# run instead of waiting on its own cron's uncertain activation. The
+# check() logic itself does not care why it woke up, only whether today's
+# youtube-creator.yml run already exists, so no extra guard is needed here.
 on:
   schedule:
     - cron: "12,42 * * * *"
+  workflow_run:
+    workflows: ["AION - Automation Health Monitor"]
+    types: [completed]
   workflow_dispatch:
     inputs:
       dry_run:
