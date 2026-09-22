@@ -1,10 +1,10 @@
 {
-  "generated_at": "2026-09-22T17:33:41.682756+00:00",
+  "generated_at": "2026-09-22T17:34:34.732589+00:00",
   "tiles": {
     "total": 41,
-    "ok": 34,
-    "attn": 2,
-    "running": 3
+    "ok": 35,
+    "attn": 3,
+    "running": 1
   },
   "groups": [
     {
@@ -22,8 +22,8 @@
         {
           "name": "AION - Creator queue quality gate",
           "file": "creator-queue-quality.yml",
-          "status_class": "running",
-          "status_label": "กำลังรัน",
+          "status_class": "success",
+          "status_label": "สำเร็จ",
           "html_url": "https://github.com/pongsatornm1991-droid/AION/actions/runs/35761403161",
           "created_at": "2026-09-22T17:32:46Z"
         },
@@ -253,10 +253,11 @@
         {
           "name": "AION - Creator release readiness",
           "file": "release-readiness.yml",
-          "status_class": "running",
-          "status_label": "กำลังรัน",
+          "status_class": "failure",
+          "status_label": "ล้มเหลว",
           "html_url": "https://github.com/pongsatornm1991-droid/AION/actions/runs/35761403049",
-          "created_at": "2026-09-22T17:32:46Z"
+          "created_at": "2026-09-22T17:32:46Z",
+          "detail": "ขั้นที่ล้มเหลว: Commit the visible readiness record"
         },
         {
           "name": "AION - Instagram feedback",
