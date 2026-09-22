@@ -34,6 +34,42 @@ class StoryEpisodeStagerTests(unittest.TestCase):
             self.assertEqual("bounded-fallback", episode["visual_style"]["aion_deliberation"]["origin"])
             self.assertEqual("no-story-ready-handoff", StoryEpisodeStager(memory, root).stage_once()["stage"])
 
+    def test_clean_never_cuts_a_word_in_half(self):
+        # Regression for 2026-09-22: a bare [:limit] slice once produced
+        # narration reading "...deep reddish pu" -- the source text ran
+        # past the limit right in the middle of "purple".
+        long_text = "deep reddish " + "purple " * 100
+        cleaned = StoryEpisodeStager._clean(long_text, limit=20)
+        self.assertFalse(cleaned.endswith("pu"))
+        for word in cleaned.split():
+            self.assertIn(word, long_text.split())
+
+    def test_connection_beat_states_real_evidence_instead_of_generic_filler(self):
+        with tempfile.TemporaryDirectory() as root:
+            root = Path(root)
+            memory = MemoryEngine(root / "memory")
+            memory.remember("creator_research_handoffs", json.dumps({
+                "status": "story-ready", "root_question_id": "question-mechanism",
+                "topic": "How can an octopus change color so quickly?",
+                "working_title": "AION Wonders: Octopus Color",
+                "sources": [
+                    {"title": "Source one", "url": "https://example.test/one",
+                     "observation": "Chromatophores are pigment sacs controlled directly by nerves and muscles."},
+                    {"title": "Source two", "url": "https://example.test/two",
+                     "observation": "Muscles stretch each sac to reveal or hide its pigment within milliseconds."},
+                ],
+                "unknown_facts": "The exact neural pathway is still being mapped.",
+            }), memory_type="decision", source="test", importance=4)
+            StoryEpisodeStager(memory, root).stage_once()
+            episode = CreatorSeriesRegistry(root).episodes()[0]
+            connection = next(scene for scene in episode["scenes"] if scene["beat"] == "connection")
+            self.assertNotEqual(
+                f"Together, these two observations give us a clearer picture of {episode['wonder_hook']}.",
+                connection["narration"],
+            )
+            self.assertIn("Chromatophores", connection["narration"])
+            self.assertIn("Muscles", connection["narration"])
+
     def test_stages_a_bounded_batch_of_storyboards_instead_of_stopping_at_one(self):
         with tempfile.TemporaryDirectory() as root:
             root = Path(root)

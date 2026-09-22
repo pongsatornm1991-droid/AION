@@ -44,7 +44,23 @@ class StoryEpisodeStager:
 
     @staticmethod
     def _clean(value, limit=220):
-        return " ".join(str(value or "").split())[:limit].strip()
+        """Collapse whitespace and truncate, but never mid-word.
+
+        Found 2026-09-22: a bare `[:limit]` character slice could cut the
+        last word in half (an octopus episode's narration read "...deep
+        reddish pu" -- the source text ran past 520 characters right in
+        the middle of "purple"). _evidence_parts()'s own docstring already
+        promised "without cutting a sentence mid-word"; this is what
+        actually keeps that promise.
+        """
+        text = " ".join(str(value or "").split())
+        if len(text) <= limit:
+            return text.strip()
+        truncated = text[:limit]
+        boundary = truncated.rfind(" ")
+        if boundary > 0:
+            truncated = truncated[:boundary]
+        return truncated.strip()
 
     @classmethod
     def _evidence_parts(cls, value, part_count=2, words_per_part=12):
@@ -187,7 +203,16 @@ class StoryEpisodeStager:
                 {"n": 6, "beat": "evidence-two-intro", "visual": f"Move to a distinct second evidence scene for {topic}, guided by {second_title}; AION remains small at the edge.", "narration": f"A second clue comes from {second_title}. We compare it carefully with the first observation."},
                 {"n": 7, "beat": "evidence-two-a", "visual": f"Depict this documented observation about {topic}: {second_parts[0]} Keep the subject, action, and setting central; AION observes subtly from the distant edge.", "narration": self._narrated_evidence(second_parts[0], topic)},
                 {"n": 8, "beat": "evidence-two-b", "visual": f"Continue the second documented observation for {topic}: {(second_parts[1] if len(second_parts) > 1 else evidence_two)} AION is only a small contextual guide.", "narration": self._narrated_evidence(second_parts[1], topic) if len(second_parts) > 1 else f"This gives us a second direct observation about {topic}."},
-                {"n": 9, "beat": "connection", "visual": f"A visual comparison of the two documented observations about {topic}; show the subject and environment, with AION pointing only subtly from the edge.", "narration": f"Together, these two observations give us a clearer picture of {topic}."},
+                {"n": 9, "beat": "connection", "visual": f"A visual comparison of the two documented observations about {topic}; show the subject and environment, with AION pointing only subtly from the edge.",
+                 # Found 2026-09-22 (quality_incident: "generic-template-
+                 # story-does-not-explain-topic"): this beat used to say
+                 # only "these two observations give us a clearer picture,"
+                 # a content-free line the episode never actually earned.
+                 # Restate what the two sources actually said, together, so
+                 # the story has a real synthesis moment instead of a filler
+                 # transition -- the mechanism itself still comes from
+                 # research's own sourced observations, never invented here.
+                 "narration": f"Put together: {first_parts[0]} And from the second source: {second_parts[0] if second_parts else evidence_two}"},
                 {"n": 10, "beat": "boundary", "visual": f"Show the boundary between what the sources document and what they do not establish about {topic}; no invented action, AION remains in the background.", "narration": uncertainty or "The sources do not settle every detail, so we should not claim more than they show."},
                 {"n": 11, "beat": "takeaway", "visual": f"Return to the central subject of {topic} in a final meaningful wide scene; AION is a small observer, not the focus.", "narration": f"The careful takeaway is simple: begin with what was observed about {topic}, then separate it from interpretation."},
                 {"n": 12, "beat": "invitation", "visual": f"End on the real subject and environment of {topic}, leaving space for wonder; AION exits subtly at the edge.", "narration": "Keep asking better questions, and check the evidence with me."},
