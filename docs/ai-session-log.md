@@ -13,6 +13,61 @@ Format:
 Commits: <hash> [, <hash> ...]
 ```
 
+## 2026-09-22 — Claude Code — Retired the broken octopus episode instead of publishing it; found and fixed a second unenforced quarantine, added a durable status-hygiene test
+
+Direct follow-up to this same session's two entries below. Owner
+authorized publishing the octopus episode too ("clear it so we can start
+fresh"), but reading its full JSON before running prepare/publish (owner
+had only seen a summary, not the raw file) surfaced a `quality_incident`
+block never shown before: `{"state": "blocked", "reasons":
+["narration-ends-before-final-scene", "generic-template-story-does-not-
+explain-topic"], "action": "Do not reuse, cross-post, or treat this
+episode as a production template."}`. Verified it for real rather than
+trusting the label: the actual scene narration does cut off mid-word
+twice ("...deep reddish pu", "...defensive visual"), and none of the 12
+scenes ever explain the actual color-change mechanism. Stopped, showed
+the owner the exact evidence instead of publishing. Owner said retire it
+instead, and asked for a durable fix so this can't slip through again.
+
+Root cause: `quality_incident` is a purely documentary field -- grepped
+the whole repo, it appears in exactly that one JSON file and nowhere in
+any code path that reads or enforces it. The only reason the episode was
+ever safe from automatic release was that its status
+("quality-blocked-story-and-audio") happened not to match
+YouTubeCreatorQueue.READY_STATUS -- an accident of spelling, not an
+enforced gate. Its own -short/-long sibling files were already correctly
+retired-do-not-publish; only this un-suffixed file (the one candidates()
+actually reads, since it matches the internal id field) was left
+inconsistent. Fixed immediately: set its status to
+retired-do-not-publish to match its siblings (commit 0f6e6c0).
+
+Durable fix, discussed with the owner as a menu of options
+(status-hygiene test / continuous Telegram monitoring / a process rule in
+AGENTS.md) -- owner picked the test as fastest and highest-value:
+candidates() now adds "unresolved-quality-incident" to release_blockers
+whenever quality_incident.state == "blocked", regardless of the status
+field, so a future status edit can never again silently un-quarantine an
+episode (commit 2543e0c). While building the allow-list test, found a
+SECOND real instance of the exact same gap: another episode
+(aion-auto-9eebf33916e1-095c51d2-short) carries status
+"research-returned-source-integrity" plus a return_reason field (sources
+not independent enough) that also has zero code reading it anywhere --
+enforced the same way (commit 157b23d). Added
+tests/test_creator_series_status_hygiene.py, which scans every real
+content/creator_series/*.json against a small, deliberately-reviewed
+status allow-list and fails run_tests.py loudly the next time an
+unenforced quarantine status appears under a third spelling, instead of
+depending on someone reading every file by hand the way this session did
+twice today.
+
+3 new regression tests total across the two YouTubeCreatorQueue fixes
+plus the hygiene scan. Full run_tests.py green throughout every commit.
+
+Commits: 0f6e6c0 (retire the episode), 2543e0c (enforce quality_incident),
+157b23d (enforce research-returned-source-integrity + the hygiene test).
+
+---
+
 ## 2026-09-22 — Claude Code — Published the 2 long-form episodes blocked on invalid-cover; both live and verified public
 
 Direct follow-up to this same session's entry immediately below (invalid-
