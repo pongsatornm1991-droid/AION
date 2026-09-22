@@ -8,41 +8,63 @@ session never blocks the company indefinitely.
 
 Status: clear
 Owner: Claude
-Started: 2026-09-21 20:10 Asia/Bangkok
+Started: 2026-09-22 03:33 UTC
 Lease expires: n/a
-Scope: RESOLVED (second pass) -- owner reported "ยังเด้ง" (still flashing) after
-pulling and restarting with the first fix (tools/sync_memory_from_github.py,
-commit e765841). That fix was real but not the primary source: owner had
-already confirmed via tasklist that no python.exe/pythonw.exe process was even
-running when the flashing was observed, meaning it wasn't coming from the
-45s-interval background sync loop at all. Re-traced the actual trigger:
-opening the dashboard (tools/dashboard.py) calls _next_studio_release(), which
-loops release-queue candidates and calls VideoQualityGate(ROOT).assess(...)
-per candidate -- up to 4 unguarded ffprobe/ffmpeg subprocess.run() calls each,
-fired synchronously on every dashboard page load. That is a far better match
-for the symptom (a burst of blank cmd windows right when the dashboard opens,
-not once every 45s from a loop that wasn't running). Fixed the same way: added
-creationflags=subprocess.CREATE_NO_WINDOW to all 3 self.runner(...) call sites
-in brain/video_quality.py, guarded by sys.platform == "win32" (no-op on Linux
-CI, verified safe with a direct interpreter check before editing). Ran the
-full set of tests that exercise VideoQualityGate: test_video_quality.py (4),
-test_assemble_creator_episode.py, test_creator_episode_crosspost.py,
-test_youtube_creator_queue.py, test_youtube_cycle.py -- 35 passed total, no
-mocking of runner needed since the guard is a no-op on Linux.
-Also audited brain/ and tools/ for other unguarded subprocess.run() calls:
-found more in tools/reel_render.py and tools/produce_creator_motion.py, but
-neither is imported by tools/dashboard.py (confirmed via import grep), so
-they don't fire on dashboard page load and are out of scope for this
-specific symptom -- left untouched.
-Files: `brain/video_quality.py`, `docs/ai-active-task.md`, `docs/ai-session-log.md`.
-Handoff: The next assistant must read `AGENTS.md`, the last 10 session-log
-entries, and this board before working. If the owner reports the dashboard
-*still* flashes windows after this fix + a git pull, the next place to look is
-whichever code path actually ran at that moment -- ask what the owner was
-doing right before it happened (opening the dashboard vs. running the .bat
-launcher vs. something else), since two separate root causes have already
-been found and fixed in this exact bug report and a third is plausible
-(e.g. the .bat launcher's own use of `start` / python invocation, which
-hasn't been audited yet -- Start-AION-Observatory.bat itself was never
-inspected in this investigation, only the two subprocess-calling Python
-files it eventually triggers).
+Scope: RESOLVED (partial) -- owner connected a separate Claude Code session
+that scanned the repo and reported "workflow ล้มเหลวพร้อมกันที่ขั้นตอน
+commit-and-push" across 11 runs, with a working theory of push-retry
+exhaustion (not enough attempts/jitter for the commit frequency). That
+theory does not survive a timing check: every failing run's commit-and-push
+step completed in 0-1 seconds, which rules out a chain whose fallbacks
+sleep 10s then 20s between attempts -- a real retry exhaustion would show
+at least ~30s of step duration.
+Read the real logs instead (via the owner's own logged-in browser -- job
+log downloads 403 without repo-admin auth, confirmed again this session).
+Found THREE distinct, unrelated failure modes bundled under that one
+"commit-and-push failed" label:
+1. (FIXED, commit 2efbe45) .github/actions/commit-and-push/action.yml's
+   mkdir-parent-directory loop calls `dirname "$path"`. Every workflow that
+   passes paths: "-A" (9 of the 11 failing runs) hits `dirname: invalid
+   option -- 'A'` because dirname treats a leading-dash argument as an
+   option, not a filename -- mkdir -p "" then fails, and the step (shell:
+   bash defaults to -eo pipefail) aborts before git add/commit/push ever
+   runs. That is the real cause of the 0s-duration failures. Fixed with
+   `dirname -- "$path"`. Reproduced the crash and verified the fix with
+   the exact shell snippet from the file before editing.
+2. (NOT fixed, believed self-healing, lower priority) release-readiness.yml
+   can hit a genuine `git rebase` content conflict on
+   public/aion-release-readiness.json when two near-simultaneous runs of
+   that workflow both regenerate it -- confirmed via a real "CONFLICT
+   (content): Merge conflict in public/aion-release-readiness.json" in run
+   35634789860's log. Not a retry-count problem; a real conflicting diff on
+   a machine-generated snapshot file. The next successful run overwrites
+   the file fresh, so a single missed refresh is a stale readiness board
+   for a few hours, not data loss. Left untouched -- a real fix needs
+   either serializing this file's writers more tightly or switching to a
+   regenerate-on-conflict strategy (abort rebase, rerun the generator
+   against the new HEAD, recommit) rather than trying to text-merge JSON.
+3. (NOT a bug, working as intended) creator-scene-production.yml run
+   35634638214 failed with a "scene-generation-unavailable" stage --
+   brain/creator_scene_production.py deliberately leaves the storyboard
+   byte-for-byte untouched and reports this stage when the image-generation
+   provider produced nothing, specifically so a failed scheduled run stays
+   observable instead of silently looking like it worked. This is a real
+   image-provider outage/config issue at that moment, not a code defect;
+   the workflow going red is the intended signal.
+A fourth run (reel-cycle.yml, run 35634636859) had 0 jobs at all (startup
+failure on a `push` trigger) -- a single occurrence, not investigated
+further; low priority unless it recurs.
+Files this session touched: `.github/actions/commit-and-push/action.yml`,
+`docs/ai-active-task.md`, `docs/ai-session-log.md`.
+Note for whoever works in this repo next via the desktop bridge: something
+on the owner's machine (not this session -- each device_bash call is its
+own fresh, isolated process) was repeatedly recreating .git/index.lock
+during this session's commit, requiring several retries. Likely an IDE or
+git GUI polling this exact repo. Not chased down; mention it to the owner
+if git operations here keep stalling.
+Handoff: read `AGENTS.md` and the last 10 session-log entries before
+working. If failures matching "commit-and-push" recur, check the actual
+paths input first (a literal "-A"/"-x"-style flag vs. a real path) before
+assuming it is #1 again -- this fix only covers the leading-dash-argument
+case. #2 and #3 above are still open and belong to whoever wants to invest
+in them next; neither is urgent.
