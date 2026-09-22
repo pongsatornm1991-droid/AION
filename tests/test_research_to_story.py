@@ -24,6 +24,25 @@ class ResearchToStoryTests(unittest.TestCase):
             result = ResearchToStory(memory).propose_once()
             self.assertEqual("waiting-for-qualified-research", result["stage"])
 
+    def test_proposes_a_bounded_batch_of_briefs_instead_of_stopping_at_one(self):
+        with tempfile.TemporaryDirectory() as root:
+            memory = MemoryEngine(root)
+            first = CuriosityEngine(memory).raise_question(
+                "How do coral reefs recover?", "Compare two cited sources.", priority=4,
+            )
+            self._evidence(memory, first, "Source one", "https://one.test/one", "Observation one.")
+            self._evidence(memory, first, "Source two", "https://two.test/two", "Observation two.")
+            second = CuriosityEngine(memory).raise_question(
+                "Why do deserts get cold at night?", "Compare two cited sources.", priority=4,
+            )
+            self._evidence(memory, second, "Source three", "https://three.test/one", "Observation three.")
+            self._evidence(memory, second, "Source four", "https://four.test/two", "Observation four.")
+            pipeline = ResearchToStory(memory)
+            result = pipeline.propose_batch(limit=5)
+            self.assertEqual("story-brief-batch-complete", result["stage"])
+            self.assertEqual(2, result["created_count"])
+            self.assertEqual("waiting-for-qualified-research", pipeline.propose_batch(limit=5)["stage"])
+
     def test_creates_a_grounded_brief_once_and_keeps_uncertainty_visible(self):
         with tempfile.TemporaryDirectory() as root:
             memory = MemoryEngine(root)

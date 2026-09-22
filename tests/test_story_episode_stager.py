@@ -34,6 +34,28 @@ class StoryEpisodeStagerTests(unittest.TestCase):
             self.assertEqual("bounded-fallback", episode["visual_style"]["aion_deliberation"]["origin"])
             self.assertEqual("no-story-ready-handoff", StoryEpisodeStager(memory, root).stage_once()["stage"])
 
+    def test_stages_a_bounded_batch_of_storyboards_instead_of_stopping_at_one(self):
+        with tempfile.TemporaryDirectory() as root:
+            root = Path(root)
+            memory = MemoryEngine(root / "memory")
+            for index in range(2):
+                memory.remember("creator_research_handoffs", json.dumps({
+                    "status": "story-ready", "root_question_id": f"question-batch-{index}",
+                    "topic": f"How did an ancient ice house work, case {index}?",
+                    "working_title": f"AION Wonders: Desert Ice {index}",
+                    "sources": [
+                        {"title": "Source one", "url": f"https://example.test/{index}-one", "observation": "Ice was stored below ground."},
+                        {"title": "Source two", "url": f"https://example.test/{index}-two", "observation": "Wind and shade reduced heat."},
+                    ],
+                    "unknown_facts": "The exact temperature varied by season.",
+                }), memory_type="decision", source="test", importance=4)
+            stager = StoryEpisodeStager(memory, root)
+            result = stager.stage_batch(limit=5)
+            self.assertEqual("story-batch-complete", result["stage"])
+            self.assertEqual(2, len(result["staged_episode_ids"]))
+            self.assertEqual(2, len(CreatorSeriesRegistry(root).episodes()))
+            self.assertEqual("no-story-ready-handoff", stager.stage_batch(limit=5)["stage"])
+
     def test_studio_shift_stops_after_its_episode_limit(self):
         with tempfile.TemporaryDirectory() as root:
             root = Path(root)

@@ -1,5 +1,6 @@
-"""Create one auditable Story Agent handoff from a research-ready brief."""
+"""Create a bounded batch of auditable Story Agent handoffs from research-ready briefs."""
 
+import argparse
 import json
 import os
 import sys
@@ -13,5 +14,9 @@ from brain.memory import MemoryEngine
 from brain.research_story_handoff import ResearchStoryHandoff
 
 if __name__ == "__main__":
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("--limit", type=int, default=5,
+                         help="Create at most this many handoffs in one shift.")
+    args = parser.parse_args()
     memory = MemoryEngine(os.getenv("AION_MEMORY_ROOT", "memory"))
-    print(json.dumps(ResearchStoryHandoff(memory).create_once(), ensure_ascii=False, indent=2))
+    print(json.dumps(ResearchStoryHandoff(memory).create_batch(limit=args.limit), ensure_ascii=False, indent=2))

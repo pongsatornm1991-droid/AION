@@ -166,6 +166,29 @@ class ResearchToStory:
         brief["work_task_id"] = work["card"]["task_id"]
         return {"stage": "brief-created", "brief": brief}
 
+    def propose_batch(self, limit=1):
+        """Persist up to `limit` briefs in one shift.
+
+        propose_once() used to be called exactly once per three-hourly
+        research-to-story run, so a backlog of already-qualified evidence
+        groups (see candidates()) could sit unconverted behind one brief per
+        run even though nothing was actually blocking them -- the cap was an
+        arbitrary per-run limit, not a quality gate. Mirrors
+        StoryEpisodeStager.stage_batch() at the next pipeline stage.
+        """
+        results = []
+        for _ in range(max(1, int(limit))):
+            result = self.propose_once()
+            results.append(result)
+            if result.get("stage") != "brief-created":
+                break
+        created = [r for r in results if r.get("stage") == "brief-created"]
+        return {
+            "stage": "story-brief-batch-complete" if created else results[-1].get("stage"),
+            "created_count": len(created),
+            "results": results,
+        }
+
     def snapshot(self):
         briefs = self._briefs()
         current = next((brief for brief in briefs if brief.get("status") == "research-ready"), None)

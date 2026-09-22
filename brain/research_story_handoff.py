@@ -99,6 +99,28 @@ class ResearchStoryHandoff:
         handoff["work_task_id"] = card["task_id"]
         return {"stage": "story-handoff-created", "handoff": handoff}
 
+    def create_batch(self, limit=1):
+        """Create up to `limit` story handoffs in one shift.
+
+        Mirrors ResearchToStory.propose_batch(): create_once() used to run
+        exactly once per research-to-story tick, so a backlog of already
+        research-ready briefs (see the comment in create_once() about older
+        briefs never reaching Studio) could sit unconverted behind one
+        handoff per run even though nothing was actually blocking them.
+        """
+        results = []
+        for _ in range(max(1, int(limit))):
+            result = self.create_once()
+            results.append(result)
+            if result.get("stage") != "story-handoff-created":
+                break
+        created = [r for r in results if r.get("stage") == "story-handoff-created"]
+        return {
+            "stage": "story-handoff-batch-complete" if created else results[-1].get("stage"),
+            "created_count": len(created),
+            "results": results,
+        }
+
     def snapshot(self):
         entries = []
         for entry in self.memory.all(self.CATEGORY):

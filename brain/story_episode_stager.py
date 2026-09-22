@@ -77,8 +77,11 @@ class StoryEpisodeStager:
         suffix = "long" if episode_format == "long-form" else "short"
         return f"aion-auto-{safe[:27] or 'research'}-{digest}-{suffix}"
 
-    def _next_handoff(self, episode_format="short"):
+    def _next_handoff(self, episode_format="short", exclude_ids=None):
+        exclude_ids = exclude_ids or set()
         for entry in self.memory.all(self.CATEGORY):
+            if entry.get("id") in exclude_ids:
+                continue
             payload = self._payload(entry)
             if not payload or payload.get("status") not in {"story-ready", "staged-for-studio"}:
                 continue
@@ -266,12 +269,7 @@ class StoryEpisodeStager:
             raise ValueError("Storyboard did not pass the AION Watchability Gate.")
         return episode
 
-    def stage_once(self, episode_format="short"):
-        if episode_format not in {"short", "long-form"}:
-            raise ValueError("episode_format must be 'short' or 'long-form'")
-        entry, handoff = self._next_handoff(episode_format)
-        if entry is None:
-            return {"stage": "no-story-ready-handoff"}
+    def _stage_entry(self, entry, handoff, episode_format):
         episode = self._episode(handoff, episode_format)
         self.directory.mkdir(parents=True, exist_ok=True)
         destination = self.directory / f"{episode['id']}.json"
@@ -287,3 +285,51 @@ class StoryEpisodeStager:
         handoff["staged_formats"] = sorted(set(handoff.get("staged_formats") or []) | {episode_format})
         self.memory.update(self.CATEGORY, entry["id"], content=json.dumps(handoff, ensure_ascii=False, sort_keys=True))
         return {"stage": "storyboard-staged", "episode_id": episode["id"], "file": str(destination.relative_to(self.root)).replace("\\", "/"), "scene_count": len(episode["scenes"])}
+
+    def stage_once(self, episode_format="short"):
+        if episode_format not in {"short", "long-form"}:
+            raise ValueError("episode_format must be 'short' or 'long-form'")
+        entry, handoff = self._next_handoff(episode_format)
+        if entry is None:
+            return {"stage": "no-story-ready-handoff"}
+        return self._stage_entry(entry, handoff, episode_format)
+
+    def stage_batch(self, limit=1, episode_format="short"):
+        """Stage up to `limit` qualified research handoffs in one shift.
+
+        research-to-story.yml used to call stage_once() exactly once per
+        three-hour tick, so a backlog of already-qualified, evidence-grounded
+        handoffs could sit unstaged for hours even though nothing was
+        actually blocking them -- the cap was an arbitrary per-run limit,
+        not a quality gate. This mirrors
+        CreatorSceneProduction.produce_ready_episodes(): a bounded shift,
+        not an unbounded content farm. A handoff that fails a downstream
+        gate (Fact-First Visual / Watchability) is skipped for the rest of
+        THIS call only -- its stored status is left untouched, so a later
+        run can still reconsider it once the upstream research is fixed --
+        and staging continues with the next qualified handoff instead of
+        aborting the whole shift.
+        """
+        if episode_format not in {"short", "long-form"}:
+            raise ValueError("episode_format must be 'short' or 'long-form'")
+        results = []
+        excluded = set()
+        for _ in range(max(1, int(limit))):
+            entry, handoff = self._next_handoff(episode_format, exclude_ids=excluded)
+            if entry is None:
+                break
+            try:
+                result = self._stage_entry(entry, handoff, episode_format)
+            except ValueError as exc:
+                excluded.add(entry.get("id"))
+                results.append({"stage": "handoff-skipped", "reason": str(exc), "handoff_id": entry.get("id")})
+                continue
+            results.append(result)
+        if not results:
+            return {"stage": "no-story-ready-handoff", "results": []}
+        staged = [r for r in results if r.get("stage") in {"storyboard-staged", "already-staged"}]
+        return {
+            "stage": "story-batch-complete" if staged else results[-1].get("stage"),
+            "staged_episode_ids": [r.get("episode_id") for r in staged],
+            "results": results,
+        }
