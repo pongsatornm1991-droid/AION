@@ -70,6 +70,53 @@ class StoryEpisodeStagerTests(unittest.TestCase):
             self.assertIn("Chromatophores", connection["narration"])
             self.assertIn("Muscles", connection["narration"])
 
+    def test_hook_leads_with_a_sourced_fact_instead_of_announcing_the_show(self):
+        # Regression for 2026-09-22 (owner: focus on Shorts, aim for
+        # kurzgesagt-calibre memorability): every episode used to open on
+        # the identical "Today we are asking: {topic}" preamble.
+        with tempfile.TemporaryDirectory() as root:
+            root = Path(root)
+            memory = MemoryEngine(root / "memory")
+            memory.remember("creator_research_handoffs", json.dumps({
+                "status": "story-ready", "root_question_id": "question-hook",
+                "topic": "How can an octopus change color so quickly?",
+                "working_title": "AION Wonders: Octopus Color",
+                "sources": [
+                    {"title": "Source one", "url": "https://example.test/one",
+                     "observation": "Chromatophores let some octopuses shift color in under one second."},
+                    {"title": "Source two", "url": "https://example.test/two",
+                     "observation": "Muscles stretch each pigment sac to reveal or hide its color."},
+                ],
+                "unknown_facts": "The exact neural pathway is still being mapped.",
+            }), memory_type="decision", source="test", importance=4)
+            StoryEpisodeStager(memory, root).stage_once()
+            episode = CreatorSeriesRegistry(root).episodes()[0]
+            hook = episode["scenes"][0]
+            self.assertNotIn("Today we are asking", hook["narration"])
+            self.assertIn("Chromatophores", hook["narration"])
+            self.assertIn(episode["wonder_hook"], hook["narration"])
+
+    def test_ending_closes_on_the_topic_instead_of_a_generic_sign_off(self):
+        with tempfile.TemporaryDirectory() as root:
+            root = Path(root)
+            memory = MemoryEngine(root / "memory")
+            memory.remember("creator_research_handoffs", json.dumps({
+                "status": "story-ready", "root_question_id": "question-ending",
+                "topic": "How can an octopus change color so quickly?",
+                "working_title": "AION Wonders: Octopus Color",
+                "sources": [
+                    {"title": "Source one", "url": "https://example.test/one", "observation": "Chromatophores let color shift fast."},
+                    {"title": "Source two", "url": "https://example.test/two", "observation": "Muscles reveal or hide each pigment sac."},
+                ],
+                "unknown_facts": "The exact neural pathway is still being mapped.",
+            }), memory_type="decision", source="test", importance=4)
+            StoryEpisodeStager(memory, root).stage_once()
+            episode = CreatorSeriesRegistry(root).episodes()[0]
+            ending = episode["scenes"][-1]
+            self.assertNotEqual("Keep asking better questions, and check the evidence with me.", ending["narration"])
+            self.assertFalse(ending["narration"].strip().endswith("?"))
+            self.assertIn(episode["wonder_hook"], ending["narration"])
+
     def test_stages_a_bounded_batch_of_storyboards_instead_of_stopping_at_one(self):
         with tempfile.TemporaryDirectory() as root:
             root = Path(root)
