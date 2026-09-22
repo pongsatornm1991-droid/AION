@@ -48,6 +48,33 @@ class CreatorSceneProductionTests(unittest.TestCase):
         self.assertIn("blended into this palette rather than replacing it", prompt)
         self.assertIn("never as general scene lighting", prompt)
 
+    def test_neon_vector_shorts_is_bold_flat_and_replaces_the_restrained_palette(self):
+        episode = {"format": "illustrated-narrated-short", "visual_direction": {},
+                   "visual_style": {"id": "aion-neon-vector-shorts-v1"}}
+        prompt = CreatorSceneProduction()._prompt(
+            episode, {"visual": "A bioluminescent jellyfish pulses in the deep sea."}
+        )
+        self.assertIn("AION Neon Vector Shorts", prompt)
+        self.assertIn("flat 2D vector", prompt)
+        self.assertIn("No thick black ink outlines", prompt)
+        self.assertIn("electric pink/magenta", prompt)
+        self.assertIn("REPLACES the channel's usual restrained palette", prompt)
+        self.assertIn("cyan", prompt)
+        self.assertIn("never a full body colour", prompt)
+        self.assertIn("never imitate a named artist, studio, channel, mascot or franchise", prompt)
+
+    def test_neon_vector_shorts_cover_matches_the_scene_style_instead_of_warm_3d(self):
+        episode = {
+            "format": "illustrated-narrated-short",
+            "wonder_hook": "Why do jellyfish glow?",
+            "scenes": [{"visual": "A jellyfish glows in dark water."}],
+            "visual_style": {"id": "aion-neon-vector-shorts-v1"},
+        }
+        cover_prompt = CreatorSceneProduction()._cover_prompt(episode)
+        self.assertIn("AION Neon Vector Shorts", cover_prompt)
+        self.assertNotIn("warm 3D educational storytelling with rounded appealing forms", cover_prompt)
+        self.assertNotIn("do not use grey wash, neon clutter", cover_prompt)
+
     def test_thoughtscape_direction_is_specific_to_the_story_without_copying_a_style(self):
         episode = {"format": "illustrated-narrated-short", "visual_direction": {},
                    "visual_style": {"id": "aion-thoughtscape-director-v1", "director": {

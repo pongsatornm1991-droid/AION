@@ -22,7 +22,15 @@ class VisualStoryPolicy:
     DEFAULT_AION_FRAME_SHARE = 0.20
     DEFAULT_AION_ROLE = "contextual-guide"
     IDENTITY_VERSION = "aion-animated-documentary-guide-v1"
-    CHANNEL_VISUAL_STYLE = "aion-original-warm-3d-storytelling-v1"
+    # 2026-09-22: switched the channel default from the original warm 3D
+    # storytelling identity to a new flat vector, neon-bright house style at
+    # the owner's request ("closest match to a flat-vector, neon-bright
+    # explainer look, emphasise vivid colour"). See
+    # CreatorSceneProduction._style_rule() for the full style_rule text and
+    # docs/ai-session-log.md for the request/rationale. The prior default
+    # remains a valid style id for older/manually-placed episodes -- this only
+    # changes what NEW auto-staged episodes use.
+    CHANNEL_VISUAL_STYLE = "aion-neon-vector-shorts-v1"
     COLOR_DIRECTION = (
         "Vibrant, optimistic colour with a deliberate focal palette: clear warm highlights, "
         "rich natural local colour, and one restrained cyan AION accent. Preserve readable contrast; "

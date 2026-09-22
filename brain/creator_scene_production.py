@@ -68,6 +68,81 @@ class CreatorSceneProduction:
     def _safe_name(scene):
         return str(scene.get("beat") or "scene").replace("/", "-").replace(" ", "-")
 
+    def _style_rule(self, visual_style, deliberation=None):
+        deliberation = deliberation or visual_style.get("aion_deliberation") or {}
+        style_id = visual_style.get("id")
+        if style_id == "aion-neon-vector-shorts-v1":
+            return (
+                "Style: AION Neon Vector Shorts—an original flat 2D vector explainer illustration, the "
+                "channel's boldest, most saturated house style. Simple rounded geometric shapes built from "
+                "solid colour with a gentle two-tone gradient for depth, not photoreal shading or texture. "
+                "No thick black ink outlines -- shapes separate by colour and value contrast, with at most a "
+                "thin same-tone or white edge where needed for readability. This preset's colour direction "
+                "REPLACES the channel's usual restrained palette: use a bright, high-contrast, neon-leaning "
+                "palette as the dominant colour scheme of every frame -- electric pink/magenta, vivid cobalt "
+                "or cyan-blue, saturated orange, and acid green, freely combined against a deep dark or "
+                "near-black background so the colours glow. This is deliberate vivid saturation, not "
+                "'neon clutter': keep exactly one clear focal mechanism or subject per frame, generous "
+                "negative space, and instant one-second readability. Cyan beyond the background palette is "
+                "still reserved only for AION's tiny crystal signature, never a full body colour. No text, "
+                "logos, watermark, fine texture, grain, photorealism, 3D rendering, or anime, and never "
+                "imitate a named artist, studio, channel, mascot or franchise."
+            )
+        if style_id == "aion-vivid-storyworld-2d-v1":
+            return (
+                "Style: AION Vivid Storyworld 2D—an original flat editorial science illustration with "
+                "clean consistent linework, simplified geometric forms, deliberate paper-grain texture, "
+                "large readable colour blocks and only selective atmospheric depth. "
+                "Use one dominant object or mechanism per frame. Use deep navy/cobalt for the question, "
+                "warm amber for observed evidence, fresh green or coral for the answer, and cyan only "
+                "as AION's tiny signature. No photorealism, no 3D rendering, no anime, no clutter, and "
+                "never imitate a named artist, studio, channel, mascot or franchise."
+            )
+        if style_id == "aion-neon-graphic-science-v1":
+            return (
+                "Style: AION Neon Graphic Science—an original graphic 2.5D science illustration with strong "
+                "dark-navy ink outlines, controlled halftone-dot texture, shallow cel-shaded depth, and clean "
+                "geometric colour shapes. Use a near-black indigo edge-to-electric-cobalt radial gradient that "
+                "brightens only behind the one focal mechanism. Amber represents observed inputs, coral represents "
+                "the answer or threshold, fresh green is the subject, and cyan is reserved only for AION's tiny "
+                "crystal signature. Where the mechanism itself is electrical, energetic, or signal-like, a "
+                "restrained hot-magenta or cyber-yellow neon accent may mark that one specific pulse or moment, "
+                "blended into this palette rather than replacing it -- used sparingly on a single element at a "
+                "time, never as general scene lighting and never displacing the amber/coral/green/cyan roles "
+                "above. Keep the image readable within one second: one mechanism, sparse background, no text, "
+                "no logos, no photorealism, no anime, no visual clutter, and never imitate a named artist, "
+                "studio, channel, mascot or franchise."
+            )
+        if style_id == "aion-illustrated-postcard-v1":
+            return (
+                "Style: original hand-painted watercolor and gouache illustrated postcard; "
+                "soft rainy-season atmosphere, visible paper grain, gentle pigment blooms, "
+                "warm everyday Southeast Asian setting, and clear educational visual storytelling. "
+                "Do not imitate any named artist, studio, or existing illustration."
+            )
+        if style_id == "aion-animated-documentary-v1":
+            return (
+                "Style: original premium 2D animated documentary illustration; clean expressive linework, "
+                "soft cel shading, cinematic painted depth and textures, friendly intelligent characters, "
+                "and a beautiful all-ages educational mood. Do not imitate any named artist, studio, channel, "
+                "mascot, franchise, or existing composition."
+            )
+        if style_id in {"aion-thoughtscape-director-v1", "aion-original-warm-3d-storytelling-v1"}:
+            director = visual_style.get("director") or {}
+            return " ".join((
+                "Style: AION Thoughtscape direction for this specific story.",
+                f"AION's own premise: {deliberation.get('premise') or ''}",
+                f"World: {director.get('world') or 'curiosity-atlas'}.",
+                f"Mood: {deliberation.get('mood') or director.get('mood') or 'curious, grounded wonder'}.",
+                f"Palette/material: {deliberation.get('palette_and_material') or director.get('palette_and_material') or 'cinematic natural texture'}.",
+                str(deliberation.get('rendering_rule') or director.get('rendering_rule') or "Original warm 3D educational storytelling; never imitate a named artist, studio, channel, franchise or existing composition."),
+                "Channel Visual DNA must remain original warm 3D educational storytelling: readable staging, rounded appealing forms, tactile natural materials and gentle cinematic light.",
+            ))
+        return (
+            "Style: original premium family-friendly cinematic 3D character with photorealistic lighting, material texture and environment; "
+            "never imitate a named studio or franchise."
+        )
+
     def _prompt(self, episode, scene):
         direction = episode.get("visual_direction") or {}
         wardrobe = CostumeDirection.brief_for(episode, scene)
@@ -84,61 +159,7 @@ class CreatorSceneProduction:
         fact_anchor = fact_plan.get("reality_anchor") or {}
         fact_boundary = fact_plan.get("creative_boundary") or {}
         deliberation = visual_style.get("aion_deliberation") or {}
-        if visual_style.get("id") == "aion-vivid-storyworld-2d-v1":
-            style_rule = (
-                "Style: AION Vivid Storyworld 2D—an original flat editorial science illustration with "
-                "clean consistent linework, simplified geometric forms, deliberate paper-grain texture, "
-                "large readable colour blocks and only selective atmospheric depth. "
-                "Use one dominant object or mechanism per frame. Use deep navy/cobalt for the question, "
-                "warm amber for observed evidence, fresh green or coral for the answer, and cyan only "
-                "as AION's tiny signature. No photorealism, no 3D rendering, no anime, no clutter, and "
-                "never imitate a named artist, studio, channel, mascot or franchise."
-            )
-        elif visual_style.get("id") == "aion-neon-graphic-science-v1":
-            style_rule = (
-                "Style: AION Neon Graphic Science—an original graphic 2.5D science illustration with strong "
-                "dark-navy ink outlines, controlled halftone-dot texture, shallow cel-shaded depth, and clean "
-                "geometric colour shapes. Use a near-black indigo edge-to-electric-cobalt radial gradient that "
-                "brightens only behind the one focal mechanism. Amber represents observed inputs, coral represents "
-                "the answer or threshold, fresh green is the subject, and cyan is reserved only for AION's tiny "
-                "crystal signature. Where the mechanism itself is electrical, energetic, or signal-like, a "
-                "restrained hot-magenta or cyber-yellow neon accent may mark that one specific pulse or moment, "
-                "blended into this palette rather than replacing it -- used sparingly on a single element at a "
-                "time, never as general scene lighting and never displacing the amber/coral/green/cyan roles "
-                "above. Keep the image readable within one second: one mechanism, sparse background, no text, "
-                "no logos, no photorealism, no anime, no visual clutter, and never imitate a named artist, "
-                "studio, channel, mascot or franchise."
-            )
-        elif visual_style.get("id") == "aion-illustrated-postcard-v1":
-            style_rule = (
-                "Style: original hand-painted watercolor and gouache illustrated postcard; "
-                "soft rainy-season atmosphere, visible paper grain, gentle pigment blooms, "
-                "warm everyday Southeast Asian setting, and clear educational visual storytelling. "
-                "Do not imitate any named artist, studio, or existing illustration."
-            )
-        elif visual_style.get("id") == "aion-animated-documentary-v1":
-            style_rule = (
-                "Style: original premium 2D animated documentary illustration; clean expressive linework, "
-                "soft cel shading, cinematic painted depth and textures, friendly intelligent characters, "
-                "and a beautiful all-ages educational mood. Do not imitate any named artist, studio, channel, "
-                "mascot, franchise, or existing composition."
-            )
-        elif visual_style.get("id") in {"aion-thoughtscape-director-v1", "aion-original-warm-3d-storytelling-v1"}:
-            director = visual_style.get("director") or {}
-            style_rule = " ".join((
-                "Style: AION Thoughtscape direction for this specific story.",
-                f"AION's own premise: {deliberation.get('premise') or ''}",
-                f"World: {director.get('world') or 'curiosity-atlas'}.",
-                f"Mood: {deliberation.get('mood') or director.get('mood') or 'curious, grounded wonder'}.",
-                f"Palette/material: {deliberation.get('palette_and_material') or director.get('palette_and_material') or 'cinematic natural texture'}.",
-                str(deliberation.get('rendering_rule') or director.get('rendering_rule') or "Original warm 3D educational storytelling; never imitate a named artist, studio, channel, franchise or existing composition."),
-                "Channel Visual DNA must remain original warm 3D educational storytelling: readable staging, rounded appealing forms, tactile natural materials and gentle cinematic light.",
-            ))
-        else:
-            style_rule = (
-                "Style: original premium family-friendly cinematic 3D character with photorealistic lighting, material texture and environment; "
-                "never imitate a named studio or franchise."
-            )
+        style_rule = self._style_rule(visual_style, deliberation)
         return " ".join((
             f"Use case: historical-scene. Asset type: {aspect} educational video scene.",
             f"Scene: {scene.get('visual')}",
@@ -163,18 +184,26 @@ class CreatorSceneProduction:
         first_scene = (episode.get("scenes") or [{}])[0]
         is_short = episode.get("format") == "illustrated-narrated-short"
         asset_type = "vertical 9:16 cover image" if is_short else "landscape 16:9 cover image"
-        return " ".join((
+        style_rule = self._style_rule(visual_style, deliberation)
+        # aion-neon-vector-shorts-v1's style_rule already sets its own bold
+        # palette and explicitly REPLACES the channel default restrained
+        # direction; every other preset keeps the shared colour direction
+        # line alongside its own style_rule so a cover still matches its
+        # scenes instead of always saying "warm 3D".
+        parts = [
             f"Use case: YouTube video thumbnail. Asset type: {asset_type}.",
             f"Story question: {episode.get('wonder_hook') or episode.get('title')}.",
             f"Core visual idea: {episode.get('thumbnail_concept') or first_scene.get('visual') or ''}",
             "Create one instantly understandable, emotionally intriguing focal moment with one clear subject and generous negative space.",
             "This is a standalone cover composition, not a crop or duplicate of any video scene.",
             "The story subject leads; AION appears only if useful and remains a small contextual guide, never a central mascot.",
-            f"Colour direction: {VisualStoryPolicy.COLOR_DIRECTION}",
-            f"Story mood: {deliberation.get('mood') or (visual_style.get('director') or {}).get('mood') or 'curious grounded wonder'}.",
-            "Original warm 3D educational storytelling with rounded appealing forms, tactile natural materials and gentle cinematic light.",
-            "No words, letters, captions, logos, watermark, UI, named artist, studio, franchise, or copied composition.",
-        ))
+        ]
+        if visual_style.get("id") != "aion-neon-vector-shorts-v1":
+            parts.append(f"Colour direction: {VisualStoryPolicy.COLOR_DIRECTION}")
+        parts.append(f"Story mood: {deliberation.get('mood') or (visual_style.get('director') or {}).get('mood') or 'curious grounded wonder'}.")
+        parts.append(style_rule)
+        parts.append("No words, letters, captions, logos, watermark, UI, named artist, studio, franchise, or copied composition.")
+        return " ".join(parts)
 
     def produce_once(self, limit=DEFAULT_BATCH_SIZE, episode_format=None):
         episode = self._episode(episode_format)
