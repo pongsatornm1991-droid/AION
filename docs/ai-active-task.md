@@ -6,10 +6,46 @@ a historical log: replace this block when taking a task, and set status to
 `clear` when handing off. A claim expires at its stated time so a crashed
 session never blocks the company indefinitely.
 
-Status: clear
-Owner: Claude (Cowork)
-Started: 2026-09-22 10:26 UTC
-Lease expires: n/a
+Status: in-progress
+Owner: Claude Code
+Started: 2026-09-22 15:21 UTC
+Lease expires: 2026-09-22 19:21 UTC
+Scope: Owner asked why no clip published today, then asked to make the
+YouTube release pipeline 100% automatic with no duplicate runs. Root-caused
+via the GitHub Actions API (not a guess): youtube-creator.yml's own cron
+(20:30 Bangkok daily) has not actually fired in 2 days, even though dozens
+of other scheduled workflows in this repo fired normally in the same
+window; its two concurrency-group siblings (youtube-release-recovery.yml,
+youtube-longform.yml) show the identical stopped-firing pattern; none of
+the three are disabled and none has a run stuck queued/in_progress. Root
+cause is GitHub's own Actions scheduler silently not dispatching these
+specific crons -- not a bug in this repo's code -- and automation-health.yml
+structurally cannot catch it (it only reacts to a workflow_run event; a
+schedule that never fires produces no such event at all).
+Separately found a real bug while tracing this: brain/release_readiness.py
+counts an episode as "available" via its `is_authorized` branch
+(publication_status == authorized-for-aion-publish) without also excluding
+one that has since actually been published, so the Shorts buffer has been
+overreporting readiness by 1 (Venus flytrap, published 2026-09-21, still
+shown as available at itself). The real publish-selection path
+(YouTubeCreatorQueue.prepare_once()'s `eligible` filter) already checks
+`status == "upload-ready"` correctly and is NOT at risk of a duplicate
+publish -- this is a reporting bug, not a live double-post risk.
+Plan: (1) fix release_readiness.py's exclusion + regression test; (2) add
+a new, independently-scheduled watchdog (tools + workflow) that checks
+whether youtube-creator.yml has produced any run yet today past its
+scheduled hour, and if genuinely none exists, dispatches it itself via the
+Actions API (GITHUB_TOKEN, actions:write) -- self-healing against GitHub's
+scheduler dropping the cron, while the "any run already exists today" gate
+is exactly what prevents it from ever causing a duplicate/extra run; (3)
+wire the new workflow into automation-health.yml's failure watch list; (4)
+tests for both; (5) explicitly NOT touching instagram-cycle.yml/
+social-cycle.yml/reel-cycle.yml -- read their own header comments and
+confirmed these are deliberately workflow_dispatch-only, superseded by the
+Creator Studio pipeline, not a gap.
+Handoff: if this board still says in-progress after 2026-09-22 19:21 UTC,
+the lease has expired -- check git log / this session's own log entry (if
+any) for how far it got before picking it up.
 Scope: RESOLVED. Owner asked why the Shorts release buffer was stuck at
 1/7 ready despite the 2026-09-21 move to a daily production+publish
 cadence, and asked for a fix so production does not wait in a queue.
