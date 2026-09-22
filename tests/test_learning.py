@@ -1209,6 +1209,50 @@ class WebLearningCycleTests(BaseLearningTest):
             [],
         )
 
+    def test_platform_metrics_question_is_blocked_by_capability_not_wasted_on_wikipedia(self):
+        """Regression for 2026-09-22: AION's own curiosity engine raised a
+        question comparing one published video's like-to-view ratio
+        against similar videos (root_question_id b89b0b48c59c), with
+        criteria asking to "collect public statistics (views and
+        likes)". Nothing recognised that as needing AION's own YouTube
+        analytics rather than an encyclopedia, so it fell through to
+        "general_external" and wastefully searched Wikipedia three times
+        -- each attempt correctly finding nothing relevant, since
+        Wikipedia cannot know AION's own video statistics. Uses the real,
+        default SourceRegistry (reads core/source_registry.json) rather
+        than a test double, since the point is that no currently
+        registered source declares this capability.
+        """
+        question = self._raise_question(
+            statement="Is this video's like-to-view ratio higher or lower than similar videos on the same channel?",
+            criteria=(
+                "Collect public statistics (views and likes) of at least 5 "
+                "similar-topic videos on the same channel within the first "
+                "7 days after publishing, calculate the median like-to-view "
+                "ratio, then compare with this video."
+            ),
+        )
+
+        generator = WebLearningGenerator(SafeProvider())
+        cycle = WebLearningCycle(
+            self.memory,
+            self.curiosity,
+            generator,
+            search_fn=fake_search([]),
+            fetch_fn=fake_fetch({}),
+        )
+
+        report = cycle.research_once()
+
+        self.assertFalse(report["researched"])
+        self.assertEqual(report["stage"], "blocked-by-capability")
+        self.assertIn("platform_metrics", report["capability"]["unsupported_evidence_types"])
+
+        open_questions = self.curiosity.open_questions()
+        self.assertEqual(1, len(open_questions))
+        self.assertEqual(0, open_questions[0]["attempts"])
+        self.assertEqual([], self.memory.all("research_evidence"))
+
     def test_insufficient_evidence_does_not_resolve_question(self):
         """A capable source can still provide insufficient evidence.
 

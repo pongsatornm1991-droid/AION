@@ -741,6 +741,25 @@ class EvidenceRequirementAnalyzer:
         "community responses",
     )
 
+    # Found 2026-09-22: AION's own curiosity engine raised a question
+    # comparing this video's like-to-view ratio against similar videos
+    # (root_question_id b89b0b48c59c) with Thai-language criteria asking
+    # to "collect public statistics (views and likes)". Nothing here
+    # recognised that as its own evidence type, so it fell through to the
+    # "general_external" default and wastefully searched Wikipedia three
+    # times for a question Wikipedia can never answer -- AION's own
+    # published-video statistics are not an encyclopedia topic. No
+    # current source_registry.json entry declares this capability, so
+    # classifying it correctly is what makes the existing
+    # blocked-by-capability path fire instead (see WebLearningCycle's own
+    # docstring: "the question remains open and no attempt is consumed").
+    PLATFORM_METRICS_TERMS = (
+        "public statistics", "view count", "view counts",
+        "views and likes", "like count", "like counts",
+        "like-to-view", "engagement rate", "engagement rates",
+        "สถิติสาธารณะ", "ยอดดู", "ยอดไลก์", "อัตรากดถูกใจ",
+    )
+
     @classmethod
     def _required_count(cls, criteria):
         lowered = str(
@@ -832,6 +851,14 @@ class EvidenceRequirementAnalyzer:
         ):
             evidence_types.append(
                 "social_signal"
+            )
+
+        if any(
+            term in lowered
+            for term in cls.PLATFORM_METRICS_TERMS
+        ):
+            evidence_types.append(
+                "platform_metrics"
             )
 
         if not evidence_types:
