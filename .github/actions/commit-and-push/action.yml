@@ -49,7 +49,15 @@ runs:
         for path in ${{ inputs.paths }}; do
           case "$path" in
             */) mkdir -p "$path" ;;
-            *) mkdir -p "$(dirname "$path")" ;;
+            # -- forces dirname to treat a leading-dash token (e.g. the
+            # literal git flag "-A") as a path, not an option -- without it,
+            # dirname "-A" errors as "invalid option -- 'A'", mkdir -p ""
+            # then fails, and (running under bash -e) the whole step aborts
+            # before git add/commit/push ever runs. Confirmed 2026-09-22 as
+            # the real cause of every commit-and-push failure that used a
+            # bare "-A" paths input (11 workflow runs the previous evening) --
+            # not push-retry exhaustion, which was the first (wrong) theory.
+            *) mkdir -p "$(dirname -- "$path")" ;;
           esac
         done
         git add ${{ inputs.paths }}
