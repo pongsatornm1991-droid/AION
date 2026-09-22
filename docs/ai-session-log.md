@@ -13,6 +13,65 @@ Format:
 Commits: <hash> [, <hash> ...]
 ```
 
+## 2026-09-22 — Claude Code — Root-caused the source-integrity "rejection", shipped a real performance-feedback tool
+
+Owner approved 2 of 3 recommended next steps (explicitly skipped the
+long-form ending fix since Shorts is the only daily focus now): (1)
+investigate why a newly-qualifying evidence group was failing
+CreatorSourceIntegrity; (2) build a feedback loop connecting real
+performance data to hook/topic choices.
+
+**Investigation (1):** CreatorSourceIntegrity was working correctly, not
+too strict. The real evidence group in question (root_question_id
+b89b0b48c59c) turned out to be AION's own curiosity engine asking a
+self-reflective question: "Is this video's like-to-view ratio higher or
+lower than similar videos on the same channel?", with criteria (in Thai)
+asking to "collect public statistics (views and likes)... calculate the
+median... compare." Nothing in EvidenceRequirementAnalyzer recognised
+that as needing AION's own platform analytics rather than an
+encyclopedia, so it fell through to the "general_external" default and
+WebLearningCycle wastefully searched Wikipedia three times -- landing on
+three completely unrelated articles (mains electricity by country,
+weighted-average loan life, a Soviet naval gun), each attempt's own
+observation text literally saying "no relevant information," burning
+through the question's attempt budget. CreatorSourceIntegrity then
+correctly rejected the resulting evidence anyway (all three sources were
+the same host). Fixed at the actual root: added PLATFORM_METRICS_TERMS
+(English + the real Thai phrasing) to EvidenceRequirementAnalyzer, so
+this class of question now correctly reaches the existing
+blocked-by-capability path ("the question remains open and no attempt is
+consumed") instead of wasting research attempts. 1 new regression test
+using the real question text and the real default SourceRegistry (proves
+no currently registered source claims this capability, not just a mock).
+
+**Feedback loop (2):** the self-reflective question above is EXACTLY the
+capability the owner asked for, and the data to answer it already
+exists -- YouTubeAudienceCycle (brain/youtube_audience.py) already writes
+public view/like/comment-count snapshots to the social_feedback category,
+it just had no comparison analysis on top of it. Added
+brain/performance_feedback.py's `PerformanceFeedback.compare_engagement()`:
+deterministic, no AI call, no network access of its own -- computes one
+video's like-to-view ratio against the median of every other video with
+usable statistics, refusing to compare against a group smaller than
+--min-group-size (default 3) rather than drawing a conclusion from too
+few videos. New CLI: `python main.py compare-video-engagement --video-id
+<id>`. Deliberately NOT wired into the autonomous research loop as a real
+evidence source yet -- that means properly implementing the
+already-scaffolded-but-disabled "social_signals" source in
+core/source_registry.json (capability + adapter + planner routing), a
+bigger, separate undertaking flagged in the module's own docstring for
+whoever picks it up. 6 new tests; also verified end to end against the
+real aion-memory-data clone (correctly and honestly reports
+no-statistics-for-video for Venus, since youtube-audience.yml has not
+captured its stats yet).
+
+Full run_tests.py green after every change in this entry.
+
+Commits: 57a1844 (task claim), fd72758 (platform-metrics classification
+fix), 024f60e (performance-feedback tool + CLI).
+
+---
+
 ## 2026-09-22 — Claude Code — Channel-naming and visual-style discussion with the owner (no code changed, decisions still open) -- read this before touching branding or `core/*.md` again
 
 Pure discussion entry, no commits. Recording it because the owner
