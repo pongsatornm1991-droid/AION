@@ -6,21 +6,23 @@ a historical log: replace this block when taking a task, and set status to
 `clear` when handing off. A claim expires at its stated time so a crashed
 session never blocks the company indefinitely.
 
-Status: in-progress
+Status: clear
 Owner: Claude Code
 Started: 2026-09-22 07:16 UTC
-Lease expires: 2026-09-22 10:16 UTC
-Scope: Follow-up audit after the three flashing-cmd-window fixes below.
-Grepping brain/ and tools/ for subprocess.run(/Popen(/call( and
-os.system(/os.popen( call sites that invoke an external executable (git,
-ffmpeg, ffprobe, etc.) and are reachable from non-CI-only code paths, i.e.
-code that can run on the owner's own Windows machine. Any call site missing
-the Windows guard gets the same fix as the three below:
-`_NO_WINDOW = subprocess.CREATE_NO_WINDOW if sys.platform == "win32" else 0`
-plus `creationflags=_NO_WINDOW` on the call. Will run the relevant test
-module(s) per touched file, commit per file (or one commit if the set is
-small), pull --rebase, push, log the result in ai-session-log.md, and set
-this board back to clear.
-Handoff: if this board still says in-progress after 2026-09-22 10:16 UTC,
-the lease has expired -- treat it as abandoned and check git log / this
-session's own log entry (if any) for how far it got before picking it up.
+Lease expires: n/a
+Scope: RESOLVED. Audited brain/ and tools/ for the same class of bug as the
+three flashing-cmd-window fixes (subprocess.run() missing
+creationflags=CREATE_NO_WINDOW on Windows). Found and fixed one real gap in
+scope (tools/produce_creator_motion.py) and one more via a repo-wide sanity
+grep beyond the literal claimed scope (tests/test_decision_auditor.py,
+called out as such in its own commit). All three original fixes confirmed
+still correctly guarded. main.py has zero subprocess/os.system/os.popen
+calls. No other gaps found. Full test suite green. See
+docs/ai-session-log.md's 2026-09-22 entry for full detail.
+Handoff: read AGENTS.md and the last 10 session-log entries before working.
+This audit is complete; no known follow-up needed for this specific bug
+class. Unrelated, still open from earlier entries: release-readiness.yml
+can hit a genuine git rebase conflict on public/aion-release-readiness.json
+(self-healing, not urgent); creator-scene-production.yml's
+"scene-generation-unavailable" is working-as-intended, not a bug. Neither
+touched by this entry.

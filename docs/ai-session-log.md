@@ -13,6 +13,48 @@ Format:
 Commits: <hash> [, <hash> ...]
 ```
 
+## 2026-09-22 — Claude Code — Audited brain/ and tools/ for the same console-flash bug class; found and fixed two more sites
+
+Follow-up to today's three flashing-cmd-window fixes (sync_memory_from_github.py,
+video_quality.py, reel_render.py). Grepped brain/ and tools/ for
+subprocess.run(/Popen(/call( and os.system(/os.popen( calls invoking an
+external executable. All three known fixes confirmed still correctly
+guarded (video_quality.py's two call sites go through `self.runner`, not a
+literal `subprocess.run(` match, which is why a naive grep undercounts it --
+read the code to confirm). Found one real gap in the claimed scope:
+tools/produce_creator_motion.py's `render_kinetic_fallback()` calls ffmpeg
+via subprocess.run() with no creationflags -- it has its own
+`if __name__ == "__main__":` CLI entry point, so it can run directly on the
+owner's Windows machine, not only from creator-motion-production.yml's CI
+runner. Fixed with the same `_NO_WINDOW` pattern as the three prior fixes.
+
+Also ran a repo-wide grep (beyond the claimed brain/+tools/ scope) as a
+cheap sanity check and found one more: tests/test_decision_auditor.py
+launches `python main.py ...` as a real subprocess in two tests, also
+unguarded -- these run locally on Windows via `python run_tests.py` or an
+IDE's test runner, not only in CI, so same bug class. Fixed it too, in its
+own commit clearly flagged as outside the literal claimed scope.
+`main.py` itself has zero subprocess/os.system/os.popen calls (confirmed by
+the repo-wide grep). No other gaps found anywhere else in `*.py`.
+
+Verified: `tests.test_creator_motion_resilience` and
+`tests.test_decision_auditor` pass individually; full `python run_tests.py`
+(unit tests + both offline benchmarks + correction benchmark) passes clean,
+matching its state before this session's changes.
+
+One git hiccup, consistent with the prior entry's note above: `.git/index.lock`
+briefly blocked a commit while the owner's `tools/dashboard.py` was running
+in the background (`pythonw`, PID 40444, confirmed via its command line).
+Cleared on its own within a few seconds; retried successfully, nothing
+killed or force-removed. Further supports the prior entry's diagnosis that
+a concurrently-running local process -- not necessarily another AI session
+-- is the more likely cause of index.lock contention in this repo.
+
+Commits: de8770f (active-task claim), 1a86b3b (produce_creator_motion.py
+fix), 2ab73e0 (test_decision_auditor.py fix).
+
+---
+
 ## 2026-09-21 — Claude — Published the Venus flytrap short, found a real "false Stage: published" bug
 
 Ran the missing step first (`prepare-youtube-creator --episode-id
