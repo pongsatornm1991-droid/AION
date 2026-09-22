@@ -1,10 +1,10 @@
 {
-  "generated_at": "2026-09-22T06:33:49.716962+00:00",
+  "generated_at": "2026-09-22T06:49:53.018098+00:00",
   "tiles": {
-    "total": 42,
-    "ok": 36,
+    "total": 43,
+    "ok": 35,
     "attn": 2,
-    "running": 1
+    "running": 3
   },
   "groups": [
     {
@@ -71,8 +71,8 @@
           "file": "scientific-discovery.yml",
           "status_class": "success",
           "status_label": "สำเร็จ",
-          "html_url": "https://github.com/pongsatornm1991-droid/AION/actions/runs/35571482555",
-          "created_at": "2026-09-21T07:07:48Z"
+          "html_url": "https://github.com/pongsatornm1991-droid/AION/actions/runs/35696326075",
+          "created_at": "2026-09-22T06:45:56Z"
         },
         {
           "name": "AION - YouTube discovery learning",
@@ -147,8 +147,8 @@
           "file": "youtube-audience.yml",
           "status_class": "success",
           "status_label": "สำเร็จ",
-          "html_url": "https://github.com/pongsatornm1991-droid/AION/actions/runs/35571824117",
-          "created_at": "2026-09-21T07:11:58Z"
+          "html_url": "https://github.com/pongsatornm1991-droid/AION/actions/runs/35696475546",
+          "created_at": "2026-09-22T06:47:56Z"
         },
         {
           "name": "AION - weekly evolution review",
@@ -169,8 +169,8 @@
           "file": "automation-health.yml",
           "status_class": "success",
           "status_label": "ไม่มีเหตุให้ดำเนินการ",
-          "html_url": "https://github.com/pongsatornm1991-droid/AION/actions/runs/35695303686",
-          "created_at": "2026-09-22T06:32:37Z"
+          "html_url": "https://github.com/pongsatornm1991-droid/AION/actions/runs/35696536730",
+          "created_at": "2026-09-22T06:48:46Z"
         },
         {
           "name": "AION - Cyber Guard defensive audit",
@@ -215,10 +215,10 @@
         {
           "name": "AION - deterministic tests",
           "file": "tests.yml",
-          "status_class": "success",
-          "status_label": "สำเร็จ",
-          "html_url": "https://github.com/pongsatornm1991-droid/AION/actions/runs/35694993851",
-          "created_at": "2026-09-22T06:28:35Z"
+          "status_class": "running",
+          "status_label": "กำลังรัน",
+          "html_url": "https://github.com/pongsatornm1991-droid/AION/actions/runs/35696545576",
+          "created_at": "2026-09-22T06:48:53Z"
         },
         {
           "name": "AION - media-library hygiene",
@@ -233,16 +233,16 @@
           "file": "publish-workflow-status.yml",
           "status_class": "running",
           "status_label": "กำลังรัน",
-          "html_url": "https://github.com/pongsatornm1991-droid/AION/actions/runs/35695303659",
-          "created_at": "2026-09-22T06:32:37Z"
+          "html_url": "https://github.com/pongsatornm1991-droid/AION/actions/runs/35696536909",
+          "created_at": "2026-09-22T06:48:46Z"
         },
         {
           "name": "AION - system reliability",
           "file": "system-reliability.yml",
-          "status_class": "success",
-          "status_label": "สำเร็จ",
-          "html_url": "https://github.com/pongsatornm1991-droid/AION/actions/runs/35694993936",
-          "created_at": "2026-09-22T06:28:35Z"
+          "status_class": "running",
+          "status_label": "กำลังรัน",
+          "html_url": "https://github.com/pongsatornm1991-droid/AION/actions/runs/35696545587",
+          "created_at": "2026-09-22T06:48:53Z"
         }
       ]
     },
@@ -273,6 +273,14 @@
           "status_label": "สำเร็จ",
           "html_url": "https://github.com/pongsatornm1991-droid/AION/actions/runs/35690611242",
           "created_at": "2026-09-22T05:24:54Z"
+        },
+        {
+          "name": "AION - YouTube publication drift check",
+          "file": "youtube-publication-drift.yml",
+          "status_class": "success",
+          "status_label": "สำเร็จ",
+          "html_url": "https://github.com/pongsatornm1991-droid/AION/actions/runs/35696325844",
+          "created_at": "2026-09-22T06:45:55Z"
         },
         {
           "name": "AION - YouTube release-window recovery",
