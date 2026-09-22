@@ -13,6 +13,78 @@ Format:
 Commits: <hash> [, <hash> ...]
 ```
 
+## 2026-09-22 — Claude Code — Root-caused "no clip published today" and made the YouTube release schedule self-healing
+
+Owner asked why nothing published today, then asked for the pipeline to be
+100% automatic with no duplicate runs. Investigated with the GitHub Actions
+REST API directly rather than guessing from local files (public repo, no
+auth needed for read-only checks): youtube-creator.yml's own `schedule`
+(cron "30 13 * * *", 20:30 Bangkok) has not produced a single run in 2
+days, even though dozens of this repo's other scheduled workflows fired
+normally in the same window today. Ruled out the obvious alternatives
+before concluding it was GitHub's own scheduler: workflow `state` is
+`active` (not disabled) for youtube-creator.yml and both siblings sharing
+its `aion-youtube-release` concurrency group (youtube-release-recovery.yml,
+youtube-longform.yml, which show the identical 2-day stopped-firing
+pattern), and none of the three has a run stuck `queued`/`in_progress`
+blocking the lane. automation-health.yml cannot catch this class of gap by
+design: it only reacts to a `workflow_run` event, and a schedule that never
+fires produces no event to react to.
+
+While tracing the pipeline, found a second, separate bug: `brain/
+release_readiness.py`'s `is_authorized` check reads `upload_status`, which
+stays `"authorized-for-aion-publish"` even after an episode is actually
+published (publishing adds `youtube.video_id`; it never resets
+`upload_status`). Venus flytrap (published 2026-09-21) was still counted
+as "available" a full day later, so the Shorts buffer reported 1/7 ready
+when the true count was 0/7. Confirmed this was a reporting bug only, not
+a live duplicate-publish risk: the actual publish-selection path
+(`YouTubeCreatorQueue.prepare_once()`'s `eligible` filter) already checks
+`status == "upload-ready"`, which already excludes anything published.
+Fixed by skipping `status == "published"` items outright in the
+readiness count; regression test added
+(`test_does_not_count_an_already_published_episode_as_available`).
+
+Main fix: added `tools/youtube_release_watchdog.py` +
+`.github/workflows/youtube-release-watchdog.yml`, a self-healing check
+that runs on its own independent cron (offset from youtube-creator.yml's,
+so both are not vulnerable to the same drop) and asks one narrow question
+-- has youtube-creator.yml produced any run yet today, at or after its
+scheduled hour? If yes (success, failure, or still running), it does
+nothing; only a genuine absence causes it to dispatch youtube-creator.yml
+itself via the Actions API (`GITHUB_TOKEN`, `actions: write`, no new
+secret). This "already ran today?" gate is exactly what makes it
+impossible for the watchdog to cause a duplicate/extra publish -- combined
+with youtube-creator.yml's own concurrency group and its `upload-ready`-only
+candidate selection, an accidental overlap with a delayed real trigger is
+harmless by construction, not just by convention. Wired the new workflow
+into `automation-health.yml`'s failure watch list. 8 new unit tests, all
+offline (fetch_runs/dispatch always injected fakes, matching this repo's
+existing convention for every other external-API caller). Full
+`run_tests.py` green throughout.
+
+Deliberately did NOT touch instagram-cycle.yml, social-cycle.yml, or
+reel-cycle.yml despite them having no `schedule` trigger at all --
+read their own header comments first and confirmed each is intentionally
+`workflow_dispatch`-only, explicitly superseded by the Creator Studio
+pipeline ("the only automatic release plan" / "the only automatic social
+publisher"). Not a gap; left alone.
+
+Verified after push: the new workflow registered on GitHub with
+`state: active` (checked via the public API). Its first real scheduled
+tick has not been observed yet as of this entry -- worth a follow-up check
+tomorrow to confirm it actually dispatches (or correctly no-ops) as
+designed, and to see whether youtube-creator.yml's own cron resumes firing
+on its own (in which case the watchdog should just quietly no-op every
+tick) or stays silent (in which case the watchdog becomes the de facto
+primary trigger, which is fine by design but worth knowing).
+
+Commits: 410bbaf (active-task claim), b160b8a (release_readiness.py fix +
+test), 075fec0 (watchdog tool + test + workflow + automation-health.yml
+wiring).
+
+---
+
 ## 2026-09-22 — Claude Code — Audited brain/ and tools/ for the same console-flash bug class; found and fixed two more sites
 
 Follow-up to today's three flashing-cmd-window fixes (sync_memory_from_github.py,
