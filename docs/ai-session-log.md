@@ -13,6 +13,81 @@ Format:
 Commits: <hash> [, <hash> ...]
 ```
 
+## 2026-09-22 — Claude Code — Attempted the 3 owner-authorized releases: 2 blocked on a real cover-format gap, 1 withheld as a likely duplicate
+
+Owner explicitly authorized releasing all 3 episodes flagged in the
+pipeline audit above, and said if the octopus one turns out duplicate
+they would check and handle it manually.
+
+**aion-longform-001-yakhchal**: ran the real pipeline locally
+(prepare-youtube-creator -> quality-youtube-creator ->
+run-youtube-creator-publish, --content-kind long-form). prepare and
+quality both passed cleanly (quality-gate-complete, Passed: 1). Publish
+correctly refused: `Stage: invalid-cover` -- the on-disk cover is
+1080x1920 (vertical) but long-form requires widescreen
+(YouTubeCreatorQueue._cover_quality). No upload happened; nothing external
+was touched. Tried to fix it properly (not a workaround): confirmed
+CreatorSceneProduction._cover_exists() is already content-kind-aware and
+would regenerate a correct cover the next time this episode is processed,
+and confirmed its pacing_policy ("fast-cut-subject-first-v1") is in the
+grandfathered set that skips the newer scene gates -- so calling the real
+cover generator directly (tools.openai_image.generate_cover_image, same
+function creator_scene_production.py itself calls) with this episode's own
+_cover_prompt() should have worked. It returned False: this sandbox has
+neither OPENAI_API_KEY/OPENAI_IMAGE_API_KEY set nor the `openai` package
+installed (checked presence only, never read any key value). GitHub
+Actions has that secret; this local machine does not. Did not fall back to
+covering that gap manually (e.g. cropping the existing vertical image) --
+a 1080-wide crop down to 16:9 would throw away ~68% of the vertical
+composition and likely produce a genuinely bad-looking thumbnail, not a
+quality-preserving fix. Left the prepare/quality audit-trail records in
+place (harmless, no external side effect) so a future run can resume
+straight to publish once a real widescreen cover exists.
+Deliberately did NOT revert the episode_number:3 side-effect this run
+added to content/creator_series/aion-longform-001-yakhchal.json (same
+EpisodeNumbering.assign() behavior documented in the 2026-09-21 entry
+above) -- verified it doesn't collide with the only other assigned number
+(Venus flytrap = 2) and this episode is still genuinely on track to
+publish once its cover is fixed, unlike that earlier case where the
+number belonged to a stray record for something already published
+elsewhere.
+
+**aion-wonders-003** (Roman "nobody" episode, filename says
+-roman-nobody but its own `id` field is just aion-wonders-003 -- use the
+`id` field for CLI --episode-id, not the filename): same
+upload-ready/no-blockers state, same vertical-cover problem confirmed via
+_cover_quality. Did not run prepare/publish for it since the outcome is
+already known to be identical; no point creating a second stray
+authorization record for a gap that needs the same real fix.
+
+**aion-auto-85365510840c-00c30e5d** (the octopus-topic short): compared
+its content directly against the already-published
+aion-special-octopus-chromatophores-v1 before attempting anything --
+same wonder_hook wording ("how can an octopus change color... quickly" /
+"...in seconds"), one literally identical source URL
+(oceanexplorer.noaa.gov's same gallery page), no visual_style assigned at
+all (never reached that pipeline stage, unlike every other episode in the
+queue), and a status (quality-blocked-story-and-audio) that nothing in
+the current codebase still sets -- grepped every *.py file, only one
+read-only reference remains in operations_control.py's dashboard
+categorization, meaning this is an orphaned pre-refactor record, not an
+active quality verdict. This reads as a genuine duplicate, not a false
+positive from an overly strict novelty gate. Did not run prepare/publish
+for it at all -- reporting this evidence back to the owner instead,
+matching their own stated fallback (they will check and handle it
+manually if it turns out duplicate).
+
+No YouTube/Instagram/Facebook upload happened for any of the 3 episodes
+this entry. Only harmless local memory audit-trail records were created
+(youtube_creator_queue prepare+quality entries for yakhchal) and one
+source-file metadata write (episode_number). Full run_tests.py green.
+Active-task board closed back to clear.
+
+Commits: 361efa9 (active-task claim); this entry's own commit follows
+(episode_number side effect + this log entry + closing the board).
+
+---
+
 ## 2026-09-22 — Claude Code — Root-caused the real content-production bottleneck; fixed evidence-gathering throughput and a watchdog side effect
 
 Follow-up to this same session's watchdog work above. Owner asked for a
