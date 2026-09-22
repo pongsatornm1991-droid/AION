@@ -1,10 +1,10 @@
 {
-  "generated_at": "2026-09-22T07:47:29.878554+00:00",
+  "generated_at": "2026-09-22T07:48:50.550282+00:00",
   "tiles": {
     "total": 43,
-    "ok": 38,
+    "ok": 39,
     "attn": 1,
-    "running": 2
+    "running": 1
   },
   "groups": [
     {
@@ -168,16 +168,16 @@
           "file": "automation-health.yml",
           "status_class": "success",
           "status_label": "ไม่มีเหตุให้ดำเนินการ",
-          "html_url": "https://github.com/pongsatornm1991-droid/AION/actions/runs/35701291935",
-          "created_at": "2026-09-22T07:46:25Z"
+          "html_url": "https://github.com/pongsatornm1991-droid/AION/actions/runs/35701393833",
+          "created_at": "2026-09-22T07:47:37Z"
         },
         {
           "name": "AION - Cyber Guard defensive audit",
           "file": "cyber-guard.yml",
           "status_class": "success",
           "status_label": "สำเร็จ",
-          "html_url": "https://github.com/pongsatornm1991-droid/AION/actions/runs/35575769141",
-          "created_at": "2026-09-21T08:01:40Z"
+          "html_url": "https://github.com/pongsatornm1991-droid/AION/actions/runs/35701339205",
+          "created_at": "2026-09-22T07:46:57Z"
         },
         {
           "name": "AION - Obsidian brain dashboard",
@@ -232,8 +232,8 @@
           "file": "publish-workflow-status.yml",
           "status_class": "running",
           "status_label": "กำลังรัน",
-          "html_url": "https://github.com/pongsatornm1991-droid/AION/actions/runs/35701243095",
-          "created_at": "2026-09-22T07:45:50Z"
+          "html_url": "https://github.com/pongsatornm1991-droid/AION/actions/runs/35701386505",
+          "created_at": "2026-09-22T07:47:32Z"
         },
         {
           "name": "AION - system reliability",
@@ -260,8 +260,8 @@
         {
           "name": "AION - Creator release readiness",
           "file": "release-readiness.yml",
-          "status_class": "running",
-          "status_label": "กำลังรัน",
+          "status_class": "success",
+          "status_label": "สำเร็จ",
           "html_url": "https://github.com/pongsatornm1991-droid/AION/actions/runs/35701275834",
           "created_at": "2026-09-22T07:46:13Z"
         },
