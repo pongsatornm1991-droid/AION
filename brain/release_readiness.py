@@ -55,6 +55,16 @@ class ReleaseReadiness:
             candidates = []
         available = {"short": []}
         for item in candidates:
+            if item.get("status") == "published":
+                # `publication_status` below is the durable `upload_status`
+                # field, which stays "authorized-for-aion-publish" even after
+                # the episode is actually released -- publishing adds a
+                # youtube.video_id, it does not change upload_status. Without
+                # this check, an already-published episode kept counting as
+                # "available" (found 2026-09-22: Venus flytrap, published
+                # 2026-09-21, still showed up here a full day later), making
+                # the Shorts buffer look one episode healthier than reality.
+                continue
             is_ready = item.get("status") in {"upload-ready", "already-prepared"}
             is_authorized = item.get("publication_status") == "authorized-for-aion-publish"
             # A rendered file or a historical authorization is not proof that
