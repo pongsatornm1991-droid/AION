@@ -13,6 +13,47 @@ Format:
 Commits: <hash> [, <hash> ...]
 ```
 
+## 2026-09-22 — Claude Code — Published the 2 long-form episodes blocked on invalid-cover; both live and verified public
+
+Direct follow-up to this same session's entry immediately below (invalid-
+cover blocker). Owner said to clear both without waiting on a proper
+AI-generated cover, then start fresh.
+
+Wrote a one-off local pillarbox conversion (Pillow, already a dependency,
+no new API call): each episode's existing vertical (1080x1920) cover was
+placed at full height, centered, over a blurred/extended version of
+itself scaled to fill a 1280x720 canvas -- the complete original artwork
+stays visible, nothing is cropped (ruled out yesterday, would have thrown
+away ~68% of the vertical composition) or stretched/distorted. Verified
+both against the real, unmodified YouTubeCreatorQueue._cover_quality()
+before touching the pipeline: both now report eligible=True at 1280x720.
+Sent the owner both resulting cover images before publishing.
+
+Re-ran the unmodified pipeline with no other change:
+- aion-longform-001-yakhchal: publish (prepare+quality already recorded
+  yesterday) went straight to Stage: published, EP. 003,
+  https://www.youtube.com/watch?v=fy4rArLjKVU
+- aion-wonders-003: prepare -> quality-gate-complete (Passed: 1) ->
+  Stage: published, EP. 004, https://www.youtube.com/watch?v=M7QlmCSmmfg
+
+Both independently verified genuinely public via YouTube's own oEmbed
+endpoint (https://www.youtube.com/oembed?url=...&format=json) -- returns
+200 with real embed HTML/title only for a public or unlisted video, 401
+for a private one; both returned 200. Did not just trust the CLI's own
+"Stage: published" text, matching this project's own established
+verification habit after the 2026-09-21 false "Stage: published" bug.
+
+episode_number continued sequentially with no collision (Venus=2,
+yakhchal=3, wonders-003=4), the same EpisodeNumbering.assign() side
+effect documented in earlier entries. Full run_tests.py green. The third
+authorized episode (octopus topic, suspected duplicate) remains withheld
+per the prior entry -- not touched this entry.
+
+Commits: 55c3080 (published covers + episode_number); this entry's own
+commit follows (log + closing the board).
+
+---
+
 ## 2026-09-22 — Claude Code — Attempted the 3 owner-authorized releases: 2 blocked on a real cover-format gap, 1 withheld as a likely duplicate
 
 Owner explicitly authorized releasing all 3 episodes flagged in the
