@@ -13,6 +13,55 @@ Format:
 Commits: <hash> [, <hash> ...]
 ```
 
+## 2026-09-22 — Claude Code — Dropped the Thai-rooted identity pillar; fixed the exact bug behind today's quality_incident
+
+Owner made a deliberate creative-direction call: drop the Thai-rooted
+framing entirely (owner: "the channel has come a long way already"),
+reposition globally with kurzgesagt (youtube.com/@kurzgesagt) as an
+explicit craft benchmark, and improve content quality now.
+
+Removed every Thai-specific mandate from core/manifesto.md,
+core/creator_bible.md, core/visual_identity.md, and
+core/curiosity_constitution.md; reframed as global-by-design (no single
+country/culture) while keeping AION's own actual distinctive asset (the
+translucent, colour-shifting character) untouched -- it was never
+Thai-specific. Pointed to the already-built
+assets/creator-reference-videos.json mechanism (analyze hook/pacing/turn,
+translate the principle, never copy the source) as where to add specific
+kurzgesagt videos -- did not add one myself since I couldn't verify a
+real video ID from this sandbox's browser and won't guess/fabricate a
+YouTube URL. Updated core/platforms.json's home_line tagline to match.
+Added a documented quality-gate line to creator_bible.md: narration must
+actually name/answer its own wonder_hook, describing the standard the
+code fix below enforces.
+
+While reviewing the octopus episode's own scene template for the
+creative-quality discussion, found the actual root cause of half its
+quality_incident: `StoryEpisodeStager._clean()` used a bare `[:limit]`
+character slice that can cut the last word in half -- this is exactly why
+that episode's narration read "...deep reddish pu" instead of "purple".
+`_evidence_parts()`'s own docstring already promised "without cutting a
+sentence mid-word"; the implementation didn't keep that promise. Fixed to
+trim back to the last whole word. Separately, the short-form "connection"
+beat (scene 9 of 12) said only "Together, these two observations give us
+a clearer picture of {topic}" verbatim for every episode regardless of
+topic -- a content-free transition, matching the incident's other reason
+("generic-template-story-does-not-explain-topic"). It now restates what
+both sources actually documented, together, using only their own sourced
+observations -- nothing invented.
+
+2 new regression tests. Full tests.test_story_episode_stager (6 tests)
+and run_tests.py green. Did not touch the long-form template's
+equivalent "compare" bridge beat -- it sits among ~24-40 real
+evidence-carrying beats there, a much smaller share of the story than in
+the 12-beat short form, so left it for a future pass rather than
+expanding scope further this entry.
+
+Commits: 75a8c3e (task claim), fa750fd (identity docs), 1710a48 (the
+_clean + connection-beat fix).
+
+---
+
 ## 2026-09-22 — Claude Code — Retired the broken octopus episode instead of publishing it; found and fixed a second unenforced quarantine, added a durable status-hygiene test
 
 Direct follow-up to this same session's two entries below. Owner
