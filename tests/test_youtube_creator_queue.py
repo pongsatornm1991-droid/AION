@@ -140,6 +140,73 @@ class YouTubeCreatorQueueTests(unittest.TestCase):
             self.assertFalse(candidates["nostyle"]["release_eligible"])
             self.assertIn("visual-style-not-approved-for-release", candidates["nostyle"]["release_blockers"])
 
+    def test_unresolved_quality_incident_blocks_release_even_when_status_says_ready(self):
+        # Regression for 2026-09-22: an episode was almost re-offered for
+        # release because its status string ("quality-blocked-story-and-
+        # audio") simply didn't match READY_STATUS -- an accident of
+        # spelling, not an enforced gate. A quality_incident block must
+        # block release_eligible on its own facts, regardless of status.
+        with tempfile.TemporaryDirectory() as root:
+            self._episode(root)
+            root = Path(root)
+            broken = __import__("json").loads((root / "content" / "creator_series" / "episode.json").read_text(encoding="utf-8"))
+            broken.update({
+                "id": "broken",
+                "title": "Narration cuts off",
+                "quality_incident": {
+                    "state": "blocked",
+                    "reasons": ["narration-ends-before-final-scene"],
+                    "action": "Do not reuse; rebuild from a fresh script.",
+                },
+            })
+            (root / "content" / "creator_series" / "broken.json").write_text(
+                __import__("json").dumps(broken), encoding="utf-8"
+            )
+            (root / "content" / "reels" / "episode.mp4").write_bytes(b"new")
+            (root / "content" / "reels" / "broken.mp4").write_bytes(b"defective")
+            (root / "content" / "reels" / "broken-cover.png").write_bytes(b"png")
+            queue = YouTubeCreatorQueue(MemoryEngine(root / "memory"), root)
+            candidates = {item["episode_id"]: item for item in queue.candidates()}
+            self.assertEqual("production-ready-assets-and-script", broken["status"])
+            self.assertFalse(candidates["broken"]["release_eligible"])
+            self.assertIn("unresolved-quality-incident", candidates["broken"]["release_blockers"])
+            self.assertEqual(
+                "episode",
+                queue.prepare_once()["episode_id"],
+                "the broken episode must never win automatic selection either",
+            )
+            self.assertEqual(
+                "no-upload-ready-creator-episode",
+                queue.prepare_once(episode_id="broken")["stage"],
+                "an explicit --episode-id request must also refuse it",
+            )
+
+    def test_a_quality_incident_marked_resolved_no_longer_blocks_release(self):
+        with tempfile.TemporaryDirectory() as root:
+            self._episode(root)
+            root = Path(root)
+            fixed = __import__("json").loads((root / "content" / "creator_series" / "episode.json").read_text(encoding="utf-8"))
+            fixed.update({
+                "id": "fixed",
+                "title": "Rebuilt after the incident",
+                # The historical reasons/action stay on file as an audit
+                # record; only `state` needs to change once genuinely rebuilt.
+                "quality_incident": {
+                    "state": "resolved",
+                    "reasons": ["narration-ends-before-final-scene"],
+                    "action": "Rebuilt with a topic-specific script; see commit history.",
+                },
+            })
+            (root / "content" / "creator_series" / "fixed.json").write_text(
+                __import__("json").dumps(fixed), encoding="utf-8"
+            )
+            (root / "content" / "reels" / "episode.mp4").write_bytes(b"new")
+            (root / "content" / "reels" / "fixed.mp4").write_bytes(b"rebuilt")
+            (root / "content" / "reels" / "fixed-cover.png").write_bytes(b"png")
+            queue = YouTubeCreatorQueue(MemoryEngine(root / "memory"), root)
+            candidates = {item["episode_id"]: item for item in queue.candidates()}
+            self.assertNotIn("unresolved-quality-incident", candidates["fixed"]["release_blockers"])
+
     def test_publishes_authorized_episode_once_when_project_policy_delegates_it(self):
         with tempfile.TemporaryDirectory() as root:
             self._episode(root)

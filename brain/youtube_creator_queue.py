@@ -140,6 +140,21 @@ class YouTubeCreatorQueue:
             # only gates new entries to the upload-ready queue.
             if (episode.get("visual_style") or {}).get("approved") is not True:
                 release_blockers.append("visual-style-not-approved-for-release")
+            # An incident record (e.g. "narration ends before the final
+            # scene") must block release on its own facts, never on whether
+            # someone also remembered to spell a matching `status` value.
+            # Found 2026-09-22: an episode's own status
+            # ("quality-blocked-story-and-audio") happened not to match
+            # READY_STATUS, which was the *only* reason it was never
+            # offered for release -- an accident of spelling, not an
+            # enforced gate. A later status edit (or a differently-named
+            # incident) would have slipped straight through. Set
+            # quality_incident.state to anything other than "blocked" (or
+            # remove the block) once the episode has genuinely been
+            # rebuilt; the historical reasons/action can stay on file
+            # either way as an audit record.
+            if (episode.get("quality_incident") or {}).get("state") == "blocked":
+                release_blockers.append("unresolved-quality-incident")
             retired = episode.get("status") == self.RETIRED_STATUS
             previous = recorded.get(episode["id"])
             stage = self._pipeline_stage(episode, previous, video_path.is_file())
