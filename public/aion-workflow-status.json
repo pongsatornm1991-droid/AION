@@ -1,10 +1,10 @@
 {
-  "generated_at": "2026-09-22T15:04:49.800814+00:00",
+  "generated_at": "2026-09-22T15:06:06.982007+00:00",
   "tiles": {
     "total": 42,
-    "ok": 37,
-    "attn": 1,
-    "running": 2
+    "ok": 38,
+    "attn": 2,
+    "running": 1
   },
   "groups": [
     {
@@ -167,9 +167,9 @@
           "name": "AION - Automation Health Monitor",
           "file": "automation-health.yml",
           "status_class": "success",
-          "status_label": "ไม่มีเหตุให้ดำเนินการ",
-          "html_url": "https://github.com/pongsatornm1991-droid/AION/actions/runs/35744708925",
-          "created_at": "2026-09-22T15:03:58Z"
+          "status_label": "สำเร็จ",
+          "html_url": "https://github.com/pongsatornm1991-droid/AION/actions/runs/35744762729",
+          "created_at": "2026-09-22T15:04:25Z"
         },
         {
           "name": "AION - Cyber Guard defensive audit",
@@ -232,8 +232,8 @@
           "file": "publish-workflow-status.yml",
           "status_class": "running",
           "status_label": "กำลังรัน",
-          "html_url": "https://github.com/pongsatornm1991-droid/AION/actions/runs/35744679737",
-          "created_at": "2026-09-22T15:03:44Z"
+          "html_url": "https://github.com/pongsatornm1991-droid/AION/actions/runs/35744762701",
+          "created_at": "2026-09-22T15:04:25Z"
         },
         {
           "name": "AION - system reliability",
@@ -260,10 +260,11 @@
         {
           "name": "AION - Creator release readiness",
           "file": "release-readiness.yml",
-          "status_class": "running",
-          "status_label": "กำลังรัน",
+          "status_class": "failure",
+          "status_label": "ล้มเหลว",
           "html_url": "https://github.com/pongsatornm1991-droid/AION/actions/runs/35744663167",
-          "created_at": "2026-09-22T15:03:35Z"
+          "created_at": "2026-09-22T15:03:35Z",
+          "detail": "ขั้นที่ล้มเหลว: Commit the visible readiness record"
         },
         {
           "name": "AION - Instagram feedback",
