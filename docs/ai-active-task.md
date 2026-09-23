@@ -11,6 +11,6 @@ Owner: none
 Started: n/a
 Lease expires: n/a
 Scope: No active cross-session edit claim.
-Handoff: Production control reports episode state, image-file QA, provider
-configuration state and report freshness. It intentionally never invents
-quota, visual-semantic, or audience claims it cannot verify.
+Handoff: Operations Dashboard now surfaces the truthful public production
+control report. It intentionally never invents quota, visual-semantic, or
+audience claims it cannot verify.

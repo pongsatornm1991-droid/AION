@@ -13,6 +13,16 @@ Format:
 Commits: <hash> [, <hash> ...]
 ```
 
+## 2026-09-23 — Codex — Put truthful production control in Operations Dashboard
+
+The Operations API now reads the hourly production-control report, and its
+dashboard view shows the actual Shorts buffer, blocked episodes, file/report
+freshness, and provider configuration state. It deliberately distinguishes
+configured access from an unverified provider quota. Added regression
+coverage; dashboard and production-control tests pass (11 tests).
+
+Commits: 30366cd
+
 ## 2026-09-23 — Codex — Added truthful automated production control
 
 Added an hourly production-control workflow and public report with an
