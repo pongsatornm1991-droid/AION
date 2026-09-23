@@ -13,6 +13,14 @@ Format:
 Commits: <hash> [, <hash> ...]
 ```
 
+## 2026-09-23 — Codex — Prevented Recovery Lane from reopening rejected topics
+
+Recovery selection now includes historical recovery decisions, not only live
+questions, so a completed or evidence-rejected topic is retained for learning
+but cannot be selected again while the Shorts buffer is low. Focused pipeline
+tests: 40 passed.
+Commits: 62d4e3b
+
 ## 2026-09-23 — Codex — Blocked off-topic source pairs before paid Shorts production
 
 An automated recovery storyboard had two real URLs but both recorded observations
