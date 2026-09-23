@@ -6,11 +6,12 @@ a historical log: replace this block when taking a task, and set status to
 `clear` when handing off. A claim expires at its stated time so a crashed
 session never blocks the company indefinitely.
 
-Status: clear
-Owner: none
-Started: n/a
-Lease expires: n/a
-Scope: No active cross-session edit claim.
-Handoff: Audio-driven timing is live: real narration extends its current
-visual hold (5–7 seconds), never speeds up voice, and the measured timeline
-flows from preflight to render and subtitle timing.
+Status: active
+Owner: Codex
+Started: 2026-09-23 20:45 ICT
+Lease expires: 2026-09-24 00:45 ICT
+Scope: Restore the blocked research-to-Shorts pipeline and publish one new
+quality-gated signature-style Short today; diagnose and repair the upstream
+queue bottleneck without using a legacy episode as a substitute.
+Handoff: In progress. Do not overlap Creator queue, research-to-story, scene
+production, assembly, or today's YouTube release path.
