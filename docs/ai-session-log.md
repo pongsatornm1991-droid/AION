@@ -1664,3 +1664,12 @@ Added regression assertions for all four data reports. Targeted dashboard
 suite: 8/8 passing; `py_compile` passing. Browser validation also confirmed
 the board renders live values and direct workflow links after correcting one
 client-side syntax error found during that validation.
+
+## 2026-09-24 — Codex — Made the daily dashboard unambiguous
+
+The owner confirmed the proposed navigation simplification. The root route
+now serves the Operations production board, while the former broad
+observatory is explicitly secondary at `/observatory`. Studio remains the
+episode-level production view; Learning, Cyber, Lab, and Finance remain
+specialist views rather than competing daily dashboards. Dashboard suite
+remained 8/8 passing.

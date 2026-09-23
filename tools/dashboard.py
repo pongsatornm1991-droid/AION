@@ -1132,7 +1132,12 @@ class DashboardHandler(BaseHTTPRequestHandler):
                 return
             self._send((DASHBOARD_DIR / "workspace.html").read_text(encoding="utf-8"), "text/html; charset=utf-8")
             return
-        if path in ("/", "/index.html"):
+        # The operational board is the daily dashboard.  The older, broad
+        # observatory remains available only as an explicitly secondary view.
+        if path in ("/", "/operations", "/operations/"):
+            self._send((DASHBOARD_DIR / "operations.html").read_text(encoding="utf-8"), "text/html; charset=utf-8")
+            return
+        if path in ("/observatory", "/observatory/", "/index.html"):
             self._send((DASHBOARD_DIR / "index.html").read_text(encoding="utf-8"), "text/html; charset=utf-8")
             return
         if path.startswith("/content/reels/"):

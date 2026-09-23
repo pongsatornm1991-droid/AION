@@ -11,7 +11,6 @@ Owner: —
 Started: —
 Lease expires: —
 Scope: —
-Handoff: 2026-09-24 Codex replaced /operations with a compact evidence-first
-production board. It reads only the four durable public reports and exposes
-release-ready Shorts, active episodes, active blockers, delivery evidence,
-and non-success workflow links.
+Handoff: 2026-09-24 Codex made the evidence-first Operations board the
+Dashboard home route. The broad legacy observatory now lives at /observatory;
+Studio and specialist rooms remain explicit secondary views.
