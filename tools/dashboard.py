@@ -901,6 +901,10 @@ def build_operations_center_snapshot(memory_root=None):
     control = OperationsControlTower(MemoryEngine(configured), ROOT).snapshot()
     registry = CompanyWorkRegistry(ROOT).snapshot()
     quality = CompanyQualityAudit(ROOT).snapshot()
+    try:
+        production_control = json.loads((ROOT / "public" / "aion-production-control.json").read_text(encoding="utf-8"))
+    except (OSError, ValueError, TypeError):
+        production_control = {"state": "waiting", "shorts_buffer": {}, "episodes": [], "provider_health": {}, "release_artifact_freshness": {}}
     studio = build_studio_snapshot(memory_root).get("scene_production", {})
     departments = registry.get("departments") or []
     active = [item for item in departments if item.get("state") == "running"]
@@ -914,6 +918,7 @@ def build_operations_center_snapshot(memory_root=None):
         },
         "departments": departments,
         "quality": quality,
+        "production_control": production_control,
         "studio": studio,
         "control": control,
         "boundary": "ห้องนี้สังเกตและรายงานการส่งต่องานเท่านั้น ไม่เผยแพร่แทน Studio ไม่แก้สิทธิ์บัญชี และไม่แตะเงินหรือข้อมูลรับรอง",

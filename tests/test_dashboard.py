@@ -4,12 +4,20 @@ import unittest
 from pathlib import Path
 
 from brain.memory import MemoryEngine
-from tools.dashboard import build_snapshot, build_studio_snapshot
+from tools.dashboard import build_operations_center_snapshot, build_snapshot, build_studio_snapshot
 from tools.dashboard import _operational_snapshot
 from brain.admin_operations import AdminOperations
 
 
 class DashboardTests(unittest.TestCase):
+    def test_operations_center_exposes_production_control_report(self):
+        snapshot = build_operations_center_snapshot()
+
+        self.assertIn("production_control", snapshot)
+        report = snapshot["production_control"]
+        self.assertIn("shorts_buffer", report)
+        self.assertIn("episodes", report)
+
     def test_studio_snapshot_separates_creator_rooms(self):
         snapshot = build_studio_snapshot()
         self.assertEqual(5, len(snapshot["rooms"]))
