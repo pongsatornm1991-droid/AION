@@ -7,16 +7,10 @@ a historical log: replace this block when taking a task, and set status to
 session never blocks the company indefinitely.
 
 Status: clear
-Owner: Codex
-Started: 2026-09-23 08:15 UTC
+Owner: none
+Started: n/a
 Lease expires: n/a
-Scope: RESOLVED. `social_signals` is an enabled, real bounded adapter over
-already-captured public YouTube/Instagram metrics. It routes platform-metric
-questions without using encyclopedia sources and waits without spending the
-question budget when no snapshot exists. The confirmed signature remains
-`aion-neon-diorama-3d-v1`. Daily Shorts handoffs were audited: research briefs,
-story handoffs, and Studio staging already run in batches of five; the empty
-buffer is an honest new-evidence shortage, not a queue bottleneck. Full suite
-passed (954 tests). Channel naming remains an open owner decision.
-Handoff: Preserve user-owned untracked directories. Read AGENTS.md and the
-latest session log before new work.
+Scope: No active cross-session edit claim.
+Handoff: Daily Shorts policy is centralized in `core/channel_policy.json`.
+The current release buffer is intentionally reported as critical until seven
+new, Quality-Gate-passed episodes exist; do not relabel an empty queue green.

@@ -13,6 +13,19 @@ Format:
 Commits: <hash> [, <hash> ...]
 ```
 
+## 2026-09-23 — Codex — Unified the real daily Shorts operating policy
+
+Added `core/channel_policy.json` as the one factual source for Wait, How?,
+@waithow-aion, daily 20:30 Bangkok Shorts, a seven-episode Quality-Gate
+buffer, and the locked `aion-neon-diorama-3d-v1` automatic-release style.
+Dashboard/readiness now show a shortage as critical instead of pretending a
+green technical workflow equals a ready release; both queue preparation and
+the final YouTube quality gate block old or unknown visual styles. Reconciled
+the platform metadata, calendar, documentation, and paused long-form workflow
+references. Full suite: 956 tests + both offline benchmarks passed.
+
+Commits: b9ddcbd
+
 ## 2026-09-23 — Codex — Activated real `social_signals` learning evidence
 
 Enabled the registry source and added `brain/social_signals_source.py`, a
