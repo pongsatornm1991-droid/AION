@@ -18,6 +18,62 @@ class AudioVisualTimingGate:
     # Story must add narration or Visual must shorten the approved plan.
     MAX_TRAILING_SILENCE_SECONDS = 0.50
     MAX_SCENE_SECONDS = 7
+    MIN_SCENE_SECONDS = 5
+    # A small image hold after the final word makes a cut feel intentional.
+    # It is a visual extension, never an instruction to speed up or trim voice.
+    END_HOLD_SECONDS = 0.30
+
+    @classmethod
+    def plan_scene(cls, audio_seconds, authored_seconds=None):
+        """Build the paid-production timeline from the *actual* narration.
+
+        Storyboards retain their five-second authored beat, but rendering is
+        allowed to hold the current picture for the narrator's natural cadence
+        up to seven seconds.  A line that cannot fit in that safe window is
+        returned before the remaining scenes are generated; no voice is sped
+        up and no completed assets are discarded.
+        """
+        try:
+            audio = float(audio_seconds)
+            authored = float(authored_seconds or cls.MIN_SCENE_SECONDS)
+        except (TypeError, ValueError):
+            return {
+                "eligible": False,
+                "state": "return-to-story",
+                "reasons": ["invalid-audio-or-storyboard-duration"],
+                "detail": "อ่านความยาวเสียงจริงไม่ได้ จึงยังวาง timeline ฉากนี้ไม่ได้",
+            }
+        if audio <= 0 or authored <= 0:
+            return {
+                "eligible": False,
+                "state": "return-to-story",
+                "reasons": ["non-positive-audio-or-storyboard-duration"],
+                "detail": "เสียงและจังหวะบทต้องยาวกว่า 0 วินาที",
+            }
+        required = audio + cls.END_HOLD_SECONDS
+        if required > cls.MAX_SCENE_SECONDS:
+            return {
+                "eligible": False,
+                "state": "return-to-story",
+                "reasons": ["narration-exceeds-safe-scene-window"],
+                "audio_seconds": round(audio, 2),
+                "maximum_scene_seconds": cls.MAX_SCENE_SECONDS,
+                "detail": (
+                    f"เสียงฉากนี้ยาว {audio:.2f} วินาที เกินช่วงปลอดภัย {cls.MAX_SCENE_SECONDS} วินาที — "
+                    "แยกเป็นสองประโยค/สองฉาก หรือย่อบทก่อนสร้างภาพเพิ่ม"
+                ),
+            }
+        visual = max(cls.MIN_SCENE_SECONDS, authored, required)
+        return {
+            "eligible": True,
+            "state": "pass",
+            "reasons": [],
+            "audio_seconds": round(audio, 2),
+            "visual_seconds": round(visual, 2),
+            "hold_seconds": round(visual - audio, 2),
+            "action": "extend-current-visual" if visual > authored else "keep-authored-beat",
+            "detail": "ใช้เสียงจริงกำหนดความยาวฉาก; ภาพค้างต่ออย่างนุ่มนวลหลังประโยคจบ",
+        }
 
     @classmethod
     def assess(cls, audio_seconds, visual_seconds, max_trailing_silence=None):

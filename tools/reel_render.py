@@ -63,35 +63,6 @@ def _audio_duration(ffmpeg, audio_path):
     return _duration_from_probe_text(f"{result.stdout}\n{result.stderr}")
 
 
-def _fit_scene_audio(ffmpeg, audio_path, actual_seconds, scene_seconds):
-    """Make a near-miss narration fit its approved visual beat exactly.
-
-    Provider speed is a request, not a duration guarantee. This final local
-    correction runs only when a real synthesized line misses its five-second
-    boundary and keeps the audible words intact rather than trimming an ending.
-    """
-    if not actual_seconds or not scene_seconds:
-        return False
-    tempo = float(actual_seconds) / max(float(scene_seconds) - 0.1, 0.1)
-    if not 0.75 <= tempo <= 1.25:
-        return False
-    source = str(audio_path)
-    temporary = source + ".fitted.mp3"
-    try:
-        subprocess.run(
-            [ffmpeg, "-y", "-i", source, "-filter:a", f"atempo={tempo:.5f}",
-             "-vn", temporary],
-            check=True, capture_output=True, text=True, creationflags=_NO_WINDOW,
-        )
-        if not os.path.isfile(temporary) or not os.path.getsize(temporary):
-            return False
-        os.replace(temporary, source)
-        return True
-    except (OSError, subprocess.SubprocessError):
-        return False
-    finally:
-        if os.path.isfile(temporary):
-            os.unlink(temporary)
 # AION is a recurring character, not an interchangeable abstract background.
 # These scenes give each narration a recognisable visual presence while still
 # allowing the thought to choose its atmosphere.
@@ -213,7 +184,7 @@ def render_reel_cover(hook, thought, output_path, mood=None, still_paths=None):
 
 def render_reel(hook, thought, output_path, duration=18, mood=None, still_paths=None,
                 max_scene_seconds=10, frame_size=REEL_SIZE, scene_narrations=None,
-                motion_paths=None):
+                motion_paths=None, scene_durations=None):
     """Create a paced AION video in vertical or true widescreen format."""
     ffmpeg = shutil.which("ffmpeg")
     if not ffmpeg:
@@ -233,8 +204,14 @@ def render_reel(hook, thought, output_path, duration=18, mood=None, still_paths=
     motion = [str(path) for path in (motion_paths or []) if os.path.isfile(path)]
     if motion and len(motion) != len(stills):
         raise ValueError("Creator motion must contain exactly one source video for each visual scene.")
+    planned_durations = [float(item) for item in (scene_durations or [])]
+    if planned_durations and len(planned_durations) != len(stills):
+        raise ValueError("Creator timing plan must contain exactly one duration for each visual scene.")
     seconds_per_scene = duration / len(stills)
-    if not 5 <= seconds_per_scene <= max_scene_seconds:
+    if planned_durations:
+        if any(not 5 <= item <= max_scene_seconds for item in planned_durations):
+            raise ValueError(f"AION Creator timing plan must keep every scene between 5 and {max_scene_seconds} seconds.")
+    elif not 5 <= seconds_per_scene <= max_scene_seconds:
         raise ValueError(
             f"AION Creator scenes must last 5–{max_scene_seconds} seconds each; "
             f"received {len(stills)} scenes across {duration} seconds."
@@ -265,36 +242,21 @@ def render_reel(hook, thought, output_path, duration=18, mood=None, still_paths=
             # A visual may breathe briefly after a sentence, but never for an
             # entire scene. The final full-episode check remains stricter.
             actual_seconds = _audio_duration(ffmpeg, scene_audio)
-            # Preserve natural narration: a five-second beat may expand to
-            # seven seconds, and only then do we repair unusually long audio.
-            visual_seconds = seconds_per_scene
-            if actual_seconds and actual_seconds > seconds_per_scene + 0.25:
-                visual_seconds = min(float(actual_seconds) + 0.1, float(max_scene_seconds))
-            timing = AudioVisualTimingGate.assess(actual_seconds, visual_seconds)
-            if not timing["eligible"] and actual_seconds:
-                # Use the same bounded automatic timing correction as the
-                # preflight. This prevents an image-ready episode from
-                # failing later just because the natural voice cadence moved
-                # by a fraction of a second between two provider calls.
-                target = max(seconds_per_scene - 0.1, 0.1)
-                speed = max(0.75, min(1.25, float(actual_seconds) / target))
-                if synthesize_reel_voice(narration, scene_audio, speed=speed):
-                    timing = AudioVisualTimingGate.assess(
-                        _audio_duration(ffmpeg, scene_audio), visual_seconds
-                    )
-            if not timing["eligible"] and _fit_scene_audio(
-                ffmpeg, scene_audio, _audio_duration(ffmpeg, scene_audio), visual_seconds
-            ):
-                timing = AudioVisualTimingGate.assess(
-                    _audio_duration(ffmpeg, scene_audio), visual_seconds
-                )
+            # Voice leads the timeline.  The existing image (or motion clip)
+            # simply holds longer when needed, rather than speeding up words
+            # or cutting the last phrase.  The preflight plan is a useful
+            # prediction; final synthesis remains the source of truth.
+            # A stored preflight plan is advisory only.  The freshly rendered
+            # voice is authoritative, so a shorter re-synthesis does not
+            # leave an awkward extra hold from yesterday's measurement.
+            timing = AudioVisualTimingGate.plan_scene(actual_seconds, AudioVisualTimingGate.MIN_SCENE_SECONDS)
             if not timing["eligible"]:
                 temporary_audio.cleanup()
                 raise AudioTimingError(
                     f"audio-visual-timing-failed: ฉาก {index + 1}: {timing['detail']}"
                 )
             scene_audio_paths.append(scene_audio)
-            scene_durations.append(visual_seconds)
+            scene_durations.append(float(timing["visual_seconds"]))
         has_voice = True
     else:
         has_voice = synthesize_reel_voice(f"{hook}. {thought}", audio)

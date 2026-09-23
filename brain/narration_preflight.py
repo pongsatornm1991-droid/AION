@@ -52,22 +52,10 @@ class NarrationPreflight:
                     checks.append({"scene": index, "eligible": False, "reason": "voice-synthesis-failed"})
                     continue
                 actual_seconds = duration_reader(audio)
-                timing = AudioVisualTimingGate.assess(actual_seconds, scene_seconds)
-                # The previous design merely reported a 0.26-second mismatch
-                # and required a person to rewrite the beat.  OpenAI speech
-                # supports a safe speed range, so repair the timing first and
-                # only return a genuine provider/asset failure to Story.
-                if not timing["eligible"] and actual_seconds:
-                    target = max(scene_seconds - 0.1, 0.1)
-                    speed = max(0.75, min(1.25, float(actual_seconds) / target))
-                    try:
-                        repaired = synthesize(narration, audio, speed=speed)
-                    except TypeError:
-                        repaired = False
-                    if repaired:
-                        timing = AudioVisualTimingGate.assess(duration_reader(audio), scene_seconds)
-                        timing["auto_timed"] = timing["eligible"]
-                        timing["speed"] = round(speed, 3)
+                # Real speech leads the visual timeline.  Never alter voice
+                # speed merely to force an authored five-second beat: the
+                # current image can hold naturally up to seven seconds.
+                timing = AudioVisualTimingGate.plan_scene(actual_seconds, scene_seconds)
                 checks.append({"scene": index, **timing})
         failures = [item for item in checks if not item.get("eligible")]
         return {
@@ -76,5 +64,6 @@ class NarrationPreflight:
             "episode_id": episode.get("id"),
             "checks": checks,
             "reasons": [f"scene-{item['scene']}:{','.join(item.get('reasons') or [item.get('reason', 'timing-failed')])}" for item in failures],
-            "detail": "เสียงทุกฉากพอดีกับภาพ 5 วินาที ก่อนเริ่มผลิตภาพ" if not failures else "มีบทที่ยาวหรือสั้นเกินจังหวะภาพ ส่งกลับฝ่ายเรื่องเล่าก่อนสร้างภาพ",
+            "scene_durations": [item.get("visual_seconds") for item in checks if item.get("eligible")],
+            "detail": "เสียงจริงกำหนด timeline ทุกฉากก่อนเริ่มผลิตภาพ" if not failures else "มีบทที่ยาวเกินช่วงปลอดภัย ส่งกลับฝ่ายเรื่องเล่าก่อนสร้างภาพ",
         }

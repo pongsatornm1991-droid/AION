@@ -34,3 +34,14 @@ class AudioVisualTimingGateTests(unittest.TestCase):
         report = AudioVisualTimingGate.assess(None, 120)
         self.assertFalse(report["eligible"])
         self.assertIn("invalid-audio", report["reasons"][0])
+
+    def test_real_voice_extends_the_current_visual_without_speeding_it_up(self):
+        report = AudioVisualTimingGate.plan_scene(5.4, 5)
+        self.assertTrue(report["eligible"])
+        self.assertEqual("extend-current-visual", report["action"])
+        self.assertAlmostEqual(5.7, report["visual_seconds"])
+
+    def test_returns_only_an_unsafely_long_scene_to_story_before_paid_images(self):
+        report = AudioVisualTimingGate.plan_scene(6.8, 5)
+        self.assertFalse(report["eligible"])
+        self.assertIn("narration-exceeds-safe-scene-window", report["reasons"])

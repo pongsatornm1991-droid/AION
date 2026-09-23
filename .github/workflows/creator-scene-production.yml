@@ -41,7 +41,7 @@ jobs:
           REEL_VOICE: ${{ vars.REEL_VOICE || 'nova' }}
           OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
           OPENAI_IMAGE_API_KEY: ${{ secrets.OPENAI_IMAGE_API_KEY }}
-        run: python tools/preflight_creator_narration.py --require-eligible
+        run: python tools/preflight_creator_narration.py --require-eligible --write-timeline
       - name: Preflight image production configuration
         env:
           OPENAI_IMAGE_API_KEY: ${{ secrets.OPENAI_IMAGE_API_KEY }}

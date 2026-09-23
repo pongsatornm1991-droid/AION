@@ -119,15 +119,28 @@ def assemble_once(root=ROOT, episode_id=None, renderer=render_reel):
         return {"stage": "scene-pacing-policy-failed", "episode_id": episode["id"], "scene_seconds": seconds}
     output = root / "content" / "reels" / f"{episode['id']}.mp4"
     narration = " ".join(str(scene.get("narration") or "").strip() for scene in scenes)
+    timeline = episode.get("audio_visual_timeline") or {}
+    planned_durations = timeline.get("scene_durations") or []
+    if planned_durations and len(planned_durations) != len(scenes):
+        return {"stage": "audio-timeline-invalid", "episode_id": episode["id"],
+                "error": "scene duration count does not match storyboard"}
+    if planned_durations and any(
+        not VisualStoryPolicy.MIN_SCENE_SECONDS <= float(item) <= VisualStoryPolicy.MAX_RENDERED_SCENE_SECONDS
+        for item in planned_durations
+    ):
+        return {"stage": "audio-timeline-invalid", "episode_id": episode["id"],
+                "error": "a planned visual hold is outside the safe 5–7 second window"}
+    render_duration = sum(float(item) for item in planned_durations) if planned_durations else int(episode["target_duration_seconds"])
     try:
         frame_size = REEL_SIZE if episode.get("format") == "illustrated-narrated-short" else WIDESCREEN_SIZE
         renderer(episode["wonder_hook"], narration, str(output),
-                 duration=int(episode["target_duration_seconds"]),
+                 duration=render_duration,
                  still_paths=[str(image) for image in images],
                  motion_paths=[str(path) for path in motion] if use_motion else None,
                  max_scene_seconds=VisualStoryPolicy.MAX_RENDERED_SCENE_SECONDS,
                  frame_size=frame_size,
-                 scene_narrations=[str(scene.get("narration") or "").strip() for scene in scenes])
+                 scene_narrations=[str(scene.get("narration") or "").strip() for scene in scenes],
+                 scene_durations=planned_durations or None)
     except AudioTimingError as exc:
         return {"stage": "audio-timing-failed", "episode_id": episode["id"], "error": str(exc)}
     except Exception as exc:
