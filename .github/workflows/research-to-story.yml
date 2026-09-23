@@ -39,22 +39,22 @@ jobs:
         # which loads dotenv.  Installing the declared runtime here prevents
         # a healthy research brief from dying at the handoff boundary.
         run: python -m pip install --disable-pip-version-check -r requirements.txt
-      - name: Prepare one evidence-grounded story brief
+      - name: Prepare up to five evidence-grounded story briefs
         env:
           AION_MEMORY_ROOT: memory_data
-        run: python tools/run_research_to_story.py
-      - name: Hand the qualified brief to the Story Agent
+        run: python tools/run_research_to_story.py --limit 5
+      - name: Hand qualified briefs to the Story Agent
         env:
           AION_MEMORY_ROOT: memory_data
-        run: python tools/run_research_story_handoff.py
-      - name: Stage one evidence-grounded storyboard for AION Studio
+        run: python tools/run_research_story_handoff.py --limit 5
+      - name: Stage up to five evidence-grounded storyboards for AION Studio
         env:
           AION_MEMORY_ROOT: memory_data
           AI_PROVIDER: ${{ vars.AI_PROVIDER || 'gemini' }}
           GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
           OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
           OPENAI_MODEL: ${{ vars.OPENAI_MODEL || 'gpt-5' }}
-        run: python tools/stage_creator_episode.py
+        run: python tools/stage_creator_episode.py --limit 5
       - name: Persist the private brief
         uses: ./.github/actions/commit-and-push
         with:
