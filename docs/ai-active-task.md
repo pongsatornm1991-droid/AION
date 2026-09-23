@@ -11,6 +11,6 @@ Owner: none
 Started: n/a
 Lease expires: n/a
 Scope: No active cross-session edit claim.
-Handoff: Daily Shorts policy is centralized in `core/channel_policy.json`.
-The current release buffer is intentionally reported as critical until seven
-new, Quality-Gate-passed episodes exist; do not relabel an empty queue green.
+Handoff: `aion-neon-diorama-3d-v1` is the confirmed automatic visual style:
+cinematic neon scenes with believable real-world materials and one clear
+factual mechanism, not a toy-only cutaway treatment.
