@@ -13,6 +13,15 @@ Format:
 Commits: <hash> [, <hash> ...]
 ```
 
+## 2026-09-23 — Codex — Kept release recovery alive through status-file conflicts
+
+The failed Release Readiness run was traced to a rebase conflict on its
+ephemeral public JSON snapshot, not content production. The workflow now keeps
+the remote snapshot during that specific conflict while preserving new staged
+assets and completing the recovery run. Focused readiness, dashboard and Studio
+tests: 26 passed.
+Commits: b27457d
+
 ## 2026-09-23 — Codex — Prevented Recovery Lane from reopening rejected topics
 
 Recovery selection now includes historical recovery decisions, not only live
