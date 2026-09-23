@@ -23,7 +23,7 @@ passed recorded visual-asset QA in addition to the style and existing video
 Quality Gates. Provider quota is deliberately reported as unknown unless a
 provider API can verify it; no dashboard claim is fabricated.
 
-Commits: 3b383e9
+Commits: 57a2297, 34f5d54
 
 ## 2026-09-23 — Codex — Restored the confirmed cinematic neon visual direction
 
