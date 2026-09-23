@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-09-23T10:00:07.276421+00:00",
+  "generated_at": "2026-09-23T11:05:35.634759+00:00",
   "state": "critical",
   "policy": {
     "brand": {
@@ -515,9 +515,24 @@
     "boundary": "A configured key is not proof of live quota or provider uptime; the scheduled workflow records real provider failures separately."
   },
   "release_artifact_freshness": {
-    "state": "fresh",
-    "age_seconds": 4088,
+    "state": "stale",
+    "age_seconds": 8016,
     "policy_current": true
+  },
+  "recovery": {
+    "owner": "Production Recovery Manager",
+    "state": "recovering",
+    "target": 7,
+    "ready": 0,
+    "missing": 7,
+    "active_storyboards": 0,
+    "cadence": "hourly while the buffer is below target",
+    "next_steps": [
+      "Create distinct evidence-qualified story briefs.",
+      "Stage up to five approved storyboards per recovery shift.",
+      "Send staged Shorts to the bounded seven-episode Studio shift.",
+      "Publish only after image, assembly, and Quality Gates pass."
+    ]
   },
   "portfolio": [
     {
@@ -543,7 +558,7 @@
   ],
   "component_states": {
     "provider": "ready",
-    "artifact": "fresh"
+    "artifact": "stale"
   },
   "next_action": "produce new cited episodes through image, assembly and quality gates"
 }
