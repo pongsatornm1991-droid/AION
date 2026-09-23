@@ -76,3 +76,13 @@ class ResearchToStoryTests(unittest.TestCase):
             self._evidence(memory, question, "Source two", "https://two.test/two", "Observation two.")
             result = ResearchToStory(memory).propose_once()
             self.assertEqual("blocked-duplicate-topic", result["stage"])
+
+    def test_does_not_turn_explicitly_off_topic_observations_into_a_story_brief(self):
+        with tempfile.TemporaryDirectory() as root:
+            memory = MemoryEngine(root)
+            question = CuriosityEngine(memory).raise_question(
+                "How do honeybees communicate a food location?", "Compare two cited sources.", priority=4,
+            )
+            self._evidence(memory, question, "Source one", "https://one.test/one", "No relevant observation about how honeybees communicate food locations.")
+            self._evidence(memory, question, "Source two", "https://two.test/two", "This source does not describe how honeybees communicate a food location.")
+            self.assertEqual("waiting-for-qualified-research", ResearchToStory(memory).propose_once()["stage"])

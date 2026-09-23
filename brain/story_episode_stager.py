@@ -166,7 +166,16 @@ class StoryEpisodeStager:
                 "family": "Compare what two sources say before deciding what to believe.",
                 "deeper": "Separate direct observations from the interpretation built from them.",
             },
-            "sources": [{"title": self._clean(source.get("title"), 160) or "Research source", "url": source["url"]} for source in sources],
+            "sources": [{
+                "title": self._clean(source.get("title"), 160) or "Research source",
+                "url": source["url"],
+                "observation": self._clean(source.get("observation"), 520),
+            } for source in sources],
+            # Carries the source decision into paid-image preflight. It is
+            # evidence about the storyboard's eligibility, not a claim for a
+            # viewer, and prevents a later stage from forgetting why it was
+            # safe to produce.
+            "evidence_integrity": integrity,
             "uncertainty_boundary": uncertainty
                 or "The available sources do not settle every part of this question.",
             "visual_direction": {

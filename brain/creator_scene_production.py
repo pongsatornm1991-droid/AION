@@ -43,9 +43,16 @@ class CreatorSceneProduction:
             reasons.append("visual-style-not-channel-signature")
         if not style.get("approved"):
             reasons.append("visual-style-not-approved")
+        source_integrity = CreatorSourceIntegrity.assess(
+            episode.get("sources"), episode.get("topic_key"), ""
+        )
+        if not source_integrity.get("eligible"):
+            reasons.append(f"source-integrity:{source_integrity.get('reason')}")
+        evidence_integrity = episode.get("evidence_integrity")
+        if not isinstance(evidence_integrity, dict) or not evidence_integrity.get("eligible"):
+            reasons.append("missing-or-failed-research-evidence-integrity")
         for report in (
             VisualStoryPolicy.validate_episode(episode),
-            CreatorSourceIntegrity.assess(episode.get("sources"), episode.get("topic_key"), ""),
             VisualNarrativeGate.assess(episode),
             FactFirstVisualGate.assess(episode),
         ):
