@@ -43,13 +43,13 @@
       "id": "social_signals",
       "name": "Audience and social signals",
       "tier": "C",
-      "enabled": false,
+      "enabled": true,
       "capabilities": [
-        "human_perspective",
-        "social_signal"
+        "social_signal",
+        "platform_metrics"
       ],
-      "role": "Audience reactions and social feedback.",
-      "limitations": "Social signals are perspectives, not automatically factual evidence."
+      "role": "Already-captured public audience counters from AION's own YouTube and Instagram posts, used to learn from real performance without inventing analytics.",
+      "limitations": "Only reads snapshots already captured by platform cycles. Aggregate counts are not individual human perspectives and never establish factual claims, retention, demographics, or audience motives."
     },
     {
       "id": "youtube_discovery",

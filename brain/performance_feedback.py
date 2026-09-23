@@ -17,15 +17,12 @@ no comparison analysis on top of it. This module is that analysis: small,
 standalone, and deterministic (no AI provider call, no network access of
 its own).
 
-This is deliberately NOT yet wired into the autonomous research loop as a
-registered evidence source. Doing that properly means implementing the
-already-scaffolded-but-disabled "social_signals" source in
-core/source_registry.json end to end (registry capability, a real
-adapter, and AutonomousResearchPlanner routing) -- a bigger, separate
-undertaking than adding one analysis tool. For now this is invoked
-directly (CLI: `python main.py compare-video-engagement`), including by
-the owner, to actually answer questions like the one above with real
-numbers instead of a guess.
+The underlying snapshots are also exposed to the autonomous learning loop
+through the enabled ``social_signals`` adapter. This comparison stays a
+separate deterministic tool because it supplies a stricter median-based
+answer than a general evidence-summary draft. It is available directly as
+``python main.py compare-video-engagement`` for an audited answer with real
+numbers rather than a guess.
 """
 
 import json

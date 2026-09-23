@@ -1262,8 +1262,8 @@ class WebLearningCycle:
             "general_external", "official_primary", "research_paper",
         },
         "social_signals": {
-            "human_perspective",
             "social_signal",
+            "platform_metrics",
         },
         "youtube_discovery": {
             "discovery_only",
@@ -1429,6 +1429,16 @@ class WebLearningCycle:
         )
 
         if registry_has_capability_api:
+            # AION's own captured public metrics are a real source of
+            # performance evidence.  This adapter has no network access: it
+            # only exposes the latest immutable snapshots written by the
+            # platform audience cycles.
+            try:
+                from brain.social_signals_source import SocialSignalsSource
+                self.adapters["social_signals"] = SocialSignalsSource(memory).adapter()
+            except ImportError:
+                pass
+
             try:
                 from tools.web_search import (
                     search_hacker_news,
@@ -3242,6 +3252,16 @@ class WebLearningCycle:
 
         if not retrieval["ok"]:
             stage = retrieval["stage"]
+
+            # AION may legitimately have no captured audience snapshot yet
+            # (for example, immediately after a first release).  That is not
+            # a failed research attempt and must not burn the curiosity
+            # question's finite budget before the audience cycle has data.
+            if (
+                selected_source_id == "social_signals"
+                and stage == "no-search-results"
+            ):
+                stage = "no-social-signals"
 
             if stage in (
                 "no-search-results",

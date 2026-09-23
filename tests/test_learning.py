@@ -1209,7 +1209,7 @@ class WebLearningCycleTests(BaseLearningTest):
             [],
         )
 
-    def test_platform_metrics_question_is_blocked_by_capability_not_wasted_on_wikipedia(self):
+    def test_platform_metrics_question_waits_for_real_signals_not_wikipedia(self):
         """Regression for 2026-09-22: AION's own curiosity engine raised a
         question comparing one published video's like-to-view ratio
         against similar videos (root_question_id b89b0b48c59c), with
@@ -1220,8 +1220,9 @@ class WebLearningCycleTests(BaseLearningTest):
         -- each attempt correctly finding nothing relevant, since
         Wikipedia cannot know AION's own video statistics. Uses the real,
         default SourceRegistry (reads core/source_registry.json) rather
-        than a test double, since the point is that no currently
-        registered source declares this capability.
+        than a test double, since social_signals is now the registered,
+        bounded adapter for this capability. With no snapshot captured yet,
+        it must remain open without consuming a research attempt.
         """
         question = self._raise_question(
             statement="Is this video's like-to-view ratio higher or lower than similar videos on the same channel?",
@@ -1245,8 +1246,8 @@ class WebLearningCycleTests(BaseLearningTest):
         report = cycle.research_once()
 
         self.assertFalse(report["researched"])
-        self.assertEqual(report["stage"], "blocked-by-capability")
-        self.assertIn("platform_metrics", report["capability"]["unsupported_evidence_types"])
+        self.assertEqual(report["stage"], "no-social-signals")
+        self.assertEqual("social_signals", report["research_plan"]["source_id"])
 
         open_questions = self.curiosity.open_questions()
         self.assertEqual(1, len(open_questions))

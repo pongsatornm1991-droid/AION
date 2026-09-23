@@ -13,6 +13,20 @@ Format:
 Commits: <hash> [, <hash> ...]
 ```
 
+## 2026-09-23 — Codex — Activated real `social_signals` learning evidence
+
+Enabled the registry source and added `brain/social_signals_source.py`, a
+bounded no-network adapter over the latest already-captured public YouTube and
+Instagram counters. Platform-metric questions now route there instead of to
+Wikipedia; if no snapshot exists yet, they wait without consuming the question
+budget. Counts retain strict boundaries: no inferred retention, demographics,
+motives, or individual perspectives. Added regression coverage and confirmed
+the daily Shorts handoff already processes research briefs, story handoffs, and
+storyboards in batches of five; the current empty buffer is a real shortage of
+new qualifying evidence, not a queue bottleneck. Full suite: 954 tests passed.
+
+Commits: pending
+
 ## 2026-09-22 — Claude Code — Root-caused the source-integrity "rejection", shipped a real performance-feedback tool
 
 Owner approved 2 of 3 recommended next steps (explicitly skipped the
