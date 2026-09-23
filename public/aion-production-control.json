@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-09-23T13:00:29.631032+00:00",
+  "generated_at": "2026-09-23T15:02:31.668042+00:00",
   "state": "critical",
   "policy": {
     "brand": {
@@ -515,8 +515,8 @@
     "boundary": "A configured key is not proof of live quota or provider uptime; the scheduled workflow records real provider failures separately."
   },
   "release_artifact_freshness": {
-    "state": "fresh",
-    "age_seconds": 48,
+    "state": "stale",
+    "age_seconds": 7370,
     "policy_current": true
   },
   "recovery": {
@@ -558,7 +558,7 @@
   ],
   "component_states": {
     "provider": "ready",
-    "artifact": "fresh"
+    "artifact": "stale"
   },
   "next_action": "produce new cited episodes through image, assembly and quality gates"
 }
