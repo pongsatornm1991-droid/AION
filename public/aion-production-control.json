@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-09-23T16:00:18.510847+00:00",
+  "generated_at": "2026-09-23T16:38:35.545022+00:00",
   "state": "critical",
   "policy": {
     "brand": {
@@ -41,7 +41,7 @@
     {
       "id": "aion-auto-0852d1078850-9b621016-short",
       "title": "AION Wonders: How do honeybees, an insect, tell their nestmates where food is?",
-      "status": "storyboard-ready-needs-assets",
+      "status": "research-evidence-rejected-preserved",
       "style": "aion-neon-diorama-3d-v1",
       "scene_count": 12,
       "visual_qa": {
@@ -57,7 +57,7 @@
       "release_blockers": [
         "missing-or-unreadable-scene-image",
         "scene-image-not-vertical-9x16",
-        "episode-status:storyboard-ready-needs-assets"
+        "episode-status:research-evidence-rejected-preserved"
       ],
       "release_ready": false,
       "portfolio": {
@@ -543,7 +543,7 @@
   },
   "release_artifact_freshness": {
     "state": "fresh",
-    "age_seconds": 42,
+    "age_seconds": 2256,
     "policy_current": true
   },
   "recovery": {
@@ -552,7 +552,7 @@
     "target": 7,
     "ready": 0,
     "missing": 7,
-    "active_storyboards": 1,
+    "active_storyboards": 0,
     "cadence": "hourly while the buffer is below target",
     "next_steps": [
       "Create distinct evidence-qualified story briefs.",
