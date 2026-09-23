@@ -20,7 +20,7 @@ class ReleaseReadinessTests(unittest.TestCase):
                 (root / "content" / "creator_series" / f"{ident}.json").write_text(json.dumps({
                     "id": ident, "series": "Test", "title": ident, "status": "production-ready-assets-and-script",
                     "format": episode_format, "target_duration_seconds": 50 if episode_format == "illustrated-narrated-short" else 120, "scene_seconds": 5,
-                    "visual_style": {"id": "aion-original-warm-3d-storytelling-v1", "approved": True},
+                    "visual_style": {"id": "aion-neon-diorama-3d-v1", "approved": True},
                     "audience_promise": "A clear evidence-led story with useful value for viewers of every age.",
                     "wonder_hook": "Could a surprising question change what we notice?", "creative_device": "journey",
                     "age_layers": {"children": "Ask.", "family": "Compare.", "deeper": "Check evidence."},
@@ -77,7 +77,7 @@ class ReleaseReadinessTests(unittest.TestCase):
             (series / "released.json").write_text(json.dumps({
                 "id": "released", "series": "Test", "title": "released", "status": "production-ready-assets-and-script",
                 "format": "illustrated-narrated-short", "target_duration_seconds": 50, "scene_seconds": 5,
-                "visual_style": {"id": "aion-original-warm-3d-storytelling-v1", "approved": True},
+                "visual_style": {"id": "aion-neon-diorama-3d-v1", "approved": True},
                 "audience_promise": "A clear evidence-led story with useful value for viewers of every age.",
                 "wonder_hook": "Could a surprising question change what we notice?", "creative_device": "journey",
                 "age_layers": {"children": "Ask.", "family": "Compare.", "deeper": "Check evidence."},
@@ -101,5 +101,7 @@ class ReleaseReadinessTests(unittest.TestCase):
             report = ReleaseReadiness(MemoryEngine(Path(root) / "memory"), Path(root)).snapshot(
                 datetime(2026, 9, 13, 9, 0, tzinfo=ReleaseReadiness.BANGKOK)
             )
-            self.assertEqual("attention", report["state"])
+            self.assertEqual("critical", report["state"])
             self.assertTrue(report["shortages"])
+            self.assertEqual(7, report["shorts_buffer"]["missing"])
+            self.assertEqual("ผลิตจากเรื่องใหม่ที่มีหลักฐานครบ", report["recovery_action"])

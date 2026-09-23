@@ -2,6 +2,7 @@
 
 from pathlib import Path
 import re
+from brain.channel_policy import ChannelPolicy
 
 
 class AdminOperations:
@@ -11,6 +12,7 @@ class AdminOperations:
         self.root = Path(root or Path(__file__).resolve().parents[1])
 
     def snapshot(self):
+        policy = ChannelPolicy(self.root).publishing()
         legacy_publishers = (
             "youtube-shorts.yml",
             "reel-cycle.yml",
@@ -59,7 +61,7 @@ class AdminOperations:
             "purpose": "ดูคิวเผยแพร่ การชนกันของตาราง หลักฐานงาน และการแจ้งข้อผิดพลาดให้ฝ่ายที่รับผิดชอบ",
             "checks": [
                 {"name": "Single publishing source", "state": "pass" if duplicate_guard else "attention", "detail": "เผยแพร่สาธารณะอัตโนมัติผ่าน Creator pipeline เพียงสายเดียว" if duplicate_guard else f"พบสายเก่าที่ตั้งเวลาอยู่: {', '.join(legacy_schedules)}"},
-                {"name": "Publishing cadence", "state": "pass" if not cadence_issues else "attention", "detail": "Shorts เป็นงานหลัก: พฤ./ศ./ส./อา. 20:30 เวลาไทย; จ.–พ. เป็นรอบวิจัย ผลิต และกู้คืนบัฟเฟอร์" if not cadence_issues else "; ".join(cadence_issues)},
+                {"name": "Publishing cadence", "state": "pass" if not cadence_issues else "attention", "detail": f"Shorts เป็นงานหลักทุกวัน {policy['shorts_time']} เวลาไทย; คลังต้องพร้อม {policy['shorts_buffer_target']} ตอน" if not cadence_issues else "; ".join(cadence_issues)},
                 {"name": "Protected authority", "state": "pass", "detail": "ห้ามเปลี่ยนสิทธิ์ บัญชี คีย์ เงิน และสัญญา"},
                 {"name": "Queue handoff", "state": "pass", "detail": "งานเผยแพร่ต้องผ่าน Research → Production → Quality Gate → Publishing"},
             ],

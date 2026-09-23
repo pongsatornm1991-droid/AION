@@ -21,7 +21,7 @@ class YouTubeShortsCycleTests(unittest.TestCase):
                     "video_path": "content/reels/aion.mp4",
                     "caption": "AION remembers how a small record can help us ask what should be carried into tomorrow.",
                     "viewer_value": "Viewers receive one reflective question and an honest reason to examine their own records.",
-                    "visual_style": "illustrated-aion-storyboard-v4", "language": "en",
+                    "visual_style": "aion-neon-diorama-3d-v1", "language": "en",
                 }),
                 memory_type="action", source="test", importance=1,
             )
@@ -67,6 +67,7 @@ class YouTubeShortsCycleTests(unittest.TestCase):
                 "video_path": "content/reels/ready.mp4",
                 "caption": "A different reflective AION story with enough detail to be assessed by the quality gate.",
                 "viewer_value": "Viewers receive a clear question that helps them examine an assumption.",
+                "visual_style": "aion-neon-diorama-3d-v1",
             }), memory_type="action", source="test", importance=1)
             uploader = lambda *_: {"video_id": "ready", "url": "https://youtu.be/ready", "privacy_status": "public"}
             with patch("brain.video_quality.VideoQualityGate.assess", return_value={"eligible": True, "reasons": []}):

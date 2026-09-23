@@ -24,7 +24,7 @@ class YouTubeCreatorQueueTests(unittest.TestCase):
             "id": "episode", "series": "AION Wonders", "title": "A useful question",
             "status": "production-ready-assets-and-script", "format": "illustrated-narrated-short",
             "target_duration_seconds": 50, "scene_seconds": 5,
-            "visual_style": {"id": "aion-original-warm-3d-storytelling-v1", "approved": True},
+            "visual_style": {"id": "aion-neon-diorama-3d-v1", "approved": True},
             "audience_promise": "Viewers learn how a careful question can make a mystery easier to explore.",
             "wonder_hook": "Could a small question change how we see the world?", "creative_device": "journey",
             "age_layers": {"children": "Ask why.", "family": "Talk together.", "deeper": "Test a claim."},
@@ -121,6 +121,20 @@ class YouTubeCreatorQueueTests(unittest.TestCase):
                 "no-upload-ready-creator-episode",
                 queue.prepare_once(episode_id="experimental")["stage"],
             )
+
+    def test_approved_legacy_style_cannot_consume_automatic_daily_slot(self):
+        with tempfile.TemporaryDirectory() as root:
+            self._episode(root)
+            root = Path(root)
+            legacy = __import__("json").loads((root / "content" / "creator_series" / "episode.json").read_text(encoding="utf-8"))
+            legacy.update({"id": "legacy-style", "visual_style": {"id": "aion-neon-vector-shorts-v1", "approved": True}})
+            (root / "content" / "creator_series" / "legacy-style.json").write_text(__import__("json").dumps(legacy), encoding="utf-8")
+            (root / "content" / "reels" / "episode.mp4").write_bytes(b"signature")
+            (root / "content" / "reels" / "legacy-style.mp4").write_bytes(b"legacy")
+            (root / "content" / "reels" / "legacy-style-cover.png").write_bytes(b"png")
+            candidates = {item["episode_id"]: item for item in YouTubeCreatorQueue(MemoryEngine(root / "memory"), root).candidates()}
+            self.assertFalse(candidates["legacy-style"]["release_eligible"])
+            self.assertIn("visual-style-not-channel-signature", candidates["legacy-style"]["release_blockers"])
 
     def test_missing_visual_style_field_entirely_also_blocks_release(self):
         with tempfile.TemporaryDirectory() as root:

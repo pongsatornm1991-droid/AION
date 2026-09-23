@@ -1,7 +1,7 @@
 name: AION - Creator release readiness
 
 # This is the early-warning layer for the fixed publishing appointments.  It
-# does not generate media or publish anything: it makes a missing 144-hour
+# does not generate media or publish anything: it makes a missing 168-hour
 # buffer visible early enough for the normal Studio shifts to recover it.
 on:
   schedule:
@@ -12,7 +12,7 @@ on:
     - cron: "30 5 * * *" # 12:30 Asia/Bangkok
   workflow_run:
     # Refresh immediately when the production pipeline changes.  The daily
-    # check remains the fallback, while this avoids a stale 96/144-hour board
+    # check remains the fallback, while this avoids a stale seven-day board
     # between scheduled runs.
     workflows:
       - AION - Research to story brief
@@ -53,7 +53,7 @@ jobs:
       - name: Plan every missing appointment and prepare the next cited storyboard
         # This is an observer and planning handoff: no upload, no reuse of old
         # content and no platform/account change.  The separate Studio shift
-        # renders only its normal bounded 2-Short/1-primary batch.
+        # renders only its normal bounded daily-Short buffer batch.
         env:
           AION_MEMORY_ROOT: memory_data
         run: python tools/recover_release_buffer.py | tee release-buffer-recovery.json

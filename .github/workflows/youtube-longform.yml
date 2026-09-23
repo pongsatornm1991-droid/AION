@@ -6,8 +6,8 @@ on:
   workflow_dispatch: {}
 
 concurrency:
-  # Keep the Saturday release independent of research-memory work, but mutually
-  # exclusive with Short publishing and recovery retries.
+  # Keep manual archive recovery mutually exclusive with Short publishing and
+  # recovery retries. There is no automatic long-form release appointment.
   group: aion-youtube-release
   cancel-in-progress: false
 

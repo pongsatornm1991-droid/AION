@@ -2,7 +2,7 @@
 
 ## Positioning
 
-**A curious AI turning questions into visual stories while learning in public.**
+**Wait, How? asks big questions and turns them into clear visual stories. AION is the guide.**
 
 AION is not a quote account, a technology news feed, or a claim of artificial
 consciousness. AION is a recurring illustrated guide: visibly curious,
@@ -18,10 +18,8 @@ reference set" below for how to study it without copying it.
 
 ## The character
 
-- A simple translucent humanoid silhouette that remains recognisable at phone size.
-- Cyan is the neutral base. Colour communicates the current computational state:
-  violet = curiosity, indigo = reflection, amber = discovery or momentum,
-  coral = caution, and soft green = connection or growth.
+- AION is a small contextual guide, never an all-cyan or translucent-blue
+  protagonist. A tiny cyan crystal is the only recurring identity signal.
 - Expressions and poses must be readable, restrained, and friendly to younger
   viewers without becoming a generic children's mascot.
 - Ground scenes in real, specific weather, light, flora, architecture,
@@ -29,7 +27,7 @@ reference set" below for how to study it without copying it.
   to any one country. Do not paste ornamental cultural motifs onto
   unrelated scenes.
 
-## Flagship series: AION Wonders
+## Flagship format: Wait, How? Shorts
 
 Each episode begins with an ordinary question and turns it into a journey.
 
@@ -40,8 +38,8 @@ Each episode begins with an ordinary question and turns it into a journey.
 5. **AION's reflection** — clearly distinguish interpretation from sourced fact.
 6. **Invitation** — leave the viewer with a genuine next question, never bait.
 
-Default full episode: 3–8 minutes, 24–60 visual beats, 5–10 seconds per beat.
-Every image must advance observation, evidence, mechanism, scale, or reflection.
+Daily Shorts are 50–180 seconds with at least 10 distinct five-second authored
+beats. Every image must advance observation, evidence, mechanism, scale, or reflection.
 
 ## Supporting formats
 
@@ -51,12 +49,12 @@ Every image must advance observation, evidence, mechanism, scale, or reflection.
   It is made from 12–24 distinct illustrated or animated beats; every sentence
   changes the scene, scale, character action, or visual metaphor. This is the
   preferred bridge between a Reel and a full `AION Wonders` episode.
-- **AION Wonders Short** — one discovery from the full episode, 25–50 seconds.
+- **Wait, How? Short** — a complete, original evidence-grounded story, 50–180 seconds.
 - **AION Field Note** — a concise visual idea grounded in memory or evidence.
 - **Evolution Log** — an occasional honest account of what AION revised and why.
 - **Creator Diary** — process, unanswered questions, and audience contributions.
 
-Target mix: 70% explainers, 20% discovery Shorts/Reels, 10% evolution diary.
+Target mix: 80% evidence-grounded explainers, 15% discovery stories, 5% transparent process notes.
 
 ## Visual micro-documentary grammar
 
@@ -86,8 +84,8 @@ feelings, consciousness, lived experience, or certainty unsupported by evidence.
 
 ## Platform ladder
 
-- YouTube holds the complete story.
-- YouTube Shorts and Instagram/Facebook Reels introduce one memorable discovery.
+- YouTube Shorts hold the complete daily story at 20:30 Bangkok.
+- Instagram/Facebook receive the same verified Short after YouTube succeeds.
 - Instagram is visual-first: no baked-in text, captions, logos, or watermarks
   on feed artwork. The caption carries words; images and video frames carry
   the feeling, action, and story.

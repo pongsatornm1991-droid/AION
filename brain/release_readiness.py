@@ -9,6 +9,7 @@ from datetime import datetime, timedelta
 from zoneinfo import ZoneInfo
 
 from brain.youtube_creator_queue import YouTubeCreatorQueue
+from brain.channel_policy import ChannelPolicy
 
 
 class ReleaseReadiness:
@@ -20,7 +21,7 @@ class ReleaseReadiness:
     # reserved as a production-only buffer window). Kept as an explicit set
     # rather than "every day" in code so a future format change (e.g.
     # carving a day back out for research) is a one-line edit here.
-    SHORT_DAYS = {0, 1, 2, 3, 4, 5, 6}  # every day
+    SHORT_DAYS = {0, 1, 2, 3, 4, 5, 6}  # compatibility default; policy is authoritative
     # A complete week of release slots must be visible even when the check
     # runs first thing in the morning. A seven-day horizon reaches a full
     # week out and avoids falsely calling a seven-Short buffer healthy.
@@ -29,17 +30,19 @@ class ReleaseReadiness:
     def __init__(self, memory, root=None):
         self.memory = memory
         self.root = root
+        self.policy = ChannelPolicy(root).publishing()
 
-    @classmethod
-    def slots(cls, now=None, horizon_hours=None):
-        now = (now or datetime.now(cls.BANGKOK)).astimezone(cls.BANGKOK)
-        horizon = now + timedelta(hours=horizon_hours or cls.HORIZON_HOURS)
+    def slots(self, now=None, horizon_hours=None):
+        now = (now or datetime.now(self.BANGKOK)).astimezone(self.BANGKOK)
+        policy = self.policy
+        horizon = now + timedelta(hours=horizon_hours or policy["readiness_horizon_hours"])
         values = []
         for offset in range(0, 8):
             day = (now + timedelta(days=offset)).date()
             weekday = day.weekday()
-            if weekday in cls.SHORT_DAYS:
-                slot = datetime(day.year, day.month, day.day, 20, 30, tzinfo=cls.BANGKOK)
+            if weekday in set(policy["shorts_days"]):
+                hour, minute = (int(part) for part in policy["shorts_time"].split(":", 1))
+                slot = datetime(day.year, day.month, day.day, hour, minute, tzinfo=self.BANGKOK)
                 kind = "short"
             else:
                 continue
@@ -81,19 +84,25 @@ class ReleaseReadiness:
             have = len(available.get(kind, []))
             if have < count:
                 shortages.append({"content_kind": kind, "needed": count, "ready": have, "missing": count - have})
+        ready_count = len(available.get("short", []))
+        target = int(self.policy["shorts_buffer_target"])
+        missing = max(target - ready_count, 0)
+        severity = "ready" if not shortages else "critical" if ready_count <= 1 else "warning" if ready_count <= 3 else "attention"
         return {
             "generated_at": (now or datetime.now(self.BANGKOK)).astimezone(self.BANGKOK).isoformat(),
             "timezone": "Asia/Bangkok",
-            "horizon_hours": self.HORIZON_HOURS,
-            "state": "ready" if not shortages else "attention",
+            "horizon_hours": int(self.policy["readiness_horizon_hours"]),
+            "state": severity,
             "slots": slots,
             "available": available,
             "shortages": shortages,
             "shorts_buffer": {
-                "target": len(self.SHORT_DAYS),
-                "quality_ready": len(available.get("short", [])),
-                "state": "ready" if len(available.get("short", [])) >= len(self.SHORT_DAYS) else "building",
+                "target": target,
+                "quality_ready": ready_count,
+                "missing": missing,
+                "state": "ready" if not missing else "critical" if ready_count <= 1 else "warning" if ready_count <= 3 else "building",
                 "detail": "นับเฉพาะ Shorts ใหม่ที่ผ่าน Quality Gate แล้ว; storyboard หรือภาพครบยังไม่นับเป็นบัฟเฟอร์",
             },
-            "policy": "ตรวจล่วงหน้า 144 ชั่วโมง; นับเฉพาะตอนใหม่ที่ผ่าน Quality Gate พร้อมและไม่ซ้ำ ไม่ใช้คลิปเก่าแทนวันปล่อย",
+            "recovery_action": "ผลิตจากเรื่องใหม่ที่มีหลักฐานครบ" if missing else "ไม่มีงานกู้คืนที่ต้องทำ",
+            "policy": "ตรวจล่วงหน้า 168 ชั่วโมง; นับเฉพาะตอนใหม่ที่ผ่าน Quality Gate พร้อมและไม่ซ้ำ ไม่ใช้คลิปเก่าแทนวันปล่อย",
         }

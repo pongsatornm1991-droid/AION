@@ -11,7 +11,7 @@ from brain.memory import MemoryEngine
 class CrossPlatformTests(unittest.TestCase):
     def test_real_registry_connects_all_three_aion_profiles(self):
         urls = platform_urls()
-        self.assertEqual("https://www.youtube.com/@AionIRobot", urls["youtube"])
+        self.assertEqual("https://www.youtube.com/@waithow-aion", urls["youtube"])
         self.assertEqual("https://www.instagram.com/aion_i.robot/", urls["instagram"])
         self.assertEqual("https://www.facebook.com/profile.php?id=61593972322904", urls["facebook"])
         self.assertIn("Instagram:", invitation("youtube"))

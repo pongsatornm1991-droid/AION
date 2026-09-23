@@ -498,7 +498,7 @@ def _platform_operations_snapshot(memory, reels):
         "platforms": [
             {"id": "instagram", "name": "Instagram", "color": "#ff5db1", "purpose": "Reels ที่เข้าใจเร็ว และทำให้คนค้นพบ AION", "cadence": "รับคลิปใหม่ที่ผ่าน Quality Gate จาก Studio หลัง YouTube เผยแพร่", "automation": "Creator episode ที่ตรวจแล้ว → Cross-post เดียวกัน (ไม่สร้างคลิปซ้ำ)", "community": "ตรวจคอมเมนต์และกันตอบซ้ำ", "messages": "รอ Meta Messaging เปิดใช้งาน", "published": reels["platform_counts"].get("instagram", 0)},
             {"id": "facebook", "name": "Facebook", "color": "#4e8cff", "purpose": "Reels, บทสนทนา และชุมชนรอบเรื่องที่ AION เล่า", "cadence": "รับคลิป Studio เดียวกับ YouTube/Instagram หลังเผยแพร่สำเร็จ", "automation": "Cross-post เฉพาะตอนใหม่ที่ผ่าน Quality Gate; ไม่ใช้คลิปเก่าทดแทน", "community": "ตรวจคอมเมนต์และกันตอบซ้ำ", "messages": "รอ Meta Messaging เปิดใช้งาน", "published": reels["platform_counts"].get("facebook", 0)},
-            {"id": "youtube", "name": "YouTube", "color": "#ff5a63", "purpose": "Shorts เป็นงานหลักเพื่อการค้นพบและสร้างผู้ชมอย่างต่อเนื่อง", "cadence": "วิจัย/ผลิต จ.–พ. · Shorts พฤ./ศ./ส./อา. 20:30 (เวลาไทย) · พักคลิป 16:9 ชั่วคราว", "automation": "Research → Studio → Video QA → YouTube → Cross-post", "community": "วิเคราะห์ retention และคำถามผู้ชมเมื่อมีข้อมูล", "messages": "ไม่มี DM ใน workflow", "published": reels["platform_counts"].get("youtube", 0)},
+            {"id": "youtube", "name": "YouTube", "color": "#ff5a63", "purpose": "Shorts เป็นงานหลักเพื่อการค้นพบและสร้างผู้ชมอย่างต่อเนื่อง", "cadence": "Shorts ทุกวัน 20:30 เวลาไทย · คลังคุณภาพต้องมีอย่างน้อย 7 ตอน", "automation": "Research → Studio → Video QA → YouTube → Cross-post", "community": "วิเคราะห์สัญญาณผู้ชมจริงเมื่อมีข้อมูล", "messages": "ไม่มี DM ใน workflow", "published": reels["platform_counts"].get("youtube", 0)},
         ],
         "social_team": social,
         "admin_team": admin,
@@ -645,7 +645,7 @@ def _next_studio_release(memory):
                 "entry_id": item.get("episode_id"),
                 "title": item.get("display_title") or item.get("title") or "AION Studio Short",
                 "status": "พร้อมปล่อยคืนนี้" if today_is_release_day and before_release else "พร้อมสำหรับรอบเผยแพร่ถัดไป",
-                "release_time": "20:30 น. เวลาไทย · พฤหัส / ศุกร์ / เสาร์ / อาทิตย์",
+                "release_time": "20:30 น. เวลาไทย · Shorts ทุกวัน",
                 "preview_url": f"/{video_path}",
                 "cover_url": "/" + str(cover_path.relative_to(ROOT)).replace("\\", "/") if cover_path.is_file() else None,
                 "viewer_value": item.get("viewer_value") or "มีคุณค่าต่อผู้ชมตาม Quality Gate",
@@ -684,7 +684,7 @@ def build_studio_snapshot(memory_root=None):
     studio_memory = MemoryEngine(configured_root)
     company = AionCompany(studio_memory, ROOT).board(episodes, queue)
     next_release = _next_studio_release(studio_memory)
-    # Use the same durable 144-hour calculation as Operations. Studio then
+    # Use the same policy-defined calculation as Operations. Studio then
     # explains an empty release queue as a real production shortage rather
     # than leaving the owner to guess whether the page failed to load.
     release_readiness = ReleaseReadiness(studio_memory, ROOT).snapshot()

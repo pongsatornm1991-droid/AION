@@ -8,6 +8,7 @@ it does not attempt to judge truth from prose alone.
 import re
 
 from brain.audience_accessibility import AudienceAccessibilityGate
+from brain.channel_policy import ChannelPolicy
 from brain.topic_novelty import TopicNoveltyGate
 
 
@@ -19,6 +20,9 @@ class YouTubeQualityGate:
     @staticmethod
     def _normalise(text):
         return re.sub(r"\s+", " ", str(text or "").strip().lower())
+
+    def __init__(self, root=None):
+        self.policy = ChannelPolicy(root)
 
     def assess(self, payload, prior_payloads=()):
         payload = dict(payload or {})
@@ -32,6 +36,14 @@ class YouTubeQualityGate:
             reasons.append("caption-too-short-to-demonstrate-viewer-value")
         if not viewer_value:
             reasons.append("missing-explicit-viewer-value")
+        visual_style = str(payload.get("visual_style") or "").strip()
+        required_style = self.policy.production()["automatic_release_visual_style"]
+        # Queue preparation is not the final authority: an already-created
+        # upload record must also be prevented from bypassing a later brand
+        # decision.  This keeps every automatic release on the one current
+        # channel signature.
+        if visual_style != required_style:
+            reasons.append("visual-style-not-channel-signature")
 
         prior_captions = {self._normalise(item.get("caption")) for item in prior_payloads}
         prior_paths = {str(item.get("video_path") or "").strip() for item in prior_payloads}
@@ -45,7 +57,7 @@ class YouTubeQualityGate:
         # AION's default renderer is illustrated rather than photorealistic.
         # Unknown/realistic sources are never automatically declared safe:
         # retain an explicit review signal in the upload record.
-        disclosure_review = payload.get("visual_style") != "illustrated-aion-storyboard-v4"
+        disclosure_review = visual_style != required_style
         accessibility = AudienceAccessibilityGate().assess(payload)
         return {
             "eligible": not reasons,

@@ -9,6 +9,7 @@ from brain.creator_series import CreatorSeriesRegistry
 from brain.episode_numbering import EpisodeNumbering
 from brain.identity_disclosure import append_identity_disclosure
 from brain.visual_story_policy import VisualStoryPolicy
+from brain.channel_policy import ChannelPolicy
 
 
 class YouTubeCreatorQueue:
@@ -138,8 +139,16 @@ class YouTubeCreatorQueue:
             # release get published ahead of correctly styled new work; a
             # historical episode already published is unaffected, since this
             # only gates new entries to the upload-ready queue.
-            if (episode.get("visual_style") or {}).get("approved") is not True:
+            visual_style = episode.get("visual_style") or {}
+            if visual_style.get("approved") is not True:
                 release_blockers.append("visual-style-not-approved-for-release")
+            # Approval alone protects experimentation, but the automatic
+            # daily lane must also preserve the one signature the owner has
+            # selected for the channel. A different approved style can still
+            # exist as an archive or deliberate future decision; it cannot
+            # silently consume a routine Wait, How? release appointment.
+            if visual_style.get("id") != ChannelPolicy(self.root).production()["automatic_release_visual_style"]:
+                release_blockers.append("visual-style-not-channel-signature")
             # An incident record (e.g. "narration ends before the final
             # scene") must block release on its own facts, never on whether
             # someone also remembered to spell a matching `status` value.

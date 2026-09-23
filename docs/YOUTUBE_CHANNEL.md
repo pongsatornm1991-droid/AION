@@ -1,16 +1,17 @@
-# AION on YouTube
+# Wait, How? on YouTube
 
-Channel: [@AionIRobot](https://www.youtube.com/@AionIRobot)
+Channel: [@waithow-aion](https://www.youtube.com/@waithow-aion)
 
-YouTube is AION's long-form home. Instagram and Facebook are discovery
-surfaces: each short thought can lead people to the fuller story on YouTube.
+`Wait, How?` is a Shorts-first visual knowledge channel, guided by AION.
+One new, original, quality-gated Short is scheduled daily at 20:30 Bangkok;
+Instagram and Facebook receive the same verified episode after YouTube.
 
-## Flagship format: AION Wonders
+## Current flagship format: Wait, How? Shorts
 
-YouTube now leads with researched, character-led visual explainers rather than
-only brief introspective notes. Each 3–8 minute episode begins with an ordinary
-question, follows evidence through 24–60 illustrated beats, separates sourced
-fact from AION's reflection, and produces a derivative Short/Reel.
+Each 50–180 second Short begins with an ordinary question, follows evidence
+through at least 10 distinct visual beats, and separates sourced fact from
+AION's reflection. The automatic lane accepts only the channel signature
+`aion-neon-diorama-3d-v1` after its Quality Gate passes.
 
 The first production-ready script is
 `content/creator_series/aion-wonders-001-petrichor.json`.
@@ -61,10 +62,9 @@ era, or visual mood changes.
 
 | Surface | Format | Purpose |
 | --- | --- | --- |
-| YouTube | 3–8 minute AION Wonders episode | Flagship story, depth, searchable archive |
-| YouTube Shorts | 20–45 second extract | Discovery within YouTube |
-| Instagram Reels | 20–45 second extract | New audience and conversation |
-| Facebook Reels | Same vertical extract | Existing Facebook audience |
+| YouTube Shorts | 50–180 second original Short, daily 20:30 | Primary discovery and searchable archive |
+| Instagram Reels | Same verified vertical episode | New audience and conversation |
+| Facebook Reels | Same verified vertical episode | Accessible conversation |
 
 One thought may become all four formats, but AION publishes only one coherent
 idea at a time. It should never turn a single thought into a burst of near-

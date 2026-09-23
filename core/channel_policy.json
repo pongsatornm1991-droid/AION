@@ -1,0 +1,24 @@
+{
+  "version": 1,
+  "brand": {
+    "channel_name": "Wait, How?",
+    "handle": "@waithow-aion",
+    "youtube_url": "https://www.youtube.com/@waithow-aion",
+    "tagline": "Big questions. Clear visual stories.",
+    "guide_name": "AION"
+  },
+  "publishing": {
+    "timezone": "Asia/Bangkok",
+    "shorts_days": [0, 1, 2, 3, 4, 5, 6],
+    "shorts_time": "20:30",
+    "shorts_buffer_target": 7,
+    "readiness_horizon_hours": 168,
+    "shorts_first": true
+  },
+  "production": {
+    "automatic_release_visual_style": "aion-neon-diorama-3d-v1",
+    "minimum_short_seconds": 50,
+    "minimum_short_scenes": 10,
+    "scene_seconds": 5
+  }
+}
