@@ -70,3 +70,21 @@ class AutonomousInitiativeTests(unittest.TestCase):
             report = AutonomousInitiative(memory).initiate_recovery_once(7)
             self.assertEqual("seeded-recovery-question", report["stage"])
             self.assertEqual("plant-science", report["domain"])
+
+    def test_recovery_reserve_seeds_a_bounded_distinct_batch(self):
+        with tempfile.TemporaryDirectory() as root:
+            memory = MemoryEngine(root)
+
+            report = AutonomousInitiative(memory).initiate_recovery_batch(
+                7, target=21, seed_limit=5
+            )
+
+            self.assertEqual("seeded-recovery-reserve", report["stage"])
+            self.assertEqual(5, report["created_count"])
+            self.assertEqual(5, len(report["questions"]))
+            self.assertEqual(5, len(set(report["created_domains"])))
+            self.assertEqual(21, report["target"])
+            self.assertTrue(all(
+                "shorts-recovery" in question["tags"]
+                for question in report["questions"]
+            ))

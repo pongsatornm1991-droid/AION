@@ -1689,3 +1689,20 @@ Also applied the proven ephemeral-snapshot rebase policy to
 file cannot turn a healthy inspection into a failed run. Unexpected conflicts
 still fail visibly. Targeted workflow/recovery/dashboard suite: 13/13 green;
 YAML parsing passed.
+
+## 2026-09-24 — Codex — Moved the recovery bottleneck upstream into a bounded evidence reserve
+
+The owner approved the proposed long-term fix: never make a daily publishing
+appointment wait for a single just-opened research question. `AutonomousInitiative`
+now maintains a bounded reserve of up to 21 distinct, concrete, evidence-friendly
+Shorts questions. It seeds at most five per learning shift, so retrieval/provider
+load stays bounded. `run_learning_cycle` prioritizes those distinct reserve questions
+for the entire five-attempt shift while the Shorts buffer is short, rather than
+researching one recovery question then spending remaining capacity on unrelated work.
+
+This does not call a topic "qualified" early, create media, or publish. Every question
+still needs two independent, traceable sources and passes the existing source-integrity,
+novelty, visual, audio, and final Quality Gates. Historical/exhausted questions remain
+preserved; once the designed reserve is exhausted the system does not silently recycle
+one as new work. Targeted initiative/recovery/learning/production/workflow suite: 17/17
+passing; Python compilation passed.

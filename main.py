@@ -2198,7 +2198,14 @@ def run_learning_cycle(args):
     readiness = ReleaseReadiness(memory).snapshot()
     recovery_missing = readiness.get("shorts_buffer", {}).get("missing", 0)
     initiative_planner = AutonomousInitiative(memory, curiosity)
-    initiative = initiative_planner.initiate_recovery_once(recovery_missing)
+    # Keep a research reserve ahead of the production queue.  The reserve is
+    # seeded in small batches and every selected item still needs independent
+    # traceable sources; this only removes the artificial one-question wait
+    # that made a daily publishing appointment depend on a single retrieval.
+    initiative = initiative_planner.initiate_recovery_batch(
+        recovery_missing,
+        seed_limit=min(max(1, args.limit), AutonomousInitiative.RECOVERY_SEED_BATCH),
+    )
     if initiative["stage"] == "buffer-healthy":
         initiative = initiative_planner.initiate_once()
 
@@ -2236,22 +2243,20 @@ def run_learning_cycle(args):
     # attempts that many distinct ranked questions in one shift instead;
     # --limit 1 (the default) calls research_once() exactly as before, so
     # this is purely additive for any existing caller.
-    recovery_question = initiative.get("question")
-    if recovery_question and initiative["stage"] in {
-        "seeded-recovery-question", "recovery-question-active",
+    recovery_questions = initiative.get("questions") or []
+    if recovery_questions and initiative["stage"] in {
+        "seeded-recovery-reserve", "recovery-reserve-active", "recovery-reserve-exhausted",
     }:
-        # Make the recovery lane the first attempt in this scheduled shift.
-        # It has a finite budget, so a stubborn source never blocks the normal
-        # ranked queue forever; a later shift will preserve it as exhausted
-        # and select a different recovery topic.
-        reports = [cycle.research_once(question_entry=recovery_question)]
-        if args.limit > 1:
-            batch = cycle.research_batch(limit=args.limit).get("results") or []
-            reports.extend(
-                item for item in batch
-                if item.get("question", {}).get("statement")
-                != recovery_question.get("statement")
-            )
+        # The whole bounded shift is reserved for distinct recovery questions
+        # while the release buffer is short.  This makes the evidence reserve
+        # grow five source attempts at a time rather than researching one
+        # question and spending the remaining capacity on unrelated work.
+        # Each question has its own finite budget, so a hard source cannot
+        # consume the reserve forever.
+        reports = [
+            cycle.research_once(question_entry=question)
+            for question in recovery_questions[:max(1, args.limit)]
+        ]
     elif args.limit <= 1:
         reports = [cycle.research_once()]
     else:
