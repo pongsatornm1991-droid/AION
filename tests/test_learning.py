@@ -1793,6 +1793,18 @@ class WebLearningCycleBatchTests(BaseLearningTest):
         self.assertEqual(0, report["researched_count"])
         self.assertEqual("source-disabled", report["stage"])
 
+    def test_batch_skips_exhausted_questions_and_uses_live_work(self):
+        exhausted = self._raise_question("Why do plants look green?")
+        self.curiosity.record_attempt(exhausted["id"])
+        self.curiosity.record_attempt(self.curiosity.open_questions()[0]["id"])
+        self.curiosity.record_attempt(self.curiosity.open_questions()[0]["id"])
+        live = self._raise_question("How do bees navigate home?")
+
+        report = self._cycle().research_batch(limit=5)
+
+        self.assertEqual(1, report["attempted_count"])
+        self.assertEqual(live["id"], report["results"][0]["question"]["id"])
+
 
 if __name__ == "__main__":
     unittest.main()

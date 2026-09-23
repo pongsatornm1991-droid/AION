@@ -46,3 +46,13 @@ class CuriosityEngine(BoundedItemTracker):
 
     def open_questions(self, topic: str = None, limit: int = None):
         return self.open_items(topic=topic, limit=limit)
+
+    def _counts_toward_open_limit(self, item):
+        """Keep exhausted questions reviewable without blocking fresh inquiry.
+
+        Exhaustion never deletes, resolves, or abandons a question.  It only
+        means the question cannot spend more retrieval attempts, so letting it
+        occupy the small live-inquiry cap would starve the production pipeline
+        of new, researchable questions indefinitely.
+        """
+        return not bool(item.get("budget_exhausted"))

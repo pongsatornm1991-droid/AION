@@ -109,6 +109,20 @@ class CuriosityEngineTests(unittest.TestCase):
         self.assertTrue(open_qs[0]["budget_exhausted"])
         self.assertEqual(open_qs[0]["id"], attempt["id"])  # still open
 
+    def test_exhausted_question_preserves_history_but_frees_live_slot(self):
+        first = self.curiosity.raise_question(
+            "Q1", completion_criteria="c1", budget=1
+        )
+        self.curiosity.raise_question("Q2", completion_criteria="c2")
+        self.curiosity.record_attempt(first["id"])
+
+        # Q1 is still visible for review, but cannot block all new inquiry.
+        third = self.curiosity.raise_question("Q3", completion_criteria="c3")
+        self.assertIsNotNone(third["id"])
+        exhausted = [q for q in self.curiosity.open_questions() if q["statement"] == "Q1"]
+        self.assertEqual(1, len(exhausted))
+        self.assertTrue(exhausted[0]["budget_exhausted"])
+
     def test_answer_question_requires_evidence(self):
         saved = self.curiosity.raise_question("Q1", completion_criteria="c1")
 

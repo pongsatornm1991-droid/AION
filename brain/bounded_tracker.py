@@ -92,7 +92,15 @@ class BoundedItemTracker:
         ):
             raise ValueError("Budget must be a positive integer.")
 
-        open_count = len(self.open_items())
+        # An item whose finite attempt budget is already spent remains an
+        # auditable open record, but it is no longer active work.  Subclasses
+        # may exclude that kind of review-only item from their intake cap so a
+        # backlog of preserved failures cannot prevent all new work forever.
+        open_count = sum(
+            1
+            for item in self.open_items()
+            if self._counts_toward_open_limit(item)
+        )
 
         if open_count >= self.max_open:
             raise ValueError(
@@ -350,6 +358,15 @@ class BoundedItemTracker:
             results = results[:limit]
 
         return results
+
+    def _counts_toward_open_limit(self, item):
+        """Whether an open item occupies one of the live-work slots.
+
+        The conservative default preserves the original cap for every
+        tracker.  A subclass can opt out only for an explicitly review-only
+        state while keeping that record visible and immutable.
+        """
+        return True
 
     def history(self, entry_id: str):
         """Return the full history of one item, oldest first, by

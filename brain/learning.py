@@ -2786,6 +2786,21 @@ class WebLearningCycle:
                     "question": None,
                 }
 
+            # Exhausted questions remain open and inspectable for review, but
+            # their hard budget forbids further retrieval.  Do not let them
+            # consume the sole learning turn and starve newer questions.
+            open_questions = [
+                entry for entry in open_questions
+                if not entry.get("budget_exhausted")
+            ]
+
+            if not open_questions:
+                return {
+                    "researched": False,
+                    "stage": "no-researchable-questions",
+                    "question": None,
+                }
+
             learning_mode = (
                 self._learning_mode()
             )
@@ -4445,6 +4460,12 @@ class WebLearningCycle:
         open_questions = self.curiosity.open_questions()
         if not open_questions:
             return {"stage": "no-open-questions", "results": []}
+        open_questions = [
+            entry for entry in open_questions
+            if not entry.get("budget_exhausted")
+        ]
+        if not open_questions:
+            return {"stage": "no-researchable-questions", "results": []}
         exploration = self._learning_mode() == "exploration"
         ranked = self.curiosity_constitution.rank_questions(open_questions, exploration=exploration)
         if not ranked:

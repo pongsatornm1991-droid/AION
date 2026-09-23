@@ -1443,6 +1443,39 @@ preset and a hand-written comparison prompt for a glossy 3D neon-diorama look
 opinion on which is better and directed that 3D neon become the channel's
 signature style ("3D neon ดีกว่ามั้ย เป็นลายเซ็นของช่องไปเลย").
 
+## 2026-09-23 12:30 UTC -- Codex -- Removed exhausted-question queue starvation
+
+The production audit found a second upstream throughput bottleneck after the
+new five-question learning batch was exercised in GitHub Actions.  The batch
+was correctly allowed to inspect five questions, but all five could already
+be at their immutable attempt budget, producing five `budget-exhausted`
+reports and zero new evidence.  Because exhausted questions remained open
+for audit (correctly), they could also consume CuriosityEngine's small live
+open-question cap and prevent fresh inquiry from entering the queue.
+
+Fixed without deleting, resolving, or silently abandoning any work:
+
+- `WebLearningCycle.research_once()` and `research_batch()` now skip
+  `budget_exhausted` entries when selecting new provider retrieval work and
+  explicitly report `no-researchable-questions` when only review-only records
+  remain.
+- `CuriosityEngine` preserves exhausted questions as visible open records but
+  excludes them from the live-inquiry capacity count; a fresh, evidence-bound
+  question can therefore enter the pipeline while the original history stays
+  available for review.
+- `BoundedItemTracker` retains its original conservative behavior for every
+  other tracker; the capacity exception is an explicit Curiosity-only
+  override.
+
+Added deterministic tests for both guarantees.  Targeted tests passed:
+`tests.test_curiosity_goals`, `WebLearningCycleBatchTests`, and
+`tests.test_research_to_story` (30 tests total), plus Python compilation and
+`git diff --check`.  Dashboard tests separately passed 8/8; the live local
+Operations page was opened and showed the truthful `0/7` buffer and recovery
+chain instead of claiming a release was ready.  Follow-up is to let the next
+scheduled cycle exercise a newly researchable item and verify an evidence
+pair reaches Story/Studio; no legacy episode is being substituted.
+
 My opinion, given directly in chat rather than just implemented blind: 3D
 diorama neon is the stronger *single-image* pick -- glossier, more premium,
 more scroll-stopping as a thumbnail. The tradeoff is that AION renders scenes
