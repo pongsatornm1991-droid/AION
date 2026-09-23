@@ -11,6 +11,7 @@ Owner: none
 Started: n/a
 Lease expires: n/a
 Scope: No active cross-session edit claim.
-Handoff: Operations Dashboard now surfaces the truthful public production
-control report. It intentionally never invents quota, visual-semantic, or
-audience claims it cannot verify.
+Handoff: Production Recovery Manager checks the seven-Short target hourly,
+stages up to five distinct evidence-qualified stories, and only dispatches
+the capped Studio shift when work is ready. Operations Dashboard is the
+one-screen source for progress, blockers, and next actions.

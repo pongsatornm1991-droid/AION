@@ -13,6 +13,18 @@ Format:
 Commits: <hash> [, <hash> ...]
 ```
 
+## 2026-09-23 — Codex — Activated automatic Shorts-buffer recovery
+
+Replaced the one-storyboard recovery bottleneck with a bounded batch of up
+to five distinct, evidence-qualified briefs, handoffs and storyboards. The
+Production Recovery Manager now checks the seven-Short target hourly and
+starts the existing capped Studio shift only when new approved work is ready.
+Redesigned Operations around one-screen production status: goal, current
+shortage, active work, blockers, next steps, and truthful provider limits.
+Targeted tests: 13 passed.
+
+Commits: 17b8af0
+
 ## 2026-09-23 — Codex — Put truthful production control in Operations Dashboard
 
 The Operations API now reads the hourly production-control report, and its
