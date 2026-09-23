@@ -47,6 +47,8 @@ class CreatorSceneProductionTests(unittest.TestCase):
             self.assertEqual([1], result["failed"])
             self.assertFalse(episode["scenes"][0].get("image"))
             self.assertFalse(result["pilot_scene_qa"]["eligible"])
+            archived = episode["scenes"][0]["rejected_assets"][0]["path"]
+            self.assertTrue((root / archived).is_file())
 
     def test_current_short_keeps_valid_scenes_when_only_one_later_scene_fails(self):
         with tempfile.TemporaryDirectory() as root:
@@ -80,6 +82,8 @@ class CreatorSceneProductionTests(unittest.TestCase):
             self.assertFalse(episode["scenes"][1].get("image"))
             self.assertFalse(episode["scenes"][2].get("image"))
             self.assertFalse(episode["scenes"][1]["asset_qa"]["eligible"])
+            archived = episode["scenes"][1]["rejected_assets"][0]["path"]
+            self.assertTrue((root / archived).is_file())
 
     def test_storyboard_can_name_future_asset_paths_before_generation(self):
         with tempfile.TemporaryDirectory() as root:

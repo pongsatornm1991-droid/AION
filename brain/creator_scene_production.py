@@ -74,6 +74,7 @@ class CreatorSceneProduction:
                 "height": height,
                 "machine_check_only": True,
             }
+
         except (OSError, ValueError):
             return {
                 "eligible": False,
@@ -82,6 +83,22 @@ class CreatorSceneProduction:
                 "height": None,
                 "machine_check_only": True,
             }
+
+    def _archive_rejected_asset(self, destination, scene, qa):
+        """Keep a failed generated asset as recoverable evidence, never trash it."""
+        destination = Path(destination)
+        rejected = destination.parent / "rejected"
+        rejected.mkdir(parents=True, exist_ok=True)
+        attempt = len(scene.get("rejected_assets") or []) + 1
+        archived = rejected / f"{destination.stem}.attempt-{attempt}{destination.suffix}"
+        destination.replace(archived)
+        record = {
+            "path": str(archived.relative_to(self.root)).replace("\\", "/"),
+            "qa": qa,
+            "reason": "kept-for-review-and-prompt-learning",
+        }
+        scene.setdefault("rejected_assets", []).append(record)
+        return record
 
     def _episode(self, episode_format=None):
         return next((item for item in CreatorSeriesRegistry(self.root).episodes()
@@ -326,10 +343,10 @@ class CreatorSceneProduction:
             if generator(self._prompt(episode, scene), str(destination)):
                 asset_gate = self._scene_file_gate(destination, episode)
                 if pilot_required and not asset_gate["eligible"]:
-                    # This destination was created by this attempt, so removing
-                    # it is safe. Leave the storyboard eligible for a retry of
-                    # this scene only; do not spend on the remaining scenes.
-                    destination.unlink(missing_ok=True)
+                    # Keep the paid output in a recoverable review folder.
+                    # The storyboard retries only this scene, while the asset
+                    # remains available for prompt learning and human review.
+                    self._archive_rejected_asset(destination, scene, asset_gate)
                     scene["asset_qa"] = asset_gate
                     failed.append(scene["n"])
                     if pilot_pending:
