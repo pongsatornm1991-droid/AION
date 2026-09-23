@@ -13,6 +13,18 @@ Format:
 Commits: <hash> [, <hash> ...]
 ```
 
+## 2026-09-23 — Codex — Moved image Quality Gates ahead of paid production
+
+Current-policy Shorts now must pass source, story, duration, style and
+identity preflight before any image request. The first generated scene is a
+file-verified pilot; a failed pilot stops the episode before the remaining
+scenes are requested, and a later invalid scene is isolated for retry while
+valid prior scenes remain. The image adapter now converts its 2:3 provider
+portrait into a true 1080x1920 9:16 Short asset before the free file gate.
+Full suite and focused regression tests pass.
+
+Commits: 989394a
+
 ## 2026-09-23 — Codex — Activated automatic Shorts-buffer recovery
 
 Replaced the one-storyboard recovery bottleneck with a bounded batch of up

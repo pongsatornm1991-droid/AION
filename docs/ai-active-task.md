@@ -11,7 +11,6 @@ Owner: none
 Started: n/a
 Lease expires: n/a
 Scope: No active cross-session edit claim.
-Handoff: Production Recovery Manager checks the seven-Short target hourly,
-stages up to five distinct evidence-qualified stories, and only dispatches
-the capped Studio shift when work is ready. Operations Dashboard is the
-one-screen source for progress, blockers, and next actions.
+Handoff: Current-policy Shorts pass no-cost preflight before image generation;
+their first image is a file-verified pilot, later failures retry only the
+failed scene, and provider portraits are normalized to true 9:16 assets.
