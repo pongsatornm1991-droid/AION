@@ -37,6 +37,9 @@ def _active_by_kind(root):
     return active
 
 
+MAX_RECOVERY_BATCH = 5
+
+
 def recover_once(memory, root=ROOT):
     readiness = ReleaseReadiness(memory, root).snapshot()
     shortages = {
@@ -52,22 +55,26 @@ def recover_once(memory, root=ROOT):
         for kind in ("short",)
     }
     prepared = []
-    # One run may prepare the next missing appointment.  The 3-hour Story
-    # shift keeps filling the remaining plan without a user needing to order
-    # it.  Deliberately do not fabricate three episodes from one weak source
-    # package or start paid media generation in this observer.
+    # Fill a bounded batch of *distinct, already-qualified* research items.
+    # The old one-at-a-time handoff made a daily seven-Short policy depend on
+    # seven separate recovery ticks despite the downstream Studio already
+    # accepting a seven-episode shift.  This never makes multiple stories
+    # from one source package: every batch method retains its own evidence,
+    # novelty and source-integrity gates.
     next_kind = next((kind for kind in ("short",) if planned[kind]), None)
     if next_kind:
-        brief = ResearchToStory(memory).propose_once()
-        handoff = ResearchStoryHandoff(memory).create_once()
-        staged = StoryEpisodeStager(memory, root).stage_once(next_kind)
-        prepared.append({"content_kind": next_kind, "brief": brief, "handoff": handoff, "staged": staged})
+        limit = min(MAX_RECOVERY_BATCH, planned[next_kind])
+        brief = ResearchToStory(memory).propose_batch(limit=limit)
+        handoff = ResearchStoryHandoff(memory).create_batch(limit=limit)
+        staged = StoryEpisodeStager(memory, root).stage_batch(limit=limit, episode_format=next_kind)
+        prepared.append({"content_kind": next_kind, "requested": limit, "brief": brief, "handoff": handoff, "staged": staged})
     else:
         staged = None
 
+    staged_ids = (staged or {}).get("staged_episode_ids") or []
     return {
-        "stage": "recovery-storyboard-prepared" if staged and staged.get("stage") in {"storyboard-staged", "already-staged"} else "recovery-needs-research",
-        "needs_production": bool(staged and staged.get("stage") in {"storyboard-staged", "already-staged"}),
+        "stage": "recovery-storyboards-prepared" if staged_ids else "recovery-needs-research",
+        "needs_production": bool(staged_ids),
         "shortages": shortages,
         "active_pipeline": active,
         "remaining_storyboard_plan": planned,

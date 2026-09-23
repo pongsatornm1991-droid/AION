@@ -5,11 +5,11 @@ name: AION - Creator release readiness
 # buffer visible early enough for the normal Studio shifts to recover it.
 on:
   schedule:
-    # Run after the day's 09:07 Studio shift (daily since 2026-09-21) has
-    # had time to produce its release buffer; checking before it would
-    # create a false shortage alert while the planned work is still
-    # legitimately underway.
-    - cron: "30 5 * * *" # 12:30 Asia/Bangkok
+    # The Production Recovery Manager checks the buffer every hour. It is
+    # harmless when full, but when the buffer is below seven it immediately
+    # batches only distinct, evidence-qualified storyboards into the existing
+    # bounded Studio shift instead of waiting for tomorrow's production run.
+    - cron: "30 * * * *"
   workflow_run:
     # Refresh immediately when the production pipeline changes.  The daily
     # check remains the fallback, while this avoids a stale seven-day board
@@ -50,10 +50,11 @@ jobs:
         env:
           AION_MEMORY_ROOT: memory_data
         run: python tools/run_release_readiness.py
-      - name: Plan every missing appointment and prepare the next cited storyboard
-        # This is an observer and planning handoff: no upload, no reuse of old
-        # content and no platform/account change.  The separate Studio shift
-        # renders only its normal bounded daily-Short buffer batch.
+      - name: Production Recovery Manager plans the missing cited storyboards
+        # This is a bounded planning handoff: no upload, no reuse of old
+        # content and no platform/account change. It can prepare up to five
+        # distinct cited storyboards; the separate Studio shift remains capped
+        # at seven Shorts and retains all image, novelty and quality gates.
         env:
           AION_MEMORY_ROOT: memory_data
         run: python tools/recover_release_buffer.py | tee release-buffer-recovery.json

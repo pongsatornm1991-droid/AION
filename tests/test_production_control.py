@@ -38,6 +38,8 @@ class ProductionControlTests(unittest.TestCase):
             self.assertEqual("unknown-not-inspectable-without-provider-api", report["provider_health"]["quota"])
             self.assertTrue(report["episodes"][0]["release_ready"])
             self.assertEqual(6, report["shorts_buffer"]["missing"])
+            self.assertEqual("recovering", report["recovery"]["state"])
+            self.assertEqual("Production Recovery Manager", report["recovery"]["owner"])
 
     def test_old_style_is_visible_as_a_release_blocker(self):
         with tempfile.TemporaryDirectory() as temp:
