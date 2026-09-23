@@ -294,6 +294,12 @@ class CreatorSceneProduction:
                 cover_created = True
                 changed = True
         completed = scenes_complete and self._cover_exists(episode)
+        if completed:
+            # Record an inspectable check over the files that were actually
+            # generated, rather than treating a successful image prompt as
+            # proof that usable, distinct vertical scene assets exist.
+            from brain.production_control import VisualArtifactGate
+            episode["visual_qa"] = VisualArtifactGate(self.root).assess(episode)
         if completed and episode.get("status") != "assets-ready-for-assembly":
             episode["status"] = "assets-ready-for-assembly"
             changed = True

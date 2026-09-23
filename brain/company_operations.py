@@ -36,6 +36,8 @@ class CompanyOperations:
          # would make the dashboard report this department as "running" while
          # the publisher is merely writing its own read-only snapshot.
          (".github/workflows/admin-operations.yml",)),
+        ("production-control", ("brain/production_control.py", "tools/production_control.py"),
+         (".github/workflows/production-control.yml",)),
         ("memory", ("brain/memory.py", "brain/asset_hygiene.py"),
          (".github/workflows/asset-hygiene.yml", ".github/workflows/obsidian-brain.yml")),
         ("engineering", ("brain/system_reliability.py", "brain/self_repair.py", "brain/company_quality_audit.py"),

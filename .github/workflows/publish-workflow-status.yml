@@ -27,6 +27,7 @@ on:
       # still alert through Automation Health Monitor and appear in the next
       # hourly status refresh.
       - AION - Creator release readiness
+      - AION - production control
       - AION - admin operations audit
     types: [completed]
   workflow_dispatch: {}

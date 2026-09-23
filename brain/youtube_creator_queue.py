@@ -149,6 +149,9 @@ class YouTubeCreatorQueue:
             # silently consume a routine Wait, How? release appointment.
             if visual_style.get("id") != ChannelPolicy(self.root).production()["automatic_release_visual_style"]:
                 release_blockers.append("visual-style-not-channel-signature")
+            visual_qa = episode.get("visual_qa") or {}
+            if visual_qa.get("eligible") is not True:
+                release_blockers.append("visual-asset-qa-not-passed")
             # An incident record (e.g. "narration ends before the final
             # scene") must block release on its own facts, never on whether
             # someone also remembered to spell a matching `status` value.
@@ -219,6 +222,7 @@ class YouTubeCreatorQueue:
                 "source_urls": [source.get("url") for source in (episode.get("sources") or []) if source.get("url")],
                 "viewer_value": episode["audience_promise"],
                 "visual_style": (episode.get("visual_style") or {}).get("id") or VisualStoryPolicy.CHANNEL_VISUAL_STYLE,
+                "visual_qa": episode.get("visual_qa"),
                 # Queue state is durable and is the source of truth for the
                 # UI.  Keep the friendly display status above for legacy
                 # screens, but never discard the authorization state.

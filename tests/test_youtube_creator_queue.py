@@ -25,6 +25,7 @@ class YouTubeCreatorQueueTests(unittest.TestCase):
             "status": "production-ready-assets-and-script", "format": "illustrated-narrated-short",
             "target_duration_seconds": 50, "scene_seconds": 5,
             "visual_style": {"id": "aion-neon-diorama-3d-v1", "approved": True},
+            "visual_qa": {"eligible": True, "reasons": []},
             "audience_promise": "Viewers learn how a careful question can make a mystery easier to explore.",
             "wonder_hook": "Could a small question change how we see the world?", "creative_device": "journey",
             "age_layers": {"children": "Ask why.", "family": "Talk together.", "deeper": "Test a claim."},
