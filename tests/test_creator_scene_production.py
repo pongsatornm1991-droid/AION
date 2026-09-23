@@ -1,12 +1,86 @@
 import tempfile
 import unittest
 from pathlib import Path
+from unittest.mock import patch
 
 from brain.creator_scene_production import CreatorSceneProduction
 from brain.visual_story_policy import VisualStoryPolicy
 
 
 class CreatorSceneProductionTests(unittest.TestCase):
+    def test_current_short_preflight_blocks_old_style_before_image_generation(self):
+        episode = {
+            "format": "illustrated-narrated-short",
+            "pacing_policy": VisualStoryPolicy.VERSION,
+            "visual_style": {"id": "legacy-style", "approved": False},
+            "scenes": [],
+        }
+
+        report = CreatorSceneProduction().preflight(episode)
+
+        self.assertFalse(report["eligible"])
+        self.assertIn("visual-style-not-channel-signature", report["reasons"])
+        self.assertIn("visual-style-not-approved", report["reasons"])
+
+    def test_current_short_stops_after_an_invalid_pilot_scene(self):
+        with tempfile.TemporaryDirectory() as root:
+            root = Path(root)
+            source = root / "episode.json"
+            source.write_text("{}", encoding="utf-8")
+            episode = {
+                "id": "episode", "file": "episode.json", "format": "illustrated-narrated-short",
+                "pacing_policy": VisualStoryPolicy.VERSION,
+                "visual_style": {"id": VisualStoryPolicy.CHANNEL_VISUAL_STYLE, "approved": True},
+                "scenes": [{"n": 1, "beat": "hook", "visual": "A clear mechanism."}],
+            }
+
+            def invalid_image(_, destination):
+                from PIL import Image
+                Image.new("RGB", (100, 100), "navy").save(destination)
+                return True
+
+            production = CreatorSceneProduction(root, invalid_image)
+            with patch.object(production, "_episode", return_value=episode):
+                result = production.produce_once(limit=5)
+
+            self.assertEqual("pilot-scene-rejected", result["stage"])
+            self.assertEqual([1], result["failed"])
+            self.assertFalse(episode["scenes"][0].get("image"))
+            self.assertFalse(result["pilot_scene_qa"]["eligible"])
+
+    def test_current_short_keeps_valid_scenes_when_only_one_later_scene_fails(self):
+        with tempfile.TemporaryDirectory() as root:
+            root = Path(root)
+            source = root / "episode.json"
+            source.write_text("{}", encoding="utf-8")
+            episode = {
+                "id": "episode", "file": "episode.json", "format": "illustrated-narrated-short",
+                "pacing_policy": VisualStoryPolicy.VERSION,
+                "visual_style": {"id": VisualStoryPolicy.CHANNEL_VISUAL_STYLE, "approved": True},
+                "scenes": [
+                    {"n": 1, "beat": "hook", "visual": "A clear mechanism."},
+                    {"n": 2, "beat": "evidence", "visual": "A second clear mechanism."},
+                    {"n": 3, "beat": "takeaway", "visual": "A third clear mechanism."},
+                ],
+            }
+
+            def mixed_images(_, destination):
+                from PIL import Image
+                size = (720, 1280) if "01-" in destination else (100, 100)
+                Image.new("RGB", size, "navy").save(destination)
+                return True
+
+            production = CreatorSceneProduction(root, mixed_images)
+            with patch.object(production, "_episode", return_value=episode):
+                result = production.produce_once(limit=5)
+
+            self.assertEqual([1], result["produced"])
+            self.assertEqual([2], result["failed"])
+            self.assertTrue(episode["scenes"][0].get("image"))
+            self.assertFalse(episode["scenes"][1].get("image"))
+            self.assertFalse(episode["scenes"][2].get("image"))
+            self.assertFalse(episode["scenes"][1]["asset_qa"]["eligible"])
+
     def test_storyboard_can_name_future_asset_paths_before_generation(self):
         with tempfile.TemporaryDirectory() as root:
             root = Path(root)

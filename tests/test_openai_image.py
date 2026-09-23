@@ -1,11 +1,13 @@
 """Offline tests for the opt-in OpenAI social-image adapter."""
 
 import base64
+import io
 import os
 import tempfile
 import unittest
 from pathlib import Path
 from unittest.mock import patch
+from PIL import Image
 
 from tools.openai_image import (
     _get_config,
@@ -59,22 +61,29 @@ class OpenAIImageTests(unittest.TestCase):
         os.environ["IMAGE_PROVIDER"] = "openai"
         os.environ["OPENAI_IMAGE_API_KEY"] = "test-key"
         encoded = base64.b64encode(b"fresh-image").decode("ascii")
+        image_bytes = io.BytesIO()
+        Image.new("RGB", (1024, 1536), "navy").save(image_bytes, "PNG")
+        scene_encoded = base64.b64encode(image_bytes.getvalue()).decode("ascii")
 
         class Response:
+            def __init__(self, payload):
+                self.payload = payload
+
             def raise_for_status(self):
                 return None
 
             def json(self):
-                return {"data": [{"b64_json": encoded}]}
+                return {"data": [{"b64_json": self.payload}]}
 
         with tempfile.TemporaryDirectory() as temp_dir:
             social = os.path.join(temp_dir, "social.png")
             scene = os.path.join(temp_dir, "scene.png")
-            with patch("requests.post", return_value=Response()) as post:
+            with patch("requests.post", side_effect=[Response(encoded), Response(scene_encoded)]) as post:
                 self.assertTrue(generate_social_image("a thought", social))
                 self.assertTrue(generate_scene_image("a vertical scene", scene))
             self.assertEqual(Path(social).read_bytes(), b"fresh-image")
-            self.assertEqual(Path(scene).read_bytes(), b"fresh-image")
+            with Image.open(scene) as output:
+                self.assertEqual((1080, 1920), output.size)
             self.assertEqual(post.call_args_list[0].kwargs["json"]["size"], "1024x1024")
             self.assertEqual(post.call_args_list[1].kwargs["json"]["size"], "1024x1536")
             self.assertIn("Do not include words", post.call_args_list[0].kwargs["json"]["prompt"])

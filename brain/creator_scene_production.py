@@ -28,6 +28,61 @@ class CreatorSceneProduction:
         self.root = Path(root or Path(__file__).resolve().parents[1])
         self.generator = generator
 
+    @staticmethod
+    def _is_current_short(episode):
+        return (episode.get("format") == "illustrated-narrated-short"
+                and episode.get("pacing_policy") == VisualStoryPolicy.VERSION)
+
+    def preflight(self, episode):
+        """Reject avoidable paid-image work before requesting any pixels."""
+        if not self._is_current_short(episode):
+            return {"eligible": True, "reasons": [], "stage": "legacy-compatible"}
+        reasons = []
+        style = episode.get("visual_style") or {}
+        if style.get("id") != VisualStoryPolicy.CHANNEL_VISUAL_STYLE:
+            reasons.append("visual-style-not-channel-signature")
+        if not style.get("approved"):
+            reasons.append("visual-style-not-approved")
+        for report in (
+            VisualStoryPolicy.validate_episode(episode),
+            CreatorSourceIntegrity.assess(episode.get("sources"), episode.get("topic_key"), ""),
+            VisualNarrativeGate.assess(episode),
+            FactFirstVisualGate.assess(episode),
+        ):
+            reasons.extend(report.get("reasons") or [])
+        return {
+            "eligible": not reasons,
+            "reasons": sorted(set(reasons)),
+            "stage": "preflight-passed" if not reasons else "preflight-blocked",
+            "boundary": "Runs before image generation; only a passing current-policy storyboard may spend image budget.",
+        }
+
+    def _scene_file_gate(self, path, episode):
+        """Verify the actual output file before allowing more paid requests."""
+        try:
+            from PIL import Image
+            with Image.open(path) as image:
+                width, height = image.size
+            is_short = episode.get("format") == "illustrated-narrated-short"
+            vertical = (not is_short or (
+                width >= 720 and height >= 1280 and abs(width / height - 9 / 16) <= 0.04
+            ))
+            return {
+                "eligible": vertical,
+                "reasons": [] if vertical else ["scene-image-not-vertical-9x16"],
+                "width": width,
+                "height": height,
+                "machine_check_only": True,
+            }
+        except (OSError, ValueError):
+            return {
+                "eligible": False,
+                "reasons": ["missing-or-unreadable-scene-image"],
+                "width": None,
+                "height": None,
+                "machine_check_only": True,
+            }
+
     def _episode(self, episode_format=None):
         return next((item for item in CreatorSeriesRegistry(self.root).episodes()
                      if item.get("status") in {"storyboard-ready-needs-assets", "assets-ready-for-assembly", "production-ready-assets-and-script"}
@@ -42,7 +97,8 @@ class CreatorSceneProduction:
                      # Current storyboards must carry the new human-toned
                      # contextual-guide contract before image generation.
                      and (item.get("pacing_policy") != VisualStoryPolicy.VERSION
-                          or VisualStoryPolicy.validate_identity_contract(item).get("eligible"))), None)
+                          or VisualStoryPolicy.validate_identity_contract(item).get("eligible"))
+                     and self.preflight(item).get("eligible")), None)
 
     def _cover_path(self, episode):
         return self.root / "content" / "reels" / f"{episode['id']}-cover.png"
@@ -249,6 +305,9 @@ class CreatorSceneProduction:
             # to a real 16:9 file.
             cover_generator = self.generator
         made, failed = [], []
+        pilot_required = self._is_current_short(episode)
+        pilot_pending = pilot_required and not any(scene.get("image") for scene in episode.get("scenes") or [])
+        pilot_rejected = False
         changed = False
         folder = self.root / "assets" / "content-library" / "aion-stories" / episode["id"]
         folder.mkdir(parents=True, exist_ok=True)
@@ -265,6 +324,19 @@ class CreatorSceneProduction:
                 changed = True
                 continue
             if generator(self._prompt(episode, scene), str(destination)):
+                asset_gate = self._scene_file_gate(destination, episode)
+                if pilot_required and not asset_gate["eligible"]:
+                    # This destination was created by this attempt, so removing
+                    # it is safe. Leave the storyboard eligible for a retry of
+                    # this scene only; do not spend on the remaining scenes.
+                    destination.unlink(missing_ok=True)
+                    scene["asset_qa"] = asset_gate
+                    failed.append(scene["n"])
+                    if pilot_pending:
+                        episode["pilot_scene_qa"] = asset_gate
+                        pilot_rejected = True
+                    changed = True
+                    break
                 scene["image"] = str(destination.relative_to(self.root)).replace("\\", "/")
                 # This records the exact approved identity/costume handoff
                 # that the image was generated against.  It is not a claim
@@ -274,8 +346,15 @@ class CreatorSceneProduction:
                     "identity_version": (episode.get("visual_identity") or {}).get("version", "legacy-unversioned"),
                     "costume_brief": wardrobe,
                 }
+                scene["asset_qa"] = asset_gate
                 made.append(scene["n"])
                 changed = True
+                if pilot_pending:
+                    # The first paid image is the pilot. Its file-level gate
+                    # has already proved the exact 9:16 delivery contract, so
+                    # subsequent scene requests may proceed in this run.
+                    episode["pilot_scene_qa"] = asset_gate
+                    pilot_pending = False
             else:
                 failed.append(scene["n"])
                 break
@@ -308,9 +387,11 @@ class CreatorSceneProduction:
         if changed:
             source = self.root / episode["file"]
             source.write_text(json.dumps({key: value for key, value in episode.items() if key != "file"}, ensure_ascii=False, indent=2), encoding="utf-8")
-        return {"stage": ("scene-assets-complete" if completed else
+        return {"stage": ("pilot-scene-rejected" if pilot_rejected else
+                          "scene-assets-complete" if completed else
                           "scene-assets-produced" if made else "scene-generation-unavailable"),
                 "episode_id": episode["id"], "produced": made, "failed": failed,
+                "pilot_scene_qa": episode.get("pilot_scene_qa"),
                 "cover_created": cover_created, "cover_path": str(cover_path.relative_to(self.root)).replace("\\", "/")}
 
     def produce_episode(self, batch_size=DEFAULT_BATCH_SIZE,

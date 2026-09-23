@@ -62,14 +62,36 @@ def generate_social_image(caption, out_path):
 
 
 def generate_scene_image(prompt, out_path):
-    """Generate one vertical Creator scene, returning False when unavailable."""
+    """Generate one exact 9:16 Creator scene, returning False when unavailable.
+
+    The provider's portrait size is 2:3, not the 9:16 contract used by
+    Shorts. Crop and resize the returned image before it enters Studio so a
+    technically successful paid request cannot later fail the free aspect
+    ratio gate.
+    """
     config = _get_config()
     if config is None:
         return False
-    return _generate_png(
-        config, prompt=str(prompt), out_path=out_path,
-        size="1024x1536", timeout=120,
-    )
+    destination = Path(out_path)
+    provider_portrait = destination.with_name(f"{destination.stem}.provider-portrait.png")
+    if not _generate_png(config, prompt=str(prompt), out_path=provider_portrait,
+                         size="1024x1536", timeout=120):
+        return False
+    try:
+        from PIL import Image
+        with Image.open(provider_portrait) as image:
+            rgb = image.convert("RGB")
+            width, height = rgb.size
+            crop_width = min(width, round(height * 9 / 16))
+            left = max(0, (width - crop_width) // 2)
+            rgb.crop((left, 0, left + crop_width, height)).resize(
+                (1080, 1920), Image.Resampling.LANCZOS
+            ).save(destination, "PNG", optimize=True)
+        return destination.is_file() and destination.stat().st_size > 0
+    except Exception:
+        return False
+    finally:
+        provider_portrait.unlink(missing_ok=True)
 
 
 def generate_cover_image(prompt, out_path):
