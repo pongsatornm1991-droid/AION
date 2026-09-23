@@ -58,3 +58,15 @@ class AutonomousInitiativeTests(unittest.TestCase):
             self.assertFalse(active["created"])
             self.assertEqual(created["question"]["id"], active["question"]["id"])
             self.assertEqual("buffer-healthy", planner.initiate_recovery_once(0)["stage"])
+
+    def test_recovery_lane_does_not_reopen_a_previous_recovery_domain(self):
+        with tempfile.TemporaryDirectory() as root:
+            memory = MemoryEngine(root)
+            memory.remember(
+                "autonomous_initiatives", "Earlier recovery was preserved.",
+                memory_type="decision", source="test", importance=5,
+                tags=["shorts-recovery", "insect-science"],
+            )
+            report = AutonomousInitiative(memory).initiate_recovery_once(7)
+            self.assertEqual("seeded-recovery-question", report["stage"])
+            self.assertEqual("plant-science", report["domain"])

@@ -99,7 +99,11 @@ class AutonomousInitiative:
                 "question": active,
             }
 
-        attempted_domains = {
+        # Include historical recovery decisions too. An answered, exhausted,
+        # or evidence-rejected recovery question is deliberately preserved in
+        # memory, so looking only at *currently open* questions would reopen
+        # the same topic on the next low-buffer tick.
+        attempted_domains = self._used_domains() | {
             tag for entry in recovery_questions for tag in (entry.get("tags") or [])
         }
         open_statements = {
