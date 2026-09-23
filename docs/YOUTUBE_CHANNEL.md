@@ -12,6 +12,8 @@ Each 50–180 second Short begins with an ordinary question, follows evidence
 through at least 10 distinct visual beats, and separates sourced fact from
 AION's reflection. The automatic lane accepts only the channel signature
 `aion-neon-diorama-3d-v1` after its Quality Gate passes.
+It uses cinematic neon realism: one factual mechanism in an atmospheric 3D
+setting with believable materials and lighting, never a generic toy cutaway.
 
 The first production-ready script is
 `content/creator_series/aion-wonders-001-petrichor.json`.

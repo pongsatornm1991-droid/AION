@@ -82,7 +82,8 @@ class CreatorSceneProductionTests(unittest.TestCase):
             episode, {"visual": "A bioluminescent jellyfish pulses in the deep sea."}
         )
         self.assertIn("AION Neon Diorama 3D", prompt)
-        self.assertIn("glossy 3D-rendered miniature-diorama", prompt)
+        self.assertIn("cinematic 3D-rendered miniature-world", prompt)
+        self.assertIn("believable wet metal, stone, glass, water, soil, weather and light", prompt)
         self.assertIn("shallow depth of field", prompt)
         self.assertIn("electric pink/magenta", prompt)
         self.assertIn("REPLACES the channel's usual restrained palette", prompt)

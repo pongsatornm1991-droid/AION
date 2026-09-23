@@ -97,11 +97,14 @@ class CreatorSceneProduction:
             )
         if style_id == "aion-neon-diorama-3d-v1":
             return (
-                "Style: AION Neon Diorama 3D—an original glossy 3D-rendered miniature-diorama "
-                "illustration, the channel's premium alternate neon house style. Small rounded, "
-                "simplified forms with smooth glossy plastic or frosted-glass materials, soft "
-                "studio-quality key and rim lighting, gentle ambient occlusion, soft reflections, "
-                "and a shallow depth of field that blurs the background into soft bokeh. This "
+                "Style: AION Neon Diorama 3D—an original cinematic 3D-rendered miniature-world "
+                "illustration, the channel's premium neon house style. Frame one clear real-world "
+                "mechanism or moment inside an atmospheric miniature setting: believable wet metal, "
+                "stone, glass, water, soil, weather and light are welcome when the story needs them. "
+                "Use polished, deliberately composed forms rather than a flat toy cutaway; rich "
+                "material contrast, soft studio-quality key and rim lighting, gentle ambient "
+                "occlusion, soft reflections, and a shallow depth of field that blurs the "
+                "background into cinematic bokeh. This "
                 "preset's colour direction REPLACES the channel's usual restrained palette: use "
                 "the same bright, high-contrast, neon-leaning palette as the dominant colour scheme "
                 "of every frame -- electric pink/magenta, vivid cobalt or cyan-blue, saturated "
@@ -110,7 +113,7 @@ class CreatorSceneProduction:
                 "and instant one-second readability -- this is deliberate vivid saturation, not "
                 "clutter. Cyan beyond the background palette is still reserved only for AION's tiny "
                 "crystal signature, never a full body colour. No text, logos, watermark, "
-                "photorealistic human skin, grain, or anime, and never imitate a named artist, "
+                "photorealistic people, gritty noise, or anime, and never imitate a named artist, "
                 "studio, channel, mascot or franchise."
             )
         if style_id == "aion-vivid-storyworld-2d-v1":
