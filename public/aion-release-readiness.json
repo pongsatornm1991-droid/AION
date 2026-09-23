@@ -1,8 +1,8 @@
 {
-  "generated_at": "2026-09-23T07:54:37.671817+07:00",
+  "generated_at": "2026-09-23T12:23:30.279494+07:00",
   "timezone": "Asia/Bangkok",
   "horizon_hours": 168,
-  "state": "attention",
+  "state": "critical",
   "slots": [
     {
       "at": "2026-09-23T20:30:00+07:00",
@@ -47,8 +47,10 @@
   "shorts_buffer": {
     "target": 7,
     "quality_ready": 0,
-    "state": "building",
+    "missing": 7,
+    "state": "critical",
     "detail": "นับเฉพาะ Shorts ใหม่ที่ผ่าน Quality Gate แล้ว; storyboard หรือภาพครบยังไม่นับเป็นบัฟเฟอร์"
   },
-  "policy": "ตรวจล่วงหน้า 144 ชั่วโมง; นับเฉพาะตอนใหม่ที่ผ่าน Quality Gate พร้อมและไม่ซ้ำ ไม่ใช้คลิปเก่าแทนวันปล่อย"
+  "recovery_action": "ผลิตจากเรื่องใหม่ที่มีหลักฐานครบ",
+  "policy": "ตรวจล่วงหน้า 168 ชั่วโมง; นับเฉพาะตอนใหม่ที่ผ่าน Quality Gate พร้อมและไม่ซ้ำ ไม่ใช้คลิปเก่าแทนวันปล่อย"
 }
