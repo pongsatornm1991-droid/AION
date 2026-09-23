@@ -11,6 +11,6 @@ Owner: none
 Started: n/a
 Lease expires: n/a
 Scope: No active cross-session edit claim.
-Handoff: Current-policy Shorts pass no-cost preflight before image generation;
-their first image is a file-verified pilot, later failures retry only the
-failed scene, and provider portraits are normalized to true 9:16 assets.
+Handoff: Rejected scene assets are preserved in each episode's recoverable
+`rejected/` folder with QA reasons; valid scenes are retained and only the
+failed scene is retried.
