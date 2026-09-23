@@ -13,6 +13,15 @@ Format:
 Commits: <hash> [, <hash> ...]
 ```
 
+## 2026-09-23 — Codex — Added a real low-buffer Shorts recovery lane
+
+When the quality-ready Shorts buffer is below target, the learning cycle now
+opens or resumes one priority-5, evidence-friendly recovery question and
+researches it first; normal difficult questions remain open, auditable, and
+untouched. The lane uses a finite attempt budget, avoids duplicate attempts in
+one batch, and is quiet once the buffer is healthy. Focused tests: 32 passed.
+Commits: 63d4faa
+
 ## 2026-09-23 — Codex — Made voice the source of truth for Shorts timing
 
 Narration preflight now measures each selected voice and writes a recoverable
