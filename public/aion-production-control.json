@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-09-23T15:10:04.733346+00:00",
+  "generated_at": "2026-09-23T16:00:18.510847+00:00",
   "state": "critical",
   "policy": {
     "brand": {
@@ -38,6 +38,33 @@
     "missing": 7
   },
   "episodes": [
+    {
+      "id": "aion-auto-0852d1078850-9b621016-short",
+      "title": "AION Wonders: How do honeybees, an insect, tell their nestmates where food is?",
+      "status": "storyboard-ready-needs-assets",
+      "style": "aion-neon-diorama-3d-v1",
+      "scene_count": 12,
+      "visual_qa": {
+        "eligible": false,
+        "reasons": [
+          "missing-or-unreadable-scene-image",
+          "scene-image-not-vertical-9x16"
+        ],
+        "checked_scenes": 12,
+        "machine_check_only": true,
+        "editorial_limit": "Checks actual files, dimensions and exact duplicates. It cannot truthfully detect text, anatomy, factual depiction or style compliance without a reviewed vision model."
+      },
+      "release_blockers": [
+        "missing-or-unreadable-scene-image",
+        "scene-image-not-vertical-9x16",
+        "episode-status:storyboard-ready-needs-assets"
+      ],
+      "release_ready": false,
+      "portfolio": {
+        "id": "everyday-science",
+        "label": "ทีมสำรวจวิทยาศาสตร์ใกล้ตัว"
+      }
+    },
     {
       "id": "aion-auto-49122594501e-2c0fc6b1-long",
       "title": "AION Explains: How did ancient Persian Yakhchāl structures maintain sub-freezing temperatures to preserve ice during desert summers wit",
@@ -525,7 +552,7 @@
     "target": 7,
     "ready": 0,
     "missing": 7,
-    "active_storyboards": 0,
+    "active_storyboards": 1,
     "cadence": "hourly while the buffer is below target",
     "next_steps": [
       "Create distinct evidence-qualified story briefs.",
