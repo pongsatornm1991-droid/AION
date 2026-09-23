@@ -101,7 +101,24 @@ jobs:
           git add public/aion-release-readiness.json content/creator_series/ assets/content-library/aion-stories/
           if ! git diff --cached --quiet; then
             git commit -m "AION: refresh release readiness"
-            git pull --rebase origin main
+            # The readiness JSON is an ephemeral observability snapshot. A
+            # concurrent production-control refresh can legitimately update
+            # the same file between this runner's checkout and its push.
+            # Keep the already-published remote snapshot on that one file,
+            # preserve any newly staged content assets in this commit, and
+            # continue the rebase instead of turning a healthy recovery pass
+            # into a failed workflow. The next hourly/event refresh writes a
+            # newer readiness snapshot anyway.
+            if ! git pull --rebase origin main; then
+              if git diff --name-only --diff-filter=U | grep -qx 'public/aion-release-readiness.json'; then
+                git checkout --ours public/aion-release-readiness.json
+                git add public/aion-release-readiness.json
+                GIT_EDITOR=true git rebase --continue
+              else
+                echo "Unexpected rebase conflict; leave it visible for repair."
+                exit 1
+              fi
+            fi
             { git push || { git pull --rebase --autostash origin main && git push; } || { sleep 10; git pull --rebase --autostash origin main && git push; } || { sleep 20; git pull --rebase --autostash origin main && git push; }; }
           fi
       - name: Surface a buffer shortage without misreporting a planning issue as a broken workflow
