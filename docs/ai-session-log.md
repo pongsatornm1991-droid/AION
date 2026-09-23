@@ -13,6 +13,19 @@ Format:
 Commits: <hash> [, <hash> ...]
 ```
 
+## 2026-09-23 — Codex — Made voice the source of truth for Shorts timing
+
+Narration preflight now measures each selected voice and writes a recoverable
+5–7 second per-scene timeline before image production. Rendering re-measures
+the final audio, extends only that image/motion hold when needed, and no
+longer changes voice speed or trims its ending; subtitles read the final
+rendered timing file. A line beyond the seven-second safe window returns only
+that story beat before further paid images are requested.
+
+Focused timing, assembly, and render tests: 29 passed.
+
+Commits: 2a729f6
+
 ## 2026-09-23 — Codex — Preserved rejected scene work for review and learning
 
 Owner set the policy that paid production must not be thrown away. A scene

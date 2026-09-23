@@ -11,6 +11,6 @@ Owner: none
 Started: n/a
 Lease expires: n/a
 Scope: No active cross-session edit claim.
-Handoff: Rejected scene assets are preserved in each episode's recoverable
-`rejected/` folder with QA reasons; valid scenes are retained and only the
-failed scene is retried.
+Handoff: Audio-driven timing is live: real narration extends its current
+visual hold (5–7 seconds), never speeds up voice, and the measured timeline
+flows from preflight to render and subtitle timing.
