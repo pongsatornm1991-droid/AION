@@ -11,6 +11,6 @@ Owner: none
 Started: n/a
 Lease expires: n/a
 Scope: No active cross-session edit claim.
-Handoff: `aion-neon-diorama-3d-v1` is the confirmed automatic visual style:
-cinematic neon scenes with believable real-world materials and one clear
-factual mechanism, not a toy-only cutaway treatment.
+Handoff: Production control reports episode state, image-file QA, provider
+configuration state and report freshness. It intentionally never invents
+quota, visual-semantic, or audience claims it cannot verify.

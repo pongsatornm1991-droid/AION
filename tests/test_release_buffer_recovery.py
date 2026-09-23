@@ -22,6 +22,7 @@ class ReleaseBufferRecoveryTests(unittest.TestCase):
                     "id": ident, "series": "Test", "title": ident, "status": "production-ready-assets-and-script",
                     "format": "illustrated-narrated-short", "target_duration_seconds": 50, "scene_seconds": 5,
                     "visual_style": {"id": "aion-neon-diorama-3d-v1", "approved": True},
+                    "visual_qa": {"eligible": True, "reasons": []},
                     "audience_promise": "A clear evidence-led story with useful value for viewers of every age.",
                     "wonder_hook": "Could a surprising question change what we notice?", "creative_device": "journey",
                     "age_layers": {"children": "Ask.", "family": "Compare.", "deeper": "Check evidence."},

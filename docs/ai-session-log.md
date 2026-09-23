@@ -13,6 +13,18 @@ Format:
 Commits: <hash> [, <hash> ...]
 ```
 
+## 2026-09-23 — Codex — Added truthful automated production control
+
+Added an hourly production-control workflow and public report with an
+episode ledger, a real image-file QA check (readability, 9:16 dimensions and
+exact duplicate detection), release-artifact freshness, portfolio ownership,
+and safe provider-configuration health. The final queue now requires a
+passed recorded visual-asset QA in addition to the style and existing video
+Quality Gates. Provider quota is deliberately reported as unknown unless a
+provider API can verify it; no dashboard claim is fabricated.
+
+Commits: 3b383e9
+
 ## 2026-09-23 — Codex — Restored the confirmed cinematic neon visual direction
 
 Owner selected the original atmospheric lightning reference over a toy-like
