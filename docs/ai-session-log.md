@@ -1443,6 +1443,24 @@ preset and a hand-written comparison prompt for a glossy 3D neon-diorama look
 opinion on which is better and directed that 3D neon become the channel's
 signature style ("3D neon ดีกว่ามั้ย เป็นลายเซ็นของช่องไปเลย").
 
+## 2026-09-23 13:00 UTC -- Codex -- Connected research completion directly to Studio recovery
+
+Follow-up to the missing-new-Short investigation: the actual handoff had a
+latent day-scale delay.  `research-to-story.yml` correctly starts immediately
+after a successful learning cycle, but it commits its staged storyboard with a
+GitHub Actions token. Such commits do not reliably activate
+`creator-scene-production.yml`'s `push` trigger, so a new qualified storyboard
+could wait for the next 02:07 UTC daily Studio schedule before image work even
+started.  That is unacceptable while the Shorts buffer is below 7.
+
+Added a `workflow_run` handoff from `AION - Research to story brief` to
+`AION - subject-first scene production`, guarded to run only when the upstream
+workflow succeeds.  The existing daily shift remains a recovery fallback;
+this new event path makes Research -> Story -> Studio immediate without
+granting publishing authority or substituting legacy content.  YAML parses
+cleanly, and focused Dashboard, ResearchToStory and CreatorSceneProduction
+tests passed 28/28.
+
 ## 2026-09-23 12:30 UTC -- Codex -- Removed exhausted-question queue starvation
 
 The production audit found a second upstream throughput bottleneck after the
