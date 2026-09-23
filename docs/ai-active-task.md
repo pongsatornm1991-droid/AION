@@ -11,6 +11,6 @@ Owner: —
 Started: —
 Lease expires: —
 Scope: —
-Handoff: 2026-09-24 Codex made the evidence-first Operations board the
-Dashboard home route. The broad legacy observatory now lives at /observatory;
-Studio and specialist rooms remain explicit secondary views.
+Handoff: 2026-09-24 Codex made release-buffer recovery wake evidence research
+immediately when no eligible story exists, and made production-control
+snapshot commits tolerant of concurrent status refreshes.

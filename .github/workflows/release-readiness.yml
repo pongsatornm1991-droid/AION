@@ -79,6 +79,27 @@ jobs:
           else
             echo "No asset-complete recovery storyboard is ready; research remains the only safe next step."
           fi
+      - name: Start evidence recovery when the buffer has no eligible story
+        # A recovery question alone is only a promise to research.  Without
+        # this handoff it could wait almost an hour for the normal learning
+        # appointment while every downstream workflow reported a healthy no-op.
+        # The learning workflow keeps its own shared-memory concurrency lock,
+        # source requirements and claim-safety gates; this merely wakes it
+        # immediately when the release manager has proved evidence is missing.
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          if python -c "import json; print(str(json.load(open('release-buffer-recovery.json', encoding='utf-8')).get('stage') == 'recovery-needs-research').lower())" | grep -qx true; then
+            curl --fail --silent --show-error --request POST \
+              --header "Accept: application/vnd.github+json" \
+              --header "Authorization: Bearer $GH_TOKEN" \
+              --header "X-GitHub-Api-Version: 2022-11-28" \
+              "https://api.github.com/repos/${GITHUB_REPOSITORY}/actions/workflows/learning-cycle.yml/dispatches" \
+              --data '{"ref":"main"}'
+            echo "Started evidence recovery for the missing release buffer."
+          else
+            echo "Evidence recovery is not needed; a storyboard is ready or the buffer is full."
+          fi
       - name: Persist recovery handoffs before the next workflow can read them
         # recover_release_buffer may create a cited brief, Story handoff, or
         # work card in the private memory repository.  Without this commit a

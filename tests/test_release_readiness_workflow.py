@@ -12,6 +12,18 @@ class ReleaseReadinessWorkflowTests(unittest.TestCase):
         self.assertIn("working-directory: memory_data", workflow)
         self.assertIn("AION release-buffer recovery handoff", workflow)
 
+    def test_recovery_wakes_learning_when_evidence_is_missing(self):
+        root = Path(__file__).resolve().parents[1]
+        workflow = (root / ".github" / "workflows" / "release-readiness.yml").read_text(encoding="utf-8")
+        self.assertIn("Start evidence recovery when the buffer has no eligible story", workflow)
+        self.assertIn("learning-cycle.yml/dispatches", workflow)
+
+    def test_production_control_keeps_running_through_snapshot_conflicts(self):
+        root = Path(__file__).resolve().parents[1]
+        workflow = (root / ".github" / "workflows" / "production-control.yml").read_text(encoding="utf-8")
+        self.assertIn("aion-production-control.json", workflow)
+        self.assertIn("GIT_EDITOR=true git rebase --continue", workflow)
+
 
 if __name__ == "__main__":
     unittest.main()

@@ -1673,3 +1673,19 @@ observatory is explicitly secondary at `/observatory`. Studio remains the
 episode-level production view; Learning, Cyber, Lab, and Finance remain
 specialist views rather than competing daily dashboards. Dashboard suite
 remained 8/8 passing.
+
+## 2026-09-24 — Codex — Removed the evidence-recovery wait and another status collision
+
+The real shortage was 0/7 qualified Shorts, not a publishing issue. Release
+Readiness previously opened/reused a recovery inquiry but could then wait for
+the next hourly Learning Cycle even though it had already proved there was no
+eligible evidence-backed storyboard. It now dispatches the existing Learning
+Cycle immediately only when recovery reports `recovery-needs-research`. The
+Learning workflow remains responsible for source, claim-safety, and shared
+memory locking; no media generation or publishing was added.
+
+Also applied the proven ephemeral-snapshot rebase policy to
+`production-control.yml`: a concurrent refresh of that same public status
+file cannot turn a healthy inspection into a failed run. Unexpected conflicts
+still fail visibly. Targeted workflow/recovery/dashboard suite: 13/13 green;
+YAML parsing passed.

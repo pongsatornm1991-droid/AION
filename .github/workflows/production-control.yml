@@ -48,6 +48,19 @@ jobs:
           git add public/aion-production-control.json
           if ! git diff --cached --quiet; then
             git commit -m "AION: refresh production control"
-            git pull --rebase origin main
+            # This file is an observability snapshot.  Other workflow runs
+            # legitimately refresh it while this job is running, so retain
+            # the newest remote snapshot on a same-file conflict instead of
+            # failing a healthy inspection and leaving the dashboard stale.
+            if ! git pull --rebase origin main; then
+              if git diff --name-only --diff-filter=U | grep -qx 'public/aion-production-control.json'; then
+                git checkout --ours public/aion-production-control.json
+                git add public/aion-production-control.json
+                GIT_EDITOR=true git rebase --continue
+              else
+                echo "Unexpected rebase conflict; leave it visible for repair."
+                exit 1
+              fi
+            fi
             { git push || { git pull --rebase --autostash origin main && git push; } || { sleep 10; git pull --rebase --autostash origin main && git push; } || { sleep 20; git pull --rebase --autostash origin main && git push; }; }
           fi
