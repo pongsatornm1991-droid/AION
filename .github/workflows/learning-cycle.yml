@@ -99,6 +99,10 @@ jobs:
       - name: Run run-learning-cycle
         env:
           AION_MEMORY_ROOT: memory_data
+          # Creator stories require two independent, traceable domains.
+          # Keep the first valid observation and leave a question open until
+          # the bounded companion-source retrieval completes.
+          AION_CREATOR_STORY_MIN_SOURCES: "2"
           AI_PROVIDER: ${{ vars.AI_PROVIDER || 'gemini' }}
           GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
           OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}

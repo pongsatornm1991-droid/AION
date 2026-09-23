@@ -26,6 +26,7 @@ instructions for AION to follow.
 """
 
 import json
+import os
 import re
 
 
@@ -1287,6 +1288,10 @@ class WebLearningCycle:
         self.memory = memory
         self.curiosity = curiosity
         self.generator = generator
+        self.creator_story_min_sources = max(
+            1,
+            int(os.getenv("AION_CREATOR_STORY_MIN_SOURCES", "1")),
+        )
 
         self.criteria_evaluator = (
             CompletionCriteriaEvaluator(
@@ -1463,6 +1468,21 @@ class WebLearningCycle:
                     "search": search_europe_pmc_fulltext,
                     "fetch": get_europe_pmc_fulltext,
                 }
+            except ImportError:
+                pass
+
+            # arXiv is a second, independent public research domain for
+            # science and technology questions.  The registry had advertised
+            # it as enabled, but the live adapter was never registered; that
+            # made a two-source Creator requirement impossible to satisfy for
+            # otherwise healthy general research.
+            try:
+                from tools.web_search import search_arxiv, get_arxiv_summary
+                if "arxiv" not in self.adapters:
+                    self.adapters["arxiv"] = {
+                        "search": search_arxiv,
+                        "fetch": get_arxiv_summary,
+                    }
             except ImportError:
                 pass
 
@@ -3121,6 +3141,19 @@ class WebLearningCycle:
                 5,
             )
 
+        # Creator stories require two traceable sources from independent
+        # domains.  A single Wikipedia answer could satisfy a curiosity
+        # question but could never enter the publishing pipeline, leaving
+        # recovery permanently empty. Gather the minimum story-ready pair in
+        # one bounded learning pass instead.
+        creator_story_source_pair_required = (
+            use_legacy_general_flow
+            and self.creator_story_min_sources >= 2
+        )
+
+        if creator_story_source_pair_required:
+            target_count = max(target_count, 2)
+
         # ----------------------------------------------------
         # PHASE 5F.5I — QUALIFICATION-AWARE RETRIEVAL
         # ----------------------------------------------------
@@ -3182,6 +3215,23 @@ class WebLearningCycle:
                         ]
                     ),
                 }]
+                # Try one independently hosted research source as the second
+                # evidence item.  A failure here never invalidates the first
+                # cited observation; the question remains open for a later
+                # bounded attempt instead of manufacturing a source.
+                for candidate in research_plan.get("candidates", []):
+                    if not creator_story_source_pair_required:
+                        break
+                    source_id = str(candidate.get("source_id") or "").strip()
+                    if source_id in {"", "wikipedia"} or not self._adapter_available(source_id):
+                        continue
+                    companion = self._retrieve_from_adapter(
+                        source_id, question_text, root_question_id,
+                        max_items=1, search_queries=search_queries,
+                    )
+                    if companion.get("ok") and companion.get("items"):
+                        retrieval_items.extend(companion["items"][:1])
+                        break
 
             else:
                 retrieval_items = []
@@ -3687,6 +3737,29 @@ class WebLearningCycle:
             )
             and missing_evidence_count >= 0
         )
+
+        # General questions are now intentionally collected as a small,
+        # independent source pair so they can qualify for a Creator story.
+        # Keep any valid first observation, but never mark the question
+        # complete until both traceable sources were actually persisted.
+        if (
+            creator_story_source_pair_required
+            and not resume_from_existing_evidence
+            and len(accumulated_evidence) < 2
+        ):
+            return {
+                "researched": bool(new_evidence_batch),
+                "stage": "awaiting-independent-source",
+                "question": question_entry,
+                "root_question_id": root_question_id,
+                "new_evidence_batch": new_evidence_batch,
+                "rejected_evidence_batch": rejected_evidence_batch,
+                "accumulated_evidence": accumulated_evidence,
+                "research_plan": research_plan,
+                "bounded_target_count": target_count,
+                "candidate_budget": candidate_budget,
+                "collected_new_qualifying_evidence": len(new_evidence_batch),
+            }
 
         if (
             not use_legacy_general_flow
