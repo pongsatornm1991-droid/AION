@@ -22,3 +22,39 @@ class AutonomousInitiativeTests(unittest.TestCase):
             CuriosityEngine(memory).raise_question("Existing inquiry", "Cite a source.")
             self.assertEqual("question-already-open", AutonomousInitiative(memory).initiate_once()["stage"])
             self.assertEqual(1, len(CuriosityEngine(memory).open_questions()))
+
+    def test_recovery_lane_adds_a_short_friendly_question_without_erasing_other_work(self):
+        with tempfile.TemporaryDirectory() as root:
+            memory = MemoryEngine(root)
+            curiosity = CuriosityEngine(memory)
+            original = curiosity.raise_question(
+                "Existing deep inquiry", "Cite two sources.", priority=3
+            )
+
+            report = AutonomousInitiative(memory, curiosity).initiate_recovery_once(7)
+
+            self.assertEqual("seeded-recovery-question", report["stage"])
+            self.assertTrue(report["created"])
+            self.assertEqual(5, report["question"]["importance"])
+            self.assertIn("shorts-recovery", report["question"]["tags"])
+            recovery = next(
+                entry for entry in curiosity.open_questions()
+                if entry["id"] == report["question"]["id"]
+            )
+            self.assertIn("50–60 second factual Short", recovery["criteria"])
+            self.assertIn(
+                original["id"],
+                {entry["id"] for entry in curiosity.open_questions()},
+            )
+
+    def test_recovery_lane_reuses_an_active_question_and_stays_quiet_when_healthy(self):
+        with tempfile.TemporaryDirectory() as root:
+            memory = MemoryEngine(root)
+            planner = AutonomousInitiative(memory)
+            created = planner.initiate_recovery_once(1)
+            active = planner.initiate_recovery_once(7)
+
+            self.assertEqual("recovery-question-active", active["stage"])
+            self.assertFalse(active["created"])
+            self.assertEqual(created["question"]["id"], active["question"]["id"])
+            self.assertEqual("buffer-healthy", planner.initiate_recovery_once(0)["stage"])

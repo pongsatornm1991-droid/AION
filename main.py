@@ -2187,12 +2187,20 @@ def run_learning_cycle(args):
     memory = Thinker().memory
     curiosity = CuriosityEngine(memory)
 
-    # When no human has spoken and the question queue is empty, AION still
-    # needs a concrete, evidence-bound next move. This planner is pure local
-    # logic and therefore adds no model-token cost; the normal learning cycle
-    # below remains responsible for any external research and generation.
+    # A low release buffer needs a concrete, evidence-bound next move rather
+    # than waiting behind a difficult long-running inquiry. This local planner
+    # never manufactures a claim or discards old research; it only opens (or
+    # resumes) one auditable, source-friendly recovery question. The normal
+    # learning cycle below remains responsible for external research and
+    # generation.
     from brain.initiative import AutonomousInitiative
-    initiative = AutonomousInitiative(memory, curiosity).initiate_once()
+    from brain.release_readiness import ReleaseReadiness
+    readiness = ReleaseReadiness(memory).snapshot()
+    recovery_missing = readiness.get("shorts_buffer", {}).get("missing", 0)
+    initiative_planner = AutonomousInitiative(memory, curiosity)
+    initiative = initiative_planner.initiate_recovery_once(recovery_missing)
+    if initiative["stage"] == "buffer-healthy":
+        initiative = initiative_planner.initiate_once()
 
     provider = build_provider()
     evaluator = OutputEvaluator()
@@ -2228,7 +2236,23 @@ def run_learning_cycle(args):
     # attempts that many distinct ranked questions in one shift instead;
     # --limit 1 (the default) calls research_once() exactly as before, so
     # this is purely additive for any existing caller.
-    if args.limit <= 1:
+    recovery_question = initiative.get("question")
+    if recovery_question and initiative["stage"] in {
+        "seeded-recovery-question", "recovery-question-active",
+    }:
+        # Make the recovery lane the first attempt in this scheduled shift.
+        # It has a finite budget, so a stubborn source never blocks the normal
+        # ranked queue forever; a later shift will preserve it as exhausted
+        # and select a different recovery topic.
+        reports = [cycle.research_once(question_entry=recovery_question)]
+        if args.limit > 1:
+            batch = cycle.research_batch(limit=args.limit).get("results") or []
+            reports.extend(
+                item for item in batch
+                if item.get("question", {}).get("statement")
+                != recovery_question.get("statement")
+            )
+    elif args.limit <= 1:
         reports = [cycle.research_once()]
     else:
         reports = cycle.research_batch(limit=args.limit).get("results") or [
