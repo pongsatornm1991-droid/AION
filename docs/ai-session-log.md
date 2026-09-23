@@ -25,7 +25,7 @@ the daily Shorts handoff already processes research briefs, story handoffs, and
 storyboards in batches of five; the current empty buffer is a real shortage of
 new qualifying evidence, not a queue bottleneck. Full suite: 954 tests passed.
 
-Commits: pending
+Commits: 1a8cee5
 
 ## 2026-09-22 — Claude Code — Root-caused the source-integrity "rejection", shipped a real performance-feedback tool
 
