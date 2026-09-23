@@ -17,6 +17,9 @@ class DashboardTests(unittest.TestCase):
         report = snapshot["production_control"]
         self.assertIn("shorts_buffer", report)
         self.assertIn("episodes", report)
+        self.assertIn("release_readiness", snapshot)
+        self.assertIn("delivery_status", snapshot)
+        self.assertIn("workflow_status", snapshot)
 
     def test_studio_snapshot_separates_creator_rooms(self):
         snapshot = build_studio_snapshot()

@@ -11,6 +11,7 @@ Owner: —
 Started: —
 Lease expires: —
 Scope: —
-Handoff: 2026-09-23 Codex fixed Release Readiness' ephemeral status-file
-conflict handling. A concurrent dashboard snapshot can no longer stop buffer
-recovery or discard newly staged content assets.
+Handoff: 2026-09-24 Codex replaced /operations with a compact evidence-first
+production board. It reads only the four durable public reports and exposes
+release-ready Shorts, active episodes, active blockers, delivery evidence,
+and non-success workflow links.

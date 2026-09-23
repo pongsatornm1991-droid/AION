@@ -894,34 +894,41 @@ def build_finance_snapshot(memory_root=None):
 
 
 def build_operations_center_snapshot(memory_root=None):
-    """One accountable view of the company handoffs, not a second Studio."""
-    from brain.company_quality_audit import CompanyQualityAudit
-    from brain.company_work_registry import CompanyWorkRegistry
-    configured = memory_root or os.getenv("AION_DASHBOARD_MEMORY_ROOT") or os.getenv("AION_MEMORY_ROOT") or (str(ROOT / "aion-memory-data-sync") if (ROOT / "aion-memory-data-sync" / ".git").is_dir() else "memory")
-    control = OperationsControlTower(MemoryEngine(configured), ROOT).snapshot()
-    registry = CompanyWorkRegistry(ROOT).snapshot()
-    quality = CompanyQualityAudit(ROOT).snapshot()
-    try:
-        production_control = json.loads((ROOT / "public" / "aion-production-control.json").read_text(encoding="utf-8"))
-    except (OSError, ValueError, TypeError):
-        production_control = {"state": "waiting", "shorts_buffer": {}, "episodes": [], "provider_health": {}, "release_artifact_freshness": {}}
-    studio = build_studio_snapshot(memory_root).get("scene_production", {})
-    departments = registry.get("departments") or []
-    active = [item for item in departments if item.get("state") == "running"]
-    attention = [item for item in departments if item.get("state") in {"failure", "partial", "unknown"}]
+    """A concise, inspectable production board; all values have a file source."""
+    def report(filename, fallback):
+        try:
+            return json.loads((ROOT / "public" / filename).read_text(encoding="utf-8"))
+        except (OSError, ValueError, TypeError):
+            return fallback
+
+    production_control = report("aion-production-control.json", {
+        "state": "waiting", "shorts_buffer": {}, "episodes": [],
+        "provider_health": {}, "release_artifact_freshness": {},
+    })
+    release_readiness = report("aion-release-readiness.json", {
+        "state": "unknown", "shorts_buffer": {}, "slots": [],
+    })
+    delivery_status = report("aion-delivery-status.json", {
+        "summary": "unknown", "platforms": [],
+    })
+    workflow_status = report("aion-workflow-status.json", {
+        "tiles": {}, "groups": [],
+    })
+    episodes = production_control.get("episodes") or []
+    live_statuses = {"storyboard-ready-needs-assets", "assets-ready-for-assembly", "assembly-ready", "rendering", "quality-review"}
+    active_episodes = [item for item in episodes if item.get("status") in live_statuses]
+    blockers = [item for item in episodes if not item.get("release_ready") and item.get("status") in live_statuses]
     return {
-        "title": "ศูนย์ปฏิบัติการบริษัท AION",
-        "purpose": "ห้องเดียวสำหรับเห็นการส่งต่องานของทุกฝ่าย: อะไรทำงานอยู่ อะไรเชื่อมครบ และตรงไหนต้องแก้ก่อนกระทบการผลิตหรือเผยแพร่",
-        "metrics": {
-            "departments": len(departments), "active": len(active), "attention": len(attention),
-            "studio_stage": studio.get("status", "unknown"),
-        },
-        "departments": departments,
-        "quality": quality,
+        "title": "Wait, How? · สถานะการผลิต",
+        "purpose": "เห็นเฉพาะสิ่งที่ตรวจได้: มีคลิปพร้อมปล่อยกี่ตอน, ตอนใดกำลังผลิต, อะไรขวางอยู่ และระบบอัตโนมัติยังเดินหรือไม่",
+        "metrics": {"active_episodes": len(active_episodes), "blockers": len(blockers)},
         "production_control": production_control,
-        "studio": studio,
-        "control": control,
-        "boundary": "ห้องนี้สังเกตและรายงานการส่งต่องานเท่านั้น ไม่เผยแพร่แทน Studio ไม่แก้สิทธิ์บัญชี และไม่แตะเงินหรือข้อมูลรับรอง",
+        "release_readiness": release_readiness,
+        "delivery_status": delivery_status,
+        "workflow_status": workflow_status,
+        "active_episodes": active_episodes,
+        "blockers": blockers,
+        "boundary": "ตัวเลขทั้งหมดอ่านจากรายงานที่ระบบสร้างล่าสุดเท่านั้น: ไม่เดาว่า provider ใช้งานได้จริง, ไม่อ้างว่าคลิปถูกเผยแพร่จนกว่าจะมีหลักฐานสถานะเผยแพร่.",
     }
 
 
@@ -1119,6 +1126,9 @@ class DashboardHandler(BaseHTTPRequestHandler):
         if path in ("/learning", "/cyber", "/lab", "/finance", "/operations"):
             if path == "/finance":
                 self._send((DASHBOARD_DIR / "finance.html").read_text(encoding="utf-8"), "text/html; charset=utf-8")
+                return
+            if path == "/operations":
+                self._send((DASHBOARD_DIR / "operations.html").read_text(encoding="utf-8"), "text/html; charset=utf-8")
                 return
             self._send((DASHBOARD_DIR / "workspace.html").read_text(encoding="utf-8"), "text/html; charset=utf-8")
             return

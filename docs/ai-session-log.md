@@ -1648,3 +1648,17 @@ with git status. Diffed with `--ignore-all-space` and confirmed 0 real
 lines changed (same CRLF/tmp_obj_* mount noise documented in the previous
 entry) -- left those untouched rather than re-normalizing them, and staged
 only this round's actual files plus a fresh rewrite of ai-active-task.md.
+## 2026-09-24 — Codex — Replaced the Operations dashboard with a verifiable production board
+
+The owner asked to remove anything not useful from the dashboard and retain
+only facts they can inspect: current work, release-ready videos, release
+blockers, and automation health. Replaced `/operations` with a purpose-built
+single page rather than adding another override to the already layered
+workspace page. It now reads only `aion-production-control.json`,
+`aion-release-readiness.json`, `aion-delivery-status.json`, and
+`aion-workflow-status.json`; it does not infer provider quota or publication.
+Retired or preserved episodes are excluded from “currently producing,” and
+any non-success workflow has a direct GitHub run link.
+
+Added regression assertions for all four data reports. Targeted dashboard
+suite: 8/8 passing; `py_compile` passing.
