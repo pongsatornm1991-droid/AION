@@ -13,6 +13,15 @@ Format:
 Commits: <hash> [, <hash> ...]
 ```
 
+## 2026-09-23 — Codex — Blocked off-topic source pairs before paid Shorts production
+
+An automated recovery storyboard had two real URLs but both recorded observations
+said they did not answer its honeybee question. Creator source integrity now
+blocks explicit off-topic observations at research-to-story, story staging, and
+image preflight; new storyboards carry that decision forward. The existing
+storyboard is preserved as rejected research, not deleted. Focused tests: 35 passed.
+Commits: 657f13a
+
 ## 2026-09-23 — Codex — Added a real low-buffer Shorts recovery lane
 
 When the quality-ready Shorts buffer is below target, the learning cycle now
