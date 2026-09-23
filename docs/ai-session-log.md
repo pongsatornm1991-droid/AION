@@ -1661,4 +1661,6 @@ Retired or preserved episodes are excluded from “currently producing,” and
 any non-success workflow has a direct GitHub run link.
 
 Added regression assertions for all four data reports. Targeted dashboard
-suite: 8/8 passing; `py_compile` passing.
+suite: 8/8 passing; `py_compile` passing. Browser validation also confirmed
+the board renders live values and direct workflow links after correcting one
+client-side syntax error found during that validation.
