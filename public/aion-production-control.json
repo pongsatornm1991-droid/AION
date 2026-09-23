@@ -1,0 +1,549 @@
+{
+  "generated_at": "2026-09-23T05:24:11.681827+00:00",
+  "state": "critical",
+  "policy": {
+    "brand": {
+      "channel_name": "Wait, How?",
+      "handle": "@waithow-aion",
+      "youtube_url": "https://www.youtube.com/@waithow-aion",
+      "tagline": "Big questions. Clear visual stories.",
+      "guide_name": "AION"
+    },
+    "publishing": {
+      "timezone": "Asia/Bangkok",
+      "shorts_days": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6
+      ],
+      "shorts_time": "20:30",
+      "shorts_buffer_target": 7,
+      "readiness_horizon_hours": 168,
+      "shorts_first": true
+    },
+    "production": {
+      "automatic_release_visual_style": "aion-neon-diorama-3d-v1",
+      "minimum_short_seconds": 50,
+      "minimum_short_scenes": 10,
+      "scene_seconds": 5
+    }
+  },
+  "shorts_buffer": {
+    "target": 7,
+    "quality_ready": 0,
+    "missing": 7
+  },
+  "episodes": [
+    {
+      "id": "aion-auto-49122594501e-2c0fc6b1-long",
+      "title": "AION Explains: How did ancient Persian Yakhchāl structures maintain sub-freezing temperatures to preserve ice during desert summers wit",
+      "status": "retired-do-not-publish",
+      "style": null,
+      "scene_count": 24,
+      "visual_qa": {
+        "eligible": false,
+        "reasons": [
+          "missing-or-unreadable-scene-image"
+        ],
+        "checked_scenes": 24,
+        "machine_check_only": true,
+        "editorial_limit": "Checks actual files, dimensions and exact duplicates. It cannot truthfully detect text, anatomy, factual depiction or style compliance without a reviewed vision model."
+      },
+      "release_blockers": [
+        "missing-or-unreadable-scene-image",
+        "visual-style-not-channel-signature",
+        "episode-status:retired-do-not-publish"
+      ],
+      "release_ready": false,
+      "portfolio": {
+        "id": "history-engineering",
+        "label": "ทีมสำรวจประวัติศาสตร์และวิศวกรรม"
+      }
+    },
+    {
+      "id": "aion-auto-49122594501e-2c0fc6b1-short",
+      "title": "AION Wonders: How did ancient Persian Yakhchāl structures maintain sub-freezing temperatures to pres",
+      "status": "retired-do-not-publish",
+      "style": null,
+      "scene_count": 12,
+      "visual_qa": {
+        "eligible": false,
+        "reasons": [
+          "missing-or-unreadable-scene-image",
+          "scene-image-not-vertical-9x16"
+        ],
+        "checked_scenes": 12,
+        "machine_check_only": true,
+        "editorial_limit": "Checks actual files, dimensions and exact duplicates. It cannot truthfully detect text, anatomy, factual depiction or style compliance without a reviewed vision model."
+      },
+      "release_blockers": [
+        "missing-or-unreadable-scene-image",
+        "scene-image-not-vertical-9x16",
+        "visual-style-not-channel-signature",
+        "episode-status:retired-do-not-publish"
+      ],
+      "release_ready": false,
+      "portfolio": {
+        "id": "history-engineering",
+        "label": "ทีมสำรวจประวัติศาสตร์และวิศวกรรม"
+      }
+    },
+    {
+      "id": "aion-auto-49122594501e-2c0fc6b1",
+      "title": "How Ancient Persia Made Ice in the Desert",
+      "status": "retired-do-not-publish",
+      "style": null,
+      "scene_count": 5,
+      "visual_qa": {
+        "eligible": false,
+        "reasons": [
+          "scene-image-not-vertical-9x16"
+        ],
+        "checked_scenes": 5,
+        "machine_check_only": true,
+        "editorial_limit": "Checks actual files, dimensions and exact duplicates. It cannot truthfully detect text, anatomy, factual depiction or style compliance without a reviewed vision model."
+      },
+      "release_blockers": [
+        "scene-image-not-vertical-9x16",
+        "visual-style-not-channel-signature",
+        "episode-status:retired-do-not-publish"
+      ],
+      "release_ready": false,
+      "portfolio": {
+        "id": "history-engineering",
+        "label": "ทีมสำรวจประวัติศาสตร์และวิศวกรรม"
+      }
+    },
+    {
+      "id": "aion-auto-85365510840c-00c30e5d-long",
+      "title": "AION Explains: How can an octopus change color so quickly?",
+      "status": "retired-do-not-publish",
+      "style": null,
+      "scene_count": 24,
+      "visual_qa": {
+        "eligible": false,
+        "reasons": [
+          "missing-or-unreadable-scene-image"
+        ],
+        "checked_scenes": 24,
+        "machine_check_only": true,
+        "editorial_limit": "Checks actual files, dimensions and exact duplicates. It cannot truthfully detect text, anatomy, factual depiction or style compliance without a reviewed vision model."
+      },
+      "release_blockers": [
+        "missing-or-unreadable-scene-image",
+        "visual-style-not-channel-signature",
+        "episode-status:retired-do-not-publish"
+      ],
+      "release_ready": false,
+      "portfolio": {
+        "id": "everyday-science",
+        "label": "ทีมสำรวจวิทยาศาสตร์ใกล้ตัว"
+      }
+    },
+    {
+      "id": "aion-auto-85365510840c-00c30e5d-short",
+      "title": "AION Wonders: How can an octopus change color so quickly?",
+      "status": "retired-do-not-publish",
+      "style": null,
+      "scene_count": 12,
+      "visual_qa": {
+        "eligible": false,
+        "reasons": [
+          "missing-or-unreadable-scene-image",
+          "scene-image-not-vertical-9x16"
+        ],
+        "checked_scenes": 12,
+        "machine_check_only": true,
+        "editorial_limit": "Checks actual files, dimensions and exact duplicates. It cannot truthfully detect text, anatomy, factual depiction or style compliance without a reviewed vision model."
+      },
+      "release_blockers": [
+        "missing-or-unreadable-scene-image",
+        "scene-image-not-vertical-9x16",
+        "visual-style-not-channel-signature",
+        "episode-status:retired-do-not-publish"
+      ],
+      "release_ready": false,
+      "portfolio": {
+        "id": "everyday-science",
+        "label": "ทีมสำรวจวิทยาศาสตร์ใกล้ตัว"
+      }
+    },
+    {
+      "id": "aion-auto-85365510840c-00c30e5d",
+      "title": "AION Wonders: How can an octopus change color so quickly?",
+      "status": "retired-do-not-publish",
+      "style": null,
+      "scene_count": 12,
+      "visual_qa": {
+        "eligible": false,
+        "reasons": [
+          "scene-image-not-vertical-9x16"
+        ],
+        "checked_scenes": 12,
+        "machine_check_only": true,
+        "editorial_limit": "Checks actual files, dimensions and exact duplicates. It cannot truthfully detect text, anatomy, factual depiction or style compliance without a reviewed vision model."
+      },
+      "release_blockers": [
+        "scene-image-not-vertical-9x16",
+        "visual-style-not-channel-signature",
+        "episode-status:retired-do-not-publish"
+      ],
+      "release_ready": false,
+      "portfolio": {
+        "id": "everyday-science",
+        "label": "ทีมสำรวจวิทยาศาสตร์ใกล้ตัว"
+      }
+    },
+    {
+      "id": "aion-auto-9eebf33916e1-095c51d2-short",
+      "title": "AION Wonders: What can an AI learn from people that facts alone cannot teach it?",
+      "status": "research-returned-source-integrity",
+      "style": null,
+      "scene_count": 12,
+      "visual_qa": {
+        "eligible": false,
+        "reasons": [
+          "missing-or-unreadable-scene-image",
+          "scene-image-not-vertical-9x16"
+        ],
+        "checked_scenes": 12,
+        "machine_check_only": true,
+        "editorial_limit": "Checks actual files, dimensions and exact duplicates. It cannot truthfully detect text, anatomy, factual depiction or style compliance without a reviewed vision model."
+      },
+      "release_blockers": [
+        "missing-or-unreadable-scene-image",
+        "scene-image-not-vertical-9x16",
+        "visual-style-not-channel-signature",
+        "episode-status:research-returned-source-integrity"
+      ],
+      "release_ready": false,
+      "portfolio": {
+        "id": "human-culture",
+        "label": "ทีมสำรวจมนุษย์ วัฒนธรรม และความคิด"
+      }
+    },
+    {
+      "id": "aion-gentle-thailand-rice-journey-v1",
+      "title": "How One Grain of Rice Reaches Your Bowl",
+      "status": "production-ready-assets-and-script",
+      "style": "aion-illustrated-postcard-v1",
+      "scene_count": 12,
+      "visual_qa": {
+        "eligible": false,
+        "reasons": [
+          "scene-image-not-vertical-9x16"
+        ],
+        "checked_scenes": 12,
+        "machine_check_only": true,
+        "editorial_limit": "Checks actual files, dimensions and exact duplicates. It cannot truthfully detect text, anatomy, factual depiction or style compliance without a reviewed vision model."
+      },
+      "release_blockers": [
+        "scene-image-not-vertical-9x16",
+        "visual-style-not-channel-signature"
+      ],
+      "release_ready": false,
+      "portfolio": {
+        "id": "everyday-science",
+        "label": "ทีมสำรวจวิทยาศาสตร์ใกล้ตัว"
+      }
+    },
+    {
+      "id": "aion-illustrated-postcard-after-rain-v1",
+      "title": "After the Rain: Where Does the Water Go?",
+      "status": "production-ready-assets-and-script",
+      "style": "aion-illustrated-postcard-v1",
+      "scene_count": 12,
+      "visual_qa": {
+        "eligible": false,
+        "reasons": [
+          "scene-image-not-vertical-9x16"
+        ],
+        "checked_scenes": 12,
+        "machine_check_only": true,
+        "editorial_limit": "Checks actual files, dimensions and exact duplicates. It cannot truthfully detect text, anatomy, factual depiction or style compliance without a reviewed vision model."
+      },
+      "release_blockers": [
+        "scene-image-not-vertical-9x16",
+        "visual-style-not-channel-signature"
+      ],
+      "release_ready": false,
+      "portfolio": {
+        "id": "everyday-science",
+        "label": "ทีมสำรวจวิทยาศาสตร์ใกล้ตัว"
+      }
+    },
+    {
+      "id": "aion-longform-001-yakhchal",
+      "title": "How Did Ancient Persia Make Ice in the Desert?",
+      "status": "production-ready-assets-and-script",
+      "style": null,
+      "scene_count": 24,
+      "visual_qa": {
+        "eligible": true,
+        "reasons": [],
+        "checked_scenes": 24,
+        "machine_check_only": true,
+        "editorial_limit": "Checks actual files, dimensions and exact duplicates. It cannot truthfully detect text, anatomy, factual depiction or style compliance without a reviewed vision model."
+      },
+      "release_blockers": [
+        "visual-style-not-channel-signature"
+      ],
+      "release_ready": false,
+      "portfolio": {
+        "id": "history-engineering",
+        "label": "ทีมสำรวจประวัติศาสตร์และวิศวกรรม"
+      }
+    },
+    {
+      "id": "aion-special-octopus-chromatophores-v1",
+      "title": "How an Octopus Changes Color in Seconds",
+      "status": "production-ready-assets-and-script",
+      "style": null,
+      "scene_count": 12,
+      "visual_qa": {
+        "eligible": false,
+        "reasons": [
+          "scene-image-not-vertical-9x16"
+        ],
+        "checked_scenes": 12,
+        "machine_check_only": true,
+        "editorial_limit": "Checks actual files, dimensions and exact duplicates. It cannot truthfully detect text, anatomy, factual depiction or style compliance without a reviewed vision model."
+      },
+      "release_blockers": [
+        "scene-image-not-vertical-9x16",
+        "visual-style-not-channel-signature"
+      ],
+      "release_ready": false,
+      "portfolio": {
+        "id": "everyday-science",
+        "label": "ทีมสำรวจวิทยาศาสตร์ใกล้ตัว"
+      }
+    },
+    {
+      "id": "aion-special-rainbow-perspective-v1",
+      "title": "Why a Rainbow Is Never in One Place",
+      "status": "production-ready-assets-and-script",
+      "style": "aion-original-warm-3d-storytelling-v1",
+      "scene_count": 10,
+      "visual_qa": {
+        "eligible": false,
+        "reasons": [
+          "scene-image-not-vertical-9x16"
+        ],
+        "checked_scenes": 10,
+        "machine_check_only": true,
+        "editorial_limit": "Checks actual files, dimensions and exact duplicates. It cannot truthfully detect text, anatomy, factual depiction or style compliance without a reviewed vision model."
+      },
+      "release_blockers": [
+        "scene-image-not-vertical-9x16",
+        "visual-style-not-channel-signature"
+      ],
+      "release_ready": false,
+      "portfolio": {
+        "id": "everyday-science",
+        "label": "ทีมสำรวจวิทยาศาสตร์ใกล้ตัว"
+      }
+    },
+    {
+      "id": "aion-wonders-001",
+      "title": "Why Can We Smell Rain Before We See It?",
+      "status": "production-ready-script",
+      "style": null,
+      "scene_count": 24,
+      "visual_qa": {
+        "eligible": false,
+        "reasons": [
+          "missing-or-unreadable-scene-image"
+        ],
+        "checked_scenes": 24,
+        "machine_check_only": true,
+        "editorial_limit": "Checks actual files, dimensions and exact duplicates. It cannot truthfully detect text, anatomy, factual depiction or style compliance without a reviewed vision model."
+      },
+      "release_blockers": [
+        "missing-or-unreadable-scene-image",
+        "visual-style-not-channel-signature",
+        "episode-status:production-ready-script"
+      ],
+      "release_ready": false,
+      "portfolio": {
+        "id": "everyday-science",
+        "label": "ทีมสำรวจวิทยาศาสตร์ใกล้ตัว"
+      }
+    },
+    {
+      "id": "aion-wonders-002",
+      "title": "Where Did the First Living Thing Begin?",
+      "status": "retired-do-not-publish",
+      "style": null,
+      "scene_count": 4,
+      "visual_qa": {
+        "eligible": false,
+        "reasons": [
+          "scene-image-not-vertical-9x16"
+        ],
+        "checked_scenes": 4,
+        "machine_check_only": true,
+        "editorial_limit": "Checks actual files, dimensions and exact duplicates. It cannot truthfully detect text, anatomy, factual depiction or style compliance without a reviewed vision model."
+      },
+      "release_blockers": [
+        "scene-image-not-vertical-9x16",
+        "visual-style-not-channel-signature",
+        "episode-status:retired-do-not-publish"
+      ],
+      "release_ready": false,
+      "portfolio": {
+        "id": "everyday-science",
+        "label": "ทีมสำรวจวิทยาศาสตร์ใกล้ตัว"
+      }
+    },
+    {
+      "id": "aion-wonders-003",
+      "title": "A Day in the Life of a Roman Nobody",
+      "status": "production-ready-assets-and-script",
+      "style": null,
+      "scene_count": 40,
+      "visual_qa": {
+        "eligible": true,
+        "reasons": [],
+        "checked_scenes": 40,
+        "machine_check_only": true,
+        "editorial_limit": "Checks actual files, dimensions and exact duplicates. It cannot truthfully detect text, anatomy, factual depiction or style compliance without a reviewed vision model."
+      },
+      "release_blockers": [
+        "visual-style-not-channel-signature"
+      ],
+      "release_ready": false,
+      "portfolio": {
+        "id": "everyday-science",
+        "label": "ทีมสำรวจวิทยาศาสตร์ใกล้ตัว"
+      }
+    },
+    {
+      "id": "aion-wonders-004-yakhchal",
+      "title": "How Did Ancient Persia Keep Ice in the Desert?",
+      "status": "retired-do-not-publish",
+      "style": null,
+      "scene_count": 3,
+      "visual_qa": {
+        "eligible": true,
+        "reasons": [],
+        "checked_scenes": 3,
+        "machine_check_only": true,
+        "editorial_limit": "Checks actual files, dimensions and exact duplicates. It cannot truthfully detect text, anatomy, factual depiction or style compliance without a reviewed vision model."
+      },
+      "release_blockers": [
+        "visual-style-not-channel-signature",
+        "episode-status:retired-do-not-publish"
+      ],
+      "release_ready": false,
+      "portfolio": {
+        "id": "history-engineering",
+        "label": "ทีมสำรวจประวัติศาสตร์และวิศวกรรม"
+      }
+    },
+    {
+      "id": "aion-wonders-005-venus-flytrap-counts",
+      "title": "Special: Why Does a Venus Flytrap Count Touches?",
+      "status": "production-ready-assets-and-script",
+      "style": "aion-neon-graphic-science-v1",
+      "scene_count": 12,
+      "visual_qa": {
+        "eligible": false,
+        "reasons": [
+          "scene-image-not-vertical-9x16"
+        ],
+        "checked_scenes": 12,
+        "machine_check_only": true,
+        "editorial_limit": "Checks actual files, dimensions and exact duplicates. It cannot truthfully detect text, anatomy, factual depiction or style compliance without a reviewed vision model."
+      },
+      "release_blockers": [
+        "scene-image-not-vertical-9x16",
+        "visual-style-not-channel-signature"
+      ],
+      "release_ready": false,
+      "portfolio": {
+        "id": "everyday-science",
+        "label": "ทีมสำรวจวิทยาศาสตร์ใกล้ตัว"
+      }
+    }
+  ],
+  "provider_health": {
+    "state": "ready",
+    "checks": [
+      {
+        "platform": "image",
+        "state": "ready",
+        "configured": true,
+        "missing": [],
+        "boundary": "ตรวจเฉพาะว่าการตั้งค่ามีอยู่หรือไม่ ไม่เปิดเผยค่า ไม่ตรวจสิทธิ์แทนผู้ให้บริการ และไม่เปลี่ยนบัญชี"
+      },
+      {
+        "platform": "video",
+        "state": "ready",
+        "configured": true,
+        "missing": [],
+        "boundary": "ตรวจเฉพาะว่าการตั้งค่ามีอยู่หรือไม่ ไม่เปิดเผยค่า ไม่ตรวจสิทธิ์แทนผู้ให้บริการ และไม่เปลี่ยนบัญชี"
+      },
+      {
+        "platform": "youtube",
+        "state": "ready",
+        "configured": true,
+        "missing": [],
+        "boundary": "ตรวจเฉพาะว่าการตั้งค่ามีอยู่หรือไม่ ไม่เปิดเผยค่า ไม่ตรวจสิทธิ์แทนผู้ให้บริการ และไม่เปลี่ยนบัญชี"
+      },
+      {
+        "platform": "facebook",
+        "state": "ready",
+        "configured": true,
+        "missing": [],
+        "boundary": "ตรวจเฉพาะว่าการตั้งค่ามีอยู่หรือไม่ ไม่เปิดเผยค่า ไม่ตรวจสิทธิ์แทนผู้ให้บริการ และไม่เปลี่ยนบัญชี"
+      },
+      {
+        "platform": "instagram",
+        "state": "ready",
+        "configured": true,
+        "missing": [],
+        "boundary": "ตรวจเฉพาะว่าการตั้งค่ามีอยู่หรือไม่ ไม่เปิดเผยค่า ไม่ตรวจสิทธิ์แทนผู้ให้บริการ และไม่เปลี่ยนบัญชี"
+      }
+    ],
+    "blocked": [],
+    "quota": "unknown-not-inspectable-without-provider-api",
+    "boundary": "A configured key is not proof of live quota or provider uptime; the scheduled workflow records real provider failures separately."
+  },
+  "release_artifact_freshness": {
+    "state": "fresh",
+    "age_seconds": 41,
+    "policy_current": true
+  },
+  "portfolio": [
+    {
+      "id": "history-engineering",
+      "label": "ทีมสำรวจประวัติศาสตร์และวิศวกรรม"
+    },
+    {
+      "id": "nature-and-earth",
+      "label": "ทีมสำรวจโลก ธรรมชาติ และภูมิอากาศ"
+    },
+    {
+      "id": "space-and-scale",
+      "label": "ทีมสำรวจอวกาศและปรากฏการณ์ขนาดใหญ่"
+    },
+    {
+      "id": "human-culture",
+      "label": "ทีมสำรวจมนุษย์ วัฒนธรรม และความคิด"
+    },
+    {
+      "id": "everyday-science",
+      "label": "ทีมสำรวจวิทยาศาสตร์ใกล้ตัว"
+    }
+  ],
+  "component_states": {
+    "provider": "ready",
+    "artifact": "fresh"
+  },
+  "next_action": "produce new cited episodes through image, assembly and quality gates"
+}
