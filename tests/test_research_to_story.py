@@ -64,6 +64,25 @@ class ResearchToStoryTests(unittest.TestCase):
             self.assertEqual("research-ready", snapshot["status"])
             self.assertEqual(question["id"], snapshot["current"]["root_question_id"])
 
+    def test_a_curated_source_package_gets_a_non_production_expansion_map(self):
+        with tempfile.TemporaryDirectory() as root:
+            memory = MemoryEngine(root)
+            question = CuriosityEngine(memory).raise_question(
+                "Why did people begin using money instead of trading everything directly?",
+                "Compare two cited sources.", priority=4,
+                tags=["human-history-money"],
+            )
+            self._evidence(memory, question, "Source one", "https://one.test/money", "Observation one.")
+            self._evidence(memory, question, "Source two", "https://two.test/money", "Observation two.")
+
+            brief = ResearchToStory(memory).propose_once()["brief"]
+            self.assertEqual("planned", brief["content_expansion"]["status"])
+            self.assertEqual(2, len(brief["content_expansion"]["follow_up_angles"]))
+            self.assertTrue(all(
+                angle["status"] == "needs-independent-evidence"
+                for angle in brief["content_expansion"]["follow_up_angles"]
+            ))
+
     def test_company_wide_published_topic_cannot_return_to_story_production(self):
         with tempfile.TemporaryDirectory() as root:
             memory = MemoryEngine(root)

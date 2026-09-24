@@ -18,5 +18,6 @@ class EvidenceReserveTests(unittest.TestCase):
             self.assertEqual(0, report["counts"]["qualified_evidence"])
             self.assertEqual(21, report["targets"]["questions"])
             self.assertEqual(14, report["targets"]["qualified_evidence"])
+            self.assertEqual(0, report["content_expansion"]["source_packages"])
             self.assertEqual("critical", report["state"])
             self.assertIn("not evidence", report["boundary"])

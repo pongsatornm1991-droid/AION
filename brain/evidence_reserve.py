@@ -7,6 +7,7 @@ to evidence-qualified status itself.
 """
 
 from .curiosity import CuriosityEngine
+from .content_expansion import ContentExpansionPlanner
 from .initiative import AutonomousInitiative
 from .research_to_story import ResearchToStory
 
@@ -76,6 +77,7 @@ class EvidenceReserve:
             "targets": targets,
             "counts": counts,
             "next_action": next_action,
+            "content_expansion": ContentExpansionPlanner(self.memory).snapshot(),
             "boundary": (
                 "A question is not evidence, and evidence is not a publishable video. "
                 "Qualified evidence requires independent traceable sources; story briefs "

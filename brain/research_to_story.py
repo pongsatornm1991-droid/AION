@@ -44,7 +44,7 @@ class ResearchToStory:
 
     def _questions_by_id(self):
         return {
-            entry.get("id"): self._question_fields(entry)
+            entry.get("id"): {**self._question_fields(entry), "tags": entry.get("tags") or []}
             for entry in self.memory.all("questions")
             if entry.get("id")
         }
@@ -94,6 +94,7 @@ class ResearchToStory:
                 "completion_criteria": question.get("criteria") or "",
                 "sources": sources,
                 "topic_key": question.get("statement") or "AION research question",
+                "question_tags": question.get("tags") or [],
                 "source_urls": [item["url"] for item in sources],
             })
         return sorted(candidates, key=lambda item: (item["topic"], item["root_question_id"]))
@@ -135,6 +136,7 @@ class ResearchToStory:
             "content_angle_key": "evidence-walkthrough",
             "topic": topic,
             "topic_key": candidate["topic_key"],
+            "question_tags": candidate.get("question_tags") or [],
             "scout_lane": scout_lane,
             "completion_criteria": candidate["completion_criteria"],
             "source_count": len(sources),
@@ -156,6 +158,12 @@ class ResearchToStory:
             tags=["creator", "research-grounded", "story-brief"], related=related,
         )
         brief["memory_id"] = saved.get("id")
+        # One well-grounded source package may suggest several useful future
+        # questions.  Preserve those angles now, but never treat the parent
+        # sources as proof for a separate Short.
+        from brain.content_expansion import ContentExpansionPlanner
+        expansion = ContentExpansionPlanner(self.memory).create_for_brief(brief)
+        brief["content_expansion"] = expansion.get("map")
         # Register the handoff once.  A retry sees this same task id instead
         # of creating another story brief for the same research question.
         from brain.work_queue import WorkQueue

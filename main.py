@@ -2187,6 +2187,12 @@ def run_learning_cycle(args):
     memory = Thinker().memory
     curiosity = CuriosityEngine(memory)
 
+    # A research-ready source package can safely suggest narrower follow-up
+    # questions.  Seed at most two only when Curiosity has capacity; each is
+    # still researched independently and cannot inherit the parent claim.
+    from brain.content_expansion import ContentExpansionPlanner
+    expansion = ContentExpansionPlanner(memory).seed_pending_questions()
+
     # A low release buffer needs a concrete, evidence-bound next move rather
     # than waiting behind a difficult long-running inquiry. This local planner
     # never manufactures a claim or discards old research; it only opens (or
@@ -2266,6 +2272,7 @@ def run_learning_cycle(args):
 
     print("\nAION LEARNING CYCLE")
     print(f"Initiative: {initiative['stage']}")
+    print(f"Content expansion: {expansion['stage']}")
 
     for report in reports:
         print(f"Stage: {report['stage']}")

@@ -1732,3 +1732,24 @@ remain only candidate questions until the existing two-independent-source and
 integrity gates approve them; failed attempts are preserved and not recycled.
 Targeted reserve/initiative/production/dashboard/workflow tests: 21/21
 passing; Python and browser-JavaScript syntax checks passed.
+
+## 2026-09-24 — Codex — Added evidence-bounded Content Expansion Maps
+
+The owner asked that one useful research package be able to become several
+distinct future content ideas, rather than ending at a single episode. Added
+`ContentExpansionPlanner`: when a research-ready brief is created, it stores
+one primary evidence walkthrough plus curated follow-up questions for supported
+families, starting with clothing, money, Moon living, writing, law, and
+farming. For example, the money package can yield separate questions about
+barter's matching problem and why communities accepted different media of
+exchange.
+
+This is deliberately a *research* expansion, not mass production. Parent
+sources are labelled context-only; every follow-up is opened only in a bounded
+two-question learning shift when capacity permits, and must independently
+earn two traceable sources, novelty approval, and all existing production
+Quality Gates. A full question queue leaves the map preserved rather than
+discarding it. Operations now reports source packages and planned follow-up
+angles alongside the evidence reserve. Targeted expansion/research/production/
+dashboard/recovery suite: 24/24 passing; Python and dashboard-JavaScript
+syntax checks passed.

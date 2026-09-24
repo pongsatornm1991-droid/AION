@@ -11,6 +11,6 @@ Owner: none
 Started: n/a
 Lease expires: n/a
 Scope: None.
-Handoff: Evidence reserve is visible in Production Control and Operations.
-It counts questions, qualified evidence and briefs separately; use the last
-2026-09-24 session-log entry before changing the upstream recovery lane.
+Handoff: Content Expansion Maps preserve follow-up questions but require
+independent evidence before staging. Read the 2026-09-24 session-log entry
+before changing expansion families or their source boundary.
