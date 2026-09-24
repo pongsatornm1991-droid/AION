@@ -1924,3 +1924,14 @@ revised scenes before remeasurement. This preserves the gate's requirement
 that every generated image advances the story instead of weakening it to get a
 release through. Targeted narration, visual-narrative, fact-first, registry,
 and assembly tests pass.
+
+## 2026-09-25 — Codex — Bounded live-voice variance without retry loops
+
+Run #54 confirmed the first timing repair and its synchronized planning ledgers
+worked, but a different untouched source beat crossed 10 seconds during the
+post-repair live-voice measurement. Narration repair now has one additional,
+bounded pass: it may split another original beat once, but will never subdivide
+a previously repaired beat. This handles normal provider-duration variance
+without creating an infinite retry loop or abandoning the episode. A new
+regression test simulates exactly that two-source-beat sequence; timing,
+visual, fact-first, registry, and assembly tests pass.

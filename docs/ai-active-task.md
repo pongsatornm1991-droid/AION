@@ -11,6 +11,6 @@ Owner: none
 Started: n/a
 Lease expires: n/a
 Scope: None.
-Handoff: Narration-aware repair now synchronizes visual_narrative progression and
-fact-first scene roles with every new beat before Studio remeasures the episode.
-Run #53 will verify the complete no-image-loss path.
+Handoff: Narration-aware repair permits one additional pass for a different,
+untouched source beat if live voice timing varies after the first repair. A
+previously repaired beat is never subdivided again; run #55 will verify it.

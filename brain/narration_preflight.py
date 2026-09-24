@@ -94,19 +94,26 @@ class NarrationPreflight:
         return first, second
 
     @classmethod
-    def repair_episode_timing(cls, episode, synthesize=None, duration_reader=None):
+    def repair_episode_timing(cls, episode, synthesize=None, duration_reader=None, remaining_passes=2):
         """Boundedly repair narration that exceeds the visual safety window.
 
-        The first measured preflight is authoritative.  Each unsafe beat is
-        split once into two adjacent beats, retaining the original narration
-        as provenance, then every resulting beat is measured again.  No image
-        is generated during either pass and no episode is discarded.
+        The first measured preflight is authoritative. Each source beat is
+        split at most once into two adjacent beats, retaining the original
+        narration as provenance, then every resulting beat is measured again.
+        A bounded second pass can catch a different untouched beat whose live
+        voice duration changes between measurements. No image is generated
+        during either pass and no episode is discarded.
         """
         first_report = cls.assess_episode(episode, synthesize, duration_reader)
-        failures = [
-            item for item in first_report.get("checks", [])
-            if "narration-exceeds-safe-scene-window" in (item.get("reasons") or [])
-        ]
+        failures = []
+        for item in first_report.get("checks", []):
+            scene_index = int(item.get("scene") or 0) - 1
+            scene = (episode.get("scenes") or [])[scene_index] if scene_index >= 0 else {}
+            if (
+                "narration-exceeds-safe-scene-window" in (item.get("reasons") or [])
+                and not scene.get("narration_timing_repair")
+            ):
+                failures.append(item)
         if not failures:
             first_report["timing_repair"] = {"attempted": False, "repaired_scenes": []}
             return first_report
@@ -174,4 +181,13 @@ class NarrationPreflight:
             "repaired_scenes": repaired_scenes,
             "remeasured": True,
         }
+        if not repaired_report.get("eligible") and remaining_passes > 1:
+            # Voice delivery is measured live and can vary slightly. A second
+            # bounded pass may repair another *untouched* source beat, but
+            # never subdivides a scene that was already repaired above.
+            follow_up = cls.repair_episode_timing(
+                episode, synthesize, duration_reader, remaining_passes=remaining_passes - 1
+            )
+            follow_up["timing_repair"]["initial_repaired_scenes"] = repaired_scenes
+            return follow_up
         return repaired_report

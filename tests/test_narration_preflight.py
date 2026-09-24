@@ -82,3 +82,27 @@ class NarrationPreflightTests(unittest.TestCase):
         self.assertEqual([scene["beat"] for scene in episode["scenes"]],
                          episode["visual_narrative"]["scene_progression"])
         self.assertEqual(2, len(episode["fact_first_visual"]["scene_roles"]))
+
+    def test_uses_a_second_bounded_pass_only_for_a_different_untouched_beat(self):
+        durations = iter((14.4, 6.0, 6.7, 7.1, 11.0, 6.7, 7.1, 11.0, 6.0, 5.8, 5.7, 5.6))
+        episode = {
+            "id": "two-repairs",
+            "scene_seconds": 5,
+            "target_duration_seconds": 10,
+            "scenes": [
+                {"n": 1, "beat": "first", "visual": "AION studies the first subject.",
+                 "narration": "The first observation establishes the cause. The first observation shows the effect clearly."},
+                {"n": 2, "beat": "second", "visual": "AION studies the second subject.",
+                 "narration": "The second observation establishes the cause. The second observation shows the effect clearly."},
+            ],
+        }
+
+        report = NarrationPreflight.repair_episode_timing(
+            episode, synthesize=lambda _text, _path: True, duration_reader=lambda _path: next(durations)
+        )
+
+        self.assertTrue(report["eligible"])
+        self.assertEqual(4, len(episode["scenes"]))
+        self.assertEqual(20, episode["target_duration_seconds"])
+        self.assertEqual([1], report["timing_repair"]["initial_repaired_scenes"])
+        self.assertEqual([3], report["timing_repair"]["repaired_scenes"])
