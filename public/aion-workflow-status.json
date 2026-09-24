@@ -1,9 +1,9 @@
 {
-  "generated_at": "2026-09-24T19:21:03.118045+00:00",
+  "generated_at": "2026-09-24T19:22:00.532169+00:00",
   "tiles": {
     "total": 42,
-    "ok": 31,
-    "attn": 2,
+    "ok": 32,
+    "attn": 1,
     "running": 5
   },
   "groups": [
@@ -31,17 +31,17 @@
           "name": "AION - assemble illustrated Creator episode",
           "file": "assemble-creator-episode.yml",
           "status_class": "success",
-          "status_label": "สำเร็จ",
-          "html_url": "https://github.com/pongsatornm1991-droid/AION/actions/runs/36046765240",
-          "created_at": "2026-09-24T19:14:15Z"
+          "status_label": "ไม่มีเหตุให้ดำเนินการ",
+          "html_url": "https://github.com/pongsatornm1991-droid/AION/actions/runs/36047576923",
+          "created_at": "2026-09-24T19:21:21Z"
         },
         {
           "name": "AION - subject-first scene production",
           "file": "creator-scene-production.yml",
           "status_class": "running",
           "status_label": "กำลังรัน",
-          "html_url": "https://github.com/pongsatornm1991-droid/AION/actions/runs/36047394706",
-          "created_at": "2026-09-24T19:19:46Z"
+          "html_url": "https://github.com/pongsatornm1991-droid/AION/actions/runs/36047517521",
+          "created_at": "2026-09-24T19:20:50Z"
         }
       ]
     },
@@ -84,8 +84,8 @@
         {
           "name": "AION - external learning cycle",
           "file": "learning-cycle.yml",
-          "status_class": "running",
-          "status_label": "กำลังรัน",
+          "status_class": "success",
+          "status_label": "สำเร็จ",
           "html_url": "https://github.com/pongsatornm1991-droid/AION/actions/runs/36047460659",
           "created_at": "2026-09-24T19:20:20Z"
         }
@@ -144,9 +144,9 @@
           "name": "AION - Automation Health Monitor",
           "file": "automation-health.yml",
           "status_class": "success",
-          "status_label": "ไม่มีเหตุให้ดำเนินการ",
-          "html_url": "https://github.com/pongsatornm1991-droid/AION/actions/runs/36047475222",
-          "created_at": "2026-09-24T19:20:27Z"
+          "status_label": "สำเร็จ",
+          "html_url": "https://github.com/pongsatornm1991-droid/AION/actions/runs/36047576931",
+          "created_at": "2026-09-24T19:21:21Z"
         },
         {
           "name": "AION - Cyber Guard defensive audit",
@@ -191,11 +191,10 @@
         {
           "name": "AION - deterministic tests",
           "file": "tests.yml",
-          "status_class": "failure",
-          "status_label": "ล้มเหลว",
-          "html_url": "https://github.com/pongsatornm1991-droid/AION/actions/runs/36046522868",
-          "created_at": "2026-09-24T19:12:10Z",
-          "detail": "ขั้นที่ล้มเหลว: Run python run_tests.py"
+          "status_class": "running",
+          "status_label": "กำลังรัน",
+          "html_url": "https://github.com/pongsatornm1991-droid/AION/actions/runs/36047517271",
+          "created_at": "2026-09-24T19:20:49Z"
         },
         {
           "name": "AION - media-library hygiene",
@@ -210,16 +209,16 @@
           "file": "publish-workflow-status.yml",
           "status_class": "running",
           "status_label": "กำลังรัน",
-          "html_url": "https://github.com/pongsatornm1991-droid/AION/actions/runs/36047475176",
-          "created_at": "2026-09-24T19:20:27Z"
+          "html_url": "https://github.com/pongsatornm1991-droid/AION/actions/runs/36047576887",
+          "created_at": "2026-09-24T19:21:21Z"
         },
         {
           "name": "AION - system reliability",
           "file": "system-reliability.yml",
           "status_class": "success",
           "status_label": "สำเร็จ",
-          "html_url": "https://github.com/pongsatornm1991-droid/AION/actions/runs/36046522893",
-          "created_at": "2026-09-24T19:12:10Z"
+          "html_url": "https://github.com/pongsatornm1991-droid/AION/actions/runs/36047517351",
+          "created_at": "2026-09-24T19:20:49Z"
         }
       ]
     },
@@ -238,10 +237,10 @@
         {
           "name": "AION - Creator release readiness",
           "file": "release-readiness.yml",
-          "status_class": "success",
-          "status_label": "สำเร็จ",
-          "html_url": "https://github.com/pongsatornm1991-droid/AION/actions/runs/36047394826",
-          "created_at": "2026-09-24T19:19:46Z"
+          "status_class": "running",
+          "status_label": "กำลังรัน",
+          "html_url": "https://github.com/pongsatornm1991-droid/AION/actions/runs/36047577057",
+          "created_at": "2026-09-24T19:21:21Z"
         },
         {
           "name": "AION - Instagram feedback",
@@ -262,8 +261,8 @@
         {
           "name": "AION - YouTube release watchdog",
           "file": "youtube-release-watchdog.yml",
-          "status_class": "running",
-          "status_label": "กำลังรัน",
+          "status_class": "success",
+          "status_label": "สำเร็จ",
           "html_url": "https://github.com/pongsatornm1991-droid/AION/actions/runs/36047471803",
           "created_at": "2026-09-24T19:20:26Z"
         },
@@ -296,8 +295,8 @@
           "file": "creator-motion-production.yml",
           "status_class": "success",
           "status_label": "ไม่มีเหตุให้ดำเนินการ",
-          "html_url": "https://github.com/pongsatornm1991-droid/AION/actions/runs/36046698250",
-          "created_at": "2026-09-24T19:13:41Z"
+          "html_url": "https://github.com/pongsatornm1991-droid/AION/actions/runs/36047576864",
+          "created_at": "2026-09-24T19:21:21Z"
         },
         {
           "name": "AION - autonomous internal improvement cycle",
@@ -360,8 +359,8 @@
           "file": "production-control.yml",
           "status_class": "running",
           "status_label": "กำลังรัน",
-          "html_url": "https://github.com/pongsatornm1991-droid/AION/actions/runs/36047475061",
-          "created_at": "2026-09-24T19:20:27Z"
+          "html_url": "https://github.com/pongsatornm1991-droid/AION/actions/runs/36047576902",
+          "created_at": "2026-09-24T19:21:21Z"
         },
         {
           "name": "AION - revenue readiness",
