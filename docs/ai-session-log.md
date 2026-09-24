@@ -1886,3 +1886,15 @@ production also listens to timing-policy code changes, so a production-safe
 fix on `main` immediately re-enters Studio rather than leaving an otherwise
 ready storyboard waiting for the next daily shift. Targeted timing/assembly
 tests and full `python run_tests.py` pass.
+
+## 2026-09-25 — Codex — Corrected the adaptive limit using the live voice measurement
+
+The automatic confirmation run exposed a boundary error rather than a new
+category of failure: the Maps Short's first real voice was 9.26 seconds, plus
+the required 0.30-second end hold, for a 9.56-second visual interval. The
+initial 9.5-second ceiling therefore still blocked it by 0.06 seconds. The
+shared preflight/assembly adaptive ceiling is now 10 seconds, with a regression
+test using that exact live measurement. Lines beyond 10 seconds remain a
+genuine Story repair signal, but ordinary natural delivery no longer creates a
+false production stop. Targeted timing/assembly tests and full `python
+run_tests.py` pass again.

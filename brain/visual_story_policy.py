@@ -14,7 +14,7 @@ class VisualStoryPolicy:
     # deliberate hold or gentle motion.  Keep this aligned with the
     # narration preflight ceiling so a valid preflight timeline cannot later
     # be rejected during assembly.
-    MAX_RENDERED_SCENE_SECONDS = 9.5
+    MAX_RENDERED_SCENE_SECONDS = 10
     MIN_SHORT_DURATION_SECONDS = 50
     MIN_SHORT_SCENES = 10
     MAX_SHORT_DURATION_SECONDS = 180

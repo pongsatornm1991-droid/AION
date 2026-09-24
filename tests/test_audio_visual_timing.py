@@ -41,13 +41,15 @@ class AudioVisualTimingGateTests(unittest.TestCase):
         self.assertEqual("extend-current-visual", report["action"])
         self.assertAlmostEqual(5.7, report["visual_seconds"])
 
-    def test_extends_a_naturally_long_line_without_cutting_voice_or_blocking_images(self):
-        report = AudioVisualTimingGate.plan_scene(8.81, 5)
+    def test_extends_a_measured_naturally_long_line_without_cutting_voice_or_blocking_images(self):
+        # Regression: the Maps Short's first selected voice measured 9.26s.
+        # Its intentional 0.30s visual hold must not turn into a Studio stop.
+        report = AudioVisualTimingGate.plan_scene(9.26, 5)
         self.assertTrue(report["eligible"])
         self.assertEqual("extend-current-visual", report["action"])
-        self.assertAlmostEqual(9.11, report["visual_seconds"])
+        self.assertAlmostEqual(9.56, report["visual_seconds"])
 
     def test_returns_only_a_scene_beyond_the_bounded_adaptive_window_to_story(self):
-        report = AudioVisualTimingGate.plan_scene(9.3, 5)
+        report = AudioVisualTimingGate.plan_scene(9.8, 5)
         self.assertFalse(report["eligible"])
         self.assertIn("narration-exceeds-safe-scene-window", report["reasons"])

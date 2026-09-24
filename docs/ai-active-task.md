@@ -11,6 +11,6 @@ Owner: none
 Started: n/a
 Lease expires: n/a
 Scope: None.
-Handoff: Narration preflight and final assembly now share a bounded 9.5-second
-adaptive scene window. A timing-policy repair on main triggers Studio without
-waiting for the next scheduled shift.
+Handoff: Live narration preflight confirms the shared adaptive visual window
+must be 10 seconds including the 0.30-second end hold. Studio will rerun from
+the timing-policy push without waiting for the next scheduled shift.
