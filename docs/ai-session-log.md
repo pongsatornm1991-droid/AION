@@ -1835,3 +1835,20 @@ sound, materials, and food). Human history and slower research stay preserved
 in the same reserve and are never deleted or downgraded; they simply cannot
 consume every recovery attempt while the daily buffer is empty. Added
 regressions for both boundaries. Full `python run_tests.py`: 984 tests passing.
+
+## 2026-09-24 — Codex — Made concrete science research use mechanism-language queries
+
+The honeybee failure was a retrieval-quality failure: a broad natural-language
+question found pages that mentioned honeybees but did not document food-location
+communication. `SearchQueryPlanner` now recognizes conservative concrete
+mechanism families and puts source-language aliases first. For example, the
+honeybee inquiry searches waggle-dance, direction, distance, and food-location
+terms; comparable families cover lightning/thunder, shadows, Moon phases, ice
+floating, bread rising, raindrop surface tension, and magnetism. Generic
+questions still use the existing compact query plan and cannot accidentally
+activate a mechanism family.
+
+This only improves candidate retrieval. The two independent-source,
+relevance, synthesis, and production gates remain mandatory, so it cannot
+turn an attractive but unsupported answer into a video. Query-planner,
+learning, and qualification tests passed; full `python run_tests.py` passed.

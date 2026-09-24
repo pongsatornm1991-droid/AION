@@ -11,6 +11,5 @@ Owner: none
 Started: n/a
 Lease expires: n/a
 Scope: None.
-Handoff: CI is green locally (984 tests). Low-buffer recovery prioritizes
-fast, evidence-friendly Shorts topics; deep research and rejected evidence
-remain preserved and explicitly blocked from release.
+Handoff: Concrete science questions now use mechanism-language aliases before
+generic searches. The two independent-source requirement remains unchanged.

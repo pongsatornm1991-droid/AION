@@ -124,6 +124,8 @@ class SearchQueryPlanner:
         "perspectives": "perspective",
         "opinions": "opinion",
         "facts": "facts",
+        "honeybees": "honeybee",
+        "raindrops": "raindrop",
         # The Latin spelling is commonly written with a diacritic. Search
         # sources are less consistent, so retain one stable ASCII form.
         "yakhchāl": "yakhchal",
@@ -158,6 +160,73 @@ class SearchQueryPlanner:
         "human judgment experience",
         "intuition learned through experience",
         "lessons from lived experience",
+    )
+
+    # Concrete questions often contain the everyday description of a
+    # mechanism rather than the term sources use to name it.  These are
+    # semantic families, not title-specific answers: every returned item is
+    # still untrusted until the evidence gate verifies relevance and support.
+    # The list deliberately favours recurring visual-science mechanisms in
+    # the low-buffer Shorts reserve, where a broad related result is worse
+    # than a clear, searchable mechanism.
+    _MECHANISM_QUERY_FAMILIES = (
+        (
+            ("honeybee", "nestmates", "food"),
+            (
+                "honeybee waggle dance food location",
+                "Apis mellifera waggle dance direction distance",
+                "honeybee dance communication foraging",
+            ),
+        ),
+        (
+            ("lightning", "thunder"),
+            (
+                "lightning thunder speed of light sound delay",
+                "why lightning seen before thunder heard",
+            ),
+        ),
+        (
+            ("shadow", "length"),
+            (
+                "shadow length sun angle during day",
+                "sun elevation shadow length mechanism",
+            ),
+        ),
+        (
+            ("moon", "shape"),
+            (
+                "moon phases sunlight Earth orbit explanation",
+                "why Moon changes shape lunar phases",
+            ),
+        ),
+        (
+            ("ice", "float"),
+            (
+                "why ice floats water density hydrogen bonds",
+                "ice crystal structure less dense than liquid water",
+            ),
+        ),
+        (
+            ("bread", "rise"),
+            (
+                "bread dough rises yeast carbon dioxide bubbles",
+                "bread baking gas expansion dough mechanism",
+            ),
+        ),
+        (
+            ("raindrop", "round"),
+            (
+                "raindrop shape surface tension falling drop",
+                "surface tension why water droplets round",
+            ),
+        ),
+        (
+            ("paper", "clip", "magnet"),
+            (
+                "paper clip magnet ferromagnetism magnetic domains",
+                "why steel paper clip attracted to magnet",
+            ),
+        ),
     )
 
     def plan(
@@ -225,6 +294,9 @@ class SearchQueryPlanner:
             )
 
         else:
+            candidates.extend(
+                self._mechanism_queries(normalized)
+            )
             candidates.extend(
                 self._general_queries(
                     topic_terms
@@ -568,6 +640,18 @@ class SearchQueryPlanner:
     # --------------------------------------------------------
     # GENERAL QUERY PLANNING
     # --------------------------------------------------------
+
+    def _mechanism_queries(self, normalized_question: str) -> list[str]:
+        """Return source-language aliases for a concrete mechanism question.
+
+        Requiring every signal token makes this conservative: a passing
+        mention of an animal or object cannot redirect an unrelated question.
+        """
+        words = set(normalized_question.lower().split())
+        for signals, queries in self._MECHANISM_QUERY_FAMILIES:
+            if all(signal in words for signal in signals):
+                return list(queries)
+        return []
 
     def _general_queries(
         self,

@@ -178,6 +178,28 @@ class SearchQueryPlannerTests(
             )
         )
 
+    def test_concrete_mechanism_question_uses_source_language_aliases(self):
+        queries = self.planner.plan(
+            "How do honeybees tell their nestmates where food is?",
+            evidence_type="general_external",
+        )
+
+        normalized = [query.lower() for query in queries]
+        self.assertIn("honeybee waggle dance food location", normalized)
+        self.assertIn("apis mellifera waggle dance direction distance", normalized)
+        self.assertNotIn(
+            "honeybees tell nestmates food",
+            normalized[:2],
+            "The mechanism aliases must take priority over a literal prose query.",
+        )
+
+    def test_unrelated_question_does_not_invent_a_mechanism_alias(self):
+        queries = self.planner.plan(
+            "Why do maps look different depending on what they are made for?",
+            evidence_type="general_external",
+        )
+        self.assertFalse(any("waggle dance" in query.lower() for query in queries))
+
     def test_empty_question_returns_no_queries(
         self,
     ):
