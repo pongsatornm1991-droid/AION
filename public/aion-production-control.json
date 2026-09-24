@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-09-24T05:04:15.361643+00:00",
+  "generated_at": "2026-09-24T05:40:30.191300+00:00",
   "state": "critical",
   "policy": {
     "brand": {
@@ -543,7 +543,7 @@
   },
   "release_artifact_freshness": {
     "state": "fresh",
-    "age_seconds": 38,
+    "age_seconds": 2213,
     "policy_current": true
   },
   "recovery": {
@@ -575,6 +575,11 @@
       "preserved_attempts": 21
     },
     "next_action": "research distinct reserve questions until two independent sources qualify",
+    "content_expansion": {
+      "source_packages": 0,
+      "planned_follow_ups": 0,
+      "rule": "Follow-up angles are preserved, but each one independently earns evidence before production."
+    },
     "boundary": "A question is not evidence, and evidence is not a publishable video. Qualified evidence requires independent traceable sources; story briefs still pass novelty, production, and final Quality Gates."
   },
   "portfolio": [
