@@ -1,10 +1,10 @@
 {
-  "generated_at": "2026-09-24T19:25:14.768545+00:00",
+  "generated_at": "2026-09-24T19:26:10.501595+00:00",
   "tiles": {
     "total": 42,
-    "ok": 30,
+    "ok": 32,
     "attn": 3,
-    "running": 3
+    "running": 1
   },
   "groups": [
     {
@@ -85,8 +85,8 @@
         {
           "name": "AION - external learning cycle",
           "file": "learning-cycle.yml",
-          "status_class": "running",
-          "status_label": "กำลังรัน",
+          "status_class": "success",
+          "status_label": "สำเร็จ",
           "html_url": "https://github.com/pongsatornm1991-droid/AION/actions/runs/36047917637",
           "created_at": "2026-09-24T19:24:21Z"
         }
@@ -146,8 +146,8 @@
           "file": "automation-health.yml",
           "status_class": "success",
           "status_label": "ไม่มีเหตุให้ดำเนินการ",
-          "html_url": "https://github.com/pongsatornm1991-droid/AION/actions/runs/36047858956",
-          "created_at": "2026-09-24T19:23:51Z"
+          "html_url": "https://github.com/pongsatornm1991-droid/AION/actions/runs/36048031195",
+          "created_at": "2026-09-24T19:25:21Z"
         },
         {
           "name": "AION - Cyber Guard defensive audit",
@@ -211,8 +211,8 @@
           "file": "publish-workflow-status.yml",
           "status_class": "running",
           "status_label": "กำลังรัน",
-          "html_url": "https://github.com/pongsatornm1991-droid/AION/actions/runs/36047850579",
-          "created_at": "2026-09-24T19:23:46Z"
+          "html_url": "https://github.com/pongsatornm1991-droid/AION/actions/runs/36047977071",
+          "created_at": "2026-09-24T19:24:53Z"
         },
         {
           "name": "AION - system reliability",
@@ -359,8 +359,8 @@
         {
           "name": "AION - production control",
           "file": "production-control.yml",
-          "status_class": "running",
-          "status_label": "กำลังรัน",
+          "status_class": "success",
+          "status_label": "สำเร็จ",
           "html_url": "https://github.com/pongsatornm1991-droid/AION/actions/runs/36047849836",
           "created_at": "2026-09-24T19:23:46Z"
         },
