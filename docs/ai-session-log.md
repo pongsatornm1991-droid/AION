@@ -1898,3 +1898,17 @@ test using that exact live measurement. Lines beyond 10 seconds remain a
 genuine Story repair signal, but ordinary natural delivery no longer creates a
 false production stop. Targeted timing/assembly tests and full `python
 run_tests.py` pass again.
+
+## 2026-09-25 — Codex — Added narration-aware scene repair before image generation
+
+Studio now measures the selected production voice first. If a narration beat
+still exceeds the 10-second safe visual window, it is split once at the nearest
+readable sentence/phrase boundary, producing two adjacent scene beats with
+distinct visual instructions. Both retain the complete source narration and
+source-scene number as timing-repair provenance. The whole revised episode is
+then measured again before any image request is permitted. Its target duration
+and numbered storyboard are updated together only after a repair, so assembly
+cannot receive mismatched timing metadata. If the bounded repair cannot make a
+beat safe, the episode remains intact and is returned with a clear reason;
+nothing is discarded and no image budget is spent. Targeted timing, assembly,
+and regression tests pass locally.

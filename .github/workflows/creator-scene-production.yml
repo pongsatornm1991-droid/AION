@@ -51,8 +51,10 @@ jobs:
           AION_MEMORY_ROOT: memory_data
         run: python tools/audit_creator_novelty.py
       - name: Verify actual narration timing before creating scene images
-        # This uses the same configured voice as final assembly. A long line
-        # returns to Story before any image-production work begins.
+        # This uses the same configured voice as final assembly. An overlong
+        # line receives one provenance-preserving split and remeasurement
+        # before image-production work begins; an unsafe result still returns
+        # to Story without spending on images.
         env:
           REEL_VOICE_PROVIDER: ${{ vars.REEL_VOICE_PROVIDER || 'openai' }}
           REEL_VOICE: ${{ vars.REEL_VOICE || 'nova' }}

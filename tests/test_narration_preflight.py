@@ -49,3 +49,31 @@ class NarrationPreflightTests(unittest.TestCase):
         )
         self.assertFalse(report["eligible"])
         self.assertIn("narration-exceeds-safe-scene-window", report["reasons"][0])
+
+    def test_repairs_an_overlong_beat_before_any_image_work_and_remeasures_it(self):
+        durations = iter((14.4, 6.7, 7.1))
+        episode = {
+            "id": "repairable",
+            "scene_seconds": 5,
+            "target_duration_seconds": 5,
+            "scenes": [{
+                "n": 1,
+                "beat": "evidence",
+                "visual": "AION studies a clear subject.",
+                "narration": "The first observation establishes the cause. The second observation shows the effect clearly.",
+            }],
+        }
+
+        report = NarrationPreflight.repair_episode_timing(
+            episode,
+            synthesize=lambda _text, _path: True,
+            duration_reader=lambda _path: next(durations),
+        )
+
+        self.assertTrue(report["eligible"])
+        self.assertEqual([1], report["timing_repair"]["repaired_scenes"])
+        self.assertEqual(2, len(episode["scenes"]))
+        self.assertEqual(10, episode["target_duration_seconds"])
+        self.assertEqual("The first observation establishes the cause. The second observation shows the effect clearly.",
+                         episode["scenes"][0]["narration_timing_repair"]["source_narration"])
+        self.assertEqual([1, 2], [scene["n"] for scene in episode["scenes"]])

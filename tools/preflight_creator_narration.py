@@ -18,11 +18,18 @@ def preflight(root=ROOT, write_timeline=False):
     for episode in CreatorSeriesRegistry(root).episodes():
         if episode.get("status") != "storyboard-ready-needs-assets":
             continue
-        report = NarrationPreflight.assess_episode(episode)
+        report = NarrationPreflight.repair_episode_timing(episode)
         reports.append(report)
         if write_timeline and report.get("eligible"):
             path = Path(root) / str(episode["file"])
             payload = json.loads(path.read_text(encoding="utf-8"))
+            # Persist only a bounded, provenance-preserving repair.  The
+            # original narration remains attached to the two replacement
+            # beats, so a timing fix can always be audited or revised later.
+            payload["scenes"] = episode["scenes"]
+            payload["target_duration_seconds"] = episode["target_duration_seconds"]
+            if episode.get("narration_timing_repairs"):
+                payload["narration_timing_repairs"] = episode["narration_timing_repairs"]
             durations = report.get("scene_durations") or []
             payload["audio_visual_timeline"] = {
                 "version": "audio-driven-v1",
