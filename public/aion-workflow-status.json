@@ -1,10 +1,10 @@
 {
-  "generated_at": "2026-09-24T04:35:34.184827+00:00",
+  "generated_at": "2026-09-24T04:47:13.109277+00:00",
   "tiles": {
     "total": 35,
-    "ok": 32,
-    "attn": 1,
-    "running": 1
+    "ok": 30,
+    "attn": 0,
+    "running": 3
   },
   "groups": [
     {
@@ -114,8 +114,8 @@
           "file": "automation-health.yml",
           "status_class": "success",
           "status_label": "ไม่มีเหตุให้ดำเนินการ",
-          "html_url": "https://github.com/pongsatornm1991-droid/AION/actions/runs/35955267109",
-          "created_at": "2026-09-24T04:21:01Z"
+          "html_url": "https://github.com/pongsatornm1991-droid/AION/actions/runs/35957091855",
+          "created_at": "2026-09-24T04:46:45Z"
         },
         {
           "name": "AION - Publish public brain summary",
@@ -129,9 +129,9 @@
           "name": "AION - bounded self repair",
           "file": "self-repair.yml",
           "status_class": "success",
-          "status_label": "สำเร็จ",
-          "html_url": "https://github.com/pongsatornm1991-droid/AION/actions/runs/35903323918",
-          "created_at": "2026-09-23T18:33:43Z"
+          "status_label": "ไม่มีเหตุให้ดำเนินการ",
+          "html_url": "https://github.com/pongsatornm1991-droid/AION/actions/runs/35957088840",
+          "created_at": "2026-09-24T04:46:42Z"
         },
         {
           "name": "AION - delivery evidence watchdog",
@@ -144,27 +144,26 @@
         {
           "name": "AION - deterministic tests",
           "file": "tests.yml",
-          "status_class": "failure",
-          "status_label": "ล้มเหลว",
-          "html_url": "https://github.com/pongsatornm1991-droid/AION/actions/runs/35903203820",
-          "created_at": "2026-09-23T18:32:41Z",
-          "detail": "ขั้นที่ล้มเหลว: Run python run_tests.py"
+          "status_class": "running",
+          "status_label": "กำลังรัน",
+          "html_url": "https://github.com/pongsatornm1991-droid/AION/actions/runs/35957034625",
+          "created_at": "2026-09-24T04:45:57Z"
         },
         {
           "name": "AION - publish workflow health",
           "file": "publish-workflow-status.yml",
           "status_class": "running",
           "status_label": "กำลังรัน",
-          "html_url": "https://github.com/pongsatornm1991-droid/AION/actions/runs/35956230571",
-          "created_at": "2026-09-24T04:34:32Z"
+          "html_url": "https://github.com/pongsatornm1991-droid/AION/actions/runs/35957068429",
+          "created_at": "2026-09-24T04:46:25Z"
         },
         {
           "name": "AION - system reliability",
           "file": "system-reliability.yml",
           "status_class": "success",
           "status_label": "สำเร็จ",
-          "html_url": "https://github.com/pongsatornm1991-droid/AION/actions/runs/35903203857",
-          "created_at": "2026-09-23T18:32:41Z"
+          "html_url": "https://github.com/pongsatornm1991-droid/AION/actions/runs/35957034723",
+          "created_at": "2026-09-24T04:45:57Z"
         }
       ]
     },
@@ -207,10 +206,10 @@
         {
           "name": "AION - YouTube release watchdog",
           "file": "youtube-release-watchdog.yml",
-          "status_class": "success",
-          "status_label": "สำเร็จ",
-          "html_url": "https://github.com/pongsatornm1991-droid/AION/actions/runs/35955270286",
-          "created_at": "2026-09-24T04:21:04Z"
+          "status_class": "running",
+          "status_label": "กำลังรัน",
+          "html_url": "https://github.com/pongsatornm1991-droid/AION/actions/runs/35957092075",
+          "created_at": "2026-09-24T04:46:45Z"
         },
         {
           "name": "AION - YouTube release-window recovery",
@@ -225,8 +224,8 @@
           "file": "admin-operations.yml",
           "status_class": "success",
           "status_label": "สำเร็จ",
-          "html_url": "https://github.com/pongsatornm1991-droid/AION/actions/runs/35924105417",
-          "created_at": "2026-09-23T21:42:38Z"
+          "html_url": "https://github.com/pongsatornm1991-droid/AION/actions/runs/35957034767",
+          "created_at": "2026-09-24T04:45:57Z"
         },
         {
           "name": "AION - audience accessibility checks",
