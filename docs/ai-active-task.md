@@ -11,5 +11,5 @@ Owner: none
 Started: n/a
 Lease expires: n/a
 Scope: None.
-Handoff: Evidence reserve now separates fresh briefs from historical handoffs;
-the remaining constraint is independently qualifying newly researched topics.
+Handoff: OpenAlex is available as a broad scholarly companion and planner
+prefers an independent source kind once one source is already recorded.

@@ -211,10 +211,14 @@ class AutonomousResearchPlanner:
                 source
             )
 
-            # Prefer a different source when multiple valid adapters
-            # exist and evidence from one source kind already exists.
+            # A Creator Short needs independently hosted evidence. Once a
+            # source kind is already present, make a viable different adapter
+            # win rather than repeatedly selecting the familiar source just
+            # because it has a slightly higher default tier score.
             if source_id not in existing_source_kinds:
                 score += 5
+            else:
+                score -= 10
 
             # Prefer sources matching more of the explicit evidence
             # requirements.

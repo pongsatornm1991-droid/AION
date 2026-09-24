@@ -1486,6 +1486,18 @@ class WebLearningCycle:
             except ImportError:
                 pass
 
+            # OpenAlex is a broad scholarly companion for factual Shorts.
+            # It fills the deliberate gap between a general encyclopedia and
+            # narrow specialist indexes such as arXiv and Europe PMC.
+            try:
+                from tools.web_search import search_openalex, get_openalex_work
+                self.adapters["openalex"] = {
+                    "search": search_openalex,
+                    "fetch": get_openalex_work,
+                }
+            except ImportError:
+                pass
+
         self.evidence_store = (
             ResearchEvidenceStore(
                 memory,

@@ -1790,6 +1790,24 @@ questions must independently obtain two relevant traceable sources before a
 new neon-diorama episode can be staged. Targeted evidence reserve, research
 handoff, research-to-story, and storyboard tests: 18/18 passing.
 
+## 2026-09-24 — Codex — Added an independent scholarly companion for Shorts recovery
+
+The daily Shorts lane had only Wikipedia for broad factual orientation, plus
+arXiv and Europe PMC for much narrower subjects. This meant a valid first
+source could be stranded when the only available companion source was off
+topic, as happened with the honeybee question.
+
+Added a free, keyless OpenAlex work adapter. It searches a broad scholarly
+index, fetches the specific work again, reconstructs only its supplied
+abstract, and returns a traceable landing URL. It is registered as a
+general/research-paper source, but its abstracts still have to pass the
+existing relevance, source-integrity, and final production gates. The planner
+now applies a meaningful penalty to a source kind already used for the same
+question, so a viable independent adapter wins rather than repeatedly
+selecting the first source. This does not weaken evidence rules or invent a
+claim. Tests for adapter parsing, independent-source selection, learning,
+initiative and reserve: 77/77 passing; source registry JSON validated.
+
 ## 2026-09-24 — Codex — Fixed the actual external-learning crash
 
 Authenticated GitHub Actions inspection of run #173 showed the failure was not

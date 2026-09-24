@@ -48,6 +48,7 @@ WIKIPEDIA_API_BASE = "https://en.wikipedia.org/w/api.php"
 ARXIV_API_BASE = "http://export.arxiv.org/api/query"
 ARXIV_ATOM_NS = "{http://www.w3.org/2005/Atom}"
 EUROPE_PMC_API_BASE = "https://www.ebi.ac.uk/europepmc/webservices/rest"
+OPENALEX_API_BASE = "https://api.openalex.org"
 
 # Wikimedia's own User-Agent policy (meta.wikimedia.org/wiki/User-Agent_policy)
 # requires API clients to identify themselves with a descriptive User-Agent
@@ -609,4 +610,86 @@ def get_europe_pmc_fulltext(pmcid, max_chars=24000):
         "title": title,
         "url": f"https://europepmc.org/articles/{pmcid}",
         "extract": text,
+    }
+
+
+# ============================================================
+# OPENALEX SCHOLARLY DISCOVERY ADAPTER
+# ============================================================
+
+def _openalex_id(value):
+    """Normalize an OpenAlex work URL or identifier to its work id."""
+    value = str(value or "").strip().rstrip("/")
+    return value.rsplit("/", 1)[-1]
+
+
+def _openalex_abstract(inverted_index):
+    """Rebuild OpenAlex's compact inverted-index abstract safely."""
+    if not isinstance(inverted_index, dict):
+        return ""
+    words = []
+    for word, positions in inverted_index.items():
+        if not isinstance(positions, list):
+            continue
+        for position in positions:
+            if isinstance(position, int) and position >= 0:
+                words.append((position, str(word)))
+    return " ".join(word for _, word in sorted(words))
+
+
+def search_openalex(query, limit=3):
+    """Search OpenAlex's free public scholarly-work index.
+
+    This is a discovery adapter, not proof by itself: each result is fetched
+    again and must still pass AION's relevance and independence gates. It is
+    intentionally broad enough to provide a second scholarly domain for
+    history, physical science, and everyday-science questions where arXiv or
+    a life-science index would be the wrong match.
+    """
+    query = str(query or "").strip()
+    if not query:
+        raise ValueError("query cannot be empty.")
+    import requests
+    response = requests.get(
+        f"{OPENALEX_API_BASE}/works",
+        params={"search": query, "per-page": min(max(1, int(limit)), 10)},
+        headers=REQUEST_HEADERS, timeout=20,
+    )
+    if response.status_code >= 400:
+        raise RuntimeError(f"OpenAlex search error: HTTP {response.status_code}")
+    try:
+        results = response.json().get("results", [])
+    except (ValueError, AttributeError):
+        raise RuntimeError("OpenAlex search error: invalid JSON response.")
+    return [{"title": _openalex_id(item.get("id"))} for item in results if _openalex_id(item.get("id"))]
+
+
+def get_openalex_work(work_id, max_chars=12000):
+    """Fetch one OpenAlex work and return its title plus reconstructed abstract."""
+    work_id = _openalex_id(work_id)
+    if not work_id:
+        raise ValueError("work_id cannot be empty.")
+    import requests
+    response = requests.get(
+        f"{OPENALEX_API_BASE}/works/{work_id}", headers=REQUEST_HEADERS, timeout=20,
+    )
+    if response.status_code == 404:
+        return {"title": "", "url": "", "extract": ""}
+    if response.status_code >= 400:
+        raise RuntimeError(f"OpenAlex fetch error: HTTP {response.status_code}")
+    try:
+        item = response.json()
+    except ValueError:
+        raise RuntimeError("OpenAlex fetch error: invalid JSON response.")
+    if not isinstance(item, dict):
+        return {"title": "", "url": "", "extract": ""}
+    abstract = _openalex_abstract(item.get("abstract_inverted_index"))
+    if len(abstract) > max_chars:
+        abstract = abstract[:max_chars].rsplit(" ", 1)[0] + "…"
+    location = item.get("primary_location") or {}
+    url = str(location.get("landing_page_url") or item.get("doi") or item.get("id") or "").strip()
+    return {
+        "title": str(item.get("display_name") or work_id).strip(),
+        "url": url,
+        "extract": abstract,
     }

@@ -76,6 +76,18 @@
       "limitations": "Abstracts only. A preprint is not automatically peer-reviewed or settled fact."
     },
     {
+      "id": "openalex",
+      "name": "OpenAlex scholarly works index",
+      "tier": "C",
+      "enabled": true,
+      "capabilities": [
+        "general_external",
+        "research_paper"
+      ],
+      "role": "Free public scholarly discovery across science, history, and the humanities; used as an independently hosted companion to orientation material.",
+      "limitations": "Metadata and abstracts can be incomplete. A result must have a relevant extract and still pass AION's source relevance and independence gates."
+    },
+    {
       "id": "hacker_news",
       "name": "Hacker News public discussions",
       "tier": "C",

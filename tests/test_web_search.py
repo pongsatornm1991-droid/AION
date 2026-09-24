@@ -18,6 +18,8 @@ from tools.web_search import (
     get_arxiv_summary,
     search_europe_pmc_fulltext,
     get_europe_pmc_fulltext,
+    search_openalex,
+    get_openalex_work,
 )
 
 
@@ -55,6 +57,26 @@ class EuropePmcTests(unittest.TestCase):
         self.assertEqual(item["title"], "A full paper")
         self.assertIn("complete article", item["extract"])
         self.assertIn("PMC123", item["url"])
+
+
+class OpenAlexTests(unittest.TestCase):
+    def test_search_returns_work_ids(self):
+        payload = {"results": [{"id": "https://openalex.org/W123"}]}
+        with mock.patch("requests.get", return_value=FakeResponse(200, payload)):
+            self.assertEqual(search_openalex("why does ice float"), [{"title": "W123"}])
+
+    def test_fetch_rebuilds_abstract_and_uses_traceable_url(self):
+        payload = {
+            "id": "https://openalex.org/W123", "display_name": "Ice structure",
+            "doi": "https://doi.org/10.1000/example",
+            "abstract_inverted_index": {"Ice": [0], "floats": [1]},
+            "primary_location": {"landing_page_url": "https://example.org/paper"},
+        }
+        with mock.patch("requests.get", return_value=FakeResponse(200, payload)):
+            item = get_openalex_work("https://openalex.org/W123")
+        self.assertEqual(item["title"], "Ice structure")
+        self.assertEqual(item["extract"], "Ice floats")
+        self.assertEqual(item["url"], "https://example.org/paper")
 
 
 class SearchWikipediaTests(unittest.TestCase):

@@ -114,6 +114,16 @@ class ResearchPlannerPhase5F2Tests(
         )
         self.assertNotEqual("life_index", plan["source_id"])
 
+    def test_existing_source_kind_yields_to_a_viable_independent_companion(self):
+        planner = AutonomousResearchPlanner(FakeRegistry())
+        plan = planner.plan(
+            {"evidence_types": ["general_external"], "required_count": 2},
+            available_adapter_ids=["wikipedia", "arxiv"],
+            existing_evidence=[{"source_kind": "wikipedia"}],
+            topic="Why does ice float on water?",
+        )
+        self.assertEqual("arxiv", plan["source_id"])
+
     def test_capability_report_uses_registry_not_old_hardcoded_map(self):
         cycle = object.__new__(
             WebLearningCycle
