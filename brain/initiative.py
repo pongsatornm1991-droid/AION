@@ -260,6 +260,14 @@ class AutonomousInitiative:
             str(entry.get("statement") or "").strip().lower()
             for entry in self.curiosity.open_questions()
         }
+        # The recovery reserve is only one lane inside Curiosity's global
+        # ten-question capacity.  Never let a full unrelated queue turn a
+        # normal low-buffer recovery tick into a workflow crash.
+        live_total = sum(
+            1 for entry in self.curiosity.open_questions()
+            if not entry.get("budget_exhausted")
+        )
+        queue_capacity = max(0, self.curiosity.max_open - live_total)
         criteria = (
             "Record observations from at least two independent credible sources "
             "with stable URLs. Explain one verified mechanism in language suitable "
@@ -274,7 +282,7 @@ class AutonomousInitiative:
         # After every designed reserve topic has been tried, retain the
         # historical record and stop rather than silently recycling the first
         # question as if it were new evidence.
-        to_create = min(seed_limit, max(0, target - len(active)), len(candidates))
+        to_create = min(seed_limit, max(0, target - len(active)), len(candidates), queue_capacity)
         created = []
         created_domains = []
         created_visual_metaphors = []
@@ -306,7 +314,11 @@ class AutonomousInitiative:
         # very next pass while newer questions are already waiting behind it.
         selected = (active + created)[:seed_limit]
         return {
-            "stage": "seeded-recovery-reserve" if created else "recovery-reserve-exhausted",
+            "stage": (
+                "seeded-recovery-reserve" if created else
+                "recovery-reserve-queue-full" if queue_capacity == 0 else
+                "recovery-reserve-exhausted"
+            ),
             "created": bool(created),
             "created_count": len(created),
             "created_domains": created_domains,
@@ -314,6 +326,7 @@ class AutonomousInitiative:
             "questions": selected,
             "active_count": len(active) + len(created),
             "target": target,
+            "queue_capacity": queue_capacity,
         }
 
     def initiate_recovery_once(self, missing=0):

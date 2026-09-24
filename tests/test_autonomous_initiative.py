@@ -90,3 +90,15 @@ class AutonomousInitiativeTests(unittest.TestCase):
                 "shorts-recovery" in question["tags"]
                 for question in report["questions"]
             ))
+
+    def test_full_global_queue_is_preserved_without_crashing_recovery(self):
+        with tempfile.TemporaryDirectory() as root:
+            memory = MemoryEngine(root)
+            curiosity = CuriosityEngine(memory)
+            for index in range(curiosity.max_open):
+                curiosity.raise_question(f"Existing {index}", "Use cited evidence.")
+
+            report = AutonomousInitiative(memory, curiosity).initiate_recovery_batch(7)
+            self.assertEqual("recovery-reserve-queue-full", report["stage"])
+            self.assertEqual(0, report["created_count"])
+            self.assertEqual(0, report["queue_capacity"])

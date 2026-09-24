@@ -1772,3 +1772,14 @@ failed pass. It cannot use unpersisted failed output. Production Control now
 reports each episode file's last update timestamp, and Operations displays its
 age for active work. Targeted learning/production/dashboard/recovery suite:
 51/51 passing; Python and dashboard-JavaScript syntax checks passed.
+
+## 2026-09-24 — Codex — Fixed the actual external-learning crash
+
+Authenticated GitHub Actions inspection of run #173 showed the failure was not
+a provider/source error: recovery attempted to add a question while Curiosity's
+global queue was already full (10/10), raising `ValueError` before research or
+memory persistence. Recovery now measures global capacity before seeding. A
+full queue returns an explicit `recovery-reserve-queue-full` state, preserves
+planned work, and lets the normal bounded learning batch research existing
+questions rather than crashing. Added a regression test for the exact 10/10
+condition. Targeted initiative/learning/recovery suite: 47/47 passing.

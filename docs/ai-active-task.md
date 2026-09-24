@@ -11,5 +11,5 @@ Owner: none
 Started: n/a
 Lease expires: n/a
 Scope: None.
-Handoff: Learning failure isolation and durable-evidence recovery are active.
-Investigate private provider logs before changing provider credentials or source policy.
+Handoff: Recovery respects Curiosity's global 10-question capacity; a full
+queue is a visible state, not a workflow failure.
