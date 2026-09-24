@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-09-24T01:59:32.989566+00:00",
+  "generated_at": "2026-09-24T04:58:51.908221+00:00",
   "state": "critical",
   "policy": {
     "brand": {
@@ -542,8 +542,8 @@
     "boundary": "A configured key is not proof of live quota or provider uptime; the scheduled workflow records real provider failures separately."
   },
   "release_artifact_freshness": {
-    "state": "fresh",
-    "age_seconds": 43,
+    "state": "stale",
+    "age_seconds": 10802,
     "policy_current": true
   },
   "recovery": {
@@ -560,6 +560,22 @@
       "Send staged Shorts to the bounded seven-episode Studio shift.",
       "Publish only after image, assembly, and Quality Gates pass."
     ]
+  },
+  "evidence_reserve": {
+    "state": "critical",
+    "targets": {
+      "questions": 21,
+      "qualified_evidence": 14,
+      "story_briefs": 10
+    },
+    "counts": {
+      "questions": 4,
+      "qualified_evidence": 3,
+      "story_briefs": 3,
+      "preserved_attempts": 21
+    },
+    "next_action": "research distinct reserve questions until two independent sources qualify",
+    "boundary": "A question is not evidence, and evidence is not a publishable video. Qualified evidence requires independent traceable sources; story briefs still pass novelty, production, and final Quality Gates."
   },
   "portfolio": [
     {
@@ -585,7 +601,7 @@
   ],
   "component_states": {
     "provider": "ready",
-    "artifact": "fresh"
+    "artifact": "stale"
   },
   "next_action": "produce new cited episodes through image, assembly and quality gates"
 }
