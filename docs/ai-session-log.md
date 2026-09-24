@@ -1868,3 +1868,21 @@ for improving retrieval, never proof that a source is true or an override of
 the independent-source gate. Release Readiness now emits an explicit warning
 below three ready Shorts, and Production Control uses the research SLA to name
 the next recovery action. Targeted tests and full `python run_tests.py` pass.
+
+## 2026-09-25 — Codex — Removed the natural-voice timing bottleneck from Studio
+
+The first fresh maps Short was held before paid image work because its first
+measured narration was 8.81 seconds while the preflight and assembly layers
+still limited a scene to seven seconds. The channel policy is now consistent:
+the authored beat remains five seconds, but the existing visual may hold or
+move gently through 9.5 seconds, with a short end hold, so narration is never
+sped up or cut just to fit an estimate. A line beyond that bounded window still
+returns to Story before images are requested; this protects watchability and
+cost rather than silently producing a stagnant scene.
+
+`VisualStoryPolicy` now shares the same 9.5-second rendered ceiling, preventing
+a preflight-approved timeline from being rejected later in assembly. Scene
+production also listens to timing-policy code changes, so a production-safe
+fix on `main` immediately re-enters Studio rather than leaving an otherwise
+ready storyboard waiting for the next daily shift. Targeted timing/assembly
+tests and full `python run_tests.py` pass.

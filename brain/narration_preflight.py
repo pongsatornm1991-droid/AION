@@ -54,7 +54,9 @@ class NarrationPreflight:
                 actual_seconds = duration_reader(audio)
                 # Real speech leads the visual timeline.  Never alter voice
                 # speed merely to force an authored five-second beat: the
-                # current image can hold naturally up to seven seconds.
+                # current image can hold naturally up to the bounded adaptive
+                # scene window.  The voice is never sped up or cut to force
+                # an authored five-second beat.
                 timing = AudioVisualTimingGate.plan_scene(actual_seconds, scene_seconds)
                 checks.append({"scene": index, **timing})
         failures = [item for item in checks if not item.get("eligible")]

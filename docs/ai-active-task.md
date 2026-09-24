@@ -11,5 +11,6 @@ Owner: none
 Started: n/a
 Lease expires: n/a
 Scope: None.
-Handoff: Evidence Reserve reports fast-lane capacity, bounded research effort,
-and source coverage; low-buffer warnings now fire before the release buffer is empty.
+Handoff: Narration preflight and final assembly now share a bounded 9.5-second
+adaptive scene window. A timing-policy repair on main triggers Studio without
+waiting for the next scheduled shift.

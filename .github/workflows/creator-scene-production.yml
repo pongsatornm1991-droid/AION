@@ -4,6 +4,14 @@ on:
     branches: [main]
     paths:
       - "content/creator_series/**"
+      # A timing-policy repair must re-enter Studio immediately; otherwise a
+      # storyboard that was safely held before paid image work would wait for
+      # tomorrow's scheduled shift despite the fix already being on main.
+      - "brain/audio_visual_timing.py"
+      - "brain/narration_preflight.py"
+      - "brain/visual_story_policy.py"
+      - "tools/preflight_creator_narration.py"
+      - ".github/workflows/creator-scene-production.yml"
   # A story brief is committed by GitHub Actions.  Those token-authenticated
   # commits do not reliably start a downstream `push` workflow, so without
   # this explicit handoff a qualified new Short can sit until tomorrow's

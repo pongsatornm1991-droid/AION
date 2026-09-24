@@ -13,9 +13,9 @@ class AudioVisualTimingGateTests(unittest.TestCase):
         report = AudioVisualTimingGate.assess(145.54, 120)
         self.assertFalse(report["eligible"])
         self.assertEqual("return-to-story", report["state"])
-        # Rendered picture beats may now extend to seven seconds before
-        # narration is sent back for rewriting.
-        self.assertEqual(4, report["minimum_extra_visual_beats"])
+        # Rendered picture beats may extend through the bounded adaptive
+        # window before narration is sent back for rewriting.
+        self.assertEqual(3, report["minimum_extra_visual_beats"])
         self.assertIn("ย่อบท", report["detail"])
 
     def test_rejects_silent_final_scenes(self):
@@ -41,7 +41,13 @@ class AudioVisualTimingGateTests(unittest.TestCase):
         self.assertEqual("extend-current-visual", report["action"])
         self.assertAlmostEqual(5.7, report["visual_seconds"])
 
-    def test_returns_only_an_unsafely_long_scene_to_story_before_paid_images(self):
-        report = AudioVisualTimingGate.plan_scene(6.8, 5)
+    def test_extends_a_naturally_long_line_without_cutting_voice_or_blocking_images(self):
+        report = AudioVisualTimingGate.plan_scene(8.81, 5)
+        self.assertTrue(report["eligible"])
+        self.assertEqual("extend-current-visual", report["action"])
+        self.assertAlmostEqual(9.11, report["visual_seconds"])
+
+    def test_returns_only_a_scene_beyond_the_bounded_adaptive_window_to_story(self):
+        report = AudioVisualTimingGate.plan_scene(9.3, 5)
         self.assertFalse(report["eligible"])
         self.assertIn("narration-exceeds-safe-scene-window", report["reasons"])

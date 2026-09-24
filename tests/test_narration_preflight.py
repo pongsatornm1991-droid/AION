@@ -45,7 +45,7 @@ class NarrationPreflightTests(unittest.TestCase):
         report = NarrationPreflight.assess_episode(
             {"id": "long", "scene_seconds": 5, "scenes": [{"narration": "A line that cannot fit."}]},
             synthesize=lambda _text, _path: True,
-            duration_reader=lambda _path: 6.8,
+            duration_reader=lambda _path: 9.3,
         )
         self.assertFalse(report["eligible"])
         self.assertIn("narration-exceeds-safe-scene-window", report["reasons"][0])

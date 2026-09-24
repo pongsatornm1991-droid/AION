@@ -10,7 +10,11 @@ class VisualStoryPolicy:
     # that picture interval for a naturally spoken line without changing the
     # approved story plan.
     MAX_SCENE_SECONDS = 5
-    MAX_RENDERED_SCENE_SECONDS = 7
+    # Measured narration may extend a five-second authored beat with a
+    # deliberate hold or gentle motion.  Keep this aligned with the
+    # narration preflight ceiling so a valid preflight timeline cannot later
+    # be rejected during assembly.
+    MAX_RENDERED_SCENE_SECONDS = 9.5
     MIN_SHORT_DURATION_SECONDS = 50
     MIN_SHORT_SCENES = 10
     MAX_SHORT_DURATION_SECONDS = 180
