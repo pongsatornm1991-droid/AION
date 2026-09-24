@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-09-24T22:17:39.916168+07:00",
+  "generated_at": "2026-09-25T00:27:30.510883+07:00",
   "timezone": "Asia/Bangkok",
   "horizon_hours": 168,
   "state": "critical",
@@ -50,6 +50,11 @@
     "missing": 7,
     "state": "critical",
     "detail": "นับเฉพาะ Shorts ใหม่ที่ผ่าน Quality Gate แล้ว; storyboard หรือภาพครบยังไม่นับเป็นบัฟเฟอร์"
+  },
+  "early_warning": {
+    "state": "urgent",
+    "threshold": 3,
+    "detail": "คลังต่ำกว่า 3 ตอน: คิวกู้คลังต้องให้หัวข้อ fast lane มาก่อนงานวิจัยเชิงลึก"
   },
   "recovery_action": "ผลิตจากเรื่องใหม่ที่มีหลักฐานครบ",
   "policy": "ตรวจล่วงหน้า 168 ชั่วโมง; นับเฉพาะตอนใหม่ที่ผ่าน Quality Gate พร้อมและไม่ซ้ำ ไม่ใช้คลิปเก่าแทนวันปล่อย"
