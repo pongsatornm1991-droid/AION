@@ -31,6 +31,7 @@ KNOWN_STATUSES = {
     "production-ready-script",             # an early, largely-manual stage for primary/long-form work
     "retired-do-not-publish",              # YouTubeCreatorQueue.RETIRED_STATUS -- deliberately pulled from the queue
     "research-returned-source-integrity",  # Research quarantined the draft; see its own return_reason field
+    "research-evidence-rejected-preserved",  # Evidence mismatch retained as a learning record, never a release candidate
 }
 
 

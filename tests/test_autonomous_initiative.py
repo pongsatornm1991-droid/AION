@@ -90,6 +90,10 @@ class AutonomousInitiativeTests(unittest.TestCase):
                 "shorts-recovery" in question["tags"]
                 for question in report["questions"]
             ))
+            self.assertTrue(all(
+                "shorts-fast-lane" in question["tags"]
+                for question in report["questions"]
+            ))
 
     def test_full_global_queue_is_preserved_without_crashing_recovery(self):
         with tempfile.TemporaryDirectory() as root:

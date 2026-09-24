@@ -249,6 +249,29 @@ class YouTubeCreatorQueueTests(unittest.TestCase):
             self.assertFalse(candidates["returned"]["release_eligible"])
             self.assertIn("returned-for-insufficient-source-integrity", candidates["returned"]["release_blockers"])
 
+    def test_preserved_evidence_rejection_never_enters_release_queue(self):
+        with tempfile.TemporaryDirectory() as root:
+            self._episode(root)
+            root = Path(root)
+            preserved = __import__("json").loads((root / "content" / "creator_series" / "episode.json").read_text(encoding="utf-8"))
+            preserved.update({
+                "id": "preserved-evidence",
+                "title": "Keep the failed evidence attempt for later",
+                "status": "research-evidence-rejected-preserved",
+            })
+            (root / "content" / "creator_series" / "preserved-evidence.json").write_text(
+                __import__("json").dumps(preserved), encoding="utf-8"
+            )
+            (root / "content" / "reels" / "preserved-evidence.mp4").write_bytes(b"not-a-release")
+            (root / "content" / "reels" / "preserved-evidence-cover.png").write_bytes(b"png")
+            candidate = {
+                item["episode_id"]: item
+                for item in YouTubeCreatorQueue(MemoryEngine(root / "memory"), root).candidates()
+            }["preserved-evidence"]
+            self.assertFalse(candidate["release_eligible"])
+            self.assertIn("preserved-for-future-evidence-research", candidate["release_blockers"])
+            self.assertEqual("เก็บบทเรียนหลักฐาน · ยังไม่ผลิต", candidate["pipeline_stage"]["label"])
+
     def test_publishes_authorized_episode_once_when_project_policy_delegates_it(self):
         with tempfile.TemporaryDirectory() as root:
             self._episode(root)

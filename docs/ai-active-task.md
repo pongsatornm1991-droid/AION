@@ -11,5 +11,6 @@ Owner: none
 Started: n/a
 Lease expires: n/a
 Scope: None.
-Handoff: OpenAlex is available as a broad scholarly companion and planner
-prefers an independent source kind once one source is already recorded.
+Handoff: CI is green locally (984 tests). Low-buffer recovery prioritizes
+fast, evidence-friendly Shorts topics; deep research and rejected evidence
+remain preserved and explicitly blocked from release.

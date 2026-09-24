@@ -65,12 +65,19 @@ class Phase5F5IContractTests(unittest.TestCase):
                 if keyword.arg == "max_items":
                     values.append(keyword.value)
 
-        self.assertEqual(len(values), 1)
-        self.assertIsInstance(values[0], ast.Name)
-        self.assertEqual(
-            values[0].id,
-            "candidate_budget",
-        )
+        # The primary retrieval receives the bounded candidate budget.  A
+        # one-item companion lookup is also allowed: it prevents a single
+        # source family from filling both evidence slots without turning the
+        # main retrieval into an unbounded loop.
+        self.assertEqual(len(values), 2)
+        self.assertTrue(any(
+            isinstance(value, ast.Name) and value.id == "candidate_budget"
+            for value in values
+        ))
+        self.assertTrue(any(
+            isinstance(value, ast.Constant) and value.value == 1
+            for value in values
+        ))
 
     def test_candidate_budget_is_bounded_to_ten(self):
         source, _ = _tree_and_function()

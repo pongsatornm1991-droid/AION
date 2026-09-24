@@ -200,6 +200,15 @@ class AutonomousInitiative:
         ),
     )
     RECOVERY_TAG = "shorts-recovery"
+    FAST_RECOVERY_TAG = "shorts-fast-lane"
+    # When the release buffer is critical, begin with questions whose core
+    # mechanism is compact, visual, and well covered by broad public and
+    # scholarly sources.  History and open-ended questions remain in the
+    # reserve; this is a queue order, never a deletion or a lower standard.
+    FAST_RECOVERY_DOMAINS = {
+        "weather-science", "light-science", "space-science", "chemistry",
+        "food-science", "water-science", "sound-science", "materials-science",
+    }
     # Keep research ahead of production.  This is deliberately a reserve of
     # research questions, not a promise of 21 completed episodes: each item
     # still needs two independent, traceable sources before it can reach the
@@ -279,6 +288,10 @@ class AutonomousInitiative:
             if candidate[0] not in attempted_domains
             and candidate[1].lower() not in open_statements
         ]
+        candidates.sort(key=lambda candidate: (
+            candidate[0] not in self.FAST_RECOVERY_DOMAINS,
+            self.RECOVERY_INQUIRIES.index(candidate),
+        ))
         # After every designed reserve topic has been tried, retain the
         # historical record and stop rather than silently recycling the first
         # question as if it were new evidence.
@@ -287,12 +300,15 @@ class AutonomousInitiative:
         created_domains = []
         created_visual_metaphors = []
         for domain, question, visual_metaphor in candidates[:to_create]:
+            lane_tags = [self.RECOVERY_TAG, "shorts-first", domain]
+            if domain in self.FAST_RECOVERY_DOMAINS:
+                lane_tags.append(self.FAST_RECOVERY_TAG)
             entry = self.curiosity.raise_question(
                 question,
                 criteria,
                 priority=5,
                 budget=3,
-                tags=[self.RECOVERY_TAG, "shorts-first", domain],
+                tags=lane_tags,
                 source=self.SOURCE,
             )
             self.memory.remember(
@@ -302,7 +318,7 @@ class AutonomousInitiative:
                 memory_type="decision",
                 source=self.SOURCE,
                 importance=5,
-                tags=[self.RECOVERY_TAG, domain],
+                tags=lane_tags,
                 related=[entry.get("id")],
             )
             created.append(entry)
@@ -312,7 +328,13 @@ class AutonomousInitiative:
         # Finish the oldest live reserve questions first.  That gives the
         # earliest evidence pair a chance to reach the story queue on the
         # very next pass while newer questions are already waiting behind it.
-        selected = (active + created)[:seed_limit]
+        # Prefer fast, evidence-friendly questions only while the reserve is
+        # low.  Existing deep work stays open and auditable; it simply cannot
+        # crowd out every attempt needed to protect today's daily Short.
+        selected = sorted(
+            active + created,
+            key=lambda entry: self.FAST_RECOVERY_TAG not in (entry.get("tags") or []),
+        )[:seed_limit]
         return {
             "stage": (
                 "seeded-recovery-reserve" if created else

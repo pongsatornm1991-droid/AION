@@ -18,6 +18,7 @@ class YouTubeCreatorQueue:
     CATEGORY = "youtube_creator_queue"
     READY_STATUS = "production-ready-assets-and-script"
     RETIRED_STATUS = "retired-do-not-publish"
+    RESEARCH_REJECTED_STATUS = "research-evidence-rejected-preserved"
 
     @staticmethod
     def _cover_quality(path, content_kind=None):
@@ -52,6 +53,8 @@ class YouTubeCreatorQueue:
             return {"id": "published", "label": "เผยแพร่แล้ว"}
         if episode.get("status") == cls.RETIRED_STATUS:
             return {"id": "retired", "label": "ยกเลิกจากคิว"}
+        if episode.get("status") == cls.RESEARCH_REJECTED_STATUS:
+            return {"id": "research", "label": "เก็บบทเรียนหลักฐาน · ยังไม่ผลิต"}
         if episode.get("status") == "storyboard-ready-needs-assets":
             return {"id": "images", "label": "กำลังสร้างภาพ"}
         if episode.get("status") == "assets-ready-for-assembly":
@@ -178,6 +181,13 @@ class YouTubeCreatorQueue:
             # a draft Research already rejected.
             if episode.get("status") == "research-returned-source-integrity":
                 release_blockers.append("returned-for-insufficient-source-integrity")
+            # A recovery attempt can also stop before it has enough on-topic
+            # evidence.  Keep that draft and its findings for future research,
+            # but enforce its no-release boundary explicitly.  It must never
+            # become publishable merely because a later edit changes a status
+            # string or happens to add a local video file.
+            if episode.get("status") == self.RESEARCH_REJECTED_STATUS:
+                release_blockers.append("preserved-for-future-evidence-research")
             retired = episode.get("status") == self.RETIRED_STATUS
             previous = recorded.get(episode["id"])
             stage = self._pipeline_stage(episode, previous, video_path.is_file())

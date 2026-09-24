@@ -1818,3 +1818,20 @@ full queue returns an explicit `recovery-reserve-queue-full` state, preserves
 planned work, and lets the normal bounded learning batch research existing
 questions rather than crashing. Added a regression test for the exact 10/10
 condition. Targeted initiative/learning/recovery suite: 47/47 passing.
+
+## 2026-09-24 — Codex — Protected the daily Shorts lane without throwing research away
+
+Inspected the failed deterministic CI run and repaired both real failures.
+`research-evidence-rejected-preserved` is now a reviewed lifecycle state with
+an explicit no-release blocker and a truthful Studio label, so an evidence
+attempt retained for learning can never become publishable by an accidental
+status or file change. The retrieval contract now explicitly permits one
+bounded companion lookup alongside the main candidate-budgeted lookup; this
+preserves the independent-source rule without an unbounded search.
+
+When the Shorts buffer is low, recovery now prioritizes a fast, source-friendly
+lane (compact visible mechanisms such as light, weather, water, Moon phases,
+sound, materials, and food). Human history and slower research stay preserved
+in the same reserve and are never deleted or downgraded; they simply cannot
+consume every recovery attempt while the daily buffer is empty. Added
+regressions for both boundaries. Full `python run_tests.py`: 984 tests passing.
