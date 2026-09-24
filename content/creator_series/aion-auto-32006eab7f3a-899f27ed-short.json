@@ -1,0 +1,441 @@
+{
+  "id": "aion-auto-32006eab7f3a-899f27ed-short",
+  "series": "AION Wonders",
+  "title": "AION Wonders: Why do maps look different depending on what they are made for?",
+  "status": "storyboard-ready-needs-assets",
+  "format": "illustrated-narrated-short",
+  "target_duration_seconds": 60,
+  "scene_seconds": 5,
+  "pacing_policy": "short-50-180-fact-first-v5",
+  "audience_promise": "A viewer of any age can see how careful observation turns a surprising historical or scientific idea into something understandable.",
+  "wonder_hook": "Why do maps look different depending on what they are made for?",
+  "growth_plan": {
+    "version": "evidence-led-creator-growth-v1",
+    "hook_seconds": 2,
+    "hook_line": "What is the surprising truth about Why do maps look different depending on what they are made for??",
+    "retention_promise": "แต่ละฉากพาไปสู่คำตอบเดียวที่ชัดเจน: A viewer of any age can see how careful observation turns a surprising historical or scientific idea into something understandable.",
+    "follow_reason": "ติดตามเพื่อดูคำถามวิทยาศาสตร์และประวัติศาสตร์เรื่องถัดไปที่เล่าจากหลักฐาน",
+    "series_angle": "อีกมุมหนึ่งของ Why do maps look different depending on what they are made for? จะทำได้เมื่อมีข้อมูลผู้ชมจริงสนับสนุน",
+    "editing_rule": "ตัดคำเกริ่น ช่วงเงียบ และภาพที่ไม่พาเรื่องไปข้างหน้า; ทุกฉากต้องเพิ่มข้อมูลหรืออารมณ์ใหม่"
+  },
+  "topic_key": "Why do maps look different depending on what they are made for?",
+  "creative_device": "mystery-reveal",
+  "age_layers": {
+    "children": "Notice one surprising question and the clues that help answer it.",
+    "family": "Compare what two sources say before deciding what to believe.",
+    "deeper": "Separate direct observations from the interpretation built from them."
+  },
+  "sources": [
+    {
+      "title": "Google Maps",
+      "url": "https://en.wikipedia.org/wiki/Google_Maps",
+      "observation": "- The article describes that Google Maps presents multiple map representations—satellite imagery, aerial photos, street maps, 360° Street View, real-time traffic layers, and route planning—and allows users to switch among them. - It notes that the satellite view is a top-down bird’s-eye view sourced from aircraft and satellites, and that Google Maps moved from a 2D Mercator projection (which could not accurately show areas near the poles) to a 3D globe in 2018, with an option to switch back to 2D."
+    },
+    {
+      "title": "Maps of Dust Infrared Emission for Use in Estimation of Reddening and Cosmic Microwave Background Radiation Foregrounds",
+      "url": "https://doi.org/10.1086/305772",
+      "observation": "The authors describe constructing a full-sky 100 μm map by combining COBE/DIRBE and IRAS/ISSA data and explicitly removing zodiacal light, confirmed point sources, and IRAS scan artifacts to isolate Galactic dust emission. They use DIRBE 100 and 240 μm data to build a dust temperature map so the 100 μm brightness can be converted to a quantity proportional to dust column density, noting that temperature variations can change the inferred column by a factor of five. They say the map’s primary use is estimating"
+    }
+  ],
+  "evidence_integrity": {
+    "eligible": true,
+    "reason": "two independent traceable sources",
+    "hosts": [
+      "doi.org",
+      "en.wikipedia.org"
+    ],
+    "human_perspective": false,
+    "off_topic_observation": false
+  },
+  "uncertainty_boundary": "The evidence may not settle every part of the question; state exactly what the sources do not establish.",
+  "visual_direction": {
+    "focus": "subject-first",
+    "aion_role": "contextual-guide",
+    "aion_frame_share_max": 0.2,
+    "aion_presence_rationale": "AION is a small guide who helps viewers notice evidence; the subject and environment remain central."
+  },
+  "visual_style": {
+    "id": "aion-neon-diorama-3d-v1",
+    "approved": true,
+    "summary": "AION explores Why do maps look different depending on what they are made for? through a a connected world of questions.",
+    "director": {
+      "id": "aion-thoughtscape-director-v1",
+      "world": "curiosity-atlas",
+      "mood": "a connected world of questions",
+      "palette_and_material": "bright sky blues, warm amber, fresh greens and a small cyan curiosity signal on grounded tactile materials",
+      "format": "vertical 9:16",
+      "principle": "AION chooses the world from the subject and emotional promise; evidence and the story lead the frame.",
+      "rendering_rule": "Use original all-ages warm 3D educational storytelling with rounded appealing forms, tactile natural materials, gentle cinematic light and a vibrant but controlled focal palette. Never imitate a named artist, studio, channel, franchise or existing composition."
+    },
+    "aion_deliberation": {
+      "version": "aion-creative-deliberation-v1",
+      "origin": "bounded-fallback",
+      "reason": "provider-unavailable",
+      "premise": "AION explores Why do maps look different depending on what they are made for? through a a connected world of questions.",
+      "world": "curiosity-atlas",
+      "mood": "a connected world of questions",
+      "palette_and_material": "bright sky blues, warm amber, fresh greens and a small cyan curiosity signal on grounded tactile materials",
+      "aion_role": "small contextual guide; never the dominant subject",
+      "appearance_choice": "AION may appear as a small cyan curiosity signal or a practical context-appropriate traveler; no fixed costume is required.",
+      "rendering_rule": "Original warm 3D educational storytelling: rounded appealing forms, tactile natural materials, gentle cinematic light and vibrant controlled colour. Never imitate a named artist, studio, channel, franchise or existing composition."
+    }
+  },
+  "visual_identity": {
+    "version": "aion-animated-documentary-guide-v1",
+    "character": "AION is a contextual guide, not a fixed mascot: each story may choose its own form and clothing, while the channel keeps one recognizable Visual DNA—original warm 3D educational storytelling with readable staging, rounded appealing forms, tactile natural materials and gentle cinematic light.",
+    "environment": "Use original all-ages warm 3D educational storytelling with rounded appealing forms, tactile natural materials, gentle cinematic light and a vibrant but controlled focal palette. Never imitate a named artist, studio, channel, franchise or existing composition.",
+    "prohibited": [
+      "all-blue body",
+      "all-blue outfit",
+      "cape",
+      "armour",
+      "fashion pose",
+      "embedded text",
+      "logo",
+      "watermark"
+    ]
+  },
+  "scenes": [
+    {
+      "n": 1,
+      "beat": "hook",
+      "visual": "A cinematic educational opening centred on Why do maps look different depending on what they are made for?; the real subject and environment fill the frame, with AION only as a small guide at the edge.",
+      "narration": "- The article describes that Google Maps presents multiple map representations—satellite imagery. Why do maps look different depending on what they are made for?"
+    },
+    {
+      "n": 2,
+      "beat": "question",
+      "visual": "Show the central subject of Why do maps look different depending on what they are made for? clearly before any explanation; AION observes from the distant edge.",
+      "narration": "We will follow what was actually observed, step by step, rather than inventing an answer."
+    },
+    {
+      "n": 3,
+      "beat": "evidence-one-intro",
+      "visual": "Show the first evidence scene for Why do maps look different depending on what they are made for?, guided by Google Maps; AION remains small and practical in the background.",
+      "narration": "Our first clue comes from Google Maps. We will use it to examine the subject closely."
+    },
+    {
+      "n": 4,
+      "beat": "evidence-one-a",
+      "visual": "Depict this documented observation about Why do maps look different depending on what they are made for?: - The article describes that Google Maps presents multiple map representations—satellite imagery. Keep the subject dominant; AION is a small guide only.",
+      "narration": "- The article describes that Google Maps presents multiple map representations—satellite imagery."
+    },
+    {
+      "n": 5,
+      "beat": "evidence-one-b",
+      "visual": "Continue the first documented observation for Why do maps look different depending on what they are made for?: aerial photos, street maps, 360° Street View, real-time traffic layers, and route. Keep the evidence visible and AION in the background.",
+      "narration": "aerial photos, street maps, 360° Street View, real-time traffic layers, and route."
+    },
+    {
+      "n": 6,
+      "beat": "evidence-two-intro",
+      "visual": "Move to a distinct second evidence scene for Why do maps look different depending on what they are made for?, guided by Maps of Dust Infrared Emission for Use in Estimation of Reddening and Cosmic Microwave Background; AION remains small at the edge.",
+      "narration": "A second clue comes from Maps of Dust Infrared Emission for Use in Estimation of Reddening and Cosmic Microwave Background. We compare it carefully with the first observation."
+    },
+    {
+      "n": 7,
+      "beat": "evidence-two-a",
+      "visual": "Depict this documented observation about Why do maps look different depending on what they are made for?: The authors describe constructing a full-sky 100 μm map by combining COBE/DIRBE. Keep the subject, action, and setting central; AION observes subtly from the distant edge.",
+      "narration": "The authors describe constructing a full-sky 100 μm map by combining COBE/DIRBE."
+    },
+    {
+      "n": 8,
+      "beat": "evidence-two-b",
+      "visual": "Continue the second documented observation for Why do maps look different depending on what they are made for?: and IRAS/ISSA data and explicitly removing zodiacal light, confirmed point sources, and. AION is only a small contextual guide.",
+      "narration": "and IRAS/ISSA data and explicitly removing zodiacal light, confirmed point sources, and."
+    },
+    {
+      "n": 9,
+      "beat": "connection",
+      "visual": "A visual comparison of the two documented observations about Why do maps look different depending on what they are made for?; show the subject and environment, with AION pointing only subtly from the edge.",
+      "narration": "Put together: - The article describes that Google Maps presents multiple map representations—satellite imagery. And from the second source: The authors describe constructing a full-sky 100 μm map by combining COBE/DIRBE."
+    },
+    {
+      "n": 10,
+      "beat": "boundary",
+      "visual": "Show the boundary between what the sources document and what they do not establish about Why do maps look different depending on what they are made for?; no invented action, AION remains in the background.",
+      "narration": "The evidence may not settle every part of the question; state exactly what the sources do not establish."
+    },
+    {
+      "n": 11,
+      "beat": "takeaway",
+      "visual": "Return to the central subject of Why do maps look different depending on what they are made for? in a final meaningful wide scene; AION is a small observer, not the focus.",
+      "narration": "The careful takeaway is simple: begin with what was observed about Why do maps look different depending on what they are made for?, then separate it from interpretation."
+    },
+    {
+      "n": 12,
+      "beat": "invitation",
+      "visual": "End on the real subject and environment of Why do maps look different depending on what they are made for?, leaving space for wonder; AION exits subtly at the edge.",
+      "narration": "That's the real story behind Why do maps look different depending on what they are made for? Notice it again, and you will see it differently next time."
+    }
+  ],
+  "research_handoff_id": "32006eab7f3a",
+  "story_package_id": "32006eab7f3a",
+  "content_angle_key": "evidence-walkthrough",
+  "visual_narrative": {
+    "version": "aion-visual-narrative-v1",
+    "visual_metaphor": {
+      "statement": "Follow one visible path of light, evidence, and consequence to understand Why do maps look different depending on what they are made for?.",
+      "rule": "Every scene must clarify this one visual idea; it may not introduce a competing metaphor."
+    },
+    "opening": {
+      "deadline_seconds": 2,
+      "visual_question": "Show the most surprising visible consequence of Why do maps look different depending on what they are made for? before any explanation."
+    },
+    "scene_progression": [
+      "hook",
+      "question",
+      "evidence-one-intro",
+      "evidence-one-a",
+      "evidence-one-b",
+      "evidence-two-intro",
+      "evidence-two-a",
+      "evidence-two-b",
+      "connection",
+      "boundary",
+      "takeaway",
+      "invitation"
+    ],
+    "color_roles": {
+      "question": "vivid cobalt or deep indigo—what needs explaining",
+      "evidence": "warm amber—observed clue or mechanism",
+      "answer": "fresh green or coral—resolved relationship or takeaway",
+      "aion_signature": "small cyan crystal only; never AION's skin or whole outfit"
+    },
+    "cover": {
+      "primary_focus": "Why do maps look different depending on what they are made for?",
+      "rule": "One object or one visible question; generous negative space; no competing details or embedded text."
+    },
+    "aion_rule": "AION is a contextual guide, never the subject of every frame."
+  },
+  "fact_first_visual": {
+    "version": "aion-fact-first-visual-v1",
+    "reality_anchor": {
+      "topic": "Why do maps look different depending on what they are made for?",
+      "evidence_claims": [
+        "- The article describes that Google Maps presents multiple map representations—satellite imagery, aerial photos, street maps, 360° Street View, real-time traffic layers, and route planning—and allows users to switch among them. - It notes that the satellite view is a top-down bird’s-eye view sourced from aircraft and satellites, and that Google Maps moved from a 2D Mercator projection (which could not accurately show areas near the poles) to a 3D globe in 2018, with an option to switch back to 2D.",
+        "The authors describe constructing a full-sky 100 μm map by combining COBE/DIRBE and IRAS/ISSA data and explicitly removing zodiacal light, confirmed point sources, and IRAS scan artifacts to isolate Galactic dust emission. They use DIRBE 100 and 240 μm data to build a dust temperature map so the 100 μm brightness can be converted to a quantity proportional to dust column density, noting that temperature variations can change the inferred column by a factor of five. They say the map’s primary use is estimating Galactic extinction and calibrate it using colors of elliptical galaxies, while also noting applications for predicting millimeter foregrounds in CMB experiments and soft X-ray absorption. They report achieving DIRBE-quality calibration with IRAS resolution and handle zodiacal and possible cosmic infrared background components via regression and wavelength-dependent treatment."
+      ],
+      "rule": "Depict the documented subject, place, object, action, or mechanism before decorative atmosphere."
+    },
+    "mechanism_flow": [
+      "Start with the visible question.",
+      "Show the documented observation or causal mechanism.",
+      "Reveal only the conclusion supported by the evidence."
+    ],
+    "creative_boundary": {
+      "allowed": "Cinematic light, colour, AION's small cyan crystal, and mood may guide attention.",
+      "prohibited": "Atmosphere may not replace, contradict, or be presented as the documented mechanism."
+    },
+    "scene_roles": [
+      {
+        "n": 1,
+        "beat": "hook",
+        "role": "question"
+      },
+      {
+        "n": 2,
+        "beat": "question",
+        "role": "question"
+      },
+      {
+        "n": 3,
+        "beat": "evidence-one-intro",
+        "role": "evidence"
+      },
+      {
+        "n": 4,
+        "beat": "evidence-one-a",
+        "role": "evidence"
+      },
+      {
+        "n": 5,
+        "beat": "evidence-one-b",
+        "role": "evidence"
+      },
+      {
+        "n": 6,
+        "beat": "evidence-two-intro",
+        "role": "evidence"
+      },
+      {
+        "n": 7,
+        "beat": "evidence-two-a",
+        "role": "evidence"
+      },
+      {
+        "n": 8,
+        "beat": "evidence-two-b",
+        "role": "evidence"
+      },
+      {
+        "n": 9,
+        "beat": "connection",
+        "role": "comparison"
+      },
+      {
+        "n": 10,
+        "beat": "boundary",
+        "role": "boundary"
+      },
+      {
+        "n": 11,
+        "beat": "takeaway",
+        "role": "takeaway"
+      },
+      {
+        "n": 12,
+        "beat": "invitation",
+        "role": "mechanism"
+      }
+    ]
+  },
+  "director_plan": {
+    "version": "director-plan-v1",
+    "creative_promise": "A viewer of any age can see how careful observation turns a surprising historical or scientific idea into something understandable.",
+    "hook": {
+      "seconds": 5,
+      "narration": "- The article describes that Google Maps presents multiple map representations—satellite imagery. Why do maps look different depending on what they are made for?",
+      "visual_priority": "A cinematic educational opening centred on Why do maps look different depending on what they are made for?; the real subject and environment fill the frame, with AION only as a small guide at the edge."
+    },
+    "visual_rule": "The real subject and setting lead each scene; AION is a contextual guide, not the foreground subject.",
+    "continuity": {
+      "aion_role": "contextual-guide",
+      "identity_version": "aion-animated-documentary-guide-v1",
+      "scene_seconds": 5
+    },
+    "ending": {
+      "narration": "That's the real story behind Why do maps look different depending on what they are made for? Notice it again, and you will see it differently next time.",
+      "viewer_reason_to_return": "End with a clear takeaway or an honest next question; never finish with a silent image."
+    }
+  },
+  "watchability_gate": {
+    "eligible": true,
+    "state": "pass",
+    "version": "watchability-v1",
+    "reasons": [],
+    "checks": {
+      "hook": "pass",
+      "narration_coverage": "pass",
+      "visual_variety": "pass",
+      "ending": "pass",
+      "viewer_value": "pass"
+    },
+    "detail": "บทพร้อมส่งผลิต"
+  },
+  "story_genome": {
+    "version": "story-genome-v1",
+    "topics": [
+      {
+        "episode_id": "aion-auto-0852d1078850-9b621016-short",
+        "topic": "How do honeybees, an insect, tell their nestmates where food is?",
+        "angle": "evidence-walkthrough",
+        "state": "research-evidence-rejected-preserved"
+      },
+      {
+        "episode_id": "aion-auto-49122594501e-2c0fc6b1-long",
+        "topic": "How did ancient Persian Yakhchāl structures maintain sub-freezing temperatures to preserve ice during desert summers wit",
+        "angle": "evidence-walkthrough-primary",
+        "state": "retired-do-not-publish"
+      },
+      {
+        "episode_id": "aion-auto-49122594501e-2c0fc6b1-short",
+        "topic": "How did ancient Persian Yakhchāl structures maintain sub-freezing temperatures to preserve ice during desert summers wit",
+        "angle": "evidence-walkthrough-short",
+        "state": "retired-do-not-publish"
+      },
+      {
+        "episode_id": "aion-auto-49122594501e-2c0fc6b1",
+        "topic": "How did ancient Persian yakhchāls store ice through desert summers without electricity?",
+        "angle": "unspecified",
+        "state": "retired-do-not-publish"
+      },
+      {
+        "episode_id": "aion-auto-85365510840c-00c30e5d-long",
+        "topic": "How can an octopus change color so quickly?",
+        "angle": "evidence-walkthrough-primary",
+        "state": "retired-do-not-publish"
+      },
+      {
+        "episode_id": "aion-auto-85365510840c-00c30e5d-short",
+        "topic": "How can an octopus change color so quickly?",
+        "angle": "evidence-walkthrough-short",
+        "state": "retired-do-not-publish"
+      },
+      {
+        "episode_id": "aion-auto-85365510840c-00c30e5d",
+        "topic": "How can an octopus change color so quickly?",
+        "angle": "unspecified",
+        "state": "retired-do-not-publish"
+      },
+      {
+        "episode_id": "aion-auto-9eebf33916e1-095c51d2-short",
+        "topic": "What can an AI learn from people that facts alone cannot teach it?",
+        "angle": "evidence-walkthrough",
+        "state": "research-returned-source-integrity"
+      },
+      {
+        "episode_id": "aion-gentle-thailand-rice-journey-v1",
+        "topic": "rice journey field harvest drying milling market bowl",
+        "angle": "gentle-thailand-rice-field-to-bowl-postcard",
+        "state": "production-ready-assets-and-script"
+      },
+      {
+        "episode_id": "aion-illustrated-postcard-after-rain-v1",
+        "topic": "after rain where water goes runoff infiltration water cycle",
+        "angle": "thai-rainy-season-watercycle-postcard",
+        "state": "production-ready-assets-and-script"
+      },
+      {
+        "episode_id": "aion-longform-001-yakhchal",
+        "topic": "Before electricity, how could people keep ice through a desert summer?",
+        "angle": "unspecified",
+        "state": "production-ready-assets-and-script"
+      },
+      {
+        "episode_id": "aion-special-octopus-chromatophores-v1",
+        "topic": "octopus chromatophores colour change mechanism",
+        "angle": "mechanism-explainer",
+        "state": "production-ready-assets-and-script"
+      },
+      {
+        "episode_id": "aion-special-rainbow-perspective-v1",
+        "topic": "rainbow refraction reflection observer position sunlight water droplets",
+        "angle": "rainbow-perspective-mechanism-special-v1",
+        "state": "production-ready-assets-and-script"
+      },
+      {
+        "episode_id": "aion-wonders-001",
+        "topic": "Why can rain arrive at your nose before it reaches your eyes?",
+        "angle": "unspecified",
+        "state": "production-ready-script"
+      },
+      {
+        "episode_id": "aion-wonders-002",
+        "topic": "Could something as small as a droplet become the beginning of life?",
+        "angle": "unspecified",
+        "state": "retired-do-not-publish"
+      },
+      {
+        "episode_id": "aion-wonders-003",
+        "topic": "What would an ordinary day feel like for someone history barely named?",
+        "angle": "unspecified",
+        "state": "production-ready-assets-and-script"
+      },
+      {
+        "episode_id": "aion-wonders-004-yakhchal",
+        "topic": "How could people keep ice in a desert before electricity?",
+        "angle": "unspecified",
+        "state": "retired-do-not-publish"
+      },
+      {
+        "episode_id": "aion-wonders-005-venus-flytrap-counts",
+        "topic": "venus flytrap touch counting calcium action potentials",
+        "angle": "unspecified",
+        "state": "production-ready-assets-and-script"
+      }
+    ],
+    "tracked_public_or_queued_records": 27,
+    "rule": "หัวข้อซ้ำถูกตรวจจากผลงานเผยแพร่ คิวเผยแพร่ และ storyboard ก่อนเริ่มผลิตภาพ"
+  }
+}
