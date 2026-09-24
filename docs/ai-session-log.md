@@ -1773,6 +1773,23 @@ reports each episode file's last update timestamp, and Operations displays its
 age for active work. Targeted learning/production/dashboard/recovery suite:
 51/51 passing; Python and dashboard-JavaScript syntax checks passed.
 
+## 2026-09-24 — Codex — Made the research-to-story queue truthful
+
+Diagnosed why Operations could show research-ready briefs while Studio had no
+new storyboard: the reserve counted every historical brief indefinitely, even
+after that topic had already been handed to Story and later retired or
+published under an earlier visual policy. The count was therefore not usable
+production inventory.
+
+`EvidenceReserve` now counts only distinct briefs that have not yet been
+handed to Story as `story_briefs`, while separately exposing historical briefs
+and the number already handed off. Operations labels these states plainly so a
+stale record cannot masquerade as a new production queue. The current root
+constraint remains what the truthful report says: newly opened recovery
+questions must independently obtain two relevant traceable sources before a
+new neon-diorama episode can be staged. Targeted evidence reserve, research
+handoff, research-to-story, and storyboard tests: 18/18 passing.
+
 ## 2026-09-24 — Codex — Fixed the actual external-learning crash
 
 Authenticated GitHub Actions inspection of run #173 showed the failure was not

@@ -10,6 +10,7 @@ from .curiosity import CuriosityEngine
 from .content_expansion import ContentExpansionPlanner
 from .initiative import AutonomousInitiative
 from .research_to_story import ResearchToStory
+from .research_story_handoff import ResearchStoryHandoff
 
 
 class EvidenceReserve:
@@ -31,6 +32,11 @@ class EvidenceReserve:
             item for item in research._briefs()
             if item.get("status") == "research-ready"
         ]
+        # A brief is fresh production inventory only until Story receives it.
+        # Counting every historical brief made the dashboard look supplied even
+        # after all of those topics had already been staged, retired, or
+        # published under an earlier production policy.
+        handed_off_roots = ResearchStoryHandoff(self.memory)._existing_roots()
 
         # A root question can appear in a few historical records but only
         # represents one usable research package.  Count the durable lineage,
@@ -41,6 +47,12 @@ class EvidenceReserve:
             if item.get("root_question_id")
         }
         brief_roots = {
+            str(item.get("root_question_id") or "").strip()
+            for item in briefs
+            if item.get("root_question_id")
+            and str(item.get("root_question_id") or "").strip() not in handed_off_roots
+        }
+        historical_brief_roots = {
             str(item.get("root_question_id") or "").strip()
             for item in briefs
             if item.get("root_question_id")
@@ -58,6 +70,8 @@ class EvidenceReserve:
             "questions": len(active),
             "qualified_evidence": len(qualified_roots),
             "story_briefs": len(brief_roots),
+            "historical_story_briefs": len(historical_brief_roots),
+            "handed_to_story": len(historical_brief_roots & handed_off_roots),
             "preserved_attempts": len(preserved),
         }
         if counts["qualified_evidence"] < targets["qualified_evidence"]:
@@ -65,7 +79,10 @@ class EvidenceReserve:
             next_action = "research distinct reserve questions until two independent sources qualify"
         elif counts["story_briefs"] < targets["story_briefs"]:
             state = "attention"
-            next_action = "convert qualified evidence into distinct story briefs"
+            next_action = (
+                "research and qualify distinct new topics; historical briefs already "
+                "handed to Story do not count as new production inventory"
+            )
         elif counts["questions"] < targets["questions"]:
             state = "attention"
             next_action = "seed additional evidence-friendly questions before the reserve thins"

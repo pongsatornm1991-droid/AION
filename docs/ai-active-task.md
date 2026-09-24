@@ -11,5 +11,5 @@ Owner: none
 Started: n/a
 Lease expires: n/a
 Scope: None.
-Handoff: Recovery respects Curiosity's global 10-question capacity; a full
-queue is a visible state, not a workflow failure.
+Handoff: Evidence reserve now separates fresh briefs from historical handoffs;
+the remaining constraint is independently qualifying newly researched topics.
