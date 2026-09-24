@@ -11,6 +11,6 @@ Owner: none
 Started: n/a
 Lease expires: n/a
 Scope: None.
-Handoff: Narration-aware repair permits one additional pass for a different,
-untouched source beat if live voice timing varies after the first repair. A
-previously repaired beat is never subdivided again; run #55 will verify it.
+Handoff: The adaptive visual window is 12 seconds including the 0.30-second hold,
+matching the owner's approved 1–2 second narration extension. Longer lines still
+receive bounded source-preserving scene splits before image production.

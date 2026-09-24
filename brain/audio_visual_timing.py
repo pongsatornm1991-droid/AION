@@ -19,10 +19,10 @@ class AudioVisualTimingGate:
     MAX_TRAILING_SILENCE_SECONDS = 0.50
     # A five-second beat remains the authored pacing target.  Measured voice
     # is allowed to keep the same picture alive for a short, intentional
-    # camera move/hold through 10 seconds.  This prevents a natural spoken
+    # camera move/hold through 12 seconds.  This prevents a natural spoken
     # sentence from stopping the whole Studio shift just because it is a
     # little longer than the storyboard estimate.
-    MAX_SCENE_SECONDS = 10
+    MAX_SCENE_SECONDS = 12
     MIN_SCENE_SECONDS = 5
     # A small image hold after the final word makes a cut feel intentional.
     # It is a visual extension, never an instruction to speed up or trim voice.
@@ -34,7 +34,7 @@ class AudioVisualTimingGate:
 
         Storyboards retain their five-second authored beat, but rendering is
         allowed to hold the current picture for the narrator's natural cadence
-        up to 10 seconds.  A line that cannot fit in that bounded window is
+        up to 12 seconds.  A line that cannot fit in that bounded window is
         returned before the remaining scenes are generated; no voice is sped
         up and no completed assets are discarded.
         """

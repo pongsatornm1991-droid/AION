@@ -1935,3 +1935,13 @@ a previously repaired beat. This handles normal provider-duration variance
 without creating an infinite retry loop or abandoning the episode. A new
 regression test simulates exactly that two-source-beat sequence; timing,
 visual, fact-first, registry, and assembly tests pass.
+
+## 2026-09-25 — Codex — Matched the visual hold to approved natural narration
+
+Run #55 showed a final normal sentence at 11.06 seconds plus the 0.30-second
+end hold. The owner explicitly approved extending the current visual by one or
+two seconds instead of repeatedly blocking a whole episode. The shared
+preflight/assembly ceiling is therefore now 12 seconds, while 12+ second
+narration still takes the bounded source-beat split path. A regression test
+covers an 11-second narration using an 11.3-second visual; timing, narration,
+assembly, and series tests pass.

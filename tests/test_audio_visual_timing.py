@@ -49,7 +49,12 @@ class AudioVisualTimingGateTests(unittest.TestCase):
         self.assertEqual("extend-current-visual", report["action"])
         self.assertAlmostEqual(9.56, report["visual_seconds"])
 
+    def test_allows_a_measured_one_to_two_second_natural_hold_before_splitting(self):
+        report = AudioVisualTimingGate.plan_scene(11.0, 5)
+        self.assertTrue(report["eligible"])
+        self.assertAlmostEqual(11.3, report["visual_seconds"])
+
     def test_returns_only_a_scene_beyond_the_bounded_adaptive_window_to_story(self):
-        report = AudioVisualTimingGate.plan_scene(9.8, 5)
+        report = AudioVisualTimingGate.plan_scene(12.0, 5)
         self.assertFalse(report["eligible"])
         self.assertIn("narration-exceeds-safe-scene-window", report["reasons"])

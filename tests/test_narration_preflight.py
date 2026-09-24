@@ -45,7 +45,7 @@ class NarrationPreflightTests(unittest.TestCase):
         report = NarrationPreflight.assess_episode(
             {"id": "long", "scene_seconds": 5, "scenes": [{"narration": "A line that cannot fit."}]},
             synthesize=lambda _text, _path: True,
-            duration_reader=lambda _path: 9.8,
+            duration_reader=lambda _path: 12.0,
         )
         self.assertFalse(report["eligible"])
         self.assertIn("narration-exceeds-safe-scene-window", report["reasons"][0])
@@ -84,7 +84,7 @@ class NarrationPreflightTests(unittest.TestCase):
         self.assertEqual(2, len(episode["fact_first_visual"]["scene_roles"]))
 
     def test_uses_a_second_bounded_pass_only_for_a_different_untouched_beat(self):
-        durations = iter((14.4, 6.0, 6.7, 7.1, 11.0, 6.7, 7.1, 11.0, 6.0, 5.8, 5.7, 5.6))
+        durations = iter((14.4, 6.0, 6.7, 7.1, 12.0, 6.7, 7.1, 12.0, 6.0, 5.8, 5.7, 5.6))
         episode = {
             "id": "two-repairs",
             "scene_seconds": 5,
