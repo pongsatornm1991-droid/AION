@@ -905,6 +905,16 @@ def build_operations_center_snapshot(memory_root=None):
         "state": "waiting", "shorts_buffer": {}, "episodes": [],
         "provider_health": {}, "release_artifact_freshness": {},
     })
+    # Older reports remain readable during the first deployment.  Show an
+    # explicit unknown state rather than inventing reserve progress until the
+    # next production-control snapshot arrives.
+    production_control.setdefault("evidence_reserve", {
+        "state": "waiting-for-next-production-report",
+        "counts": {"questions": 0, "qualified_evidence": 0, "story_briefs": 0},
+        "targets": {"questions": 21, "qualified_evidence": 14, "story_briefs": 10},
+        "next_action": "wait for the next production-control report",
+        "boundary": "No reserve count is claimed until a production report has read the private research memory.",
+    })
     release_readiness = report("aion-release-readiness.json", {
         "state": "unknown", "shorts_buffer": {}, "slots": [],
     })

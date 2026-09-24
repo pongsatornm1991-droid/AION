@@ -16,6 +16,7 @@ class DashboardTests(unittest.TestCase):
         self.assertIn("production_control", snapshot)
         report = snapshot["production_control"]
         self.assertIn("shorts_buffer", report)
+        self.assertIn("evidence_reserve", report)
         self.assertIn("episodes", report)
         self.assertIn("release_readiness", snapshot)
         self.assertIn("delivery_status", snapshot)

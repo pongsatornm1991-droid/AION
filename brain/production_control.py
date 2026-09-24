@@ -2,6 +2,7 @@
 
 import hashlib
 import json
+import os
 from datetime import datetime, timezone
 from pathlib import Path
 
@@ -10,6 +11,8 @@ from PIL import Image
 from brain.channel_policy import ChannelPolicy
 from brain.platform_preflight import PlatformPreflight
 from brain.research_portfolio import ResearchPortfolio
+from brain.memory import MemoryEngine
+from brain.evidence_reserve import EvidenceReserve
 
 
 class VisualArtifactGate:
@@ -78,10 +81,12 @@ class ProductionControl:
 
     ARTIFACT_MAX_AGE_SECONDS = 2 * 60 * 60
 
-    def __init__(self, root=None, environ=None):
+    def __init__(self, root=None, environ=None, memory_root=None):
         self.root = Path(root or Path(__file__).resolve().parents[1])
         self.policy = ChannelPolicy(self.root)
         self.environ = environ
+        supplied_environment = environ if environ is not None else os.environ
+        self.memory_root = Path(memory_root or supplied_environment.get("AION_MEMORY_ROOT") or (self.root / "memory"))
 
     def _episodes(self):
         result = []
@@ -138,6 +143,20 @@ class ProductionControl:
             ),
         }
 
+    def _evidence_reserve(self):
+        """Read the private research inventory without inferring publication."""
+        try:
+            return EvidenceReserve(MemoryEngine(self.memory_root)).snapshot()
+        except (OSError, ValueError, TypeError, json.JSONDecodeError) as exc:
+            return {
+                "state": "unknown",
+                "targets": {},
+                "counts": {},
+                "next_action": "inspect the private evidence record",
+                "boundary": "The evidence reserve could not be read; no readiness is inferred.",
+                "error_type": type(exc).__name__,
+            }
+
     def snapshot(self, now=None):
         now = now or datetime.now(timezone.utc)
         episodes = self._episodes()
@@ -145,13 +164,14 @@ class ProductionControl:
         ready = [item for item in episodes if item["release_ready"]]
         provider = ProviderHealth(self.environ).snapshot()
         freshness = self._artifact_freshness(now)
+        evidence_reserve = self._evidence_reserve()
         states = {"provider": provider["state"], "artifact": freshness["state"]}
         state = "critical" if provider["state"] != "ready" or len(ready) <= 1 else "warning" if len(ready) <= 3 else "healthy" if len(ready) >= target else "attention"
         return {
             "generated_at": now.isoformat(), "state": state, "policy": self.policy.load(),
             "shorts_buffer": {"target": target, "quality_ready": len(ready), "missing": max(0, target - len(ready))},
             "episodes": episodes, "provider_health": provider, "release_artifact_freshness": freshness,
-            "recovery": self._recovery(episodes, target),
+            "recovery": self._recovery(episodes, target), "evidence_reserve": evidence_reserve,
             "portfolio": ResearchPortfolio.snapshot(), "component_states": states,
             "next_action": "produce new cited episodes through image, assembly and quality gates" if len(ready) < target else "maintain the seven-episode buffer",
         }

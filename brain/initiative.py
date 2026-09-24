@@ -34,6 +34,66 @@ class AutonomousInitiative:
     # repeatedly spend its limited retrieval budget on an unrelated subject.
     RECOVERY_INQUIRIES = (
         (
+            "human-history-clothing",
+            "Why did humans begin wearing clothes?",
+            "Show changing climates and materials, while separating protection, culture, and status.",
+        ),
+        (
+            "human-history-money",
+            "Why did people begin using money instead of trading everything directly?",
+            "Show a busy market comparing barter with a shared token of value.",
+        ),
+        (
+            "moon-living",
+            "What would people need to live safely on the Moon?",
+            "Show one small lunar home solving air, water, radiation, and food one by one.",
+        ),
+        (
+            "human-history-law",
+            "Why did early communities make written laws?",
+            "Show a crowded town replacing changing spoken rules with a visible public record.",
+        ),
+        (
+            "human-history-writing",
+            "Why did people begin writing things down?",
+            "Show trade records slowly becoming messages that travel farther than one speaker.",
+        ),
+        (
+            "human-history-language",
+            "How do languages change over many generations?",
+            "Show one everyday word shifting as families and places connect over time.",
+        ),
+        (
+            "human-history-farming",
+            "Why did some people begin farming instead of only hunting and gathering?",
+            "Show seasonal food, planted seeds, and the trade-offs of settling in one place.",
+        ),
+        (
+            "human-history-homes",
+            "How did the first permanent villages change daily life?",
+            "Show homes, stored food, and shared work appearing around one water source.",
+        ),
+        (
+            "human-history-maps",
+            "Why do maps look different depending on what they are made for?",
+            "Show the same place as a walking map, a sea route, and a modern street map.",
+        ),
+        (
+            "human-history-trade",
+            "How did trade routes connect people who never met each other?",
+            "Show one object travelling through several communities and changing hands.",
+        ),
+        (
+            "human-history-time",
+            "Why do we divide a day into hours and minutes?",
+            "Show sunlight, water clocks, and mechanical clocks solving the same coordination problem.",
+        ),
+        (
+            "human-history-cooking",
+            "How did cooking change what humans could eat?",
+            "Show heat making one raw food safer and easier to chew without overstating one cause.",
+        ),
+        (
             "insect-science",
             "How do honeybees, an insect, tell their nestmates where food is?",
             "Show one bee's dance changing direction as a simple map.",

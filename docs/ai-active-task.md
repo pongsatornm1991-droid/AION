@@ -7,10 +7,10 @@ a historical log: replace this block when taking a task, and set status to
 session never blocks the company indefinitely.
 
 Status: clear
-Owner: —
-Started: —
-Lease expires: —
-Scope: —
-Handoff: 2026-09-24 Codex added a 21-topic bounded evidence-research reserve
-and makes each recovery learning shift prioritize up to five distinct reserve
-questions before unrelated research. Source and claim gates remain unchanged.
+Owner: none
+Started: n/a
+Lease expires: n/a
+Scope: None.
+Handoff: Evidence reserve is visible in Production Control and Operations.
+It counts questions, qualified evidence and briefs separately; use the last
+2026-09-24 session-log entry before changing the upstream recovery lane.

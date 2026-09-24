@@ -1706,3 +1706,29 @@ novelty, visual, audio, and final Quality Gates. Historical/exhausted questions 
 preserved; once the designed reserve is exhausted the system does not silently recycle
 one as new work. Targeted initiative/recovery/learning/production/workflow suite: 17/17
 passing; Python compilation passed.
+
+## 2026-09-24 — Codex — Made the evidence reserve visible and broadened its real content lanes
+
+The owner approved the next upstream improvement: turn the source/research
+pipeline into a measurable content reserve rather than a black box, and make
+space for factual, visually clear “Why/How did this begin?” stories about
+human life, culture, everyday systems, and space. Added `EvidenceReserve`,
+which reads private memory and reports three deliberately separate quantities:
+open research questions (target 21), independently qualified evidence
+packages (target 14), and research-ready story briefs (target 10). Its public
+boundary explicitly prevents a question from being presented as evidence or a
+video.
+
+Production Control now includes that read-only reserve in its public report;
+the workflow checks out the existing private memory repository solely to
+produce those truthful counts. Operations displays the reserve and, during the
+first deployment before a refreshed report arrives, shows a waiting state
+instead of made-up progress.
+
+Added twelve concrete recovery inquiries before the existing science lanes:
+the origins of clothes, money, written laws, writing, language, farming,
+homes, maps, trade, timekeeping and cooking, plus safe life on the Moon. They
+remain only candidate questions until the existing two-independent-source and
+integrity gates approve them; failed attempts are preserved and not recycled.
+Targeted reserve/initiative/production/dashboard/workflow tests: 21/21
+passing; Python and browser-JavaScript syntax checks passed.

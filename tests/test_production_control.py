@@ -40,6 +40,8 @@ class ProductionControlTests(unittest.TestCase):
             self.assertEqual(6, report["shorts_buffer"]["missing"])
             self.assertEqual("recovering", report["recovery"]["state"])
             self.assertEqual("Production Recovery Manager", report["recovery"]["owner"])
+            self.assertIn("evidence_reserve", report)
+            self.assertIn("qualified_evidence", report["evidence_reserve"]["counts"])
 
     def test_old_style_is_visible_as_a_release_blocker(self):
         with tempfile.TemporaryDirectory() as temp:
