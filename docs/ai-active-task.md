@@ -11,7 +11,6 @@ Owner: none
 Started: n/a
 Lease expires: n/a
 Scope: None.
-Handoff: Studio now performs one narration-aware, provenance-preserving scene split
-for a beat that exceeds the 10-second safe visual window, then remeasures the full
-revised episode before image production. It retains the original wording instead
-of discarding the episode.
+Handoff: Narration-aware repair now synchronizes visual_narrative progression and
+fact-first scene roles with every new beat before Studio remeasures the episode.
+Run #53 will verify the complete no-image-loss path.

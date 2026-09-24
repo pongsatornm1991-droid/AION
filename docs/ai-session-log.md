@@ -1912,3 +1912,15 @@ cannot receive mismatched timing metadata. If the bounded repair cannot make a
 beat safe, the episode remains intact and is returned with a clear reason;
 nothing is discarded and no image budget is spent. Targeted timing, assembly,
 and regression tests pass locally.
+
+## 2026-09-25 — Codex — Kept visual planning metadata synchronized after scene repair
+
+The first live run of narration-aware repair passed its voice gate but exposed
+one stale planning ledger: `visual_narrative.scene_progression` still held the
+old 12 beats after two overlong scenes were split. Studio correctly stopped
+before image generation on that mismatch. The repair now regenerates both the
+distinct visual-story progression and fact-first scene-role ledger from the
+revised scenes before remeasurement. This preserves the gate's requirement
+that every generated image advances the story instead of weakening it to get a
+release through. Targeted narration, visual-narrative, fact-first, registry,
+and assembly tests pass.

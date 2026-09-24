@@ -62,6 +62,8 @@ class NarrationPreflightTests(unittest.TestCase):
                 "visual": "AION studies a clear subject.",
                 "narration": "The first observation establishes the cause. The second observation shows the effect clearly.",
             }],
+            "visual_narrative": {"scene_progression": ["evidence"]},
+            "fact_first_visual": {"scene_roles": [{"n": 1, "beat": "evidence", "role": "evidence"}]},
         }
 
         report = NarrationPreflight.repair_episode_timing(
@@ -77,3 +79,6 @@ class NarrationPreflightTests(unittest.TestCase):
         self.assertEqual("The first observation establishes the cause. The second observation shows the effect clearly.",
                          episode["scenes"][0]["narration_timing_repair"]["source_narration"])
         self.assertEqual([1, 2], [scene["n"] for scene in episode["scenes"]])
+        self.assertEqual([scene["beat"] for scene in episode["scenes"]],
+                         episode["visual_narrative"]["scene_progression"])
+        self.assertEqual(2, len(episode["fact_first_visual"]["scene_roles"]))

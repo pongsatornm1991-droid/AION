@@ -149,6 +149,20 @@ class NarrationPreflight:
             scene["n"] = index
         episode["scenes"] = revised_scenes
         episode["target_duration_seconds"] = len(revised_scenes) * int(episode.get("scene_seconds") or 0)
+        # The storyboard has a pair of inspectable planning ledgers.  A
+        # repaired scene must update both rather than leaving a valid media
+        # plan behind stale metadata that blocks Studio later.
+        visual_narrative = episode.get("visual_narrative")
+        if isinstance(visual_narrative, dict):
+            visual_narrative["scene_progression"] = [scene["beat"] for scene in revised_scenes]
+        fact_first_visual = episode.get("fact_first_visual")
+        if isinstance(fact_first_visual, dict):
+            from brain.fact_first_visual_gate import FactFirstVisualGate
+            fact_first_visual["scene_roles"] = FactFirstVisualGate.plan(
+                episode.get("topic_key") or episode.get("wonder_hook"),
+                episode.get("sources"),
+                revised_scenes,
+            )["scene_roles"]
         episode["narration_timing_repairs"] = {
             "version": "narration-aware-split-v1",
             "source_scene_numbers": repaired_scenes,
