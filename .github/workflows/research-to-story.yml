@@ -22,7 +22,10 @@ permissions:
 
 jobs:
   prepare:
-    if: ${{ github.event_name != 'workflow_run' || github.event.workflow_run.conclusion == 'success' }}
+    # A failed learning pass can leave older, already-cited evidence waiting
+    # in private memory. Convert that durable evidence; a failed pass itself
+    # contributes nothing because it was not persisted.
+    if: ${{ always() && (github.event_name != 'workflow_run' || github.event.workflow_run.conclusion != 'cancelled') }}
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4

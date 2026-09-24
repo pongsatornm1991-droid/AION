@@ -107,6 +107,7 @@ class ProductionControl:
             result.append({
                 "id": episode.get("id"), "title": episode.get("title"), "status": episode.get("status"),
                 "style": style, "scene_count": len(episode.get("scenes") or []),
+                "updated_at": datetime.fromtimestamp(path.stat().st_mtime, timezone.utc).isoformat(),
                 "visual_qa": visual, "release_blockers": blockers,
                 "release_ready": not blockers,
                 "portfolio": ResearchPortfolio.assign(episode.get("topic_key") or episode.get("title")),

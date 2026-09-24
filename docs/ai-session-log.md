@@ -1753,3 +1753,22 @@ discarding it. Operations now reports source packages and planned follow-up
 angles alongside the evidence reserve. Targeted expansion/research/production/
 dashboard/recovery suite: 24/24 passing; Python and dashboard-JavaScript
 syntax checks passed.
+
+## 2026-09-24 — Codex — Isolated research failures from the production queue
+
+Operations showed the real critical state: 0/7 ready Shorts, while the latest
+external learning pass exited unsuccessfully and downstream production had no
+new cited storyboard to act on. Public GitHub output identified the failing
+step but did not expose its private log. Rather than guessing the provider
+cause, made recovery resilient to that class of failure: a failure while
+researching one reserve question is recorded as an isolated attempt and the
+other questions in the five-question shift continue. A batch-level unexpected
+failure becomes an inspectable report instead of terminating the workflow
+before memory persistence.
+
+Research-to-story now still runs after a failed (but not cancelled) learning
+workflow, converting any durable evidence that already existed before the
+failed pass. It cannot use unpersisted failed output. Production Control now
+reports each episode file's last update timestamp, and Operations displays its
+age for active work. Targeted learning/production/dashboard/recovery suite:
+51/51 passing; Python and dashboard-JavaScript syntax checks passed.

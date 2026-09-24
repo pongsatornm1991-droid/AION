@@ -2259,16 +2259,25 @@ def run_learning_cycle(args):
         # question and spending the remaining capacity on unrelated work.
         # Each question has its own finite budget, so a hard source cannot
         # consume the reserve forever.
-        reports = [
-            cycle.research_once(question_entry=question)
-            for question in recovery_questions[:max(1, args.limit)]
-        ]
+        reports = []
+        for question in recovery_questions[:max(1, args.limit)]:
+            try:
+                reports.append(cycle.research_once(question_entry=question))
+            except Exception as exc:
+                # A transient source/provider failure for one question must
+                # not cancel the other independently useful attempts.
+                reports.append({"researched": False, "stage": "research-attempt-failed-isolated",
+                                "question": question, "error_type": type(exc).__name__})
     elif args.limit <= 1:
         reports = [cycle.research_once()]
     else:
-        reports = cycle.research_batch(limit=args.limit).get("results") or [
-            {"stage": "no-open-questions", "question": None}
-        ]
+        try:
+            reports = cycle.research_batch(limit=args.limit).get("results") or [
+                {"stage": "no-open-questions", "question": None}
+            ]
+        except Exception as exc:
+            reports = [{"researched": False, "stage": "research-batch-failed-isolated",
+                        "question": None, "error_type": type(exc).__name__}]
 
     print("\nAION LEARNING CYCLE")
     print(f"Initiative: {initiative['stage']}")
