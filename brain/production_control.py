@@ -126,10 +126,17 @@ class ProductionControl:
             return {"state": "missing", "age_seconds": None, "policy_current": False}
 
     @staticmethod
-    def _recovery(episodes, target):
+    def _recovery(episodes, target, evidence_reserve=None):
         ready = [item for item in episodes if item["release_ready"]]
         active = [item for item in episodes if item.get("status") in {"storyboard-ready-needs-assets", "assets-ready-for-assembly"}]
         missing = max(0, target - len(ready))
+        sla = (evidence_reserve or {}).get("recovery_sla") or {}
+        next_steps = (
+            ["Keep the seven qualified Shorts ready for release."] if not missing else
+            ["Create distinct evidence-qualified story briefs.", "Stage up to five approved storyboards per recovery shift.", "Send staged Shorts to the bounded seven-episode Studio shift.", "Publish only after image, assembly, and Quality Gates pass."]
+        )
+        if missing and not sla.get("fast_lane_active"):
+            next_steps.insert(0, "Seed a distinct fast-lane mechanism topic before spending another deep-research attempt.")
         return {
             "owner": "Production Recovery Manager",
             "state": "maintaining" if not missing else "recovering",
@@ -138,10 +145,8 @@ class ProductionControl:
             "missing": missing,
             "active_storyboards": len(active),
             "cadence": "hourly while the buffer is below target",
-            "next_steps": (
-                ["Keep the seven qualified Shorts ready for release."] if not missing else
-                ["Create distinct evidence-qualified story briefs.", "Stage up to five approved storyboards per recovery shift.", "Send staged Shorts to the bounded seven-episode Studio shift.", "Publish only after image, assembly, and Quality Gates pass."]
-            ),
+            "next_steps": next_steps,
+            "research_sla": sla,
         }
 
     def _evidence_reserve(self):
@@ -172,7 +177,7 @@ class ProductionControl:
             "generated_at": now.isoformat(), "state": state, "policy": self.policy.load(),
             "shorts_buffer": {"target": target, "quality_ready": len(ready), "missing": max(0, target - len(ready))},
             "episodes": episodes, "provider_health": provider, "release_artifact_freshness": freshness,
-            "recovery": self._recovery(episodes, target), "evidence_reserve": evidence_reserve,
+            "recovery": self._recovery(episodes, target, evidence_reserve), "evidence_reserve": evidence_reserve,
             "portfolio": ResearchPortfolio.snapshot(), "component_states": states,
             "next_action": "produce new cited episodes through image, assembly and quality gates" if len(ready) < target else "maintain the seven-episode buffer",
         }

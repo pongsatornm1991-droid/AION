@@ -87,6 +87,7 @@ class ReleaseReadiness:
         ready_count = len(available.get("short", []))
         target = int(self.policy["shorts_buffer_target"])
         missing = max(target - ready_count, 0)
+        warning_state = "ready" if ready_count >= target else "urgent" if ready_count <= 1 else "warning" if ready_count <= 3 else "building"
         severity = "ready" if not shortages else "critical" if ready_count <= 1 else "warning" if ready_count <= 3 else "attention"
         return {
             "generated_at": (now or datetime.now(self.BANGKOK)).astimezone(self.BANGKOK).isoformat(),
@@ -102,6 +103,15 @@ class ReleaseReadiness:
                 "missing": missing,
                 "state": "ready" if not missing else "critical" if ready_count <= 1 else "warning" if ready_count <= 3 else "building",
                 "detail": "นับเฉพาะ Shorts ใหม่ที่ผ่าน Quality Gate แล้ว; storyboard หรือภาพครบยังไม่นับเป็นบัฟเฟอร์",
+            },
+            "early_warning": {
+                "state": warning_state,
+                "threshold": 3,
+                "detail": (
+                    "คลังต่ำกว่า 3 ตอน: คิวกู้คลังต้องให้หัวข้อ fast lane มาก่อนงานวิจัยเชิงลึก"
+                    if ready_count <= 3 else
+                    "คลังยังมีพื้นที่ปลอดภัยสำหรับงานวิจัยเชิงลึก"
+                ),
             },
             "recovery_action": "ผลิตจากเรื่องใหม่ที่มีหลักฐานครบ" if missing else "ไม่มีงานกู้คืนที่ต้องทำ",
             "policy": "ตรวจล่วงหน้า 168 ชั่วโมง; นับเฉพาะตอนใหม่ที่ผ่าน Quality Gate พร้อมและไม่ซ้ำ ไม่ใช้คลิปเก่าแทนวันปล่อย",

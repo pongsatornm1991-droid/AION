@@ -107,3 +107,5 @@ class ReleaseReadinessTests(unittest.TestCase):
             self.assertTrue(report["shortages"])
             self.assertEqual(7, report["shorts_buffer"]["missing"])
             self.assertEqual("ผลิตจากเรื่องใหม่ที่มีหลักฐานครบ", report["recovery_action"])
+            self.assertEqual("urgent", report["early_warning"]["state"])
+            self.assertIn("fast lane", report["early_warning"]["detail"])

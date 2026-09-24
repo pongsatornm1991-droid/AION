@@ -6,6 +6,8 @@ grounded ideas to keep making videos next week?"  It never promotes a topic
 to evidence-qualified status itself.
 """
 
+import json
+
 from .curiosity import CuriosityEngine
 from .content_expansion import ContentExpansionPlanner
 from .initiative import AutonomousInitiative
@@ -22,11 +24,44 @@ class EvidenceReserve:
     def __init__(self, memory):
         self.memory = memory
 
+    def _source_coverage(self):
+        """Report observed evidence coverage without pretending it is truth.
+
+        A source count is useful for choosing where to improve retrieval, but
+        it is not a quality score and must never override source qualification.
+        """
+        counts = {}
+        for entry in self.memory.all("research_evidence"):
+            try:
+                record = json.loads(entry.get("content") or "{}")
+            except (TypeError, ValueError):
+                continue
+            source_kind = str(record.get("source_kind") or "").strip()
+            if source_kind:
+                counts[source_kind] = counts.get(source_kind, 0) + 1
+        return {
+            "observed_items": sum(counts.values()),
+            "by_source": [
+                {"source": source, "accepted_observations": count}
+                for source, count in sorted(counts.items(), key=lambda item: (-item[1], item[0]))
+            ],
+            "boundary": "Coverage counts accepted observations only; they do not prove a source is correct or rank it above the evidence gate.",
+        }
+
     def snapshot(self):
         curiosity = CuriosityEngine(self.memory)
         research = ResearchToStory(self.memory)
         open_questions = curiosity.open_questions(topic=AutonomousInitiative.RECOVERY_TAG)
         active = [item for item in open_questions if not item.get("budget_exhausted")]
+        fast_active = [
+            item for item in active
+            if AutonomousInitiative.FAST_RECOVERY_TAG in (item.get("tags") or [])
+        ]
+        nearing_budget = [
+            item for item in active
+            if int(item.get("attempts") or 0) >= max(0, int(item.get("budget") or 0) - 1)
+        ]
+        exhausted = [item for item in open_questions if item.get("budget_exhausted")]
         candidates = research.candidates()
         briefs = [
             item for item in research._briefs()
@@ -73,6 +108,9 @@ class EvidenceReserve:
             "historical_story_briefs": len(historical_brief_roots),
             "handed_to_story": len(historical_brief_roots & handed_off_roots),
             "preserved_attempts": len(preserved),
+            "fast_lane_questions": len(fast_active),
+            "nearing_attempt_limit": len(nearing_budget),
+            "exhausted_questions": len(exhausted),
         }
         if counts["qualified_evidence"] < targets["qualified_evidence"]:
             state = "critical"
@@ -95,6 +133,19 @@ class EvidenceReserve:
             "counts": counts,
             "next_action": next_action,
             "content_expansion": ContentExpansionPlanner(self.memory).snapshot(),
+            "source_coverage": self._source_coverage(),
+            "recovery_sla": {
+                "state": "healthy" if fast_active else "attention" if active else "critical",
+                "fast_lane_active": len(fast_active),
+                "nearing_attempt_limit": len(nearing_budget),
+                "exhausted_preserved": len(exhausted),
+                "rule": "A recovery question has a finite attempt budget. When it is exhausted, its record remains available for learning but it no longer occupies a live slot; the next recovery run can seed a distinct topic.",
+                "next_action": (
+                    "research fast-lane mechanism questions in parallel with deep research"
+                    if fast_active else
+                    "seed a distinct fast-lane question; do not retry an exhausted question as if it were new"
+                ),
+            },
             "boundary": (
                 "A question is not evidence, and evidence is not a publishable video. "
                 "Qualified evidence requires independent traceable sources; story briefs "

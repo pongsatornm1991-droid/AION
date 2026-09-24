@@ -1852,3 +1852,19 @@ This only improves candidate retrieval. The two independent-source,
 relevance, synthesis, and production gates remain mandatory, so it cannot
 turn an attractive but unsupported answer into a video. Query-planner,
 learning, and qualification tests passed; full `python run_tests.py` passed.
+
+## 2026-09-24 — Codex — Added sustainable evidence-lane observability
+
+The production reports now distinguish fast-lane questions from deep research,
+show which live questions are approaching their finite attempt budgets, and
+count preserved exhausted questions separately so no record is silently lost.
+Exhausted research no longer occupies a live Curiosity slot; the next recovery
+run can seed a distinct evidence-ready topic instead of retrying the same one
+as though it were new.
+
+Evidence Reserve also reports observed accepted-evidence coverage by source
+kind. This is deliberately not called a reliability score: counts are a signal
+for improving retrieval, never proof that a source is true or an override of
+the independent-source gate. Release Readiness now emits an explicit warning
+below three ready Shorts, and Production Control uses the research SLA to name
+the next recovery action. Targeted tests and full `python run_tests.py` pass.

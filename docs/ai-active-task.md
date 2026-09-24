@@ -11,5 +11,5 @@ Owner: none
 Started: n/a
 Lease expires: n/a
 Scope: None.
-Handoff: Concrete science questions now use mechanism-language aliases before
-generic searches. The two independent-source requirement remains unchanged.
+Handoff: Evidence Reserve reports fast-lane capacity, bounded research effort,
+and source coverage; low-buffer warnings now fire before the release buffer is empty.

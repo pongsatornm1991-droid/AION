@@ -22,6 +22,21 @@ class EvidenceReserveTests(unittest.TestCase):
             self.assertEqual(0, report["content_expansion"]["source_packages"])
             self.assertEqual("critical", report["state"])
             self.assertIn("not evidence", report["boundary"])
+            self.assertEqual(5, report["counts"]["fast_lane_questions"])
+            self.assertEqual("healthy", report["recovery_sla"]["state"])
+
+    def test_reports_source_coverage_as_observations_not_a_truth_score(self):
+        with tempfile.TemporaryDirectory() as root:
+            memory = MemoryEngine(root)
+            memory.remember("research_evidence", json.dumps({
+                "source_kind": "wikipedia", "title": "One", "url": "https://one.test",
+            }), "observation")
+            memory.remember("research_evidence", json.dumps({
+                "source_kind": "openalex", "title": "Two", "url": "https://two.test",
+            }), "observation")
+            report = EvidenceReserve(memory).snapshot()
+            self.assertEqual(2, report["source_coverage"]["observed_items"])
+            self.assertIn("do not prove", report["source_coverage"]["boundary"])
 
     def test_does_not_count_a_historical_handed_off_brief_as_new_story_inventory(self):
         with tempfile.TemporaryDirectory() as root:
