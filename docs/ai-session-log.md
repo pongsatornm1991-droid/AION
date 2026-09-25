@@ -13,6 +13,64 @@ Format:
 Commits: <hash> [, <hash> ...]
 ```
 
+## 2026-09-25 — Claude Code — Fixed red `main` (stale test) and a single-bad-episode crash that emptied the Shorts buffer
+
+Owner asked "ต้องทำอะไรมั้ย จุดอ่อน คอขวด" (anything to do, weak points,
+bottlenecks). Investigated live via GitHub Actions API + the owner's own
+logged-in Chrome (needed for full job logs) instead of guessing from
+`public/*.json` alone, per AGENTS.md's "check Actions health" step, and
+found two real, currently-unresolved issues:
+
+**1) `main` had been red for 5 straight commits (~6h)** since
+`d40d169`. Ran `python run_tests.py` locally on `main`'s HEAD and found
+the single failure directly: `tests/test_curiosity_constitution.py`
+(`SourceRegistryTests`) hardcoded the enabled-source list and was never
+updated when `openalex` was enabled — a stale test, not a real
+regression (openalex already has 12 accepted observations in
+production). Fixed the assertion to match the real registry order.
+
+**2) The actual production bottleneck behind the Shorts buffer sitting
+at 0/7 (critical)**: `creator-scene-production.yml` (the image-generation
+workflow) had failed 4 runs in a row. Read the real job log (GitHub
+sign-in required for full logs; used Claude-in-Chrome with the owner's
+own session) and found the root cause precisely:
+`ValueError: aion-auto-32006eab7f3a-899f27ed-short violates visual
+narrative policy: each-scene-needs-a-distinct-story-step`, raised inside
+`CreatorSeriesRegistry.episodes()` (`brain/creator_series.py`).
+That method validates every episode file in `content/creator_series/`
+on every call and raises on the *first* one that fails any content
+policy — so one unrelated broken storyboard poisoned every subsequent
+attempt to pick *any* episode for the whole batch, not just its own
+slot. This is the same "isolate the bad one, don't lose everyone else's
+progress" bug class the Sept 23 rejected-scene-asset fix addressed, just
+one layer higher (registry load, not per-scene render).
+
+Fixed by adding `CreatorSeriesRegistry.episodes(skip_invalid=True)`:
+default behavior (`skip_invalid=False`) is byte-for-byte unchanged, so
+the existing hard content-quality gate in `test_creator_series.py` still
+raises exactly as before for anything that calls `.episodes()` directly
+(dashboard, authoring tests, etc). `CreatorSceneProduction._episode()`
+now opts into `skip_invalid=True`; a rejected episode is recorded in
+`registry.invalid` / surfaced as `report["invalid_episodes"]` instead of
+crashing the run, so the reason stays visible in the printed report
+instead of requiring a GitHub login to read a stack trace. 2 new
+regression tests (one on the registry directly, one proving a good
+episode still gets produced in the same shift as a bad one). Full
+`python run_tests.py`: PASS, both before and after rebasing onto
+`origin/main`.
+
+Note for whoever picks up the buffer next: by the time this was
+investigated, `aion-auto-32006eab7f3a-899f27ed-short` already passed
+`VisualNarrativeGate` locally again (something else, likely a self-repair
+workflow, had already fixed its metadata) — so this fix's value is
+architectural resilience going forward, not a one-off unblock. If the
+buffer is still not recovering after this lands, check
+`report["invalid_episodes"]` from the next `creator-scene-production.yml`
+run for what's currently being excluded, rather than reading a raw
+traceback.
+
+Commits: 293fa42 (rebased to 0573e9a on push).
+
 ## 2026-09-23 — Codex — Kept release recovery alive through status-file conflicts
 
 The failed Release Readiness run was traced to a rebase conflict on its
