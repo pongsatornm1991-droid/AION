@@ -112,6 +112,13 @@ def produce_once(root=ROOT, episode_id=None):
             "model": "ffmpeg-pan-zoom-v1" if fallback else config["model"],
             "source_image": scene.get("image"), "mode": config["mode"],
             "fallback_reason": report.get("state") if fallback else None,
+            # error_type alone (an exception class name, never a message) is
+            # already secret-free -- persisting it is what let a real,
+            # 13-for-13 Veo failure on a published episode be diagnosed
+            # after the fact instead of only ever being visible in a report
+            # dict that was never written to disk once the fallback quietly
+            # succeeded (found 2026-09-25 investigating a jerky-motion report).
+            "fallback_error_type": report.get("error_type") if fallback else None,
         }
         created.append(scene.get("n"))
     if created:
