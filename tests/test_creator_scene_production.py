@@ -267,3 +267,29 @@ class CreatorSceneProductionTests(unittest.TestCase):
             # is nothing to do rather than ever calling the generator again.
             result = production.produce_once(limit=5)
             self.assertEqual("no-subject-first-storyboard-ready", result["stage"])
+
+    def test_one_invalid_episode_does_not_block_a_valid_one_in_the_same_shift(self):
+        """Regression for 2026-09-25: CreatorSeriesRegistry.episodes() used to
+        raise the moment ANY episode file failed content validation, which
+        crashed produce_once() before it could even look for a different,
+        genuinely ready episode. Live effect: creator-scene-production.yml
+        failed 4 runs in a row and the Shorts buffer stayed at 0/7 because one
+        unrelated broken storyboard poisoned every selection attempt.
+        """
+        with tempfile.TemporaryDirectory() as root:
+            root = Path(root)
+            episode_dir = root / "content" / "creator_series"; episode_dir.mkdir(parents=True)
+            (episode_dir / "good.json").write_text('''{"id":"good","series":"AION Wonders","title":"Test story","audience_promise":"A useful evidence-led story for every age.","wonder_hook":"Could this work?","creative_device":"journey","age_layers":{"children":"Ask.","family":"Talk.","deeper":"Test."},"target_duration_seconds":15,"scene_seconds":5,"format":"illustrated-narrated-short","pacing_policy":"fast-cut-subject-first-v1","visual_direction":{"focus":"subject-first","aion_role":"contextual-guide","aion_frame_share_max":0.20},"history_boundary":"A boundary.","sources":[{"url":"https://one.test"},{"url":"https://two.test"}],"status":"storyboard-ready-needs-assets","scenes":[{"n":1,"beat":"hook","visual":"AION explores a historical place.","narration":"One."},{"n":2,"beat":"reveal","visual":"AION observes the subject.","narration":"Two."},{"n":3,"beat":"end","visual":"AION shares a question.","narration":"Three."}]}''', encoding="utf-8")
+            (episode_dir / "bad.json").write_text('''{"id":"bad","series":"AION Wonders","title":"Broken story","audience_promise":"Too short.","wonder_hook":"Could this work?","creative_device":"journey","age_layers":{"children":"Ask.","family":"Talk.","deeper":"Test."},"target_duration_seconds":15,"scene_seconds":5,"format":"illustrated-narrated-short","pacing_policy":"fast-cut-subject-first-v1","visual_direction":{"focus":"subject-first","aion_role":"contextual-guide","aion_frame_share_max":0.20},"history_boundary":"A boundary.","sources":[{"url":"https://one.test"},{"url":"https://two.test"}],"status":"storyboard-ready-needs-assets","scenes":[{"n":1,"beat":"hook","visual":"AION explores a historical place.","narration":"One."},{"n":2,"beat":"reveal","visual":"AION observes the subject.","narration":"Two."},{"n":3,"beat":"end","visual":"AION shares a question.","narration":"Three."}]}''', encoding="utf-8")
+
+            def generator(prompt, destination):
+                Path(destination).write_bytes(b"png")
+                return "Visual focus" in prompt
+
+            production = CreatorSceneProduction(root, generator)
+            result = production.produce_once(limit=2)
+
+            self.assertEqual([1, 2], result["produced"])
+            self.assertEqual("good", result["episode_id"])
+            self.assertEqual(1, len(production.last_invalid_episodes))
+            self.assertEqual("bad", production.last_invalid_episodes[0]["id"])

@@ -27,6 +27,7 @@ class CreatorSceneProduction:
     def __init__(self, root=None, generator=None):
         self.root = Path(root or Path(__file__).resolve().parents[1])
         self.generator = generator
+        self.last_invalid_episodes = []
 
     @staticmethod
     def _is_current_short(episode):
@@ -108,7 +109,16 @@ class CreatorSceneProduction:
         return record
 
     def _episode(self, episode_format=None):
-        return next((item for item in CreatorSeriesRegistry(self.root).episodes()
+        # One storyboard that currently fails a content policy (a stale
+        # visual-narrative check, a missing asset path, etc.) must not stop
+        # every other ready episode from being selected in the same Studio
+        # shift. skip_invalid keeps that one episode out of the pool instead
+        # of raising, which used to crash the whole shift -- see
+        # self.last_invalid_episodes for what was excluded and why.
+        registry = CreatorSeriesRegistry(self.root)
+        episodes = registry.episodes(skip_invalid=True)
+        self.last_invalid_episodes = registry.invalid
+        return next((item for item in episodes
                      if item.get("status") in {"storyboard-ready-needs-assets", "assets-ready-for-assembly", "production-ready-assets-and-script"}
                      and not self._cover_exists(item)
                      and (not episode_format or item.get("format") == episode_format)
@@ -316,7 +326,10 @@ class CreatorSceneProduction:
     def produce_once(self, limit=DEFAULT_BATCH_SIZE, episode_format=None):
         episode = self._episode(episode_format)
         if episode is None:
-            return {"stage": "no-subject-first-storyboard-ready"}
+            result = {"stage": "no-subject-first-storyboard-ready"}
+            if self.last_invalid_episodes:
+                result["invalid_episodes"] = self.last_invalid_episodes
+            return result
         if self.generator is None:
             from tools.openai_image import generate_scene_image
             generator = generate_scene_image

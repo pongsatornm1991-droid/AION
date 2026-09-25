@@ -69,3 +69,44 @@ class CreatorSeriesTests(unittest.TestCase):
             path.write_text(json.dumps(episode), encoding="utf-8")
             with self.assertRaisesRegex(ValueError, "uncertainty"):
                 CreatorSeriesRegistry(root).episodes()
+
+    def test_skip_invalid_excludes_one_bad_episode_without_blocking_the_others(self):
+        # Regression for 2026-09-25: a single malformed episode file made
+        # CreatorSeriesRegistry.episodes() raise before returning anything,
+        # which crashed the whole Studio shift and starved every other ready
+        # episode behind it, not just the broken one (found live: 4
+        # consecutive creator-scene-production.yml failures while the Shorts
+        # buffer sat at 0/7). skip_invalid must exclude only the bad file.
+        with tempfile.TemporaryDirectory() as root:
+            directory = Path(root) / "content" / "creator_series"
+            directory.mkdir(parents=True)
+            good = {
+                "id": "good-episode", "series": "Test", "title": "Good",
+                "format": "illustrated-narrated-short", "scene_seconds": 5,
+                "target_duration_seconds": 15, "status": "storyboard-ready-needs-assets",
+                "audience_promise": "This gives the viewer one grounded question worth carrying into their day.",
+                "wonder_hook": "Why does this small idea change what we notice?",
+                "creative_device": "journey",
+                "age_layers": {"children": "One simple image.", "family": "One shared question.", "deeper": "One evidence-bound interpretation."},
+                "science_boundary": "A boundary.",
+                "sources": [{"url": "https://one.test"}, {"url": "https://two.test"}],
+                "scenes": [
+                    {"visual": "AION looks at a light", "narration": "One."},
+                    {"visual": "AION walks onward", "narration": "Two."},
+                    {"visual": "AION looks back", "narration": "Three."},
+                ],
+            }
+            bad = {**good, "id": "bad-episode", "audience_promise": "Too short."}
+            (directory / "good.json").write_text(json.dumps(good), encoding="utf-8")
+            (directory / "bad.json").write_text(json.dumps(bad), encoding="utf-8")
+
+            registry = CreatorSeriesRegistry(root)
+            with self.assertRaises(ValueError):
+                registry.episodes()
+
+            episodes = registry.episodes(skip_invalid=True)
+
+            self.assertEqual(["good-episode"], [item["id"] for item in episodes])
+            self.assertEqual(1, len(registry.invalid))
+            self.assertEqual("bad-episode", registry.invalid[0]["id"])
+            self.assertIn("audience promise", registry.invalid[0]["reason"])
