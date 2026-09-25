@@ -1,6 +1,6 @@
 {
-  "generated_at": "2026-09-25T18:38:38.917182+00:00",
-  "state": "critical",
+  "generated_at": "2026-09-25T18:47:32.719308+00:00",
+  "state": "warning",
   "policy": {
     "brand": {
       "channel_name": "Wait, How?",
@@ -34,8 +34,8 @@
   },
   "shorts_buffer": {
     "target": 7,
-    "quality_ready": 1,
-    "missing": 6
+    "quality_ready": 2,
+    "missing": 5
   },
   "episodes": [
     {
@@ -44,7 +44,7 @@
       "status": "research-evidence-rejected-preserved",
       "style": "aion-neon-diorama-3d-v1",
       "scene_count": 12,
-      "updated_at": "2026-09-25T18:38:32.938872+00:00",
+      "updated_at": "2026-09-25T18:47:26.791527+00:00",
       "visual_qa": {
         "eligible": false,
         "reasons": [
@@ -69,10 +69,10 @@
     {
       "id": "aion-auto-0b5a0385b87d-7d3a5028-short",
       "title": "AION Wonders: Why do fireflies glow in the dark?",
-      "status": "assets-ready-for-assembly",
+      "status": "production-ready-assets-and-script",
       "style": "aion-neon-diorama-3d-v1",
       "scene_count": 13,
-      "updated_at": "2026-09-25T18:38:32.939194+00:00",
+      "updated_at": "2026-09-25T18:47:26.791821+00:00",
       "visual_qa": {
         "eligible": true,
         "reasons": [],
@@ -80,10 +80,8 @@
         "machine_check_only": true,
         "editorial_limit": "Checks actual files, dimensions and exact duplicates. It cannot truthfully detect text, anatomy, factual depiction or style compliance without a reviewed vision model."
       },
-      "release_blockers": [
-        "episode-status:assets-ready-for-assembly"
-      ],
-      "release_ready": false,
+      "release_blockers": [],
+      "release_ready": true,
       "portfolio": {
         "id": "everyday-science",
         "label": "ทีมสำรวจวิทยาศาสตร์ใกล้ตัว"
@@ -95,7 +93,7 @@
       "status": "production-ready-assets-and-script",
       "style": "aion-neon-diorama-3d-v1",
       "scene_count": 13,
-      "updated_at": "2026-09-25T18:38:32.939194+00:00",
+      "updated_at": "2026-09-25T18:47:26.791821+00:00",
       "visual_qa": {
         "eligible": true,
         "reasons": [],
@@ -116,7 +114,7 @@
       "status": "retired-do-not-publish",
       "style": null,
       "scene_count": 24,
-      "updated_at": "2026-09-25T18:38:32.939194+00:00",
+      "updated_at": "2026-09-25T18:47:26.791821+00:00",
       "visual_qa": {
         "eligible": false,
         "reasons": [
@@ -143,7 +141,7 @@
       "status": "retired-do-not-publish",
       "style": null,
       "scene_count": 12,
-      "updated_at": "2026-09-25T18:38:32.939194+00:00",
+      "updated_at": "2026-09-25T18:47:26.791821+00:00",
       "visual_qa": {
         "eligible": false,
         "reasons": [
@@ -172,7 +170,7 @@
       "status": "retired-do-not-publish",
       "style": null,
       "scene_count": 5,
-      "updated_at": "2026-09-25T18:38:32.939243+00:00",
+      "updated_at": "2026-09-25T18:47:26.791821+00:00",
       "visual_qa": {
         "eligible": false,
         "reasons": [
@@ -199,7 +197,7 @@
       "status": "retired-do-not-publish",
       "style": null,
       "scene_count": 24,
-      "updated_at": "2026-09-25T18:38:32.939243+00:00",
+      "updated_at": "2026-09-25T18:47:26.791821+00:00",
       "visual_qa": {
         "eligible": false,
         "reasons": [
@@ -226,7 +224,7 @@
       "status": "retired-do-not-publish",
       "style": null,
       "scene_count": 12,
-      "updated_at": "2026-09-25T18:38:32.939243+00:00",
+      "updated_at": "2026-09-25T18:47:26.791821+00:00",
       "visual_qa": {
         "eligible": false,
         "reasons": [
@@ -255,7 +253,7 @@
       "status": "retired-do-not-publish",
       "style": null,
       "scene_count": 12,
-      "updated_at": "2026-09-25T18:38:32.939243+00:00",
+      "updated_at": "2026-09-25T18:47:26.791821+00:00",
       "visual_qa": {
         "eligible": false,
         "reasons": [
@@ -282,7 +280,7 @@
       "status": "research-returned-source-integrity",
       "style": null,
       "scene_count": 12,
-      "updated_at": "2026-09-25T18:38:32.939243+00:00",
+      "updated_at": "2026-09-25T18:47:26.791821+00:00",
       "visual_qa": {
         "eligible": false,
         "reasons": [
@@ -311,7 +309,7 @@
       "status": "production-ready-assets-and-script",
       "style": "aion-illustrated-postcard-v1",
       "scene_count": 12,
-      "updated_at": "2026-09-25T18:38:32.939243+00:00",
+      "updated_at": "2026-09-25T18:47:26.791821+00:00",
       "visual_qa": {
         "eligible": false,
         "reasons": [
@@ -337,7 +335,7 @@
       "status": "production-ready-assets-and-script",
       "style": "aion-illustrated-postcard-v1",
       "scene_count": 12,
-      "updated_at": "2026-09-25T18:38:32.939243+00:00",
+      "updated_at": "2026-09-25T18:47:26.791821+00:00",
       "visual_qa": {
         "eligible": false,
         "reasons": [
@@ -363,7 +361,7 @@
       "status": "production-ready-assets-and-script",
       "style": null,
       "scene_count": 24,
-      "updated_at": "2026-09-25T18:38:32.939243+00:00",
+      "updated_at": "2026-09-25T18:47:26.791821+00:00",
       "visual_qa": {
         "eligible": true,
         "reasons": [],
@@ -386,7 +384,7 @@
       "status": "production-ready-assets-and-script",
       "style": null,
       "scene_count": 12,
-      "updated_at": "2026-09-25T18:38:32.939243+00:00",
+      "updated_at": "2026-09-25T18:47:26.791821+00:00",
       "visual_qa": {
         "eligible": false,
         "reasons": [
@@ -412,7 +410,7 @@
       "status": "production-ready-assets-and-script",
       "style": "aion-original-warm-3d-storytelling-v1",
       "scene_count": 10,
-      "updated_at": "2026-09-25T18:38:32.939243+00:00",
+      "updated_at": "2026-09-25T18:47:26.791821+00:00",
       "visual_qa": {
         "eligible": false,
         "reasons": [
@@ -438,7 +436,7 @@
       "status": "production-ready-script",
       "style": null,
       "scene_count": 24,
-      "updated_at": "2026-09-25T18:38:32.939243+00:00",
+      "updated_at": "2026-09-25T18:47:26.791821+00:00",
       "visual_qa": {
         "eligible": false,
         "reasons": [
@@ -465,7 +463,7 @@
       "status": "retired-do-not-publish",
       "style": null,
       "scene_count": 4,
-      "updated_at": "2026-09-25T18:38:32.940243+00:00",
+      "updated_at": "2026-09-25T18:47:26.791821+00:00",
       "visual_qa": {
         "eligible": false,
         "reasons": [
@@ -492,7 +490,7 @@
       "status": "production-ready-assets-and-script",
       "style": null,
       "scene_count": 40,
-      "updated_at": "2026-09-25T18:38:32.940243+00:00",
+      "updated_at": "2026-09-25T18:47:26.791821+00:00",
       "visual_qa": {
         "eligible": true,
         "reasons": [],
@@ -515,7 +513,7 @@
       "status": "retired-do-not-publish",
       "style": null,
       "scene_count": 3,
-      "updated_at": "2026-09-25T18:38:32.940243+00:00",
+      "updated_at": "2026-09-25T18:47:26.791821+00:00",
       "visual_qa": {
         "eligible": true,
         "reasons": [],
@@ -539,7 +537,7 @@
       "status": "production-ready-assets-and-script",
       "style": "aion-neon-graphic-science-v1",
       "scene_count": 12,
-      "updated_at": "2026-09-25T18:38:32.940243+00:00",
+      "updated_at": "2026-09-25T18:47:26.791821+00:00",
       "visual_qa": {
         "eligible": false,
         "reasons": [
@@ -605,16 +603,16 @@
   },
   "release_artifact_freshness": {
     "state": "fresh",
-    "age_seconds": 3377,
+    "age_seconds": 3911,
     "policy_current": true
   },
   "recovery": {
     "owner": "Production Recovery Manager",
     "state": "recovering",
     "target": 7,
-    "ready": 1,
-    "missing": 6,
-    "active_storyboards": 1,
+    "ready": 2,
+    "missing": 5,
+    "active_storyboards": 0,
     "cadence": "hourly while the buffer is below target",
     "next_steps": [
       "Seed a distinct fast-lane mechanism topic before spending another deep-research attempt.",
@@ -641,7 +639,7 @@
     },
     "counts": {
       "questions": 4,
-      "qualified_evidence": 9,
+      "qualified_evidence": 11,
       "story_briefs": 0,
       "historical_story_briefs": 6,
       "handed_to_story": 6,
@@ -657,15 +655,15 @@
       "rule": "Follow-up angles are preserved, but each one independently earns evidence before production."
     },
     "source_coverage": {
-      "observed_items": 86,
+      "observed_items": 92,
       "by_source": [
         {
           "source": "wikipedia",
-          "accepted_observations": 51
+          "accepted_observations": 54
         },
         {
           "source": "openalex",
-          "accepted_observations": 21
+          "accepted_observations": 24
         },
         {
           "source": "arxiv",
@@ -701,7 +699,7 @@
     "boundary": "A question is not evidence, and evidence is not a publishable video. Qualified evidence requires independent traceable sources; story briefs still pass novelty, production, and final Quality Gates."
   },
   "integrity": {
-    "generated_at": "2026-09-25T18:38:39.312963+00:00",
+    "generated_at": "2026-09-25T18:47:33.047906+00:00",
     "state": "attention",
     "alerts": [
       {
