@@ -13,6 +13,58 @@ Format:
 Commits: <hash> [, <hash> ...]
 ```
 
+## 2026-09-25 — Claude Code — Un-stuck the recovery lane: question-level exclusion instead of domain-level, plus 24 new topics
+
+Owner approved the recommended plan in full ("ทำเลยทั้งหมด") after the
+previous entry flagged the recovery catalogue as fully exhausted (0/33
+domains remaining).
+
+Fixed `AutonomousInitiative.initiate_recovery_batch()` (brain/initiative.py)
+at the actual root: it excluded a whole catalogue domain forever once ANY
+question from it was ever tried (`_used_domains()`, scanning historical
+decision-log tags with no expiry), so a finite 33-domain list inevitably
+ran itself dry with no way back. Added `_asked_recovery_statements()`,
+which reads every recovery-tagged question ever raised in ANY status
+(open, resolved, exhausted, abandoned) and excludes only that specific
+statement -- not its domain -- from being asked again. A domain now stays
+available for a different, not-yet-asked question once an earlier one
+from it is resolved or exhausted; the existing "never retry an exhausted
+question as new" rule still holds, because that exact statement is still
+permanently excluded. `_used_domains()` itself is unchanged and still
+backs the separate, unrelated `initiate_once()` fallback lane.
+
+Also added a second batch of 24 new recovery topics (57 total, no
+duplicate question text) in the same style as the original 33, spanning
+several existing science/history domains plus a few new ones (metals
+rusting, cloud shapes, astronaut weightlessness, sky colour, glass vs
+metal, milk souring, lake freezing, spinning tops, handwashing history,
+ancient navigation, printing, glassmaking, number systems, star twinkling,
+contagious yawning, desert night cold, room acoustics). Verified directly
+against the real synced memory: the 33 already-asked statements correctly
+stay excluded, and all 24 new ones are immediately available -- the
+reserve is genuinely unblocked, not just theoretically.
+
+Had to rewrite one existing test
+(`test_recovery_lane_does_not_reopen_a_previous_recovery_domain`) because
+its own assertion enshrined the exact behavior causing the bug (a
+decision-log tag alone, with no real question ever asked, permanently
+banned a domain). Replaced with two tests using a patched minimal
+catalogue: one confirms a domain can still contribute a second, distinct
+question after its first is exhausted; the other confirms genuine
+exhaustion (every catalogue question actually asked) still stops cleanly
+rather than silently repeating. Full `python run_tests.py`: PASS (one
+transient local failure in `test_creator_motion_resilience.py`, an
+environment `platform.win32_ver()`/`imageio_ffmpeg` quirk unrelated to
+this change, confirmed non-reproducing on immediate re-run).
+
+Also saved a durable memory note (owner's own memory system, not this
+repo) that the owner has given standing authorization to fix any bug
+found directly without asking first, in pursuit of 100% automation with
+no bottlenecks -- future sessions should act on that by default for this
+class of finding.
+
+Commits: c86a7b2.
+
 ## 2026-09-25 — Claude Code — Confirmed the fix chain end-to-end; found the real ceiling on 100% automation is a fully-used recovery topic catalogue
 
 Owner gave standing authorization to fix any bug found directly without
