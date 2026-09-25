@@ -13,6 +13,55 @@ Format:
 Commits: <hash> [, <hash> ...]
 ```
 
+## 2026-09-26 — Claude Code — Moved AION's signature to a held question-mark; shipped both SEO findings (real tags, no title prefix)
+
+Owner follow-ups after the previous entry's channel review.
+
+**Identity change:** "เปลี่ยนจากถือคริสตัล มาถืออะไรได้บ้าง" -> owner chose
+a glowing cyan question-mark (echoes the channel's own icon), first placed
+at the sternum matching the existing spec's literal wording, then owner
+clarified "ถือในมือ" -- moved to hand-held. Every place that describes or
+generates this signature was updated across two commits (f69b858, af28e02):
+brain/creator_scene_production.py (3 image-style presets),
+brain/visual_narrative_gate.py, brain/fact_first_visual_gate.py,
+brain/costume_direction.py, brain/visual_story_policy.py (comment),
+core/visual_identity.md, core/creator_bible.md, docs/AION_VISUAL_DIRECTION.md,
+and assets/content-library/aion-character/README.md (including its still-
+active "reusable scene block" prompt template). While in the character
+README, also corrected stale "Thai-born"/"Thai motifs" language left over
+from before the 2026-09-22 global-identity decision -- catching up
+documentation to an already-made call, not a new one. The historical
+"Source prompt" quote (literally what generated
+01-aion-character-sheet-seedream.jpg) was deliberately left unedited with
+a dated note added below it, so the record of what actually produced that
+file stays accurate. Flagged clearly: existing reference PNGs
+(06-aion-crystal-core-v2.png, 08-aion-cinematic-character-candidate-v1.png)
+still visually show the retired crystal -- text/prompt-only change, no new
+image was rendered.
+
+**Both SEO findings from the channel review, shipped** (commit 63970ef):
+1. Every prior automatic YouTube upload sent zero video tags -- audited
+   tools/youtube.py directly and confirmed the snippet only ever set
+   title/description/categoryId. Added a real tags parameter to
+   upload_short() (trimmed to YouTube's 500-char combined budget) and
+   YouTubeCreatorQueue._video_tags(), a deterministic stopword-filtered
+   keyword extractor over topic_key/title plus fixed channel tags.
+2. Dropped the "EP. NNN —" prefix from the actual public YouTube title
+   (publish_once() now sends the plain title, not display_title). The
+   prefix remains exactly where it was actually useful -- the Operations
+   dashboard and internal work-queue still show it via display_title.
+   Motivated directly by the channel data: the two highest-performing
+   videos on the whole channel both used a bare "How X..." title with no
+   episode-number prefix.
+
+6 new tests across tools/test_youtube.py and test_youtube_creator_queue.py
+(tag extraction, the real uploader=None production path receiving both
+the bare title and generated tags, upload_short's tag trimming), plus one
+existing test updated to match the new title behavior. Full
+python run_tests.py: PASS after every change, including after each rebase.
+
+Commits: f69b858, af28e02 (identity), 63970ef (SEO).
+
 ## 2026-09-25/26 — Claude Code — Built the unified integrity check + a permanent recovery-catalogue safety net; reviewed real channel data against the growth goal
 
 Owner approved a 5-item roadmap in full except item 2 (confirming Veo
