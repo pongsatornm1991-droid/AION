@@ -13,6 +13,54 @@ Format:
 Commits: <hash> [, <hash> ...]
 ```
 
+## 2026-09-25/26 — Claude Code — Built the unified integrity check + a permanent recovery-catalogue safety net; reviewed real channel data against the growth goal
+
+Owner approved a 5-item roadmap in full except item 2 (confirming Veo
+billing -- skipped as not worth it right now) and asked, separately,
+whether the current visual style/storytelling actually attracts viewers,
+given the real goal is growing subscribers.
+
+**Content/style review (real data, not speculation):** opened the actual
+"Wait, How?" channel (3 subscribers, 17 videos). The two highest-performing
+videos on the whole channel (1.2K and 1K views) both use the OLD, since-
+abandoned visual styles; the current locked style (aion-neon-diorama-3d-v1)
+is at single-to-low-double-digit views so far. Flagged this honestly as a
+real but statistically thin signal (tiny sample, and titles/hooks differ
+too, not just style -- the high performers use direct "How X..." titles
+with no episode-number prefix, while current titles lead with "EP. 005 —").
+Recommended: don't reverse the locked style off 3-17 views, but do drop the
+"EP. XXX —" prefix from public titles now (low-risk, likely-positive), and
+revisit the style question with real data once ~5-7 new-style episodes
+have a week or two of view history -- which is exactly what item 3
+(engagement feedback, not yet started) needs to eventually automate.
+
+**Item 1, unified integrity check:** brain/system_integrity.py (new) +
+wired into brain/production_control.py + a Telegram push in
+tools/production_control.py. Full detail in commit 72fcbec. Already found
+two real, current issues on first real-data run: Veo still failing 100%
+(motion-fallback-rate) and the recovery catalogue back at 0/57 (recovery-
+catalogue-low) -- both expected/already known, confirming the check works.
+
+**Item 5, recovery catalogue permanent fix:** added a bounded, cooldown-
+gated last-resort re-attempt (commit c428291) once every catalogue
+question has genuinely been asked and none are fresh. Does not manufacture
+new topics -- it is a safety net against total lockup, not a substitute
+for eventually growing the catalogue or building real question generation.
+Confirmed against real data: correctly reports still-exhausted right now
+(nothing is old enough for the 21-day cooldown yet, the system itself is
+only weeks old) rather than a false "fixed."
+
+**Item 3, engagement feedback wiring: NOT started.** Flagged rather than
+rushed -- with only 3 subscribers and low view counts, there is not yet
+enough signal for automated decisions to act on meaningfully; the
+plumbing (compare-video-engagement, social_signals) already exists from
+earlier work. Left as the clear next task once real per-style view data
+accumulates.
+
+Commits: 72fcbec (integrity check), c428291 (cooldown reattempt). No code
+change yet for item 3 or the title-prefix recommendation -- both pending
+owner direction/time.
+
 ## 2026-09-25 — Claude Code — URGENT: YouTube publishing has been silently broken for 5+ days (expired OAuth token); CI gap that hid it is fixed, token itself still needs the owner
 
 Owner asked whether tonight's clip would publish; I'd said yes based on
