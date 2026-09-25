@@ -4,7 +4,7 @@
   "title": "AION Wonders: Why do maps look different depending on what they are made for?",
   "status": "storyboard-ready-needs-assets",
   "format": "illustrated-narrated-short",
-  "target_duration_seconds": 60,
+  "target_duration_seconds": 65,
   "scene_seconds": 5,
   "pacing_policy": "short-50-180-fact-first-v5",
   "audience_promise": "A viewer of any age can see how careful observation turns a surprising historical or scientific idea into something understandable.",
@@ -146,24 +146,44 @@
     },
     {
       "n": 9,
-      "beat": "connection",
-      "visual": "A visual comparison of the two documented observations about Why do maps look different depending on what they are made for?; show the subject and environment, with AION pointing only subtly from the edge.",
-      "narration": "Put together: - The article describes that Google Maps presents multiple map representations—satellite imagery. And from the second source: The authors describe constructing a full-sky 100 μm map by combining COBE/DIRBE."
+      "beat": "connection—setup",
+      "visual": "A visual comparison of the two documented observations about Why do maps look different depending on what they are made for?; show the subject and environment, with AION pointing only subtly from the edge. Show the first causal step in a distinct composition.",
+      "narration": "Put together: - The article describes that Google Maps presents multiple map representations—satellite imagery.",
+      "narration_timing_repair": {
+        "version": "narration-aware-split-v1",
+        "source_scene": 9,
+        "source_narration": "Put together: - The article describes that Google Maps presents multiple map representations—satellite imagery. And from the second source: The authors describe constructing a full-sky 100 μm map by combining COBE/DIRBE.",
+        "parts": 2,
+        "part": 1
+      }
     },
     {
       "n": 10,
+      "beat": "connection—continuation",
+      "visual": "A visual comparison of the two documented observations about Why do maps look different depending on what they are made for?; show the subject and environment, with AION pointing only subtly from the edge. Show the next causal step in a distinct composition.",
+      "narration": "And from the second source: The authors describe constructing a full-sky 100 μm map by combining COBE/DIRBE.",
+      "narration_timing_repair": {
+        "version": "narration-aware-split-v1",
+        "source_scene": 9,
+        "source_narration": "Put together: - The article describes that Google Maps presents multiple map representations—satellite imagery. And from the second source: The authors describe constructing a full-sky 100 μm map by combining COBE/DIRBE.",
+        "parts": 2,
+        "part": 2
+      }
+    },
+    {
+      "n": 11,
       "beat": "boundary",
       "visual": "Show the boundary between what the sources document and what they do not establish about Why do maps look different depending on what they are made for?; no invented action, AION remains in the background.",
       "narration": "The evidence may not settle every part of the question; state exactly what the sources do not establish."
     },
     {
-      "n": 11,
+      "n": 12,
       "beat": "takeaway",
       "visual": "Return to the central subject of Why do maps look different depending on what they are made for? in a final meaningful wide scene; AION is a small observer, not the focus.",
       "narration": "The careful takeaway is simple: begin with what was observed about Why do maps look different depending on what they are made for?, then separate it from interpretation."
     },
     {
-      "n": 12,
+      "n": 13,
       "beat": "invitation",
       "visual": "End on the real subject and environment of Why do maps look different depending on what they are made for?, leaving space for wonder; AION exits subtly at the edge.",
       "narration": "That's the real story behind Why do maps look different depending on what they are made for? Notice it again, and you will see it differently next time."
@@ -437,5 +457,32 @@
     ],
     "tracked_public_or_queued_records": 27,
     "rule": "หัวข้อซ้ำถูกตรวจจากผลงานเผยแพร่ คิวเผยแพร่ และ storyboard ก่อนเริ่มผลิตภาพ"
+  },
+  "narration_timing_repairs": {
+    "version": "narration-aware-split-v1",
+    "source_scene_numbers": [
+      9
+    ],
+    "policy": "one automatic split per originally overlong scene; all resulting scenes are remeasured"
+  },
+  "audio_visual_timeline": {
+    "version": "audio-driven-v1",
+    "source": "narration-preflight",
+    "scene_durations": [
+      9.3,
+      5.6,
+      5.56,
+      6.25,
+      6.9,
+      10.36,
+      7.21,
+      7.67,
+      7.02,
+      8.96,
+      7.55,
+      9.42,
+      8.96
+    ],
+    "rendered_target_duration_seconds": 100.76
   }
 }
