@@ -64,7 +64,10 @@ def render_kinetic_fallback(source_image, destination, *, aspect_ratio="9:16", s
 
 
 def _episode(root, episode_id=None):
-    for item in CreatorSeriesRegistry(root).episodes():
+    # A quarantined invalid storyboard must not prevent a separate completed
+    # episode from receiving its motion assets.  Scene production uses the
+    # same safe registry mode; motion is the next production handoff.
+    for item in CreatorSeriesRegistry(root).episodes(skip_invalid=True):
         if episode_id and item.get("id") != episode_id:
             continue
         if item.get("status") == "assets-ready-for-assembly":
@@ -75,11 +78,9 @@ def _episode(root, episode_id=None):
 def produce_once(root=ROOT, episode_id=None):
     root = Path(root)
     config = readiness()
-    if not config["configured"]:
-        return {"stage": "waiting-for-gemini-video-key", "provider": config["provider"]}
     episode = _episode(root, episode_id)
     if episode is None:
-        return {"stage": "no-asset-complete-episode"}
+        return {"stage": "no-asset-complete-episode", "provider": config["provider"]}
     motion_dir = root / "assets" / "content-library" / "aion-stories" / episode["id"] / "motion"
     created, failed = [], []
     aspect = "9:16" if episode.get("format") == "illustrated-narrated-short" else "16:9"
@@ -122,7 +123,8 @@ def produce_once(root=ROOT, episode_id=None):
                     for scene in episode.get("scenes") or [])
     return {"stage": "motion-assets-complete" if completed else "motion-assets-produced" if created else "motion-production-failed",
             "episode_id": episode["id"], "created": created, "failed": failed,
-            "provider": config["provider"], "model": config["model"]}
+            "provider": config["provider"], "model": config["model"],
+            "provider_configured": config["configured"]}
 
 
 if __name__ == "__main__":

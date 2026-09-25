@@ -5,9 +5,10 @@ on:
     workflows: [AION - subject-first scene production]
     types: [completed]
   schedule:
-    # Runs after the early-week image shift. It only works on new, complete
-    # storyboards and never turns a legacy clip into a substitute release.
-    - cron: "37 3 * * 1,2,3"
+    # Daily recovery pass.  It turns only an approved current episode into
+    # motion, and uses the local kinetic fallback when Veo is unavailable, so
+    # a temporary provider credential/outage can never drain the Shorts queue.
+    - cron: "37 3 * * *"
   workflow_dispatch: {}
 
 concurrency:
@@ -26,10 +27,6 @@ jobs:
       - uses: actions/setup-python@v5
         with: {python-version: "3.11"}
       - run: pip install -r requirements.txt
-      - name: Preflight automatic video provider
-        env:
-          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
-        run: python tools/run_platform_preflight.py --require video
       - name: Create real motion for the approved episode
         env:
           GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
