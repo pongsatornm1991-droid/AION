@@ -13,6 +13,61 @@ Format:
 Commits: <hash> [, <hash> ...]
 ```
 
+## 2026-09-25 — Claude Code — Confirmed the fix chain end-to-end; found the real ceiling on 100% automation is a fully-used recovery topic catalogue
+
+Owner gave standing authorization to fix any bug found directly without
+asking first ("คุณแก้ได้เลยหากเจอบั๊กตรงไหนในระบบ ฉันต้องการให้ระบบ Auto
+ได้ 100% และดีที่สุด ไม่มีคอขวดตรงไหน") and asked what to develop next.
+Saved as a durable preference in Claude's own memory system (not part of
+this repo).
+
+**Verified the b23ffe5 fix actually worked, live:** the next scheduled
+creator-scene-production.yml run (triggered by that push) took 9m53s
+instead of its usual ~44s-crash and succeeded -- confirmed all 13 scene
+images and the cover were generated, `status` advanced to
+`assets-ready-for-assembly`, `visual_qa.eligible` is now `true`, and
+`shorts_buffer.quality_ready` moved from 0 to 1. Not a theoretical fix;
+watched the maps episode go from permanently stuck to producible to
+actually produced.
+
+**Closed out every other latent instance of the same crash class**, per the
+standing authorization: `brain/youtube_creator_queue.py` (`candidates()` --
+this one mattered most, since `ReleaseReadiness.snapshot()`'s broad except
+around it meant one bad episode could previously make the *entire* buffer
+count read as empty, not just its own slot), `brain/creator_episode_
+crosspost.py` (`publish_once()`), `brain/story_genome.py` (`snapshot()`),
+`tools/assemble_creator_episode.py` (both call sites), `tools/
+build_costume_briefs.py`, `tools/recover_release_buffer.py`
+(`_active_by_kind()` -- the Recovery Manager's own view of active work),
+`tools/render_creator_episode.py`. Deliberately left `brain/creator_series.
+py`'s own `snapshot()` and `brain/content_registry.py` (a different, legacy
+episode system) untouched -- see commit message for why. 2 new regression
+tests. Full suite green.
+
+**The actual next bottleneck, found while investigating "why is
+evidence_reserve still critical" (0 active recovery questions) even with
+plenty of curiosity-queue capacity (1 open question out of a max 10):**
+`AutonomousInitiative.RECOVERY_INQUIRIES` has exactly 33 hardcoded
+(domain, question, visual_metaphor) entries, and every one of those 33
+domains already appears in `_used_domains()` (built from every historical
+`autonomous_initiative` memory record, with no expiry). `initiate_recovery_
+batch()`'s candidate filter is therefore permanently empty --
+`remaining candidates: 0`, confirmed directly against the real synced
+memory. This isn't a crash and isn't code-broken; it's a finite,
+never-refilled, never-expiring catalogue that fully cycled through itself
+once and can now never seed a new fast-lane question again, regardless of
+how empty the Shorts buffer gets. This is a genuinely different problem
+from everything else fixed today (it's a content/creative catalogue-size
+limit, not an infrastructure bug), so it was not fixed unilaterally --
+recommended to the owner as the top "what to develop next" item instead:
+either add a second batch of ~20-30 new recovery topics (owner's editorial
+judgment on subject fit), or add a time/cycle-based rotation so a domain
+becomes eligible again with a fresh question after a cooldown, rather than
+being banned forever after one use.
+
+Commits: 88f2220 (episodes-hardening batch). No commit for the recovery-
+catalogue finding -- read-only investigation, reported instead of changed.
+
 ## 2026-09-25 — Claude Code — Found the real reason the maps episode stayed stuck: a write-back bug, not the registry crash
 
 Owner asked again after the first fix landed: "ตอนนี้ ติดปัญหาอะไรบ้างทำไม
