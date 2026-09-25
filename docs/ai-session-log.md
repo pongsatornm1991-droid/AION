@@ -13,6 +13,59 @@ Format:
 Commits: <hash> [, <hash> ...]
 ```
 
+## 2026-09-26 — Claude Code — Surfaced integrity alerts + content-pillar mix on the dashboard; made `youtube_discovery` a real capability
+
+Owner asked four things: (1) why doesn't the dashboard show the integrity
+alerts `SystemIntegrity`/`ProductionControl` already compute, (2) are the
+curiosity/evidence source adapters actually sufficient, (3) can content be
+split into sub-series, and (4) go study Kurzgesagt, "ไอ้ก้าง เล่าเรื่อง",
+"สติ๊กแมนผู้รอบรู้" and "Pure Logic" (@PureLogicShorts) and apply findings.
+
+- (1) Confirmed via code read: `public/aion-production-control.json` already
+  carries `integrity` (alerts) and `portfolio` (5 fixed research lanes, each
+  episode already tagged with one via `ResearchPortfolio.assign`), but
+  `dashboard/operations.html`'s script never rendered either key -- pure
+  frontend gap, zero backend change needed. Added two sections ("ความ
+  สมบูรณ์ของระบบ", "สายคอนเทนต์") to the existing fetch/render pipeline.
+  Verified live in a browser against the real running dashboard: both
+  sections render correctly (motion-fallback-rate + recovery-catalogue-low
+  alerts; pillar counts showing everyday-science at 2/14 ready and the
+  other four lanes at 0 ready -- a genuinely useful, previously-invisible
+  imbalance).
+- (2) Audited every adapter behind `core/source_registry.json`
+  (`brain/learning.py`'s `WebLearningCycle.__init__`): wikipedia, arxiv,
+  europe_pmc_fulltext, openalex, hacker_news, social_signals are all real
+  and wired. `youtube_discovery` was registered `"enabled": true` with a
+  real API module (`tools/youtube_discovery.py`) but **never instantiated
+  as an adapter anywhere** -- the same bug class as the already-fixed
+  arxiv gap, just not yet caught. Confirmed its `discovery_only` capability
+  can never be selected by `research_planner.py`'s evidence-type matching
+  (nothing requires that capability), so it was never at risk of feeding
+  episode facts either way -- it just had zero consumers. Gaps also noted,
+  not yet acted on: no Thai-language source (Wikipedia calls are hardcoded
+  to `en.wikipedia.org`), no per-source usage/freshness tracking anywhere.
+- (3) Sub-series already exist as the required `series` field on every
+  episode (`CreatorSeriesRegistry._validate`), already populated with three
+  distinct pillars in production content ("AION Wonders", "AION Gentle
+  Thailand", "AION Illustrated Postcard") -- no schema change needed. A
+  second, independent pillar axis (`ResearchPortfolio`'s 5 topic lanes)
+  already exists too and is now visible on the dashboard per (1).
+- (4) Manually reviewed all four channels' Shorts tabs. Concrete, applied
+  finding: gave `youtube_discovery` an actual job matching its declared
+  `discovery_only` capability instead of leaving it dead -- new
+  `tools/creator_competitive_scan.py` (`scan_niche`/`scan_report`) searches
+  AION's own content niche via the YouTube Data API and ranks public
+  results by view count, the repeatable version of this same manual
+  review. Deliberately kept out of the evidence-gathering path (see (2));
+  it's a content-strategy scout, not a fact source. Not wired into a
+  scheduled workflow yet -- flagged to the owner as optional future work
+  rather than silently adding new recurring API-quota usage.
+
+5 new tests (`tests/test_creator_competitive_scan.py`), all offline/mocked.
+Full `python run_tests.py`: PASS.
+
+Commits: 34512b1
+
 ## 2026-09-26 — Claude Code — Verified thumbnails/cross-posting are healthy; added a subscribe CTA
 
 Owner asked once more what else could be checked/added. Investigated two
