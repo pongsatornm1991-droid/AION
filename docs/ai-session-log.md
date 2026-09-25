@@ -13,6 +13,37 @@ Format:
 Commits: <hash> [, <hash> ...]
 ```
 
+## 2026-09-26 — Claude Code — Verified thumbnails/cross-posting are healthy; added a subscribe CTA
+
+Owner asked once more what else could be checked/added. Investigated two
+things flagged earlier as "not yet verified" instead of guessing:
+
+- Custom thumbnails: 4 uploads earlier in September hit a real
+  `provider-permission-required` (403) error setting the custom thumbnail.
+  Checked the two most recent uploads against the real synced memory --
+  both show `"thumbnail_status": "set"` with no error. Whatever caused the
+  earlier 403s (most likely channel verification completing) is resolved;
+  no code change needed, reported as confirmed-healthy rather than left
+  ambiguous.
+- Facebook/Instagram cross-posting: checked the real
+  `creator_episode_crossposts` record for the latest episode -- both
+  platforms show `"status": "published"` with real post/media ids. Working
+  correctly, no gap here either.
+
+The one real, additive gap found: the video description had no invitation
+to subscribe at all. Added `YouTubeCreatorQueue.SUBSCRIBE_CTA` (commit
+92fc52f), a plain, non-manipulative line between the caption and the
+identity disclosure. 1 new test assertion; full `python run_tests.py`:
+PASS.
+
+Framed honestly to the owner: the easy, code-findable technical gaps in
+this pipeline are now largely closed (publish, thumbnails, cross-post,
+SEO tags/title, this CTA). What's left to learn next needs real time and
+data -- watching the channel over the next several days -- not more
+speculative code changes.
+
+Commits: 92fc52f.
+
 ## 2026-09-26 — Claude Code — Moved AION's signature to a held question-mark; shipped both SEO findings (real tags, no title prefix)
 
 Owner follow-ups after the previous entry's channel review.
