@@ -513,3 +513,23 @@ class YouTubeCreatorQueueTests(unittest.TestCase):
             queue = YouTubeCreatorQueue(MemoryEngine(Path(root) / "memory"), root)
             self.assertEqual("no-upload-ready-creator-episode", queue.prepare_once("short")["stage"])
             self.assertEqual("prepared-for-review", queue.prepare_once("long-form")["stage"])
+
+    def test_one_invalid_episode_does_not_hide_every_other_candidate(self):
+        # Regression for 2026-09-25: candidates() called CreatorSeriesRegistry
+        # .episodes() without skip_invalid=True, so a single unrelated
+        # episode failing a content-policy check raised and (via
+        # ReleaseReadiness.snapshot()'s broad except) made the whole release
+        # queue look empty -- not just that one episode's slot.
+        with tempfile.TemporaryDirectory() as root:
+            self._episode(root)
+            root = Path(root)
+            broken = __import__("json").loads((root / "content" / "creator_series" / "episode.json").read_text(encoding="utf-8"))
+            broken.update({"id": "broken", "audience_promise": "Too short."})
+            (root / "content" / "creator_series" / "broken.json").write_text(
+                __import__("json").dumps(broken), encoding="utf-8"
+            )
+            (root / "content" / "reels" / "episode.mp4").write_bytes(b"video")
+            queue = YouTubeCreatorQueue(MemoryEngine(root / "memory"), root)
+            candidates = {item["episode_id"]: item for item in queue.candidates()}
+            self.assertIn("episode", candidates)
+            self.assertNotIn("broken", candidates)

@@ -14,7 +14,10 @@ from brain.creator_series import CreatorSeriesRegistry
 
 def build(output=None):
     briefs = []
-    for episode in CreatorSeriesRegistry(ROOT).episodes():
+    # One episode currently failing a content-policy check must not stop
+    # costume briefs for every other episode -- see
+    # brain/creator_series.py's episodes(skip_invalid=True) docstring.
+    for episode in CreatorSeriesRegistry(ROOT).episodes(skip_invalid=True):
         brief = CostumeDirection.episode_brief(episode)
         brief["quality"] = CostumeDirection.validate(brief)
         briefs.append(brief)

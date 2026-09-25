@@ -27,7 +27,12 @@ from brain.visual_story_policy import VisualStoryPolicy
 
 def _active_by_kind(root):
     active = {"short": []}
-    for item in CreatorSeriesRegistry(root).episodes():
+    # A single invalid episode must not stop the Recovery Manager from
+    # seeing every other active storyboard -- if this raised, the recovery
+    # lane would misjudge how much work is already active and could either
+    # stall or duplicate it. See brain/creator_series.py's
+    # episodes(skip_invalid=True) docstring.
+    for item in CreatorSeriesRegistry(root).episodes(skip_invalid=True):
         if item.get("pacing_policy") != VisualStoryPolicy.VERSION:
             continue
         if item.get("status") not in {"storyboard-ready-needs-assets", "assets-ready-for-assembly"}:

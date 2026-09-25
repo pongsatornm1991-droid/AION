@@ -90,3 +90,35 @@ class CreatorEpisodeCrosspostTests(unittest.TestCase):
             with patch("brain.creator_episode_crosspost.VideoQualityGate.assess", side_effect=quality), patch.dict("os.environ", {"GITHUB_REPOSITORY": "owner/repo"}, clear=False):
                 report = crosspost.publish_latest_once(lambda *_a, **_k: {"id": "ig"}, lambda *_a, **_k: {"id": "fb"})
             self.assertEqual("fresh", report["episode_id"])
+
+    def test_an_unrelated_invalid_episode_does_not_block_the_named_lookup(self):
+        # Regression for 2026-09-25: publish_once looked up its named episode
+        # via CreatorSeriesRegistry.episodes() without skip_invalid=True, so
+        # an unrelated broken episode file anywhere in the directory raised
+        # before the id filter ever ran.
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            (root / "content/creator_series").mkdir(parents=True)
+            (root / "content/reels").mkdir(parents=True)
+            episode = {
+                "id": "fresh-short", "series": "AION Wonders", "title": "Fresh short",
+                "status": "production-ready-assets-and-script", "format": "illustrated-narrated-short",
+                "target_duration_seconds": 60, "scene_seconds": 5, "pacing_policy": "fast-cut-subject-first-v1",
+                "audience_promise": "A clear answer helps viewers understand one surprising scientific idea.",
+                "wonder_hook": "Why does this surprising thing happen?", "creative_device": "mystery-reveal",
+                "age_layers": {"children": "Notice clues.", "family": "Compare clues.", "deeper": "Check evidence."},
+                "sources": [{"url": "https://one.test"}, {"url": "https://two.test"}],
+                "uncertainty_boundary": "The sources do not answer every detail.",
+                "scenes": [{"n": n, "visual": "AION observes the subject.", "narration": "A useful clue."} for n in range(1, 13)],
+            }
+            broken = {**episode, "id": "broken", "audience_promise": "Too short."}
+            (root / "content/creator_series/fresh-short.json").write_text(json.dumps(episode), encoding="utf-8")
+            (root / "content/creator_series/broken.json").write_text(json.dumps(broken), encoding="utf-8")
+            (root / "content/reels/fresh-short.mp4").write_bytes(b"x")
+            memory = MemoryEngine(root / "memory")
+            crosspost = CreatorEpisodeCrosspost(memory, root)
+            from unittest.mock import patch
+            with patch("brain.creator_episode_crosspost.VideoQualityGate.assess", return_value={"eligible": True}), \
+                 patch.dict("os.environ", {"GITHUB_REPOSITORY": "owner/repo"}, clear=False):
+                report = crosspost.publish_once("fresh-short", lambda *_args, **_kwargs: {"id": "ig"}, lambda *_args, **_kwargs: {"id": "fb"})
+            self.assertEqual("published", report["stage"])

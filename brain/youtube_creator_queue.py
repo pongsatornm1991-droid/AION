@@ -117,7 +117,10 @@ class YouTubeCreatorQueue:
     def candidates(self):
         recorded = self._records_by_episode()
         result = []
-        for episode in CreatorSeriesRegistry(self.root).episodes():
+        # One episode currently failing a content-policy check must not hide
+        # every other candidate from release-readiness/queue computation --
+        # see brain/creator_series.py's episodes(skip_invalid=True) docstring.
+        for episode in CreatorSeriesRegistry(self.root).episodes(skip_invalid=True):
             video_path = self.root / "content" / "reels" / f"{episode['id']}.mp4"
             subtitle_path = self.root / "content" / "reels" / f"{episode['id']}.srt"
             ready = episode.get("status") == self.READY_STATUS and video_path.is_file()

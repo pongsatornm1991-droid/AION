@@ -32,7 +32,10 @@ class CreatorEpisodeCrosspost:
         return None, None
 
     def publish_once(self, episode_id, instagram_publisher=None, facebook_publisher=None):
-        episode = next((item for item in CreatorSeriesRegistry(self.root).episodes()
+        # An unrelated episode failing a content-policy check must not stop
+        # this lookup for the one named episode we actually care about --
+        # see brain/creator_series.py's episodes(skip_invalid=True) docstring.
+        episode = next((item for item in CreatorSeriesRegistry(self.root).episodes(skip_invalid=True)
                         if item.get("id") == episode_id), None)
         if not episode:
             return {"stage": "unknown-creator-episode"}

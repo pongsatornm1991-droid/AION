@@ -24,7 +24,10 @@ def _eligible_episode(root, episode_id=None):
     """Find a fresh episode, or repair a render that failed its real gate."""
     root = Path(root)
     candidates = []
-    for episode in CreatorSeriesRegistry(root).episodes():
+    # An unrelated episode currently failing a content-policy check must not
+    # stop this from finding any other assemble-ready episode -- see
+    # brain/creator_series.py's episodes(skip_invalid=True) docstring.
+    for episode in CreatorSeriesRegistry(root).episodes(skip_invalid=True):
         if episode_id and episode.get("id") != episode_id:
             continue
         if episode.get("status") == "assets-ready-for-assembly":
@@ -80,7 +83,7 @@ def backfill_subtitles_once(root=ROOT):
     """
     root = Path(root)
     repaired = []
-    for episode in CreatorSeriesRegistry(root).episodes():
+    for episode in CreatorSeriesRegistry(root).episodes(skip_invalid=True):
         if episode.get("status") != "production-ready-assets-and-script":
             continue
         output = root / "content" / "reels" / f"{episode['id']}.mp4"

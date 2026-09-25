@@ -12,7 +12,10 @@ class StoryGenome:
         self.root = root
 
     def snapshot(self):
-        episodes = CreatorSeriesRegistry(self.root).episodes()
+        # A read-only cross-company topic map must not go dark just because
+        # one unrelated episode currently fails a content-policy check --
+        # see brain/creator_series.py's episodes(skip_invalid=True) docstring.
+        episodes = CreatorSeriesRegistry(self.root).episodes(skip_invalid=True)
         records = ContentNoveltyLedger(self.memory).records()
         topics = []
         for episode in episodes:

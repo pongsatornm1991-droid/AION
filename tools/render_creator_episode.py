@@ -12,8 +12,10 @@ from tools.reel_render import render_reel
 
 
 def render_episode(episode_id, output=None):
+    # An unrelated invalid episode must not block rendering this named one --
+    # see brain/creator_series.py's episodes(skip_invalid=True) docstring.
     episode = next(
-        (item for item in CreatorSeriesRegistry(ROOT).episodes() if item["id"] == episode_id),
+        (item for item in CreatorSeriesRegistry(ROOT).episodes(skip_invalid=True) if item["id"] == episode_id),
         None,
     )
     if not episode:
