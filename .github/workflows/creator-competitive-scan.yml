@@ -1,0 +1,41 @@
+name: AION - creator competitive scan
+
+on:
+  schedule:
+    # Once daily -- read-only YouTube Data API search, offset from the
+    # existing audience pull (01:47 UTC) and the 6-hourly cycles.
+    - cron: "15 2 * * *"
+  workflow_dispatch: {}
+
+concurrency:
+  group: aion-memory-data
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  scan:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/checkout@v4
+        with:
+          repository: pongsatornm1991-droid/aion-memory-data
+          token: ${{ secrets.MEMORY_REPO_PAT }}
+          path: memory_data
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - run: pip install -r requirements.txt
+      - name: Scan AION's own content niche on YouTube (read-only, no evidence use)
+        env:
+          AION_MEMORY_ROOT: memory_data
+          YOUTUBE_DATA_API_KEY: ${{ secrets.YOUTUBE_DATA_API_KEY }}
+        run: python tools/run_creator_competitive_scan.py
+      - name: Persist the scan
+        uses: ./.github/actions/commit-and-push
+        with:
+          paths: "-A"
+          message: "AION competitive scan ($(date -u +%Y-%m-%dT%H:%M:%SZ))"
+          cwd: memory_data
