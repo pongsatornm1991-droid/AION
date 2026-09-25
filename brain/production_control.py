@@ -13,6 +13,7 @@ from brain.platform_preflight import PlatformPreflight
 from brain.research_portfolio import ResearchPortfolio
 from brain.memory import MemoryEngine
 from brain.evidence_reserve import EvidenceReserve
+from brain.system_integrity import SystemIntegrity
 
 
 class VisualArtifactGate:
@@ -163,6 +164,22 @@ class ProductionControl:
                 "error_type": type(exc).__name__,
             }
 
+    def _integrity(self):
+        """Cross-cutting checks a per-workflow green status cannot see.
+
+        See brain/system_integrity.py's own docstring: an authorized episode
+        that never reaches YouTube, a motion provider failing on every
+        recent scene, or an exhausted recovery catalogue can each sit behind
+        an individually "successful" workflow run for days. Folding this
+        into the same report both surfaces it on the existing dashboard and
+        lets a genuinely critical finding here escalate the overall state
+        below, instead of needing a separate report nobody remembers to open.
+        """
+        try:
+            return SystemIntegrity(MemoryEngine(self.memory_root), self.root).snapshot()
+        except (OSError, ValueError, TypeError, json.JSONDecodeError) as exc:
+            return {"state": "unknown", "alerts": [], "checks": {}, "error_type": type(exc).__name__}
+
     def snapshot(self, now=None):
         now = now or datetime.now(timezone.utc)
         episodes = self._episodes()
@@ -171,13 +188,20 @@ class ProductionControl:
         provider = ProviderHealth(self.environ).snapshot()
         freshness = self._artifact_freshness(now)
         evidence_reserve = self._evidence_reserve()
-        states = {"provider": provider["state"], "artifact": freshness["state"]}
-        state = "critical" if provider["state"] != "ready" or len(ready) <= 1 else "warning" if len(ready) <= 3 else "healthy" if len(ready) >= target else "attention"
+        integrity = self._integrity()
+        states = {"provider": provider["state"], "artifact": freshness["state"], "integrity": integrity["state"]}
+        state = (
+            "critical" if provider["state"] != "ready" or len(ready) <= 1 or integrity["state"] == "critical" else
+            "warning" if len(ready) <= 3 else
+            "healthy" if len(ready) >= target and integrity["state"] == "healthy" else
+            "attention"
+        )
         return {
             "generated_at": now.isoformat(), "state": state, "policy": self.policy.load(),
             "shorts_buffer": {"target": target, "quality_ready": len(ready), "missing": max(0, target - len(ready))},
             "episodes": episodes, "provider_health": provider, "release_artifact_freshness": freshness,
             "recovery": self._recovery(episodes, target, evidence_reserve), "evidence_reserve": evidence_reserve,
+            "integrity": integrity,
             "portfolio": ResearchPortfolio.snapshot(), "component_states": states,
             "next_action": "produce new cited episodes through image, assembly and quality gates" if len(ready) < target else "maintain the seven-episode buffer",
         }
