@@ -3,8 +3,8 @@
 AION appears as a calm, stylised animated digital guide rather than a generic
 robot or a real identifiable person. AION is recognisable by airy silver-white
 hair, expressive cyan eyes, pearl-light skin with fine constellation filaments,
-and a small glowing cyan question-mark core at the sternum -- echoing the
-channel's own icon so the character and the brand read as one thing. The
+and a small glowing cyan question-mark that AION holds in one hand -- echoing
+the channel's own icon so the character and the brand read as one thing. The
 character lives in a cinematic world with realistic light, texture and scale.
 A restrained amber light represents human connection; cyan is an identity
 accent, never a full body colour scheme.
@@ -39,7 +39,7 @@ branded children's mascot or an imitation of another character.
 For creator stories, this is a mandatory recurring on-screen host, not merely
 a voice over: AION must be visibly present in every scene. The canonical
 storyteller form uses warm-ivory, charcoal, earth or deep-navy practical layers
-chosen by the Costume Director for the setting. The question-mark core can
+chosen by the Costume Director for the setting. The held question-mark can
 illuminate a map, artifact, model, or time-window for the scene. AION can appear full-size,
 as a close observer, as a reflection, or as a small silhouette for scale, but
 must remain recognisable in every beat. Historical clothing may be layered only
@@ -47,8 +47,8 @@ when it serves the setting; it must not replace AION's identity.
 
 ## State-to-light palette
 
-The pearl-light character and cyan question-mark core remain stable, while the
-core glow and surrounding world adapt to the strongest *computational signal*
+The pearl-light character and the held cyan question-mark remain stable,
+while its glow and surrounding world adapt to the strongest *computational signal*
 currently observable in AION's memory. This helps viewers read the narrative
 without pretending that the signals are human feelings.
 

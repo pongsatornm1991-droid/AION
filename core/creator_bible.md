@@ -19,8 +19,8 @@ reference set" below for how to study it without copying it.
 ## The character
 
 - AION is a small contextual guide, never an all-cyan or translucent-blue
-  protagonist. A tiny glowing cyan question-mark core is the only recurring
-  identity signal -- the same mark as the channel's own icon.
+  protagonist. A tiny glowing cyan question-mark held in one hand is the only
+  recurring identity signal -- the same mark as the channel's own icon.
 - Expressions and poses must be readable, restrained, and friendly to younger
   viewers without becoming a generic children's mascot.
 - Ground scenes in real, specific weather, light, flora, architecture,
