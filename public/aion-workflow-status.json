@@ -1,10 +1,10 @@
 {
-  "generated_at": "2026-09-25T17:41:47.806308+00:00",
+  "generated_at": "2026-09-25T17:43:09.185990+00:00",
   "tiles": {
     "total": 42,
-    "ok": 32,
+    "ok": 35,
     "attn": 1,
-    "running": 8
+    "running": 4
   },
   "groups": [
     {
@@ -14,8 +14,8 @@
         {
           "name": "AION - Creator queue quality gate",
           "file": "creator-queue-quality.yml",
-          "status_class": "running",
-          "status_label": "กำลังรัน",
+          "status_class": "success",
+          "status_label": "ไม่มีเหตุให้ดำเนินการ",
           "html_url": "https://github.com/pongsatornm1991-droid/AION/actions/runs/36168684562",
           "created_at": "2026-09-25T17:41:22Z"
         },
@@ -86,8 +86,8 @@
           "file": "learning-cycle.yml",
           "status_class": "running",
           "status_label": "กำลังรัน",
-          "html_url": "https://github.com/pongsatornm1991-droid/AION/actions/runs/36168614891",
-          "created_at": "2026-09-25T17:40:41Z"
+          "html_url": "https://github.com/pongsatornm1991-droid/AION/actions/runs/36168791017",
+          "created_at": "2026-09-25T17:42:23Z"
         },
         {
           "name": "AION - self-narrative",
@@ -151,8 +151,8 @@
         {
           "name": "AION - Automation Health Monitor",
           "file": "automation-health.yml",
-          "status_class": "running",
-          "status_label": "กำลังรัน",
+          "status_class": "success",
+          "status_label": "สำเร็จ",
           "html_url": "https://github.com/pongsatornm1991-droid/AION/actions/runs/36168684476",
           "created_at": "2026-09-25T17:41:22Z"
         },
@@ -245,8 +245,8 @@
         {
           "name": "AION - Creator release readiness",
           "file": "release-readiness.yml",
-          "status_class": "running",
-          "status_label": "กำลังรัน",
+          "status_class": "success",
+          "status_label": "สำเร็จ",
           "html_url": "https://github.com/pongsatornm1991-droid/AION/actions/runs/36168684459",
           "created_at": "2026-09-25T17:41:22Z"
         },
@@ -269,8 +269,8 @@
         {
           "name": "AION - YouTube release watchdog",
           "file": "youtube-release-watchdog.yml",
-          "status_class": "running",
-          "status_label": "กำลังรัน",
+          "status_class": "success",
+          "status_label": "สำเร็จ",
           "html_url": "https://github.com/pongsatornm1991-droid/AION/actions/runs/36168634559",
           "created_at": "2026-09-25T17:40:52Z"
         },
