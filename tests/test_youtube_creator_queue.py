@@ -293,7 +293,9 @@ class YouTubeCreatorQueueTests(unittest.TestCase):
             # The public YouTube title omits the internal "EP. NNN —" prefix
             # (2026-09-26); it still exists on candidates()' display_title
             # for the Operations dashboard, just not on the actual upload.
-            self.assertEqual("A useful question", captured["title"])
+            # It gains one discovery hashtag for a Short (2026-09-27), here
+            # derived from the episode's wonder_hook ("...a small question...").
+            self.assertEqual("A useful question #Small", captured["title"])
             self.assertIn("#Shorts", captured["description"])
             self.assertIn(YouTubeCreatorQueue.SUBSCRIBE_CTA, captured["description"])
             self.assertEqual("published", queue.candidates()[0]["status"])
@@ -576,7 +578,14 @@ class YouTubeCreatorQueueTests(unittest.TestCase):
                 result = queue.publish_once()
             self.assertEqual("published", result["stage"])
             call = upload.call_args
-            self.assertEqual("A useful question", call.args[1])
+            self.assertEqual("A useful question #Small", call.args[1])
             self.assertIn("tags", call.kwargs)
             self.assertTrue(call.kwargs["tags"])
             self.assertIn("AION", call.kwargs["tags"])
+
+    def test_title_hashtag_picks_the_first_real_keyword_not_a_channel_tag(self):
+        payload = {"topic_key": "Why do maps look different depending on what they are made for?"}
+        self.assertEqual("#Maps", YouTubeCreatorQueue._title_hashtag(payload))
+
+    def test_title_hashtag_is_none_when_no_keyword_survives_stopword_filtering(self):
+        self.assertIsNone(YouTubeCreatorQueue._title_hashtag({"topic_key": "How is it"}))

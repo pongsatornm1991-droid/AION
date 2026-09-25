@@ -120,6 +120,23 @@ class YouTubeCreatorQueue:
     }
 
     @classmethod
+    def _topic_and_keywords(cls, payload):
+        """The raw topic string plus its subject keywords, stopwords removed.
+
+        Shared by _video_tags() and _title_hashtag() so both always agree on
+        what the actual subject of an episode is.
+        """
+        topic = str(payload.get("topic_key") or payload.get("title") or "").strip()
+        words = re.findall(r"[a-z][a-z'-]+", topic.lower())
+        seen, keywords = set(), []
+        for word in words:
+            if len(word) < 3 or word in cls._TAG_STOPWORDS or word in seen:
+                continue
+            seen.add(word)
+            keywords.append(word)
+        return topic, keywords
+
+    @classmethod
     def _video_tags(cls, payload, is_short):
         """Real, topic-specific YouTube search tags for one upload.
 
@@ -130,14 +147,7 @@ class YouTubeCreatorQueue:
         video -- it only gives the upload the same keyword metadata any
         deliberately-optimized YouTube video already carries.
         """
-        topic = str(payload.get("topic_key") or payload.get("title") or "").strip()
-        words = re.findall(r"[a-z][a-z'-]+", topic.lower())
-        seen, keywords = set(), []
-        for word in words:
-            if len(word) < 3 or word in cls._TAG_STOPWORDS or word in seen:
-                continue
-            seen.add(word)
-            keywords.append(word)
+        topic, keywords = cls._topic_and_keywords(payload)
         tags = []
         if topic:
             tags.append(topic[:100])
@@ -153,6 +163,25 @@ class YouTubeCreatorQueue:
             seen_lower.add(key)
             final.append(tag.strip())
         return final
+
+    @classmethod
+    def _title_hashtag(cls, payload):
+        """One relevant, capitalized hashtag for a Short's on-screen title.
+
+        Uses only the episode's own subject keywords -- never the fixed
+        channel/format tags _video_tags() also adds ("education" and
+        "curiosity" are themselves plain lowercase words, so scanning
+        _video_tags()'s combined output for the first lowercase entry would
+        wrongly grab one of those on a topic with no surviving keyword).
+        Owner-reviewed competitor scan, 2026-09-27: Kurzgesagt (25M subs)
+        ships zero hashtags in its titles, but both direct same-niche
+        comparables close to AION's own scale do, and YouTube surfaces up
+        to a title's first 3 hashtags as clickable topic chips above a
+        Short -- real extra discovery surface a very small channel should
+        not skip. Kept to a single tag so the hook itself stays dominant.
+        """
+        _, keywords = cls._topic_and_keywords(payload)
+        return f"#{keywords[0].capitalize()}" if keywords else None
 
     @staticmethod
     def _caption(episode):
@@ -627,6 +656,10 @@ class YouTubeCreatorQueue:
         # 2026-09-26, after the two highest-performing videos on the channel
         # both used a bare "How X..." title with no such prefix.
         public_title = str(payload.get("title") or payload.get("display_title") or "AION Wonders")
+        if is_youtube_short:
+            hashtag = self._title_hashtag(payload)
+            if hashtag and len(public_title) + 1 + len(hashtag) <= 100:
+                public_title = f"{public_title} {hashtag}"
         video_tags = self._video_tags(payload, is_youtube_short)
         try:
             if uploader is None:

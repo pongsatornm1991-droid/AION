@@ -96,6 +96,44 @@ class ResearchToStoryTests(unittest.TestCase):
             result = ResearchToStory(memory).propose_once()
             self.assertEqual("blocked-duplicate-topic", result["stage"])
 
+    def test_prefers_an_underrepresented_research_lane_over_alphabetical_order(self):
+        with tempfile.TemporaryDirectory() as root:
+            memory = MemoryEngine(root)
+            pipeline = ResearchToStory(memory)
+
+            # First brief: the only candidate, lands in the space-and-scale lane.
+            universe_q = CuriosityEngine(memory).raise_question(
+                "What is beyond the edge of the observable universe?", "Compare two cited sources.", priority=4,
+            )
+            self._evidence(memory, universe_q, "Source one", "https://one.test/universe-a", "Observation one.")
+            self._evidence(memory, universe_q, "Source two", "https://two.test/universe-b", "Observation two.")
+            first = pipeline.propose_once()
+            self.assertEqual("brief-created", first["stage"])
+            self.assertEqual("space-and-scale", first["brief"]["scout_lane"]["id"])
+
+            # Two more candidates become eligible at once: one alphabetically
+            # first but in the now-once-used space-and-scale lane, one
+            # alphabetically second but in an untouched lane (nature-and-earth).
+            galaxy_q = CuriosityEngine(memory).raise_question(
+                "Are black holes hiding at the center of every galaxy?", "Compare two cited sources.", priority=4,
+            )
+            self._evidence(memory, galaxy_q, "Source one", "https://one.test/galaxy-a", "Observation one.")
+            self._evidence(memory, galaxy_q, "Source two", "https://two.test/galaxy-b", "Observation two.")
+            coral_q = CuriosityEngine(memory).raise_question(
+                "How do coral reefs recover?", "Compare two cited sources.", priority=4,
+            )
+            self._evidence(memory, coral_q, "Source one", "https://one.test/coral-a", "Observation one.")
+            self._evidence(memory, coral_q, "Source two", "https://two.test/coral-b", "Observation two.")
+
+            # Alphabetically, the galaxy topic ("Are...") sorts before the
+            # coral topic ("How..."), so the old alphabetical-only order would
+            # pick it again -- concentrating a second brief into the lane
+            # that already has one, exactly the imbalance found on the
+            # Operations dashboard on 2026-09-26.
+            second = pipeline.propose_once()
+            self.assertEqual("brief-created", second["stage"])
+            self.assertEqual("nature-and-earth", second["brief"]["scout_lane"]["id"])
+
     def test_does_not_turn_explicitly_off_topic_observations_into_a_story_brief(self):
         with tempfile.TemporaryDirectory() as root:
             memory = MemoryEngine(root)

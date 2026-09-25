@@ -7,6 +7,7 @@ traceable evidence for a viewer to check it.
 """
 
 import json
+from collections import Counter
 
 from .learning import ResearchEvidenceStore
 from .content_novelty import ContentNoveltyLedger
@@ -99,6 +100,23 @@ class ResearchToStory:
             })
         return sorted(candidates, key=lambda item: (item["topic"], item["root_question_id"]))
 
+    def _prefer_underrepresented_lane(self, eligible):
+        """Pick the eligible candidate whose research lane has fewest briefs so far.
+
+        candidates() sorts alphabetically by topic text, which has no relation
+        to editorial balance across ResearchPortfolio's 5 lanes. Confirmed via
+        the Operations dashboard, 2026-09-26: every ready episode sat in one
+        lane while the other four held none, entirely as a side effect of
+        alphabetical ordering here. min() is stable, so when lane counts tie
+        (e.g. everything still at zero, the common early-channel case) the
+        original alphabetically-first candidate still wins -- unchanged
+        behavior until lanes actually become imbalanced.
+        """
+        if not eligible:
+            return None
+        lane_counts = Counter((brief.get("scout_lane") or {}).get("id") for brief in self._briefs())
+        return min(eligible, key=lambda item: lane_counts.get(ResearchPortfolio.assign(item["topic"])["id"], 0))
+
     def propose_once(self):
         """Persist one brief if a qualified evidence group has no brief yet.
 
@@ -109,7 +127,8 @@ class ResearchToStory:
         existing_roots = {str(item.get("root_question_id") or "") for item in self._briefs()}
         candidates = [item for item in self.candidates() if item["root_question_id"] not in existing_roots]
         ledger = ContentNoveltyLedger(self.memory)
-        candidate = next((item for item in candidates if ledger.assess(item)["eligible"]), None)
+        eligible = [item for item in candidates if ledger.assess(item)["eligible"]]
+        candidate = self._prefer_underrepresented_lane(eligible)
         if not candidate:
             duplicates = [ledger.assess(item) for item in candidates]
             if candidates and all(not report["eligible"] for report in duplicates):
