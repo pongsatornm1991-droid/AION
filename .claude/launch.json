@@ -1,0 +1,11 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "aion-dashboard",
+      "runtimeExecutable": "python",
+      "runtimeArgs": ["-m", "tools.dashboard"],
+      "port": 8787
+    }
+  ]
+}
