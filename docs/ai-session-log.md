@@ -13,6 +13,55 @@ Format:
 Commits: <hash> [, <hash> ...]
 ```
 
+## 2026-09-25 — Claude Code — URGENT: YouTube publishing has been silently broken for 5+ days (expired OAuth token); CI gap that hid it is fixed, token itself still needs the owner
+
+Owner asked whether tonight's clip would publish; I'd said yes based on
+the episode being fully authorized. It was NOT actually published --
+checked again after the scheduled time passed and found no upload record.
+
+**Root cause, confirmed from real GitHub Actions logs, not guessed:**
+`YOUTUBE_REFRESH_TOKEN` is expired or revoked --
+`invalid_grant: Token has been expired or revoked.` -- on literally every
+publish attempt checked, including tonight (run #39, 2026-09-25) AND
+2026-09-22 (run #34, trying to publish
+aion-wonders-005-venus-flytrap-counts). That matches venus-flytrap's own
+queue record being tagged `owner-confirmed-manual-reconciliation` rather
+than an automatic publish -- the owner was almost certainly already
+working around this by hand days ago without it being named as a token
+problem. No YouTube upload has gone out automatically since at least
+2026-09-22, possibly longer.
+
+**Why nobody saw this**: `youtube-creator.yml`'s old fatal check
+(`Stage: published` or exit 1) only applied to an explicit, non-recovery
+`workflow_dispatch`. A real `schedule` trigger, and a
+`youtube-release-watchdog.yml` self-healing recovery dispatch (which
+worked exactly as designed tonight, catching a delayed GitHub cron and
+firing at 13:39 UTC), both get a free pass on ANY outcome including a
+genuine upload fault -- so the job reported green every single time this
+token error happened. `run_publish_youtube_creator` does send a Telegram
+alert for `upload-failed`, so it may not have been *totally* silent --
+worth checking if that channel is actually being watched.
+
+**Fixed** (does not fix the token itself): moved the fatal check to a new
+final step that runs after "Persist private memory" gets `if: always()`
+too (previously a step-internal exit could skip saving the audit trail),
+and `Stage: upload-failed` now always fails the run regardless of trigger
+type. `no-authorized-creator-episode` (legitimately nothing ready) stays
+quiet as before.
+
+**Still needs the owner directly** -- I cannot do Google OAuth consent on
+their behalf: re-run `tools/youtube_authorize.py --client-secrets <path>`
+with their own Google account, then update the `YOUTUBE_REFRESH_TOKEN`
+GitHub Actions secret with the new value it prints.
+
+Separately, also shipped the fallback-motion style change discussed
+tonight: `render_kinetic_fallback` -> `render_static_fallback`, a plain
+still hold instead of a repeating zoompan, since the zoom resetting every
+~5 seconds across all-fallback scenes was what read as "jerky." Real Veo
+motion remains the intended primary path.
+
+Commits: 5c96916 (static fallback), f3b2c05 (CI fault-visibility fix).
+
 ## 2026-09-25 — Claude Code — Diagnosed tonight's jerky-motion report: all 13 scenes used the synthetic zoom fallback, real error was never persisted
 
 Owner watched the maps episode and reported the motion "กระตุก...พอครบรอบ"

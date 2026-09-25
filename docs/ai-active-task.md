@@ -11,42 +11,28 @@ Owner: none
 Started: n/a
 Lease expires: n/a
 Scope: None.
-Handoff: Closed out the full bottleneck-hunting session from today -- see
-docs/ai-session-log.md's 2026-09-25 entries (several, newest first) for
-full detail. Summary for whoever's next:
+Handoff: URGENT, needs the owner directly (not code-fixable by either of
+us) -- see docs/ai-session-log.md's 2026-09-25 "URGENT" entry, commits
+5c96916 / f3b2c05. YouTube's YOUTUBE_REFRESH_TOKEN is expired/revoked
+(`invalid_grant`), confirmed from real Actions logs on both tonight's run
+and 2026-09-22's -- no automatic YouTube upload has succeeded in at least
+5 days. The Shorts buffer being fixed (see the two entries below this one)
+does NOT matter until this is resolved: episodes will keep authorizing
+successfully and then failing to actually upload.
 
-1. Fixed a real crash bug: CreatorSeriesRegistry.episodes() raised on the
-   first invalid episode file, taking down every caller (scene production,
-   narration preflight, dashboard/public-summary, release-readiness/queue,
-   crosspost, motion, assembly, costume briefs, recovery buffer). Added
-   episodes(skip_invalid=True), applied everywhere in the production/
-   release path (commits 0573e9a, b23ffe5, 88f2220). Confirmed end-to-end
-   live: the stuck maps episode (aion-auto-32006eab7f3a-899f27ed-short)
-   went from permanently blocked to fully rendered (13 images + cover) and
-   shorts_buffer.quality_ready moved 0 -> 1.
+Fix needs the owner's own Google account (OAuth consent), so neither Codex
+nor Claude can do it directly: run `python tools/youtube_authorize.py
+--client-secrets <path-to-downloaded-client-secret.json>` locally, then
+put the printed refresh token into the `YOUTUBE_REFRESH_TOKEN` GitHub
+Actions secret. If Codex or Claude picks this up next and the owner is
+present, offer to walk through it step by step rather than assuming it's
+already been done -- check for a fresh `Stage: published` in the next
+youtube-creator.yml run before assuming it's fixed.
 
-2. Found and fixed the write-back bug that had actually corrupted that
-   episode: tools/preflight_creator_narration.py's write-timeline step
-   dropped the synced visual_narrative/fact_first_visual fields that
-   NarrationPreflight.repair_episode_timing correctly computes after a
-   scene split (commit b23ffe5).
-
-3. Un-stuck the recovery lane's topic catalogue: it excluded a whole
-   domain forever after one use, and all 33 original domains had been
-   used, so it could never seed a new question again regardless of buffer
-   state. Fixed to exclude by the specific question asked (any status),
-   not the domain, and added 24 new topics (57 total) (commit c86a7b2).
-   Verified against the real synced memory that this actually unblocks it.
-
-Owner gave standing authorization (2026-09-25) to fix any bug found
-directly without asking first, in pursuit of 100% automation with zero
-bottlenecks. This is saved in Claude's own memory system; Codex should
-feel free to act on the same standing authorization for this class of
-finding unless the owner says otherwise.
-
-Nothing urgent left open from this session. Minor, non-blocking items
-noted in commit messages/session log if useful later: brain/creator_series.py's
-own snapshot() and brain/content_registry.py were deliberately left on
-strict/legacy behavior (see 88f2220's message for why); the recovery
-catalogue can eventually run low again after ~57 uses and may want a
-third batch or a proper time-based rotation mechanism at that point.
+Also fixed as part of the same investigation: the CI job used to report
+green even when this exact fault happened on a scheduled or self-healing
+recovery run (only an explicit manual request used to fail loudly) --
+that's why this went unnoticed for days. Now `Stage: upload-failed` always
+fails the run. This means: once the token is fixed, if publishing still
+fails for some other reason, it WILL show up as a failed workflow run --
+that's the fix working as intended, not a new problem.
