@@ -2,6 +2,7 @@
 
 import json
 import os
+import re
 from pathlib import Path
 
 from brain.autonomy_policy import AutonomyPolicy
@@ -99,6 +100,54 @@ class YouTubeCreatorQueue:
             if episode_id:
                 records[episode_id] = (entry, payload)
         return records
+
+    # Small, generic connector words filtered out of the topic when building
+    # YouTube search tags -- the goal is keeping the *subject* words
+    # ("maps", "google", "cartography"), not full grammatical questions.
+    _TAG_STOPWORDS = {
+        "a", "an", "the", "is", "are", "was", "were", "be", "been", "being",
+        "do", "does", "did", "doing", "why", "how", "what", "when", "where",
+        "who", "which", "this", "that", "these", "those", "to", "of", "in",
+        "on", "for", "and", "or", "but", "with", "from", "into", "than",
+        "as", "it", "its", "their", "they", "them", "we", "you", "your",
+        "can", "could", "would", "will", "not", "no", "so", "if", "about",
+        "than", "then", "there", "here", "one", "some", "any", "more",
+    }
+
+    @classmethod
+    def _video_tags(cls, payload, is_short):
+        """Real, topic-specific YouTube search tags for one upload.
+
+        Every prior upload sent none at all (found 2026-09-26): the
+        snippet's `tags` field is a direct discovery signal YouTube uses to
+        match a video to a search, and it was empty on every single Creator
+        episode. This never overrides a human's own judgement about a
+        video -- it only gives the upload the same keyword metadata any
+        deliberately-optimized YouTube video already carries.
+        """
+        topic = str(payload.get("topic_key") or payload.get("title") or "").strip()
+        words = re.findall(r"[a-z][a-z'-]+", topic.lower())
+        seen, keywords = set(), []
+        for word in words:
+            if len(word) < 3 or word in cls._TAG_STOPWORDS or word in seen:
+                continue
+            seen.add(word)
+            keywords.append(word)
+        tags = []
+        if topic:
+            tags.append(topic[:100])
+        tags.extend(keywords[:8])
+        tags.extend(["AION", "Wait How", "education", "curiosity"])
+        if is_short:
+            tags.append("Shorts")
+        final, seen_lower = [], set()
+        for tag in tags:
+            key = tag.strip().lower()
+            if not key or key in seen_lower:
+                continue
+            seen_lower.add(key)
+            final.append(tag.strip())
+        return final
 
     @staticmethod
     def _caption(episode):
@@ -564,15 +613,24 @@ class YouTubeCreatorQueue:
             append_identity_disclosure("", "youtube"),
             format_tags,
         ) if part)
+        # The public title omits the internal "EP. NNN —" numbering: a cold
+        # viewer arriving from search doesn't know what episode of what they
+        # found, and it pushes the actual hook further from the start of the
+        # title. display_title (with the prefix) remains what the Operations
+        # dashboard and internal work-queue show. Owner-approved change,
+        # 2026-09-26, after the two highest-performing videos on the channel
+        # both used a bare "How X..." title with no such prefix.
+        public_title = str(payload.get("title") or payload.get("display_title") or "AION Wonders")
+        video_tags = self._video_tags(payload, is_youtube_short)
         try:
             if uploader is None:
                 from tools.youtube import upload_short
                 uploader = upload_short
-                result = uploader(str(path), str(payload.get("display_title") or payload.get("title") or "AION Wonders"), description,
+                result = uploader(str(path), public_title, description,
                                   privacy_status=os.getenv("YOUTUBE_PRIVACY_STATUS", "public"),
-                                  thumbnail_path=str(cover_path))
+                                  thumbnail_path=str(cover_path), tags=video_tags)
             else:
-                result = uploader(str(path), str(payload.get("display_title") or payload.get("title") or "AION Wonders"), description)
+                result = uploader(str(path), public_title, description)
         except Exception as exc:
             # Some provider exceptions have an empty string representation.
             # Preserve their type so the Dashboard and retry log never show a

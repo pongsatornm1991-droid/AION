@@ -290,7 +290,10 @@ class YouTubeCreatorQueueTests(unittest.TestCase):
                     return {"video_id": "abc", "url": "https://youtu.be/abc", "privacy_status": "public"}
                 result = queue.publish_once(uploader)
             self.assertEqual("published", result["stage"])
-            self.assertEqual("EP. 001 — A useful question", captured["title"])
+            # The public YouTube title omits the internal "EP. NNN —" prefix
+            # (2026-09-26); it still exists on candidates()' display_title
+            # for the Operations dashboard, just not on the actual upload.
+            self.assertEqual("A useful question", captured["title"])
             self.assertIn("#Shorts", captured["description"])
             self.assertEqual("published", queue.candidates()[0]["status"])
             self.assertEqual("no-authorized-creator-episode", queue.publish_once()["stage"])
@@ -533,3 +536,46 @@ class YouTubeCreatorQueueTests(unittest.TestCase):
             candidates = {item["episode_id"]: item for item in queue.candidates()}
             self.assertIn("episode", candidates)
             self.assertNotIn("broken", candidates)
+
+    def test_video_tags_extract_subject_keywords_and_add_channel_tags(self):
+        # Regression for 2026-09-26: every prior upload sent zero YouTube
+        # tags, a real discoverability signal left completely unused.
+        payload = {"topic_key": "Why do maps look different depending on what they are made for?"}
+        tags = YouTubeCreatorQueue._video_tags(payload, is_short=True)
+        self.assertEqual(payload["topic_key"], tags[0])
+        for stopword in ("why", "do", "what", "they", "are", "for"):
+            self.assertNotIn(stopword, tags)
+        for keyword in ("maps", "different", "depending", "made"):
+            self.assertIn(keyword, tags)
+        self.assertIn("Shorts", tags)
+        self.assertIn("AION", tags)
+
+    def test_video_tags_fall_back_to_title_and_skip_shorts_tag_for_long_form(self):
+        payload = {"title": "How ancient Persia made ice in the desert"}
+        tags = YouTubeCreatorQueue._video_tags(payload, is_short=False)
+        self.assertIn("persia", tags)
+        self.assertIn("desert", tags)
+        self.assertNotIn("Shorts", tags)
+
+    def test_publish_sends_a_bare_title_and_real_tags_to_the_actual_youtube_uploader(self):
+        # Confirms the change reaches the real production path (uploader is
+        # None), not just the test-injectable one used elsewhere in this file.
+        with tempfile.TemporaryDirectory() as root:
+            self._episode(root)
+            (Path(root) / "content" / "reels" / "episode.mp4").write_bytes(b"video")
+            from PIL import Image
+            Image.new("RGB", (1080, 1920), "navy").save(Path(root) / "content" / "reels" / "episode-cover.png")
+            policy = Path(root) / "config"; policy.mkdir()
+            (policy / "aion_authority.json").write_text('{"public_publishing":{"enabled":true}}', encoding="utf-8")
+            memory = MemoryEngine(Path(root) / "memory")
+            queue = YouTubeCreatorQueue(memory, root)
+            queue.prepare_once()
+            with patch("brain.video_quality.VideoQualityGate.assess", return_value={"eligible": True, "reasons": []}), \
+                 patch("tools.youtube.upload_short", return_value={"video_id": "abc", "url": "https://youtu.be/abc", "privacy_status": "public"}) as upload:
+                result = queue.publish_once()
+            self.assertEqual("published", result["stage"])
+            call = upload.call_args
+            self.assertEqual("A useful question", call.args[1])
+            self.assertIn("tags", call.kwargs)
+            self.assertTrue(call.kwargs["tags"])
+            self.assertIn("AION", call.kwargs["tags"])
