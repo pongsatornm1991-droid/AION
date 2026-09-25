@@ -11,23 +11,41 @@ Owner: none
 Started: n/a
 Lease expires: n/a
 Scope: None.
-Handoff: Fixed two live issues found by an owner-requested bottleneck audit --
-see docs/ai-session-log.md's 2026-09-25 Claude Code entry for full detail,
-commit 0573e9a. Summary for whoever's next:
-1. `main` was red for 5 commits (stale enabled-source list in
-   tests/test_curiosity_constitution.py, missing `openalex`) -- fixed, full
-   suite green again.
-2. CreatorSeriesRegistry.episodes() (brain/creator_series.py) used to raise
-   on the FIRST invalid episode file and crash the whole call for every
-   caller -- this is why creator-scene-production.yml failed 4 runs in a row
-   while the Shorts buffer sat at 0/7: one broken storyboard blocked every
-   other ready episode too, not just its own slot. Added
-   episodes(skip_invalid=True); CreatorSceneProduction._episode() now uses
-   it and reports excluded episodes in report["invalid_episodes"] instead of
-   crashing. Default (skip_invalid=False) is unchanged, so
-   tests/test_creator_series.py's raise-on-bad-content gate still works.
-If the Shorts buffer is still not recovering a day or two after this lands,
-that's a *different* problem (e.g. evidence/story-brief throughput) --
-check public/aion-production-control.json's `recovery`/`evidence_reserve`
-sections and `report["invalid_episodes"]` from the next
-creator-scene-production.yml run before assuming this fix didn't work.
+Handoff: Found and fixed the REAL reason the Shorts buffer stayed at 0/7 even
+after yesterday's registry fix (0573e9a) -- see docs/ai-session-log.md's
+2026-09-25 "Found the real reason..." entry, commit b23ffe5. Short version:
+1. Two more callers (tools/preflight_creator_narration.py,
+   brain/studio_pipeline.py) still crashed on a single invalid episode --
+   same fix as before, skip_invalid=True, both now covered.
+2. The actual root cause of THAT episode being invalid: NarrationPreflight.
+   repair_episode_timing correctly syncs visual_narrative.scene_progression
+   and fact_first_visual.scene_roles after a scene split, but
+   preflight_creator_narration.py's write-back was silently dropping both
+   fields when persisting to disk -- a real, previously-undiscovered bug in
+   this morning's "sync metadata after repair" fix. One episode
+   (aion-auto-32006eab7f3a-899f27ed-short) got permanently deadlocked by it.
+   Fixed the write-back; manually repaired that episode's on-disk metadata
+   so it's producible again right now.
+3. `CreatorSeriesRegistry().episodes()` now loads all 19 real episodes
+   without raising, and CreatorSceneProduction picks the maps episode again.
+   Full test suite green (this also fixed 5 tests that were ERRORing
+   because the real content directory genuinely had corrupted data --
+   test_creator_series.py x3, test_creator_series_status_hygiene.py,
+   test_dashboard.py -- not because those tests were wrong).
+
+Still open, not fixed this round (flagged, not urgent -- no live workflow is
+currently failing because of these):
+- brain/youtube_creator_queue.py:120 and brain/creator_episode_crosspost.py:35
+  still call .episodes() without skip_invalid=True. Same latent crash risk
+  if a future episode goes invalid.
+- brain/release_readiness.py's snapshot() catches
+  (OSError, ValueError, TypeError) around YouTubeCreatorQueue(...).candidates()
+  and falls back to an empty list -- this doesn't crash, but it silently
+  hides EVERY candidate (not just the broken one) whenever any single
+  episode is invalid. Worth switching to skip_invalid=True instead of the
+  blanket except; may have been under-reporting the buffer.
+
+If a new episode gets stuck the same way again, check whether it was
+recently split by NarrationPreflight.repair_episode_timing and whether its
+visual_narrative/fact_first_visual scene counts match its actual scenes
+count before assuming it's a new bug.

@@ -13,6 +13,77 @@ Format:
 Commits: <hash> [, <hash> ...]
 ```
 
+## 2026-09-25 — Claude Code — Found the real reason the maps episode stayed stuck: a write-back bug, not the registry crash
+
+Owner asked again after the first fix landed: "ตอนนี้ ติดปัญหาอะไรบ้างทำไม
+ยังไม่มีคลิปพร้อมลง" (what's still blocking, why no clip ready). Checked
+GitHub Actions live instead of assuming yesterday's fix (0573e9a) fully
+resolved it, and found the crash had moved, not disappeared:
+creator-scene-production.yml now failed one step earlier, at "Verify actual
+narration timing before creating scene images"
+(`tools/preflight_creator_narration.py`), and separately
+`publish-public-summary.yml` failed too (`brain/studio_pipeline.py`). Both
+call `CreatorSeriesRegistry.episodes()` directly, without
+`skip_invalid=True` -- the exact same crash class as yesterday, just two
+more call sites nobody had touched yet (Codex had already independently
+applied the same fix to `tools/produce_creator_motion.py` in commit
+7579028 -- good confirmation the pattern is understood, but the fix wasn't
+everywhere yet). Added `skip_invalid=True` to both, with a regression test
+each.
+
+That alone wasn't the real story, though. Traced the specific ValueError
+(`aion-auto-32006eab7f3a-899f27ed-short violates visual narrative policy:
+each-scene-needs-a-distinct-story-step`) all the way down and found it
+wasn't a narration-duplication bug at all: `visual_narrative.scene_progression`
+still had 12 entries while the episode now has 13 scenes (its "connection"
+beat was split into "connection—setup"/"connection—continuation" by the
+narration-aware repair a few hours earlier). `NarrationPreflight.
+repair_episode_timing` (`brain/narration_preflight.py`) correctly
+regenerates both `visual_narrative.scene_progression` and
+`fact_first_visual.scene_roles` in place after a split -- this is exactly
+what the "Kept visual planning metadata synchronized after scene repair"
+fix (this morning) was supposed to guarantee. But
+`tools/preflight_creator_narration.py`'s write-back re-reads the episode
+fresh from disk and only ever copied
+`scenes`/`target_duration_seconds`/`narration_timing_repairs` into it --
+silently dropping the two synced fields on every write. The episode was
+stuck in a genuine deadlock: the only code that could fix its stale
+metadata was this same preflight step, which could never even reach the
+episode once `CreatorSeriesRegistry.episodes()` started raising on it
+first. Fixed the write-back to also persist `visual_narrative` and
+`fact_first_visual` when present, and manually repaired the one stuck
+episode's on-disk ledgers to match its real 13 scenes so it's selectable
+right now, not just after the next repair happens to run again.
+
+This also explains 5 tests that were ERRORing (not just the one known
+`openalex` FAIL): `test_creator_series.py` x3, `test_creator_series_
+status_hygiene.py`, and `test_dashboard.py` -- all call the real content
+directory's `.episodes()` directly with no mock, so they were truthfully
+reporting that the real repo had one corrupted episode. Fixing the content
+brought all five back to green without touching the tests themselves,
+confirming they're working exactly as designed (an authoring-quality gate,
+not a bug to route around).
+
+Confirmed end-to-end: `CreatorSeriesRegistry().episodes()` now loads all 19
+episodes without raising, and `CreatorSceneProduction()._episode(...)`
+selects `aion-auto-32006eab7f3a-899f27ed-short` again with zero excluded
+episodes. Full `python run_tests.py`: PASS.
+
+Not fixed, flagged for whoever picks this up next: `brain/youtube_creator_
+queue.py:120` (`candidates()`) and `brain/creator_episode_crosspost.py:35`
+(`publish_once()`) still call `.episodes()` without `skip_invalid=True` --
+same latent crash risk, just not the one that's live right now.
+Separately, `brain/release_readiness.py`'s `snapshot()` wraps
+`YouTubeCreatorQueue(...).candidates()` in a bare
+`except (OSError, ValueError, TypeError): candidates = []` -- this doesn't
+crash, but it silently discards *every* candidate (not just the broken
+one) whenever any single episode is invalid, which may have been quietly
+under-reporting the Shorts buffer this whole time. Worth switching that to
+`skip_invalid=True` too rather than the blanket except, but did not touch
+it this round to keep the change reviewable.
+
+Commits: b23ffe5.
+
 ## 2026-09-25 — Codex — Made automatic motion production daily and provider-resilient
 
 The Motion stage no longer stops before its existing kinetic-video fallback
