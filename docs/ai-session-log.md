@@ -13,6 +13,25 @@ Format:
 Commits: <hash> [, <hash> ...]
 ```
 
+## 2026-09-26 — Claude Code — Scheduled the competitive scan daily
+
+Follow-up to the same-day entry below. Owner asked whether running
+`tools/creator_competitive_scan.py` automatically every day would have any
+impact; audited the three existing `YOUTUBE_DATA_API_KEY` consumers first
+(youtube-learning, youtube-audience, creator-reference-study all only call
+the cheap `videos.list`) and confirmed the new scan's `search.list` calls
+(~410 units/day for the default 4 queries) leave large headroom under the
+10,000/day free quota. Owner approved.
+
+Added `brain/creator_competitive_scan_cycle.py` (same-day dedupe, keeps top
+15 results/run), `tools/run_creator_competitive_scan.py` (CLI entry), and
+`.github/workflows/creator-competitive-scan.yml` (daily at 02:15 UTC,
+persists into the separate `aion-memory-data` repo via the shared
+commit-and-push action -- deliberately not a public file in this repo, so
+it adds no commit noise to `main`). 3 new tests. Full `python run_tests.py`: PASS.
+
+Commits: ef1dbac
+
 ## 2026-09-26 — Claude Code — Surfaced integrity alerts + content-pillar mix on the dashboard; made `youtube_discovery` a real capability
 
 Owner asked four things: (1) why doesn't the dashboard show the integrity
