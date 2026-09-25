@@ -6,11 +6,11 @@ a historical log: replace this block when taking a task, and set status to
 `clear` when handing off. A claim expires at its stated time so a crashed
 session never blocks the company indefinitely.
 
-Status: clear
-Owner: none
-Started: n/a
-Lease expires: n/a
-Scope: None.
+Status: active
+Owner: Codex
+Started: 2026-09-26 Asia/Bangkok
+Lease expires: 2026-09-26 16:00 Asia/Bangkok
+Scope: Owner-assisted renewal of the expired YouTube OAuth refresh token. No credential value will be read, logged, committed, or transmitted by Codex.
 Handoff: URGENT, needs the owner directly (not code-fixable by either of
 us) -- see docs/ai-session-log.md's 2026-09-25 "URGENT" entry, commits
 5c96916 / f3b2c05. YouTube's YOUTUBE_REFRESH_TOKEN is expired/revoked
