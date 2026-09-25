@@ -3,21 +3,25 @@ import unittest
 from pathlib import Path
 from unittest.mock import patch
 
-from tools.produce_creator_motion import _episode, produce_once, render_kinetic_fallback
+from tools.produce_creator_motion import _episode, produce_once, render_static_fallback
 
 
 class CreatorMotionResilienceTests(unittest.TestCase):
-    def test_kinetic_fallback_creates_a_five_second_video_from_the_current_image(self):
+    def test_static_fallback_creates_a_five_second_video_from_the_current_image(self):
         with tempfile.TemporaryDirectory() as directory:
             source = Path(directory) / "scene.png"
             target = Path(directory) / "motion.mp4"
             source.write_bytes(b"new-scene")
             with patch("tools.produce_creator_motion.subprocess.run") as run:
                 run.side_effect = lambda *args, **kwargs: target.write_bytes(b"new-motion")
-                self.assertTrue(render_kinetic_fallback(source, target))
+                self.assertTrue(render_static_fallback(source, target))
             command = run.call_args.args[0]
             self.assertIn("-t", command)
             self.assertIn("5", command)
+            # Regression for 2026-09-25: no zoompan filter -- a still hold,
+            # not a repeating zoom that reset (and looked jerky) every cut.
+            filtergraph = command[command.index("-vf") + 1]
+            self.assertNotIn("zoompan", filtergraph)
 
     def test_motion_selection_skips_a_quarantined_storyboard(self):
         with patch("tools.produce_creator_motion.CreatorSeriesRegistry") as registry:
@@ -48,13 +52,13 @@ class CreatorMotionResilienceTests(unittest.TestCase):
                  patch("tools.produce_creator_motion.generate_scene_video", return_value={
                      "ok": False, "state": "waiting-for-gemini-video-key"
                  }), \
-                 patch("tools.produce_creator_motion.render_kinetic_fallback") as fallback:
+                 patch("tools.produce_creator_motion.render_static_fallback") as fallback:
                 registry.return_value.episodes.return_value = [episode]
                 fallback.side_effect = lambda source, target, **_: (Path(target).parent.mkdir(parents=True, exist_ok=True), Path(target).write_bytes(b"motion"), True)[2]
                 report = produce_once(root)
             self.assertEqual("motion-assets-complete", report["stage"])
             self.assertFalse(report["provider_configured"])
-            self.assertEqual("aion-kinetic-fallback", episode["scenes"][0]["motion_contract"]["provider"])
+            self.assertEqual("aion-static-fallback", episode["scenes"][0]["motion_contract"]["provider"])
 
     def test_persists_the_provider_error_type_when_falling_back(self):
         # Regression for 2026-09-25: a real episode fell back for all 13
@@ -84,7 +88,7 @@ class CreatorMotionResilienceTests(unittest.TestCase):
                  patch("tools.produce_creator_motion.generate_scene_video", return_value={
                      "ok": False, "state": "provider-failed", "error_type": "PermissionDenied"
                  }), \
-                 patch("tools.produce_creator_motion.render_kinetic_fallback") as fallback:
+                 patch("tools.produce_creator_motion.render_static_fallback") as fallback:
                 registry.return_value.episodes.return_value = [episode]
                 fallback.side_effect = lambda source, target, **_: (Path(target).parent.mkdir(parents=True, exist_ok=True), Path(target).write_bytes(b"motion"), True)[2]
                 produce_once(root)

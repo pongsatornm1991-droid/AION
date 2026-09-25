@@ -30,26 +30,32 @@ def _ffmpeg():
     return shutil.which("ffmpeg") or __import__("imageio_ffmpeg").get_ffmpeg_exe()
 
 
-def render_kinetic_fallback(source_image, destination, *, aspect_ratio="9:16", seconds=5):
-    """Create a new, auditable motion clip from the approved scene image.
+def render_static_fallback(source_image, destination, *, aspect_ratio="9:16", seconds=5):
+    """Create a new, auditable still-hold clip from the approved scene image.
 
     This is a resilience path, not a hidden replacement: it uses only the
-    current episode's newly generated image and creates a measured MP4 with a
-    gentle camera move. It keeps the release pipeline autonomous when an
-    external image-to-video provider rejects or times out on a scene.
+    current episode's newly generated image and creates a measured MP4 that
+    holds it still for the beat's exact duration. It keeps the release
+    pipeline autonomous when an external image-to-video provider rejects or
+    times out on a scene.
+
+    Deliberately no zoom/pan: an earlier version applied the same gentle
+    zoompan to every fallback scene, and because every scene's motion
+    provider call failed on a real episode (Veo access, not this code, was
+    the cause), all 13 scenes used it back to back. Cutting between clips
+    that each reset to the same zoom start every ~5 seconds read as a
+    repetitive, mechanical "jerk" at every cut rather than a real technical
+    fault -- the owner asked for a still hold instead once shown the cause
+    (2026-09-25).
     """
     source, target = Path(source_image), Path(destination)
     if not source.is_file():
         return False
     width, height = (1080, 1920) if aspect_ratio == "9:16" else (1920, 1080)
     target.parent.mkdir(parents=True, exist_ok=True)
-    # Scale slightly larger than the output then move across that image. The
-    # explicit duration means each visual still owns exactly one narration beat.
-    zoom = "min(zoom+0.00045,1.08)"
     filtergraph = (
-        f"scale={width * 12 // 10}:{height * 12 // 10}:force_original_aspect_ratio=increase,"
-        f"crop={width * 12 // 10}:{height * 12 // 10},"
-        f"zoompan=z='{zoom}':d={int(seconds) * 30}:s={width}x{height}:fps=30,format=yuv420p"
+        f"scale={width}:{height}:force_original_aspect_ratio=increase,"
+        f"crop={width}:{height},format=yuv420p"
     )
     try:
         subprocess.run(
@@ -96,10 +102,10 @@ def produce_once(root=ROOT, episode_id=None):
         )
         fallback = False
         if not report.get("ok"):
-            # Never substitute an old Reel. Produce a new kinetic clip from
+            # Never substitute an old Reel. Produce a new still-hold clip from
             # this exact approved image so the release can continue, while
             # retaining the provider failure as transparent provenance.
-            fallback = render_kinetic_fallback(
+            fallback = render_static_fallback(
                 root / str(scene.get("image") or ""), target, aspect_ratio=aspect
             )
             if not fallback:
@@ -108,8 +114,8 @@ def produce_once(root=ROOT, episode_id=None):
                 break
         scene["motion_path"] = str(target.relative_to(root)).replace("\\", "/")
         scene["motion_contract"] = {
-            "provider": "aion-kinetic-fallback" if fallback else config["provider"],
-            "model": "ffmpeg-pan-zoom-v1" if fallback else config["model"],
+            "provider": "aion-static-fallback" if fallback else config["provider"],
+            "model": "ffmpeg-still-hold-v1" if fallback else config["model"],
             "source_image": scene.get("image"), "mode": config["mode"],
             "fallback_reason": report.get("state") if fallback else None,
             # error_type alone (an exception class name, never a message) is
