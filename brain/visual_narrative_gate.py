@@ -32,7 +32,7 @@ class VisualNarrativeGate:
                 "question": "vivid cobalt or deep indigo—what needs explaining",
                 "evidence": "warm amber—observed clue or mechanism",
                 "answer": "fresh green or coral—resolved relationship or takeaway",
-                "aion_signature": "small cyan crystal only; never AION's skin or whole outfit",
+                "aion_signature": "small glowing cyan question-mark core only; never AION's skin or whole outfit",
             },
             "cover": {
                 "primary_focus": topic,

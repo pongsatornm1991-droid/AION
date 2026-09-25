@@ -3,8 +3,9 @@
 ## Identity anchor
 
 AION is recognised by airy silver-white hair, expressive cyan eyes,
-pearl-light constellation filaments, a small faceted cyan crystal core at the
-sternum, and quiet lotus geometry. The character is stylised; the world around
+pearl-light constellation filaments, a small glowing cyan question-mark core
+at the sternum (echoing the channel's own icon), and quiet lotus geometry.
+The character is stylised; the world around
 them has realistic cinematic lighting, material texture and scale. Cyan is a
 signal of intelligence and curiosity, not a full body colour scheme.
 
@@ -23,8 +24,8 @@ franchise, character, or shot style.
 ## Wardrobe rule
 
 The Costume Director provides one contextual brief per scene. Default palette:
-warm ivory, charcoal, earth tones and deep navy. Cyan is limited to the crystal
-core and fine accents. Wardrobe must clarify mission, climate, or era and never
+warm ivory, charcoal, earth tones and deep navy. Cyan is limited to the
+question-mark core and fine accents. Wardrobe must clarify mission, climate, or era and never
 steal attention from the subject.
 
 ## Framing rule

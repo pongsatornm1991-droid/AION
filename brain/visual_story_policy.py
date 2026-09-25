@@ -51,7 +51,7 @@ class VisualStoryPolicy:
         "aion-stylized-guide-real-world-v1",
         # A deliberately limited seasonal/locale special.  The visual medium
         # changes, but AION remains a small contextual guide with the same
-        # recognizable silver hair, cyan eyes and crystal signature.
+        # recognizable silver hair, cyan eyes and glowing question-mark signature.
         "aion-realistic-profile-with-illustrated-postcard-adaptation-v1",
     }
     IDENTITY_SUMMARY = (
