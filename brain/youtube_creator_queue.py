@@ -20,6 +20,11 @@ class YouTubeCreatorQueue:
     READY_STATUS = "production-ready-assets-and-script"
     RETIRED_STATUS = "retired-do-not-publish"
     RESEARCH_REJECTED_STATUS = "research-evidence-rejected-preserved"
+    # Owner-approved addition, 2026-09-26: the description had no invitation
+    # to subscribe at all. A plain, non-manipulative line, not a manufactured
+    # urgency hook -- consistent with the channel's own claim-safety stance
+    # elsewhere.
+    SUBSCRIBE_CTA = "New question, new evidence -- every day. Subscribe to follow along."
 
     @staticmethod
     def _cover_quality(path, content_kind=None):
@@ -610,6 +615,7 @@ class YouTubeCreatorQueue:
         format_tags = "#Shorts #AION #AI" if is_youtube_short else "#AION #AI"
         description = "\n\n".join(part for part in (
             payload.get("caption"),
+            self.SUBSCRIBE_CTA,
             append_identity_disclosure("", "youtube"),
             format_tags,
         ) if part)

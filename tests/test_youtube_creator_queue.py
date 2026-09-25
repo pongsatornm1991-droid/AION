@@ -295,6 +295,7 @@ class YouTubeCreatorQueueTests(unittest.TestCase):
             # for the Operations dashboard, just not on the actual upload.
             self.assertEqual("A useful question", captured["title"])
             self.assertIn("#Shorts", captured["description"])
+            self.assertIn(YouTubeCreatorQueue.SUBSCRIBE_CTA, captured["description"])
             self.assertEqual("published", queue.candidates()[0]["status"])
             self.assertEqual("no-authorized-creator-episode", queue.publish_once()["stage"])
 
