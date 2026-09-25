@@ -17,7 +17,10 @@ class StudioPipeline:
 
     def snapshot(self):
         cards = []
-        for episode in CreatorSeriesRegistry(self.root).episodes():
+        # This dashboard/public-summary snapshot must stay readable even
+        # while one episode currently fails a content-policy check -- see
+        # brain/creator_series.py's episodes(skip_invalid=True) docstring.
+        for episode in CreatorSeriesRegistry(self.root).episodes(skip_invalid=True):
             state = self.STAGES.get(episode.get("status"))
             if not state:
                 continue

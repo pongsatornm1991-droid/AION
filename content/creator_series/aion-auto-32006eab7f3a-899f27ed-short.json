@@ -211,7 +211,8 @@
       "evidence-two-intro",
       "evidence-two-a",
       "evidence-two-b",
-      "connection",
+      "connection—setup",
+      "connection—continuation",
       "boundary",
       "takeaway",
       "invitation"
@@ -290,21 +291,26 @@
       },
       {
         "n": 9,
-        "beat": "connection",
+        "beat": "connection—setup",
         "role": "comparison"
       },
       {
         "n": 10,
+        "beat": "connection—continuation",
+        "role": "comparison"
+      },
+      {
+        "n": 11,
         "beat": "boundary",
         "role": "boundary"
       },
       {
-        "n": 11,
+        "n": 12,
         "beat": "takeaway",
         "role": "takeaway"
       },
       {
-        "n": 12,
+        "n": 13,
         "beat": "invitation",
         "role": "mechanism"
       }

@@ -15,7 +15,10 @@ from brain.narration_preflight import NarrationPreflight
 
 def preflight(root=ROOT, write_timeline=False):
     reports = []
-    for episode in CreatorSeriesRegistry(root).episodes():
+    # One episode that currently fails a content-policy check must not stop
+    # this preflight from measuring every other ready storyboard's timing --
+    # see brain/creator_series.py's episodes(skip_invalid=True) docstring.
+    for episode in CreatorSeriesRegistry(root).episodes(skip_invalid=True):
         if episode.get("status") != "storyboard-ready-needs-assets":
             continue
         report = NarrationPreflight.repair_episode_timing(episode)
@@ -30,6 +33,17 @@ def preflight(root=ROOT, write_timeline=False):
             payload["target_duration_seconds"] = episode["target_duration_seconds"]
             if episode.get("narration_timing_repairs"):
                 payload["narration_timing_repairs"] = episode["narration_timing_repairs"]
+            # A scene split updates these two planning ledgers in place (see
+            # NarrationPreflight.repair_episode_timing) so their scene count
+            # and roles stay in sync with the revised storyboard. Dropping
+            # them here left a stale scene_progression/scene_roles on disk
+            # that CreatorSeriesRegistry's VisualNarrativeGate/
+            # FactFirstVisualGate checks then rejected on every later run --
+            # a real episode got stuck this way (2026-09-25).
+            if isinstance(episode.get("visual_narrative"), dict):
+                payload["visual_narrative"] = episode["visual_narrative"]
+            if isinstance(episode.get("fact_first_visual"), dict):
+                payload["fact_first_visual"] = episode["fact_first_visual"]
             durations = report.get("scene_durations") or []
             payload["audio_visual_timeline"] = {
                 "version": "audio-driven-v1",
