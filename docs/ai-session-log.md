@@ -13,6 +13,17 @@ Format:
 Commits: <hash> [, <hash> ...]
 ```
 
+## 2026-09-25 — Codex — Made automatic motion production daily and provider-resilient
+
+The Motion stage no longer stops before its existing kinetic-video fallback
+when Veo credentials are temporarily absent. It now turns each approved,
+current scene image into a measured motion MP4 in that case, while retaining
+Veo as the preferred provider whenever configured. The recovery schedule now
+runs every day, and quarantined invalid storyboards cannot block a separate
+asset-complete Short from moving on to video production. Targeted tests cover
+the no-key fallback and invalid-storyboard isolation.
+Commits: 7579028
+
 ## 2026-09-25 — Claude Code — Fixed red `main` (stale test) and a single-bad-episode crash that emptied the Shorts buffer
 
 Owner asked "ต้องทำอะไรมั้ย จุดอ่อน คอขวด" (anything to do, weak points,
