@@ -1,10 +1,10 @@
 {
-  "generated_at": "2026-09-25T13:58:43.148988+00:00",
+  "generated_at": "2026-09-25T14:00:00.838231+00:00",
   "tiles": {
     "total": 41,
-    "ok": 35,
+    "ok": 36,
     "attn": 1,
-    "running": 3
+    "running": 2
   },
   "groups": [
     {
@@ -269,8 +269,8 @@
         {
           "name": "AION - YouTube release watchdog",
           "file": "youtube-release-watchdog.yml",
-          "status_class": "running",
-          "status_label": "กำลังรัน",
+          "status_class": "success",
+          "status_label": "สำเร็จ",
           "html_url": "https://github.com/pongsatornm1991-droid/AION/actions/runs/36144325537",
           "created_at": "2026-09-25T13:57:47Z"
         },
