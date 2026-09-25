@@ -118,10 +118,6 @@ jobs:
           args=(--content-kind "$RELEASE_KIND")
           if [[ -n "$EPISODE_ID" ]]; then args+=(--episode-id "$EPISODE_ID"); fi
           python main.py run-youtube-creator-publish "${args[@]}" | tee youtube-creator-publish-report.txt
-          if [[ "${{ github.event_name }}" == "workflow_dispatch" && "${{ github.event.inputs.scheduled_recovery }}" != "true" ]] && ! grep -q "Stage: published" youtube-creator-publish-report.txt; then
-            echo "An explicitly requested release did not reach YouTube; refusing a false-green run."
-            exit 1
-          fi
       - name: Record an empty slot; never substitute an old Reel
         # A release slot must contain a newly produced Studio episode.  An old
         # Reel may be technically valid but is not a replacement for today's
@@ -140,6 +136,7 @@ jobs:
             echo "Creator $RELEASE_KIND handled the scheduled YouTube slot."
           fi
       - name: Persist private memory
+        if: ${{ always() }}
         working-directory: memory_data
         run: |
           git config user.name "aion-bot"
@@ -149,4 +146,23 @@ jobs:
             git commit -m "AION Creator YouTube update"
             git pull --rebase origin main
             { git push || { git pull --rebase --autostash origin main && git push; } || { sleep 10; git pull --rebase --autostash origin main && git push; } || { sleep 20; git pull --rebase --autostash origin main && git push; }; }
+          fi
+      - name: Fail the run on a real publish fault, after the audit trail is saved
+        # A genuine upload/production fault (e.g. an expired YouTube OAuth
+        # token) must never report green just because this happened to be a
+        # scheduled or self-healing recovery run -- that silently masked a
+        # real, multi-day OAuth failure this way (found 2026-09-25, only
+        # visible by reading this step's raw log text, not the job's own
+        # green status). "no-authorized-creator-episode" (nothing was ready
+        # yet) stays a quiet, non-fatal outcome. This runs after persisting
+        # memory so the audit record survives even when the job goes red.
+        if: ${{ always() }}
+        run: |
+          if [[ -f youtube-creator-publish-report.txt ]] && grep -q "Stage: upload-failed" youtube-creator-publish-report.txt; then
+            echo "A ready episode failed to actually upload to YouTube; refusing a false-green run."
+            exit 1
+          fi
+          if [[ "${{ github.event_name }}" == "workflow_dispatch" && "${{ github.event.inputs.scheduled_recovery }}" != "true" ]] && [[ -f youtube-creator-publish-report.txt ]] && ! grep -q "Stage: published" youtube-creator-publish-report.txt; then
+            echo "An explicitly requested release did not reach YouTube; refusing a false-green run."
+            exit 1
           fi
