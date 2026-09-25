@@ -1,5 +1,6 @@
 import tempfile
 import unittest
+from unittest.mock import patch
 
 from brain.initiative import AutonomousInitiative
 from brain.curiosity import CuriosityEngine
@@ -59,19 +60,52 @@ class AutonomousInitiativeTests(unittest.TestCase):
             self.assertEqual(created["question"]["id"], active["question"]["id"])
             self.assertEqual("buffer-healthy", planner.initiate_recovery_once(0)["stage"])
 
-    def test_recovery_lane_does_not_reopen_a_previous_recovery_domain(self):
-        with tempfile.TemporaryDirectory() as root:
+    def test_recovery_lane_does_not_reopen_a_previous_recovery_question(self):
+        # Regression for 2026-09-25: excluding by whole catalogue domain
+        # (rather than the specific question actually asked) meant a
+        # finite, never-expiring domain list eventually ran out entirely --
+        # the real reserve hit 0/33 domains remaining and could never seed
+        # another recovery question again, no matter how empty the Shorts
+        # buffer was. The fix excludes a specific question once it has
+        # actually been asked (any status), not its whole domain, so the
+        # same domain can still contribute a different question.
+        catalogue = (
+            ("insect-science", "How do honeybees tell their nestmates where food is?", "Show a bee's dance."),
+            ("insect-science", "Why do fireflies glow in the dark?", "Show a chemical reaction lighting an insect."),
+        )
+        with tempfile.TemporaryDirectory() as root, patch.object(AutonomousInitiative, "RECOVERY_INQUIRIES", catalogue):
             memory = MemoryEngine(root)
-            memory.remember(
-                "autonomous_initiatives", "Earlier recovery was preserved.",
-                memory_type="decision", source="test", importance=5,
-                tags=["shorts-recovery", "insect-science"],
+            curiosity = CuriosityEngine(memory)
+            entry = curiosity.raise_question(
+                catalogue[0][1], "Cite two sources.", priority=5, budget=1,
+                tags=["shorts-recovery", "shorts-first", "insect-science"],
             )
-            report = AutonomousInitiative(memory).initiate_recovery_once(7)
+            curiosity.record_attempt(entry["id"])
+
+            report = AutonomousInitiative(memory, curiosity).initiate_recovery_once(7)
+
             self.assertEqual("seeded-recovery-question", report["stage"])
-            # The reserve may grow with new content lanes; the promise is
-            # that an already-preserved recovery domain is never reopened.
-            self.assertNotEqual("insect-science", report["domain"])
+            seeded = next(q for q in curiosity.open_questions() if q["id"] == report["question"]["id"])
+            self.assertEqual(catalogue[1][1], seeded["statement"])
+            self.assertEqual("insect-science", report["domain"])
+
+    def test_recovery_lane_stops_once_every_catalogue_question_is_asked(self):
+        catalogue = (
+            ("insect-science", "How do honeybees tell their nestmates where food is?", "Show a bee's dance."),
+        )
+        with tempfile.TemporaryDirectory() as root, patch.object(AutonomousInitiative, "RECOVERY_INQUIRIES", catalogue):
+            memory = MemoryEngine(root)
+            curiosity = CuriosityEngine(memory)
+            entry = curiosity.raise_question(
+                catalogue[0][1], "Cite two sources.", priority=5, budget=1,
+                tags=["shorts-recovery", "shorts-first", "insect-science"],
+            )
+            curiosity.record_attempt(entry["id"])
+
+            report = AutonomousInitiative(memory, curiosity).initiate_recovery_once(7)
+
+            self.assertEqual("recovery-reserve-exhausted", report["stage"])
+            self.assertIsNone(report["question"])
 
     def test_recovery_reserve_seeds_a_bounded_distinct_batch(self):
         with tempfile.TemporaryDirectory() as root:

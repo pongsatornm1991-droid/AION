@@ -198,6 +198,131 @@ class AutonomousInitiative:
             "Why does ice float on liquid water?",
             "Show an open ice crystal structure taking more space than liquid water.",
         ),
+        # Second batch, added 2026-09-25 once the first 33 domains had all
+        # been asked at least once. A domain can appear again here with a
+        # genuinely different question -- see _asked_recovery_statements(),
+        # which excludes a specific question once asked, not its whole
+        # domain, so this batch also un-sticks the domains above.
+        (
+            "chemistry",
+            "Why do some metals rust but others do not?",
+            "Show iron reacting with oxygen and water while a nearby metal resists.",
+        ),
+        (
+            "weather-science",
+            "Why do some clouds look fluffy while others look flat and layered?",
+            "Show rising warm air fluffing one cloud while a stable layer flattens another.",
+        ),
+        (
+            "space-science",
+            "Why do astronauts float inside the International Space Station?",
+            "Show the station and everything inside it falling together around Earth at the same rate.",
+        ),
+        (
+            "sound-science",
+            "Why does your voice sound different in a recording than in your own head?",
+            "Show sound travelling through air to a microphone versus through bone to an ear.",
+        ),
+        (
+            "light-science",
+            "Why is the sky blue during the day but red at sunset?",
+            "Show sunlight scattering through a short path at noon and a long path at sunset.",
+        ),
+        (
+            "body-science",
+            "Why do onions make people cry when they are cut?",
+            "Show a released compound drifting up to meet the eyes.",
+        ),
+        (
+            "animal-science",
+            "Why do cats almost always land on their feet?",
+            "Show a falling cat twisting its spine in two stages to land upright.",
+        ),
+        (
+            "insect-science",
+            "Why do fireflies glow in the dark?",
+            "Show a chemical reaction lighting one insect's abdomen like a tiny lamp.",
+        ),
+        (
+            "plant-science",
+            "Why do some trees lose their leaves in autumn while others stay green?",
+            "Show one tree sealing off its leaves before winter while another keeps its needles.",
+        ),
+        (
+            "ocean-science",
+            "Why is the ocean salty but rivers are not?",
+            "Show rivers carrying dissolved minerals into the sea, where only water leaves again.",
+        ),
+        (
+            "earth-science",
+            "Why do volcanoes usually form in the same regions of the world?",
+            "Show two shifting plates meeting and releasing melted rock upward.",
+        ),
+        (
+            "materials-science",
+            "Why does glass shatter but metal bends?",
+            "Show cracks racing through rigid glass while metal atoms slide past each other.",
+        ),
+        (
+            "food-science",
+            "Why does milk turn sour over time?",
+            "Show tiny organisms multiplying inside a carton and changing it over days.",
+        ),
+        (
+            "water-science",
+            "Why do lakes freeze from the top down instead of the bottom up?",
+            "Show a colder, lighter ice layer forming on the surface while liquid water stays below.",
+        ),
+        (
+            "everyday-physics",
+            "Why does a spinning top stay upright instead of falling over?",
+            "Show spin creating a steadying effect that resists tipping.",
+        ),
+        (
+            "human-history-medicine",
+            "How did people figure out that washing hands could stop the spread of disease?",
+            "Show a hospital ward before and after a simple handwashing habit changes outcomes.",
+        ),
+        (
+            "human-history-navigation",
+            "How did sailors find their way across open ocean before satellites existed?",
+            "Show stars, a compass, and a chronometer guiding one ship across open water.",
+        ),
+        (
+            "human-history-printing",
+            "How did the invention of printing change how quickly ideas could spread?",
+            "Show one hand-copied book becoming many identical printed copies.",
+        ),
+        (
+            "human-history-glass",
+            "How did ancient people first learn to make glass?",
+            "Show sand and heat transforming into a clear, shapeable material.",
+        ),
+        (
+            "human-history-numbers",
+            "Why do different cultures write numbers in different symbols but mean the same amounts?",
+            "Show the same quantity represented in several different numeral systems.",
+        ),
+        (
+            "space-science",
+            "Why do stars twinkle but planets do not?",
+            "Show starlight bending through moving air while planet light stays steadier.",
+        ),
+        (
+            "brain-science",
+            "Why do people yawn when they see someone else yawn?",
+            "Show a yawn passing from one person's face to another's nearby.",
+        ),
+        (
+            "climate-science",
+            "Why do deserts get so cold at night despite being hot during the day?",
+            "Show dry air losing the day's heat quickly once the sun sets.",
+        ),
+        (
+            "sound-science",
+            "Why does an empty room sound different from a furnished one?",
+            "Show sound waves bouncing freely in an empty room and being absorbed in a furnished one.",
+        ),
     )
     RECOVERY_TAG = "shorts-recovery"
     FAST_RECOVERY_TAG = "shorts-fast-lane"
@@ -225,6 +350,32 @@ class AutonomousInitiative:
         for entry in self.memory.all(self.CATEGORY):
             used.update(entry.get("tags") or [])
         return used
+
+    def _asked_recovery_statements(self):
+        """Every recovery-tagged question statement ever raised, any status.
+
+        Reading every status (open, resolved, exhausted, abandoned,
+        superseded) via memory.all() -- not just the currently open
+        questions -- is what lets a specific question stay permanently
+        excluded even long after it has left the open set, while a
+        *different* question sharing the same catalogue domain remains free
+        to be asked. Excluding by whole domain instead (the previous
+        approach) meant a finite, never-expiring catalogue could run out of
+        domains entirely and permanently stop seeding new recovery work --
+        found 2026-09-25 with the real reserve at 0/33 domains remaining.
+        """
+        statements = set()
+        for entry in self.memory.all(self.curiosity.category):
+            if entry.get("type") != self.curiosity.MEMORY_TYPE:
+                continue
+            tags = [str(tag).lower() for tag in (entry.get("tags") or [])]
+            if self.RECOVERY_TAG not in tags:
+                continue
+            parsed = self.curiosity._parse_content(entry.get("content") or "")
+            statement = str(parsed.get("statement") or "").strip().lower()
+            if statement:
+                statements.add(statement)
+        return statements
 
     def initiate_recovery_batch(self, missing=0, target=None, seed_limit=None):
         """Maintain a bounded, distinct evidence-research reserve.
@@ -258,13 +409,13 @@ class AutonomousInitiative:
                 "target": target,
             }
 
-        # Include historical recovery decisions too. An answered, exhausted,
-        # or evidence-rejected recovery question is deliberately preserved in
-        # memory, so looking only at *currently open* questions would reopen
-        # the same topic on the next low-buffer tick.
-        attempted_domains = self._used_domains() | {
-            tag for entry in recovery_questions for tag in (entry.get("tags") or [])
-        }
+        # Exclude a specific question once it has actually been asked before
+        # (any status: open, resolved, exhausted, abandoned) -- not its whole
+        # catalogue domain. A domain may hold more than one distinct
+        # question; once one is fully resolved or exhausted, the domain
+        # naturally stays available for a different question in the same
+        # area instead of being banned forever after a single use.
+        asked_statements = self._asked_recovery_statements()
         open_statements = {
             str(entry.get("statement") or "").strip().lower()
             for entry in self.curiosity.open_questions()
@@ -285,8 +436,8 @@ class AutonomousInitiative:
         )
         candidates = [
             candidate for candidate in self.RECOVERY_INQUIRIES
-            if candidate[0] not in attempted_domains
-            and candidate[1].lower() not in open_statements
+            if candidate[1].strip().lower() not in asked_statements
+            and candidate[1].strip().lower() not in open_statements
         ]
         candidates.sort(key=lambda candidate: (
             candidate[0] not in self.FAST_RECOVERY_DOMAINS,
