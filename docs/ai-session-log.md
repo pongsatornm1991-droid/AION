@@ -13,6 +13,40 @@ Format:
 Commits: <hash> [, <hash> ...]
 ```
 
+## 2026-09-25 — Claude Code — Diagnosed tonight's jerky-motion report: all 13 scenes used the synthetic zoom fallback, real error was never persisted
+
+Owner watched the maps episode and reported the motion "กระตุก...พอครบรอบ"
+(jerks every cycle) and asked whether to make it static instead.
+
+Checked the episode's own `motion_contract` per scene: all 13 used
+`aion-kinetic-fallback` (`fallback_reason: "provider-failed"`), meaning the
+real Gemini Veo image-to-video call failed for every single scene, not
+just one. The fallback (`render_kinetic_fallback` in
+`tools/produce_creator_motion.py`) applies an identical ffmpeg zoompan
+(zoom 1.0 -> ~1.07 over each 5-second scene) to every clip, and
+`tools/reel_render.py` hard-cuts between clips (plain ffmpeg `concat`, no
+crossfade) -- so the viewer sees the exact same zoom-in-then-snap-back
+rhythm repeat 13 times back to back. That mechanical uniformity, not a
+technical glitch, is almost certainly what read as "jerky."
+
+Could not confirm the *exact* Veo failure reason (auth/billing/quota vs.
+something else) because `generate_scene_video` (tools/gemini_video.py)
+already returns a secret-free `error_type` (exception class name only) on
+failure, but `produce_once()` never persisted it into `motion_contract` --
+only the generic `fallback_reason` state. Fixed that gap (commit 3491c36)
+so the next failure is diagnosable straight from the episode file instead
+of GitHub Actions archaeology. Likely working theory, not yet confirmed:
+Veo video generation on the Gemini API requires a paid/billed tier even
+when text-only Gemini calls succeed on a free-tier key -- worth checking
+Google AI Studio billing status directly.
+
+Did not change the fallback's zoom behavior itself (static vs. varied
+motion is a visual-style call, not a bug) -- gave the owner the diagnosis
+plus a recommendation and left the decision with them; see chat for the
+options discussed.
+
+Commits: 3491c36.
+
 ## 2026-09-25 — Claude Code — Un-stuck the recovery lane: question-level exclusion instead of domain-level, plus 24 new topics
 
 Owner approved the recommended plan in full ("ทำเลยทั้งหมด") after the
