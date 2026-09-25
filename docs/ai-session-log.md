@@ -2275,3 +2275,16 @@ preflight/assembly ceiling is therefore now 12 seconds, while 12+ second
 narration still takes the bounded source-beat split path. A regression test
 covers an 11-second narration using an 11.3-second visual; timing, narration,
 assembly, and series tests pass.
+## 2026-09-26 — Codex — Restored YouTube automatic publishing credentials
+
+The channel owner completed the Google OAuth consent flow and replaced the
+`YOUTUBE_REFRESH_TOKEN` GitHub Actions secret personally. Codex never read,
+printed, logged, committed, or transmitted the refresh token; the protected
+local handoff file was removed immediately after the owner updated the secret.
+
+Manual workflow run #40 (`youtube-creator.yml`, 2026-09-26 Asia/Bangkok)
+completed successfully. Its job completed every step, including “Publish one
+authorized Creator episode”, with no `upload-failed` result. This closes the
+previous `invalid_grant` blocker: future ready Shorts can again publish through
+the automatic YouTube lane. Separate image-generation capacity/queue issues
+remain independent production work and are not an OAuth failure.
