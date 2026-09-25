@@ -1,10 +1,10 @@
 {
-  "generated_at": "2026-09-25T12:28:54.706991+00:00",
+  "generated_at": "2026-09-25T12:29:42.441699+00:00",
   "tiles": {
     "total": 40,
-    "ok": 30,
+    "ok": 32,
     "attn": 2,
-    "running": 6
+    "running": 4
   },
   "groups": [
     {
@@ -78,8 +78,8 @@
           "file": "learning-cycle.yml",
           "status_class": "running",
           "status_label": "กำลังรัน",
-          "html_url": "https://github.com/pongsatornm1991-droid/AION/actions/runs/36135018622",
-          "created_at": "2026-09-25T12:27:24Z"
+          "html_url": "https://github.com/pongsatornm1991-droid/AION/actions/runs/36135179613",
+          "created_at": "2026-09-25T12:29:07Z"
         },
         {
           "name": "AION - self-narrative",
@@ -238,8 +238,8 @@
         {
           "name": "AION - Creator release readiness",
           "file": "release-readiness.yml",
-          "status_class": "running",
-          "status_label": "กำลังรัน",
+          "status_class": "success",
+          "status_label": "สำเร็จ",
           "html_url": "https://github.com/pongsatornm1991-droid/AION/actions/runs/36135095532",
           "created_at": "2026-09-25T12:28:13Z"
         },
@@ -342,8 +342,8 @@
         {
           "name": "AION - production control",
           "file": "production-control.yml",
-          "status_class": "running",
-          "status_label": "กำลังรัน",
+          "status_class": "success",
+          "status_label": "สำเร็จ",
           "html_url": "https://github.com/pongsatornm1991-droid/AION/actions/runs/36135095631",
           "created_at": "2026-09-25T12:28:13Z"
         },
