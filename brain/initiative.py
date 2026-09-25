@@ -5,6 +5,8 @@ reason for each new inquiry inspectable and creates no model request itself.
 The existing evidence-aware learning cycle does the research afterwards.
 """
 
+from datetime import datetime, timezone
+
 from brain.curiosity import CuriosityEngine
 
 
@@ -340,6 +342,13 @@ class AutonomousInitiative:
     # creator queue.
     EVIDENCE_RESERVE_TARGET = 21
     RECOVERY_SEED_BATCH = 5
+    # Last-resort reuse once the catalogue has no never-asked question left
+    # at all (it reached exactly this point twice in one day, 2026-09-25,
+    # even at 57 topics). A long cooldown -- long enough that source
+    # coverage may genuinely have changed and the daily-Shorts audience has
+    # fully turned over -- is a deliberately different policy from "retry an
+    # exhausted question immediately as if it were new", which stays banned.
+    COOLDOWN_REATTEMPT_DAYS = 21
 
     def __init__(self, memory, curiosity=None):
         self.memory = memory
@@ -377,7 +386,31 @@ class AutonomousInitiative:
                 statements.add(statement)
         return statements
 
-    def initiate_recovery_batch(self, missing=0, target=None, seed_limit=None):
+    def _cooldown_reattempt_candidate(self, now):
+        """The oldest fully-exhausted recovery question eligible for reuse.
+
+        Only ever consulted when the catalogue has zero never-asked
+        questions left (see initiate_recovery_batch). A question that was
+        answered with cited evidence is never revisited -- only one that
+        ran out its attempt budget without reaching an answer, and only
+        once COOLDOWN_REATTEMPT_DAYS have passed since that last attempt.
+        """
+        eligible = []
+        for item in self.curiosity.open_questions(topic=self.RECOVERY_TAG):
+            if not item.get("budget_exhausted"):
+                continue
+            try:
+                stamped = datetime.strptime(str(item.get("timestamp")), "%Y-%m-%d %H:%M:%S").replace(tzinfo=timezone.utc)
+            except (TypeError, ValueError):
+                continue
+            if (now - stamped).days >= self.COOLDOWN_REATTEMPT_DAYS:
+                eligible.append((stamped, item))
+        if not eligible:
+            return None
+        eligible.sort(key=lambda pair: pair[0])
+        return eligible[0][1]
+
+    def initiate_recovery_batch(self, missing=0, target=None, seed_limit=None, now=None):
         """Maintain a bounded, distinct evidence-research reserve.
 
         Previously a release shortage opened only one recovery question.  The
@@ -395,6 +428,7 @@ class AutonomousInitiative:
         if missing <= 0:
             return {"stage": "buffer-healthy", "created": False, "questions": []}
 
+        now = now or datetime.now(timezone.utc)
         target = self.EVIDENCE_RESERVE_TARGET if target is None else max(1, int(target))
         seed_limit = self.RECOVERY_SEED_BATCH if seed_limit is None else max(1, int(seed_limit))
 
@@ -476,6 +510,41 @@ class AutonomousInitiative:
             created_domains.append(domain)
             created_visual_metaphors.append(visual_metaphor)
 
+        # Last resort: the static catalogue has no never-asked question left
+        # at all (it reached exactly this state twice in one day even at 57
+        # topics). Reuse the single oldest fully-exhausted question, but only
+        # once it has sat cold for COOLDOWN_REATTEMPT_DAYS -- a distinct,
+        # dated, auditable re-attempt, never a whole fresh batch of stale
+        # repeats, and never a question that was actually answered.
+        cooldown_reattempt_of = None
+        if not created and not candidates and max(0, target - len(active)) > 0 and queue_capacity > 0:
+            stale = self._cooldown_reattempt_candidate(now)
+            match = next(
+                (c for c in self.RECOVERY_INQUIRIES if stale and c[1].strip().lower() == str(stale.get("statement") or "").strip().lower()),
+                None,
+            )
+            if stale is not None and match is not None:
+                domain, question, visual_metaphor = match
+                lane_tags = [self.RECOVERY_TAG, "shorts-first", domain, "shorts-recovery-cooldown-reattempt"]
+                if domain in self.FAST_RECOVERY_DOMAINS:
+                    lane_tags.append(self.FAST_RECOVERY_TAG)
+                entry = self.curiosity.raise_question(
+                    question, criteria, priority=5, budget=3, tags=lane_tags, source=self.SOURCE,
+                )
+                self.memory.remember(
+                    self.CATEGORY,
+                    f"AION re-opened recovery inquiry {entry.get('id')} as a bounded cooldown "
+                    f"re-attempt of exhausted question {stale.get('id')} (last attempted "
+                    f"{stale.get('timestamp')}), because the static catalogue has no unused "
+                    f"question left. Domain: {domain}. Visual: {visual_metaphor}",
+                    memory_type="decision", source=self.SOURCE, importance=5, tags=lane_tags,
+                    related=[entry.get("id"), stale.get("id")],
+                )
+                created.append(entry)
+                created_domains.append(domain)
+                created_visual_metaphors.append(visual_metaphor)
+                cooldown_reattempt_of = stale.get("id")
+
         # Finish the oldest live reserve questions first.  That gives the
         # earliest evidence pair a chance to reach the story queue on the
         # very next pass while newer questions are already waiting behind it.
@@ -488,6 +557,7 @@ class AutonomousInitiative:
         )[:seed_limit]
         return {
             "stage": (
+                "seeded-recovery-cooldown-reattempt" if cooldown_reattempt_of else
                 "seeded-recovery-reserve" if created else
                 "recovery-reserve-queue-full" if queue_capacity == 0 else
                 "recovery-reserve-exhausted"
@@ -496,6 +566,7 @@ class AutonomousInitiative:
             "created_count": len(created),
             "created_domains": created_domains,
             "created_visual_metaphors": created_visual_metaphors,
+            "cooldown_reattempt_of": cooldown_reattempt_of,
             "questions": selected,
             "active_count": len(active) + len(created),
             "target": target,

@@ -1,5 +1,7 @@
 import tempfile
 import unittest
+from datetime import datetime, timedelta, timezone
+from pathlib import Path
 from unittest.mock import patch
 
 from brain.initiative import AutonomousInitiative
@@ -106,6 +108,94 @@ class AutonomousInitiativeTests(unittest.TestCase):
 
             self.assertEqual("recovery-reserve-exhausted", report["stage"])
             self.assertIsNone(report["question"])
+
+    @staticmethod
+    def _age_last_entry(root, category, when):
+        """Backdate the entry MemoryEngine.remember() just wrote.
+
+        There is no public way to pass a custom timestamp to remember(), and
+        the cooldown-reattempt mechanism's whole purpose is judging an
+        exhausted question's age, so tests fabricate it the same way a human
+        auditing the file by hand would: by rewriting its "## <timestamp>"
+        header line directly.
+        """
+        import re
+        path = Path(root) / f"{category}.md"
+        text = path.read_text(encoding="utf-8")
+        stamped = when.strftime("%Y-%m-%d %H:%M:%S")
+        matches = list(re.finditer(r"\n## \d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}\n", text))
+        assert matches, "no timestamped entry found to age"
+        start, end = matches[-1].span()
+        text = text[:start] + f"\n## {stamped}\n" + text[end:]
+        path.write_text(text, encoding="utf-8")
+
+    def test_reattempts_the_oldest_exhausted_question_once_the_catalogue_is_dry_and_cold(self):
+        # Regression for 2026-09-25: the catalogue reached 0 unused topics
+        # twice in one day even after growing to 57 entries -- a purely
+        # additive fix (more hand-written topics) cannot keep pace with an
+        # hourly recovery cadence forever. This is the last-resort fallback:
+        # once every catalogue question has actually been asked, the single
+        # oldest one that never got answered (only exhausted its budget)
+        # becomes eligible again, but only after a long cooldown.
+        catalogue = (
+            ("insect-science", "How do honeybees tell their nestmates where food is?", "Show a bee's dance."),
+        )
+        with tempfile.TemporaryDirectory() as root, patch.object(AutonomousInitiative, "RECOVERY_INQUIRIES", catalogue):
+            memory = MemoryEngine(root)
+            curiosity = CuriosityEngine(memory)
+            entry = curiosity.raise_question(
+                catalogue[0][1], "Cite two sources.", priority=5, budget=1,
+                tags=["shorts-recovery", "shorts-first", "insect-science"],
+            )
+            curiosity.record_attempt(entry["id"])
+            self._age_last_entry(root, "questions", datetime.now(timezone.utc) - timedelta(days=30))
+
+            report = AutonomousInitiative(memory, curiosity).initiate_recovery_once(7)
+
+            self.assertEqual("seeded-recovery-cooldown-reattempt", report["stage"])
+            self.assertEqual("insect-science", report["domain"])
+            seeded = next(q for q in curiosity.open_questions() if q["id"] == report["question"]["id"])
+            self.assertEqual(catalogue[0][1], seeded["statement"])
+            self.assertFalse(seeded["budget_exhausted"])
+
+    def test_does_not_reattempt_an_exhausted_question_before_the_cooldown_elapses(self):
+        catalogue = (
+            ("insect-science", "How do honeybees tell their nestmates where food is?", "Show a bee's dance."),
+        )
+        with tempfile.TemporaryDirectory() as root, patch.object(AutonomousInitiative, "RECOVERY_INQUIRIES", catalogue):
+            memory = MemoryEngine(root)
+            curiosity = CuriosityEngine(memory)
+            entry = curiosity.raise_question(
+                catalogue[0][1], "Cite two sources.", priority=5, budget=1,
+                tags=["shorts-recovery", "shorts-first", "insect-science"],
+            )
+            curiosity.record_attempt(entry["id"])
+            # Only 1 day old -- well short of the 21-day cooldown.
+            self._age_last_entry(root, "questions", datetime.now(timezone.utc) - timedelta(days=1))
+
+            report = AutonomousInitiative(memory, curiosity).initiate_recovery_once(7)
+
+            self.assertEqual("recovery-reserve-exhausted", report["stage"])
+            self.assertIsNone(report["question"])
+
+    def test_never_reattempts_a_question_that_was_actually_answered(self):
+        catalogue = (
+            ("insect-science", "How do honeybees tell their nestmates where food is?", "Show a bee's dance."),
+        )
+        with tempfile.TemporaryDirectory() as root, patch.object(AutonomousInitiative, "RECOVERY_INQUIRIES", catalogue):
+            memory = MemoryEngine(root)
+            curiosity = CuriosityEngine(memory)
+            entry = curiosity.raise_question(
+                catalogue[0][1], "Cite two sources.", priority=5, budget=3,
+                tags=["shorts-recovery", "shorts-first", "insect-science"],
+            )
+            curiosity.answer_question(entry["id"], "Bees dance.", ["https://example.test (id: e1)"])
+            self._age_last_entry(root, "questions", datetime.now(timezone.utc) - timedelta(days=90))
+
+            report = AutonomousInitiative(memory, curiosity).initiate_recovery_once(7)
+
+            self.assertNotEqual("seeded-recovery-cooldown-reattempt", report["stage"])
+            self.assertEqual("recovery-reserve-exhausted", report["stage"])
 
     def test_recovery_reserve_seeds_a_bounded_distinct_batch(self):
         with tempfile.TemporaryDirectory() as root:
