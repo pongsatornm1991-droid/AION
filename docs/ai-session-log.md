@@ -13,6 +13,55 @@ Format:
 Commits: <hash> [, <hash> ...]
 ```
 
+## 2026-09-27 — Claude Code — Thai dubbing pilot, then a full automated pipeline
+
+Follow-up to the same-day entry below (Thai-localization feasibility).
+Owner asked to run a real pilot on the channel's most recent public
+episode ("EP.005", video id qbsMX2lYCig), approving in advance: apply the
+Thai title/description live once translated, no further confirmation
+needed.
+
+- Confirmed via a real, read-only API call which episode was actually
+  live and which of two duplicate local content files matched it (by
+  render timestamp vs. published_at). Translated title/description/13
+  narration lines to Thai via the Gemini provider (matching brain/social.py's
+  existing prompt-language-switch pattern), screened the result against
+  brain/evaluator.py's own consciousness/emotion/subjective-experience
+  patterns (clean), then wrote it live with the new
+  tools/youtube.py:set_video_localization() -- confirmed afterward it
+  correctly preserved ~20 pre-existing language translations already on
+  the video (apparently YouTube's own auto-translate, not anything this
+  session touched) rather than clobbering them.
+- Synthesized a 13-scene Thai narration (edge-tts, `th-TH-PremwadeeNeural`),
+  each scene time-stretched with ffmpeg's `atempo` to match the episode's
+  own `audio_visual_timeline.scene_durations` -- final track 101.78s vs.
+  the original's 101.29s. Handed the file to the owner to upload manually
+  via Studio's per-video Language tab (owner had screenshotted this exact
+  flow) -- confirmed, and reconfirmed after pushback with two more targeted
+  searches, that YouTube has no public API for uploading a dubbed audio
+  track at all (Studio UI only, for any third-party developer); the
+  "Publish" button the owner saw in Studio belongs to that audio feature,
+  not to title/description (which has no separate publish step -- it's
+  live the instant the API writes it).
+- Owner then asked for this to be automatic going forward, not a manual
+  script, with Thai audio kept in its own folder. Built
+  brain/thai_dub_cycle.py (`ThaiDubCycle`): finds the oldest published,
+  not-yet-dubbed episode via YouTubeCreatorQueue's own memory records,
+  translates via AION's provider, re-runs the same claim-safety screen,
+  writes the live localization, then synthesizes + time-aligns the Thai
+  track and saves it to content/reels_thai/{episode_id}-thai.mp3 (new
+  tools/voice.py:synthesize_thai_voice(), independent of the main
+  pipeline's own English voice config). Runs daily via
+  .github/workflows/thai-dub.yml, after the Creator publish slot. Moved
+  the EP.005 pilot file into content/reels_thai/ to match. 14 new tests
+  (thai_dub_cycle, the new Thai TTS function, and get_video_snippet), all
+  offline/mocked. Full python run_tests.py: PASS.
+  Known gap: the real aion-memory-data repo has no dedupe record for the
+  manually-piloted EP.005, so the first scheduled run may harmlessly redo
+  it once before moving to genuinely new episodes.
+
+Commits: cd6174c, 2f76f90
+
 ## 2026-09-27 — Claude Code — Lane-balanced story selection, a Short title hashtag, and a Thai-localization feasibility pass
 
 Follow-up to the two 2026-09-26 entries below. Owner said "ทำเลยทั้งหมด" to

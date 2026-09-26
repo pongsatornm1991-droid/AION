@@ -13,7 +13,7 @@ Lease expires: n/a
 Scope: None.
 Handoff: See docs/ai-session-log.md's 2026-09-26/27 entries for full detail
 (commits f69b858, af28e02, 63970ef, 92fc52f, 34512b1, ef1dbac, 18ad2c8,
-cd6174c). Quick summary of where things stand:
+cd6174c, 2f76f90). Quick summary of where things stand:
 
 1. AION's identity signature is a glowing cyan question-mark held in one
    hand (not a chest core, not a crystal) -- updated everywhere it's
@@ -47,21 +47,27 @@ cd6174c). Quick summary of where things stand:
 8. `YouTubeCreatorQueue` appends one discovery hashtag to a Short's on-screen
    title (e.g. "... #Maps"), derived from the same keyword extraction
    `_video_tags()` uses. Never applied to long-form.
-9. Thai-language expansion (owner-initiated, in progress): investigated
-   feasibility -- TTS (OpenAI/edge-tts) already handles Thai text natively,
-   brain/evaluator.py's claim-safety consciousness/emotion gates already
-   have real Thai patterns (built for Phase 10 social posting), and
-   research_to_story.py's brief schema already says "English-first,
-   optional Thai companion text". Owner then found, by hand in YouTube
-   Studio, that translated title/description ("localizations") is a real
-   per-video feature with no Thai entry on any upload yet. Added
-   tools/youtube.py's set_video_localization() (confirmed via YouTube's own
-   API docs to be a stable, long-standing API field, unlike multi-language
-   audio dubbing, which has no confirmed public API endpoint and gates on
-   the channel having "Advanced features" -- unverified for this channel).
-   Not yet run against any real published video -- that needs the owner's
-   own go-ahead per video, plus actual Thai translations to write (not
-   generated yet).
+9. Thai-language expansion is now a real, running pipeline, not just an
+   investigation. Manually piloted on EP.005 first (real title/description
+   localization written live via the API; a scene-timed dubbed narration
+   track synthesized and handed to the owner, who confirmed YouTube's
+   "Advanced features" are already enabled on the channel from his own
+   Studio settings screenshot). Owner then asked for this to happen
+   automatically for every future episode: brain/thai_dub_cycle.py's
+   ThaiDubCycle now does the whole thing end to end (find the oldest
+   undubbed published episode -> translate via AION's own provider ->
+   claim-safety screen the translation -> write the live Thai
+   localization -> synthesize + time-align a Thai narration track) and
+   runs daily via .github/workflows/thai-dub.yml, saving each file to
+   content/reels_thai/{episode_id}-thai.mp3. Confirmed, and re-confirmed
+   after pushback, that uploading the dubbed *audio track* itself has no
+   public YouTube API at all (Studio's own Language tab is the only way,
+   for any developer) -- that one upload click per episode is the only
+   step that cannot be automated away.
+   Known gap: the real aion-memory-data repo has no dub-dedupe record for
+   EP.005 yet (only manually dubbed, not through the new cycle), so the
+   first scheduled thai-dub.yml run may harmlessly redo EP.005 once before
+   moving on to genuinely new episodes.
 
 Nothing urgent open. The owner has been told, and agreed, that the
 easy/code-findable technical gaps in this pipeline are largely closed for
