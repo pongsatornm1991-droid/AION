@@ -13,8 +13,8 @@ Lease expires: n/a
 Scope: None.
 Handoff: See docs/ai-session-log.md's 2026-09-26/27 entries for full detail
 (commits f69b858, af28e02, 63970ef, 92fc52f, 34512b1, ef1dbac, 18ad2c8,
-cd6174c, 2f76f90, 58f2ef3, fb4459a, d32392a, 2359b32, 508567b, 82a7b1b).
-Quick summary of where things stand:
+cd6174c, 2f76f90, 58f2ef3, fb4459a, d32392a, 2359b32, 508567b, 82a7b1b,
+2849873, 8b6bbcd). Quick summary of where things stand:
 
 1. AION's identity signature is a glowing cyan question-mark held in one
    hand (not a chest core, not a crystal) -- updated everywhere it's
@@ -156,6 +156,25 @@ Quick summary of where things stand:
     ready for the owner's one remaining manual upload step, and the real
     aion-memory-data repo has the matching dedupe record so the automated
     pipeline won't redo this one.
+
+17. Owner, 2026-09-27: "ตอนเก่าไม่เป็นไร เราจะเริ่มที่คลิปใหม่เลย" (don't
+    bother with the old ones, start with new clips). The real
+    aion-memory-data repo now has: a real "dubbed" record for EP.005
+    (backfilled -- it was genuinely already done manually before
+    ThaiDubCycle existed, so recorded as a completion, not a skip), and
+    explicit `skipped: true` records for the other 10 pre-launch backlog
+    episodes, so the automated pipeline only ever dubs episodes published
+    2026-09-27 onward.
+18. Owner noticed the fireflies description still read as generic
+    ("#Shorts #AION #AI") with nothing about its actual topic, even after
+    the title-hashtag change. YouTubeCreatorQueue._description_hashtags()
+    now adds up to 4 topical hashtags (reusing the same keyword extraction
+    as the title hashtag and the invisible tags field) ahead of the fixed
+    channel/format tags -- affects future publishes. Also retroactively
+    fixed the fireflies video's already-live English description (new
+    tools/youtube.py:update_video_description(), a read-modify-write like
+    set_video_localization() but for the primary snippet) and its Thai
+    localization, since that's the exact video the owner was looking at.
 
 Nothing urgent open. The owner has been told, and agreed, that the
 easy/code-findable technical gaps in this pipeline are largely closed for

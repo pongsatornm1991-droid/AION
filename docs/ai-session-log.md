@@ -13,6 +13,39 @@ Format:
 Commits: <hash> [, <hash> ...]
 ```
 
+## 2026-09-27 — Claude Code — Skipped the pre-launch backlog; added topical hashtags to descriptions
+
+Two quick follow-ups after the real Thai-dub run below.
+
+- Owner: "ตอนเก่าไม่เป็นไร เราจะเริ่มที่คลิปใหม่เลย" (the old ones don't
+  matter, start from new clips). Wrote real dedupe records for all 11
+  remaining backlog episodes directly into the real aion-memory-data repo:
+  EP.005 gets an honest "dubbed" completion record (it genuinely already
+  has live Thai localization + a real audio file in this repo, just done
+  manually before ThaiDubCycle existed), and the other 10 get an explicit
+  `skipped: true` record with the owner's stated reason. The automated
+  pipeline will now only ever consider episodes published 2026-09-27
+  onward, per the owner's actual intent, not silently work through a
+  backlog nobody asked it to.
+- Owner then pasted the fireflies video's Thai description back and asked
+  "ทำไมยังมีแค่นี้" (why is it still just this) -- pointing at the fixed
+  "#Shorts #AION #AI" tail with nothing about the actual episode topic.
+  Confirmed the same gap exists in the live English description too (not
+  a translation bug -- the Thai text was accurately mirroring an
+  already-generic English source). YouTubeCreatorQueue._description_hashtags()
+  now reuses the same keyword extraction _title_hashtag()/_video_tags()
+  already use to add up to 4 topical hashtags ahead of the fixed
+  channel/format tags. Added tools/youtube.py:update_video_description()
+  (read-modify-write for a video's own primary description, mirroring
+  set_video_localization()'s shape) to retroactively fix the fireflies
+  video's live English description and its Thai localization too, since
+  that's the exact video the owner was looking at -- both now read
+  "#Fireflies #Glow #Dark #Shorts #AION #AI".
+
+8 new tests. Full `python run_tests.py`: PASS.
+
+Commits: 2849873, 8b6bbcd (AION repo)
+
 ## 2026-09-27 — Claude Code — Ran the Thai dub pipeline for real; found and fixed 3 bugs, plus a design gap
 
 Owner asked why tonight's new clip (fireflies, TsGxyRCTcaE, published
