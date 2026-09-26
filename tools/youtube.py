@@ -139,6 +139,53 @@ def set_video_privacy(video_id, privacy_status="public"):
     }
 
 
+def set_video_localization(video_id, language_code, title, description):
+    """Add or replace one language's localized title/description for an
+    existing upload, without touching audio, captions, thumbnail, or any
+    other setting -- this is the same "localizations" field YouTube Studio's
+    own per-video Language tab writes to (verified against the owner's own
+    Studio screenshots, 2026-09-27: title/description translations there are
+    a distinct, older, fully API-backed feature from multi-language audio
+    dubbing, which as of this writing has no confirmed public Data API
+    endpoint and also gates on the channel having "Advanced features").
+
+    YouTube's `update` call replaces the entire `snippet` it's given, not a
+    partial patch, so the current snippet is read first and only
+    `localizations` is changed -- this cannot silently drop the video's
+    existing title, tags, or category the way a naive partial body would.
+    """
+    from googleapiclient.discovery import build
+
+    identifier = str(video_id or "").strip()
+    if not identifier:
+        raise ValueError("A YouTube video id is required")
+    language_code = str(language_code or "").strip().lower()
+    if not language_code:
+        raise ValueError("A BCP-47/ISO 639-1 language code is required")
+
+    youtube = build("youtube", "v3", credentials=youtube_credentials([YOUTUBE_COMMENT_SCOPE]), cache_discovery=False)
+    current = youtube.videos().list(part="snippet,localizations", id=identifier).execute()
+    items = current.get("items") or []
+    if not items:
+        raise RuntimeError(f"No YouTube video found for id {identifier}")
+
+    snippet = items[0]["snippet"]
+    # Localizations are rejected outright unless the video already declares
+    # what language its own snippet.title/description are written in.
+    if not snippet.get("defaultLanguage"):
+        snippet["defaultLanguage"] = "en"
+    localizations = dict(items[0].get("localizations") or {})
+    localizations[language_code] = {
+        "title": str(title).strip()[:100],
+        "description": str(description).strip()[:5000],
+    }
+    response = youtube.videos().update(
+        part="snippet,localizations",
+        body={"id": identifier, "snippet": snippet, "localizations": localizations},
+    ).execute()
+    return {"video_id": identifier, "language": language_code, "localizations": response.get("localizations", {})}
+
+
 def get_recent_channel_comments(limit=20):
     """Read recent channel comments as data; never returns credentials."""
     from googleapiclient.discovery import build

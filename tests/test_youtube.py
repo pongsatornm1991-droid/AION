@@ -3,7 +3,7 @@ import tempfile
 import unittest
 from unittest import mock
 
-from tools.youtube import YOUTUBE_UPLOAD_SCOPE, upload_short, youtube_credentials
+from tools.youtube import YOUTUBE_UPLOAD_SCOPE, set_video_localization, upload_short, youtube_credentials
 
 
 class YouTubeUploadTests(unittest.TestCase):
@@ -64,3 +64,53 @@ class YouTubeUploadTests(unittest.TestCase):
             kept = body["snippet"]["tags"]
             self.assertLess(len(kept), len(long_tags))
             self.assertLessEqual(sum(len(t) + 1 for t in kept), 500)
+
+
+class SetVideoLocalizationTests(unittest.TestCase):
+    ENV = {"YOUTUBE_REFRESH_TOKEN": "t", "YOUTUBE_CLIENT_ID": "c", "YOUTUBE_CLIENT_SECRET": "s"}
+
+    def _fake_youtube(self, existing_snippet, existing_localizations=None):
+        fake_youtube = mock.MagicMock()
+        fake_youtube.videos.return_value.list.return_value.execute.return_value = {
+            "items": [{"snippet": existing_snippet, "localizations": existing_localizations or {}}],
+        }
+        fake_youtube.videos.return_value.update.return_value.execute.return_value = {
+            "localizations": {**(existing_localizations or {})},
+        }
+        return fake_youtube
+
+    def test_rejects_a_blank_video_id_or_language_code_before_contacting_youtube(self):
+        with self.assertRaises(ValueError):
+            set_video_localization("", "th", "title", "desc")
+        with self.assertRaises(ValueError):
+            set_video_localization("abc", "", "title", "desc")
+
+    def test_adds_a_defaultLanguage_when_the_video_has_none_so_the_write_is_not_rejected(self):
+        fake_youtube = self._fake_youtube({"title": "Original", "description": "Original desc"})
+        with mock.patch.dict(os.environ, self.ENV, clear=False), \
+             mock.patch("googleapiclient.discovery.build", return_value=fake_youtube):
+            set_video_localization("abc", "th", "หัวข้อ", "คำอธิบาย")
+        body = fake_youtube.videos.return_value.update.call_args.kwargs["body"]
+        self.assertEqual("en", body["snippet"]["defaultLanguage"])
+        self.assertEqual({"title": "หัวข้อ", "description": "คำอธิบาย"}, body["localizations"]["th"])
+
+    def test_preserves_the_existing_snippet_and_other_languages_instead_of_overwriting_them(self):
+        fake_youtube = self._fake_youtube(
+            {"title": "Original", "description": "Original desc", "defaultLanguage": "en", "categoryId": "28"},
+            existing_localizations={"es": {"title": "Original ES", "description": "Desc ES"}},
+        )
+        with mock.patch.dict(os.environ, self.ENV, clear=False), \
+             mock.patch("googleapiclient.discovery.build", return_value=fake_youtube):
+            set_video_localization("abc", "th", "หัวข้อ", "คำอธิบาย")
+        body = fake_youtube.videos.return_value.update.call_args.kwargs["body"]
+        self.assertEqual("28", body["snippet"]["categoryId"])
+        self.assertEqual("Original ES", body["localizations"]["es"]["title"])
+        self.assertEqual("หัวข้อ", body["localizations"]["th"]["title"])
+
+    def test_raises_when_the_video_id_does_not_resolve_to_a_real_upload(self):
+        fake_youtube = mock.MagicMock()
+        fake_youtube.videos.return_value.list.return_value.execute.return_value = {"items": []}
+        with mock.patch.dict(os.environ, self.ENV, clear=False), \
+             mock.patch("googleapiclient.discovery.build", return_value=fake_youtube):
+            with self.assertRaises(RuntimeError):
+                set_video_localization("missing", "th", "title", "desc")
