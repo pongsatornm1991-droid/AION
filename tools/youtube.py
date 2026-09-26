@@ -156,6 +156,30 @@ def get_video_snippet(video_id):
     return {"title": snippet.get("title") or "", "description": snippet.get("description") or ""}
 
 
+def update_video_description(video_id, description):
+    """Replace an existing upload's own (primary-language) description.
+
+    Read-modify-write, like set_video_localization: the API replaces the
+    whole snippet it's given, not a partial patch, so the current snippet
+    is read first and only `description` is changed -- title, tags, and
+    category are preserved exactly as they were.
+    """
+    from googleapiclient.discovery import build
+
+    identifier = str(video_id or "").strip()
+    if not identifier:
+        raise ValueError("A YouTube video id is required")
+    youtube = build("youtube", "v3", credentials=youtube_credentials([YOUTUBE_COMMENT_SCOPE]), cache_discovery=False)
+    current = youtube.videos().list(part="snippet", id=identifier).execute()
+    items = current.get("items") or []
+    if not items:
+        raise RuntimeError(f"No YouTube video found for id {identifier}")
+    snippet = items[0]["snippet"]
+    snippet["description"] = str(description).strip()[:5000]
+    response = youtube.videos().update(part="snippet", body={"id": identifier, "snippet": snippet}).execute()
+    return {"video_id": identifier, "description": response.get("snippet", {}).get("description", "")}
+
+
 def set_video_localization(video_id, language_code, title, description):
     """Add or replace one language's localized title/description for an
     existing upload, without touching audio, captions, thumbnail, or any

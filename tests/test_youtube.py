@@ -4,7 +4,8 @@ import unittest
 from unittest import mock
 
 from tools.youtube import (
-    YOUTUBE_UPLOAD_SCOPE, get_video_snippet, set_video_localization, upload_short, youtube_credentials,
+    YOUTUBE_UPLOAD_SCOPE, get_video_snippet, set_video_localization, update_video_description,
+    upload_short, youtube_credentials,
 )
 
 
@@ -92,6 +93,39 @@ class GetVideoSnippetTests(unittest.TestCase):
              mock.patch("googleapiclient.discovery.build", return_value=fake_youtube):
             with self.assertRaises(RuntimeError):
                 get_video_snippet("missing")
+
+
+class UpdateVideoDescriptionTests(unittest.TestCase):
+    ENV = {"YOUTUBE_REFRESH_TOKEN": "t", "YOUTUBE_CLIENT_ID": "c", "YOUTUBE_CLIENT_SECRET": "s"}
+
+    def test_rejects_a_blank_video_id_before_contacting_youtube(self):
+        with self.assertRaises(ValueError):
+            update_video_description("", "new description")
+
+    def test_replaces_only_the_description_preserving_the_rest_of_the_snippet(self):
+        fake_youtube = mock.MagicMock()
+        fake_youtube.videos.return_value.list.return_value.execute.return_value = {
+            "items": [{"snippet": {"title": "Real title", "description": "Old", "categoryId": "28"}}],
+        }
+        fake_youtube.videos.return_value.update.return_value.execute.return_value = {
+            "snippet": {"description": "New description"},
+        }
+        with mock.patch.dict(os.environ, self.ENV, clear=False), \
+             mock.patch("googleapiclient.discovery.build", return_value=fake_youtube):
+            result = update_video_description("abc", "New description")
+        body = fake_youtube.videos.return_value.update.call_args.kwargs["body"]
+        self.assertEqual("Real title", body["snippet"]["title"])
+        self.assertEqual("28", body["snippet"]["categoryId"])
+        self.assertEqual("New description", body["snippet"]["description"])
+        self.assertEqual("New description", result["description"])
+
+    def test_raises_when_the_video_id_does_not_resolve(self):
+        fake_youtube = mock.MagicMock()
+        fake_youtube.videos.return_value.list.return_value.execute.return_value = {"items": []}
+        with mock.patch.dict(os.environ, self.ENV, clear=False), \
+             mock.patch("googleapiclient.discovery.build", return_value=fake_youtube):
+            with self.assertRaises(RuntimeError):
+                update_video_description("missing", "New description")
 
 
 class SetVideoLocalizationTests(unittest.TestCase):
