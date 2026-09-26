@@ -23,6 +23,7 @@ experience) before being used for anything.
 
 import json
 import subprocess
+import sys
 import tempfile
 from datetime import datetime, timezone
 from pathlib import Path
@@ -32,6 +33,11 @@ from brain.youtube_creator_queue import YouTubeCreatorQueue
 
 CATEGORY = "youtube_thai_dubs"
 SOURCE_PREFIX = "aion-thai-dub:"
+
+# Every other ffmpeg-invoking module (tools/reel_render.py, brain/video_quality.py,
+# tools/produce_creator_motion.py) sets this so a console window doesn't flash for
+# every subprocess call on Windows; matching that established pattern here.
+_NO_WINDOW = subprocess.CREATE_NO_WINDOW if sys.platform == "win32" else 0
 THAI_AUDIO_DIR = "content/reels_thai"
 
 # Re-exported for existing call sites/tests; the check itself lives on
@@ -125,6 +131,10 @@ class ThaiDubCycle:
             if raw.startswith("json"):
                 raw = raw[4:]
         data = json.loads(raw.strip())
+        if not isinstance(data, dict):
+            raise ValueError("translation response was not a JSON object")
+        if not isinstance(data.get("title"), str) or not isinstance(data.get("description"), str):
+            raise ValueError("translation response is missing a title or description string")
         if len(data.get("narration") or []) != len(narration_lines):
             raise ValueError("translation returned a different number of narration lines than requested")
         return data
@@ -136,7 +146,16 @@ class ThaiDubCycle:
     @staticmethod
     def _atempo_chain(factor):
         """ffmpeg's atempo filter only accepts [0.5, 2.0] per stage -- chain
-        stages for a factor outside that range."""
+        stages for a factor outside that range.
+
+        A zero or negative factor (e.g. from a zero-duration clip) would
+        otherwise loop forever, since repeatedly dividing by 0.5 never
+        reaches the loop's exit condition -- treated as 1.0 (no stretch)
+        instead, since there is no sensible tempo change for a clip with no
+        measurable duration.
+        """
+        if not factor or factor <= 0:
+            factor = 1.0
         stages, remaining = [], factor
         while remaining < 0.5 or remaining > 2.0:
             step = 2.0 if remaining > 2.0 else 0.5
@@ -148,7 +167,7 @@ class ThaiDubCycle:
     def _clip_duration(self, path):
         result = subprocess.run(
             [self.ffmpeg_path, "-i", str(path), "-f", "null", "-"],
-            stderr=subprocess.PIPE, stdout=subprocess.PIPE, text=True,
+            stderr=subprocess.PIPE, stdout=subprocess.PIPE, text=True, creationflags=_NO_WINDOW,
         )
         for line in result.stderr.splitlines():
             line = line.strip()
@@ -169,18 +188,20 @@ class ThaiDubCycle:
                 if not self.tts_fn(text, str(raw_path)):
                     raise RuntimeError(f"Thai narration synthesis failed for scene {index}")
                 raw_duration = self._clip_duration(raw_path)
+                if raw_duration <= 0:
+                    raise RuntimeError(f"Thai narration synthesis produced a zero-length clip for scene {index}")
                 factor = (raw_duration / target) if target > 0 else 1.0
                 stretched_path = tmp / f"scene_{index:02d}.mp3"
                 subprocess.run(
                     [self.ffmpeg_path, "-y", "-i", str(raw_path), "-filter:a", self._atempo_chain(factor), str(stretched_path)],
-                    check=True, capture_output=True,
+                    check=True, capture_output=True, creationflags=_NO_WINDOW,
                 )
                 stretched.append(stretched_path)
             concat_list = tmp / "concat_list.txt"
             concat_list.write_text("\n".join(f"file '{path.name}'" for path in stretched), encoding="utf-8")
             subprocess.run(
                 [self.ffmpeg_path, "-y", "-f", "concat", "-safe", "0", "-i", str(concat_list), "-c", "copy", str(output_path)],
-                check=True, capture_output=True, cwd=str(tmp),
+                check=True, capture_output=True, cwd=str(tmp), creationflags=_NO_WINDOW,
             )
         return self._clip_duration(output_path)
 

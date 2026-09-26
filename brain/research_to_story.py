@@ -100,7 +100,7 @@ class ResearchToStory:
             })
         return sorted(candidates, key=lambda item: (item["topic"], item["root_question_id"]))
 
-    def _prefer_underrepresented_lane(self, eligible):
+    def _prefer_underrepresented_lane(self, eligible, briefs):
         """Pick the eligible candidate whose research lane has fewest briefs so far.
 
         candidates() sorts alphabetically by topic text, which has no relation
@@ -110,11 +110,13 @@ class ResearchToStory:
         alphabetical ordering here. min() is stable, so when lane counts tie
         (e.g. everything still at zero, the common early-channel case) the
         original alphabetically-first candidate still wins -- unchanged
-        behavior until lanes actually become imbalanced.
+        behavior until lanes actually become imbalanced. Takes the caller's
+        already-fetched `briefs` rather than re-reading the category itself,
+        since propose_once() already has that same list on hand.
         """
         if not eligible:
             return None
-        lane_counts = Counter((brief.get("scout_lane") or {}).get("id") for brief in self._briefs())
+        lane_counts = Counter((brief.get("scout_lane") or {}).get("id") for brief in briefs)
         return min(eligible, key=lambda item: lane_counts.get(ResearchPortfolio.assign(item["topic"])["id"], 0))
 
     def propose_once(self):
@@ -124,13 +126,20 @@ class ResearchToStory:
         and production constraints.  A later drafting step must cite this brief
         rather than treating it as a new factual source.
         """
-        existing_roots = {str(item.get("root_question_id") or "") for item in self._briefs()}
+        briefs = self._briefs()
+        existing_roots = {str(item.get("root_question_id") or "") for item in briefs}
         candidates = [item for item in self.candidates() if item["root_question_id"] not in existing_roots]
         ledger = ContentNoveltyLedger(self.memory)
-        eligible = [item for item in candidates if ledger.assess(item)["eligible"]]
-        candidate = self._prefer_underrepresented_lane(eligible)
+        # One assess() per candidate, reused below for both the eligible
+        # list and (if nothing qualifies) the duplicate-block report --
+        # assess() re-reads and re-parses several memory categories from
+        # disk per call, so scoring every candidate twice here was a real,
+        # avoidable cost on every propose_once() tick.
+        assessments = [(item, ledger.assess(item)) for item in candidates]
+        eligible = [item for item, report in assessments if report["eligible"]]
+        candidate = self._prefer_underrepresented_lane(eligible, briefs)
         if not candidate:
-            duplicates = [ledger.assess(item) for item in candidates]
+            duplicates = [report for _, report in assessments]
             if candidates and all(not report["eligible"] for report in duplicates):
                 return {"stage": "blocked-duplicate-topic", "brief": None, "matches": duplicates}
             return {"stage": "waiting-for-qualified-research", "brief": None}

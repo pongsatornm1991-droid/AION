@@ -78,6 +78,18 @@ class RewriteSceneNarrationsTests(unittest.TestCase):
         self.assertEqual("provider-error:RuntimeError", meta["reason"])
         self.assertEqual(self.SCENES[0]["narration"], scenes[0]["narration"])
 
+    def test_a_non_object_json_response_is_a_bounded_fallback_not_a_crash(self):
+        # Regression: valid JSON that isn't an object (e.g. the model
+        # returns a bare array) used to raise an uncaught AttributeError
+        # on rewritten_by_number.get(...), crashing staging entirely --
+        # defeating this method's own documented "never blocks staging"
+        # guarantee.
+        stager = StoryEpisodeStager(memory=None, root=".", provider=FakeProvider(response='["line one", "line two"]'))
+        scenes, meta = stager._rewrite_scene_narrations([dict(s) for s in self.SCENES], "octopus color change")
+        self.assertEqual("bounded-fallback", meta["origin"])
+        self.assertEqual("provider-error:ValueError", meta["reason"])
+        self.assertEqual(self.SCENES[0]["narration"], scenes[0]["narration"])
+
     def test_no_rewritable_beats_is_a_bounded_fallback(self):
         stager = StoryEpisodeStager(memory=None, root=".", provider=FakeProvider(response="{}"))
         scenes, meta = stager._rewrite_scene_narrations(
@@ -194,6 +206,15 @@ class StoryEpisodeStagerTests(unittest.TestCase):
         parts = StoryEpisodeStager._evidence_parts(observation, part_count=2, words_per_part=12)
         self.assertTrue(parts[0].endswith("…"))
         self.assertNotIn(".", parts[0])
+
+    def test_evidence_parts_never_adds_a_spurious_ellipsis_after_an_already_complete_short_sentence(self):
+        # Regression: an observation short enough that neither boundary
+        # search ever reaches min_end (so the blind word-count cut always
+        # fires) still ended in a real period -- the old code appended "…"
+        # after it anyway, producing "Ice was stored below ground.…".
+        observation = "Ice was stored below ground."
+        parts = StoryEpisodeStager._evidence_parts(observation, part_count=2, words_per_part=12)
+        self.assertEqual(["Ice was stored below ground."], parts)
 
     def test_connection_beat_states_real_evidence_instead_of_generic_filler(self):
         with tempfile.TemporaryDirectory() as root:

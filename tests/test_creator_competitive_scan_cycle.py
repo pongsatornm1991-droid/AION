@@ -47,6 +47,25 @@ class CreatorCompetitiveScanCycleTests(unittest.TestCase):
             record = json.loads(memory.all(CATEGORY)[0]["content"])
             self.assertEqual(record["error"], "no api key")
 
+    def test_a_failed_scan_does_not_block_a_same_day_retry(self):
+        # Regression: a transient failure (misconfigured key, quota hiccup)
+        # used to be recorded under the same dedupe source as a real scan,
+        # so a manual workflow_dispatch retry the same day -- specifically
+        # meant to try again -- got "already-scanned-today" instead of a
+        # real second attempt.
+        with tempfile.TemporaryDirectory() as root:
+            memory = MemoryEngine(root)
+            same_day = datetime(2026, 9, 27, tzinfo=timezone.utc)
+            failing_cycle = CreatorCompetitiveScanCycle(memory, scan_fn=lambda **_: FAILURE_REPORT)
+            first = failing_cycle.scan_once(now=same_day)
+            self.assertEqual(first["stage"], "scan-failed")
+            succeeding_cycle = CreatorCompetitiveScanCycle(memory, scan_fn=lambda **_: SUCCESS_REPORT)
+            second = succeeding_cycle.scan_once(now=same_day)
+            self.assertEqual(second["stage"], "scanned")
+            self.assertTrue(second["saved"])
+            third = succeeding_cycle.scan_once(now=same_day)
+            self.assertEqual(third["stage"], "already-scanned-today")
+
 
 if __name__ == "__main__":
     unittest.main()

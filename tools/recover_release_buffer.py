@@ -23,6 +23,7 @@ from brain.research_story_handoff import ResearchStoryHandoff
 from brain.story_episode_stager import StoryEpisodeStager
 from brain.creator_series import CreatorSeriesRegistry
 from brain.visual_story_policy import VisualStoryPolicy
+from main import build_provider
 
 
 def _active_by_kind(root):
@@ -46,6 +47,10 @@ MAX_RECOVERY_BATCH = 5
 
 
 def recover_once(memory, root=ROOT):
+    try:
+        provider = build_provider()
+    except Exception:
+        provider = None
     readiness = ReleaseReadiness(memory, root).snapshot()
     shortages = {
         item.get("content_kind"): int(item.get("missing") or 0)
@@ -71,7 +76,7 @@ def recover_once(memory, root=ROOT):
         limit = min(MAX_RECOVERY_BATCH, planned[next_kind])
         brief = ResearchToStory(memory).propose_batch(limit=limit)
         handoff = ResearchStoryHandoff(memory).create_batch(limit=limit)
-        staged = StoryEpisodeStager(memory, root).stage_batch(limit=limit, episode_format=next_kind)
+        staged = StoryEpisodeStager(memory, root, provider=provider).stage_batch(limit=limit, episode_format=next_kind)
         prepared.append({"content_kind": next_kind, "requested": limit, "brief": brief, "handoff": handoff, "staged": staged})
     else:
         staged = None

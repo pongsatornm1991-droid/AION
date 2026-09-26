@@ -27,7 +27,23 @@ class CreatorCompetitiveScanCycle:
         self.scan_fn = scan_fn or scan_report
 
     def _already_scanned(self, source):
-        return any(entry.get("source") == source for entry in self.memory.all(CATEGORY))
+        """True only once a *successful* scan exists for this source.
+
+        A failed attempt is still persisted below (for the audit trail),
+        but must never count as "already done today" -- otherwise a
+        transient failure (a briefly misconfigured API key, a quota hiccup)
+        would block every retry, including a manual workflow_dispatch
+        re-run meant specifically to try again, for the rest of the day.
+        """
+        for entry in self.memory.all(CATEGORY):
+            if entry.get("source") != source:
+                continue
+            try:
+                if json.loads(entry.get("content") or "{}").get("ok"):
+                    return True
+            except (TypeError, ValueError):
+                continue
+        return False
 
     def scan_once(self, now=None):
         now = now or datetime.now(timezone.utc)

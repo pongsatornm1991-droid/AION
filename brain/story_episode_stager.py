@@ -116,7 +116,15 @@ class StoryEpisodeStager:
                 end = min(start + words_per_part, len(words))
             fragment = " ".join(words[start:end]).strip()
             if fragment:
-                if natural_sentence_end:
+                # A short observation can run out of words before `min_end`
+                # is ever reached, so neither boundary search above ever
+                # fires even though the blind cut happens to land exactly
+                # on the text's own real ending -- checking the fragment's
+                # own last word here (not just whether the windowed search
+                # "found" it) stops a short, already-complete source
+                # sentence like "Ice was stored below ground." from getting
+                # a spurious "…" tacked on after its own period.
+                if natural_sentence_end or fragment.endswith((".", "!", "?")):
                     pass
                 elif fragment.endswith(","):
                     fragment = fragment.rstrip(",") + "."
@@ -216,6 +224,8 @@ class StoryEpisodeStager:
                 if raw.startswith("json"):
                     raw = raw[4:]
             rewritten_by_number = json.loads(raw.strip())
+            if not isinstance(rewritten_by_number, dict):
+                raise ValueError("expected a JSON object mapping scene numbers to rewritten narration")
         except Exception as exc:
             return scenes, {"version": "ai-narration-rewrite-v1", "origin": "bounded-fallback", "reason": f"provider-error:{type(exc).__name__}"}
 

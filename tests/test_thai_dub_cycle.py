@@ -156,6 +156,65 @@ class ThaiDubCycleTests(unittest.TestCase):
             self.assertEqual("translation-failed", result["stage"])
             localize_fn.assert_not_called()
 
+    def test_a_translation_missing_title_or_description_is_reported_not_a_crash(self):
+        # Regression: a translation JSON with the right narration count but
+        # no "title"/"description" keys used to raise an uncaught KeyError
+        # in dub_once() (those keys were read outside any try/except),
+        # crashing the whole run instead of returning a clean stage.
+        with tempfile.TemporaryDirectory() as root:
+            _write_episode(root, "ep-1")
+            memory = MemoryEngine(Path(root) / "memory")
+            _publish_record(memory, "ep-1", "vid-1")
+            incomplete_translation = json.dumps({"narration": ["บรรทัดหนึ่ง", "บรรทัดสอง"]})
+            localize_fn = mock.Mock()
+            cycle = _cycle(memory, root, incomplete_translation, localize_fn=localize_fn)
+            result = cycle.dub_once()
+            self.assertEqual("translation-failed", result["stage"])
+            localize_fn.assert_not_called()
+
+    def test_a_zero_length_synthesized_clip_fails_cleanly_instead_of_hanging(self):
+        # Regression: _atempo_chain(0.0) looped forever (0.0 / 0.5 stays
+        # 0.0), reachable whenever a scene's synthesized clip comes back
+        # with zero measurable duration.
+        with tempfile.TemporaryDirectory() as root:
+            _write_episode(root, "ep-1")
+            memory = MemoryEngine(Path(root) / "memory")
+            _publish_record(memory, "ep-1", "vid-1")
+            localize_fn = mock.Mock()
+            with mock.patch.object(ThaiDubCycle, "_clip_duration", return_value=0.0):
+                cycle = _cycle(memory, root, SAFE_TRANSLATION, localize_fn=localize_fn)
+                result = cycle.dub_once()
+            self.assertEqual("audio-synthesis-failed", result["stage"])
+            self.assertTrue(result["localization_written"])
+
+    def test_atempo_chain_never_hangs_on_a_non_positive_factor(self):
+        self.assertEqual("atempo=1.0000", ThaiDubCycle._atempo_chain(0.0))
+        self.assertEqual("atempo=1.0000", ThaiDubCycle._atempo_chain(-2.0))
+
+    def test_clip_duration_suppresses_the_console_window_on_windows(self):
+        import brain.thai_dub_cycle as thai_dub_cycle_module
+        cycle = _cycle(MemoryEngine(tempfile.mkdtemp()), ".", SAFE_TRANSLATION)
+        with mock.patch("brain.thai_dub_cycle.subprocess.run") as run:
+            run.return_value = mock.Mock(stderr="Duration: 00:00:05.00, start: 0.000000")
+            cycle._clip_duration("some.mp3")
+        run.assert_called_once()
+        self.assertEqual(thai_dub_cycle_module._NO_WINDOW, run.call_args.kwargs.get("creationflags"))
+
+    def test_ffmpeg_subprocess_calls_suppress_the_console_window_on_windows(self):
+        import brain.thai_dub_cycle as thai_dub_cycle_module
+        with tempfile.TemporaryDirectory() as root:
+            _write_episode(root, "ep-1")
+            memory = MemoryEngine(Path(root) / "memory")
+            _publish_record(memory, "ep-1", "vid-1")
+            with mock.patch("brain.thai_dub_cycle.subprocess.run") as run, \
+                 mock.patch.object(ThaiDubCycle, "_clip_duration", return_value=5.0):
+                run.return_value = mock.Mock(returncode=0)
+                cycle = _cycle(memory, root, SAFE_TRANSLATION)
+                cycle.dub_once()
+            self.assertTrue(run.call_args_list, "expected at least one subprocess.run call")
+            for call in run.call_args_list:
+                self.assertEqual(thai_dub_cycle_module._NO_WINDOW, call.kwargs.get("creationflags"))
+
 
 if __name__ == "__main__":
     unittest.main()
