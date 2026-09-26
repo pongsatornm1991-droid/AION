@@ -13,8 +13,8 @@ Lease expires: n/a
 Scope: None.
 Handoff: See docs/ai-session-log.md's 2026-09-26/27 entries for full detail
 (commits f69b858, af28e02, 63970ef, 92fc52f, 34512b1, ef1dbac, 18ad2c8,
-cd6174c, 2f76f90, 58f2ef3, fb4459a, d32392a, 2359b32, 508567b). Quick
-summary of where things stand:
+cd6174c, 2f76f90, 58f2ef3, fb4459a, d32392a, 2359b32, 508567b, 82a7b1b).
+Quick summary of where things stand:
 
 1. AION's identity signature is a glowing cyan question-mark held in one
    hand (not a chest core, not a crystal) -- updated everywhere it's
@@ -128,6 +128,34 @@ summary of where things stand:
       auto-splits an overlong beat -- strictly better than any
       word-count heuristic. No code change; a docstring note now points
       at it so it isn't re-flagged as a gap later.
+
+15. .github/workflows/thai-dub.yml (created 06:26 UTC 2026-09-26, cron
+    14:30 UTC daily) had zero runs by ~16:00 UTC the same day, confirmed
+    via GitHub's own Actions API (state: active, but 0 total runs past its
+    first scheduled window). Not a YAML/code bug -- creator-competitive-scan.yml
+    (same commit batch) fired correctly at its own 02:15 UTC schedule, so
+    this looks like GitHub's documented "a scheduled run can be delayed or
+    dropped under high load" behavior, plausible given ~57+ scheduled
+    workflows on this repo. Worth checking again after a few more days; if
+    it's still not firing by then, that's a real problem to escalate, not
+    just a one-off.
+16. Ran the Thai dub pipeline for real for the first time (owner asked
+    why the newest clip had no Thai version) and found 3 real bugs no
+    test had caught, all fixed: ThaiDubCycle kept a relative root as-is
+    (broke the ffmpeg concat step's output path once cwd was set to a
+    temp dir); synthesize_thai_voice's retry budget (3 attempts) wasn't
+    always enough for the real, sometimes-degraded edge-tts backend
+    (raised to 5, failures now logged instead of silently swallowed);
+    and _published_candidates() picked oldest-first, which -- combined
+    with 12 already-published episodes having no dub yet since the
+    feature launched after them -- meant a brand new release would queue
+    behind that whole backlog for ~12 days. Now newest-first, plus a new
+    dub_batch(limit=3) so the backlog also clears in days. Manually
+    dubbed the fireflies episode (TsGxyRCTcaE) for real once fixed:
+    content/reels_thai/aion-auto-0b5a0385b87d-7d3a5028-short-thai.mp3 is
+    ready for the owner's one remaining manual upload step, and the real
+    aion-memory-data repo has the matching dedupe record so the automated
+    pipeline won't redo this one.
 
 Nothing urgent open. The owner has been told, and agreed, that the
 easy/code-findable technical gaps in this pipeline are largely closed for

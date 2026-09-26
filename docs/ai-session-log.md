@@ -13,6 +13,60 @@ Format:
 Commits: <hash> [, <hash> ...]
 ```
 
+## 2026-09-27 — Claude Code — Ran the Thai dub pipeline for real; found and fixed 3 bugs, plus a design gap
+
+Owner asked why tonight's new clip (fireflies, TsGxyRCTcaE, published
+14:34 UTC) had no Thai version ready. Checked GitHub's Actions API first:
+.github/workflows/thai-dub.yml (created 06:26 UTC that morning, cron 14:30
+UTC daily) had zero total runs -- not disabled, just never fired past its
+first scheduled window. creator-competitive-scan.yml (same commit batch)
+did fire correctly at its own 02:15 UTC schedule, so this looks like
+GitHub's own documented "a scheduled run can be delayed or dropped under
+high load" behavior (plausible with ~57+ scheduled workflows on this
+repo) rather than a bug in this session's YAML -- flagged to check again
+in a few days rather than assumed fixed.
+
+Rather than wait, ran the pipeline directly against the real production
+memory (a local clone of aion-memory-data already existed at
+.aion-memory-inspect/, remote intact) to serve the immediate need -- and
+running it for real, for the first time ever, surfaced three genuine bugs
+no test had caught:
+
+- ThaiDubCycle kept a relative `root` argument as-is instead of resolving
+  it. _synthesize_track()'s ffmpeg concat step runs with cwd set to a temp
+  directory, so a relative root made the final audio's output path
+  resolve against that temp directory instead of the real project tree --
+  ffmpeg failed with "No such file or directory" on a path that looked
+  completely correct in the error message. The real CLI always passed an
+  already-absolute path so this never surfaced there; only direct/manual
+  invocation (this debugging session) hit it. Now always resolved.
+- synthesize_thai_voice's original 3-attempt/(2,4,6)s-backoff retry
+  genuinely wasn't enough for the real edge-tts backend today: three full
+  pipeline runs each failed at a different scene, back to back. Raised to
+  5 attempts with longer backoff, and the actual exception is now logged
+  to stderr on final failure instead of silently swallowed (a persistent
+  misconfiguration used to look identical to a transient outage).
+- _published_candidates() picked the oldest undubbed episode first. This
+  feature launched after 12 episodes were already published with no dub
+  yet, so oldest-first meant tonight's brand new release -- the one
+  actually being asked about -- would queue behind that entire backlog
+  for roughly 12 days at one dub per day. Fixed to newest-first, plus a
+  new dub_batch(limit=3) (mirrors StoryEpisodeStager.stage_batch) so the
+  backlog clears in days instead of weeks; tools/run_thai_dub.py now
+  calls dub_batch instead of dub_once.
+
+Manually dubbed the fireflies episode for real once fixed: title/
+description localization is live on the real video, and
+content/reels_thai/aion-auto-0b5a0385b87d-7d3a5028-short-thai.mp3 is a
+real, time-aligned 93.22s Thai narration track, ready for the owner's one
+remaining manual upload step. Pushed the matching dedupe record to the
+real aion-memory-data repo directly so the automated pipeline (once it
+does run) won't redo this specific episode.
+
+5 new tests. Full `python run_tests.py`: PASS.
+
+Commits: 82a7b1b (AION repo), d503329 (aion-memory-data repo)
+
 ## 2026-09-27 — Claude Code — Closed the last two self-review findings
 
 Owner said "พัฒนาทันที" to both findings left open by the self-review
