@@ -115,6 +115,27 @@ class ThaiDubCycle:
         candidates.sort(reverse=True)
         return candidates
 
+    # Meaningful in a real SEO tag (brand association), but pure noise in a
+    # filename meant for a human to recognize a clip by -- every episode's
+    # title contains these, so keeping them would make every filename in
+    # content/reels_thai/ start with the same few words instead of the
+    # words that actually distinguish one clip from another.
+    _FILENAME_NOISE_WORDS = frozenset({"aion", "wonders", "explains"})
+
+    @classmethod
+    def _filename_slug(cls, title, max_words=6):
+        """A short, human-readable slug from a video's own title, e.g.
+        "fireflies-glow-dark" for "AION Wonders: Why do fireflies glow in
+        the dark? #Fireflies" -- so content/reels_thai/ can be searched by
+        eye instead of by opaque episode id. Reuses the same keyword
+        extraction _video_tags()/_title_hashtag() already use, so the
+        filename agrees with the same subject those derive.
+        """
+        _, keywords = YouTubeCreatorQueue._topic_and_keywords({"title": title})
+        meaningful = [word for word in keywords if word not in cls._FILENAME_NOISE_WORDS]
+        words = (meaningful or keywords)[:max_words]
+        return "-".join(words) or "episode"
+
     def _episode_file(self, episode_id):
         path = self.root / "content" / "creator_series" / f"{episode_id}.json"
         if not path.is_file():
@@ -264,7 +285,8 @@ class ThaiDubCycle:
 
         audio_dir = self.root / THAI_AUDIO_DIR
         audio_dir.mkdir(parents=True, exist_ok=True)
-        relative_audio_path = f"{THAI_AUDIO_DIR}/{episode_id}-thai.mp3"
+        filename = f"{self._filename_slug(live['title'])}-{video_id}-thai.mp3"
+        relative_audio_path = f"{THAI_AUDIO_DIR}/{filename}"
         audio_path = self.root / relative_audio_path
         try:
             duration = self._synthesize_track(translated["narration"], scene_durations, audio_path)

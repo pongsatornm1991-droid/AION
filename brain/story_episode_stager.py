@@ -312,7 +312,15 @@ class StoryEpisodeStager:
         first_title = self._clean(first.get("title"), 100) or "the first source"
         second_title = self._clean(second.get("title"), 100) or "the second source"
         uncertainty = self._clean(handoff.get("unknown_facts"), 260)
-        title = self._clean(handoff.get("working_title"), 100) or f"AION Wonders: {topic}"
+        # Owner, 2026-09-27: "ทำไมชื่อคลิปต้อง aion wonders ทำไมไม่ตั้งตาม
+        # SEO" -- none of the 4 channels studied 2026-09-27 (Kurzgesagt,
+        # Pure Logic, and two direct-niche Thai comparables) put their own
+        # channel name in front of a video's title; every one leads with
+        # the hook itself, since the first few words carry the most search
+        # and feed-scan weight and mobile truncation cuts the *end* of a
+        # long title, not the start. The channel's own identity already
+        # lives in `series` below and the channel page itself.
+        title = self._clean(handoff.get("working_title"), 100) or topic
         audience_promise = self._clean(handoff.get("audience_value"), 240) or f"A viewer of any age can follow a clear, evidence-backed answer to: {topic}"
         visual_direction = AionVisualDirector.direct(
             topic,
@@ -476,7 +484,9 @@ class StoryEpisodeStager:
                         f"{scene['visual']} AION appears briefly at the edge as a contextual guide."
                     )
             episode.update({
-                "title": f"AION Explains: {topic}",
+                # Same "lead with the hook, not the channel name" change as
+                # the short-form title above.
+                "title": topic,
                 "format": "long-form-illustrated",
                 "target_duration_seconds": len(long_scenes) * 5,
                 "scene_seconds": 5,

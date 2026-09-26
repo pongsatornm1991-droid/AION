@@ -152,6 +152,27 @@ class StoryEpisodeStagerTests(unittest.TestCase):
             hook = episode["scenes"][0]
             self.assertTrue(hook["narration"].startswith("Picture this:"))
 
+    def test_title_falls_back_to_the_bare_topic_not_a_channel_name_prefix(self):
+        # Regression, 2026-09-27: none of the 4 comparable channels studied
+        # that day prefix a video's title with their own channel name --
+        # the fallback (when a handoff has no working_title) used to be
+        # "AION Wonders: {topic}".
+        with tempfile.TemporaryDirectory() as root:
+            root = Path(root)
+            memory = MemoryEngine(root / "memory")
+            memory.remember("creator_research_handoffs", json.dumps({
+                "status": "story-ready", "root_question_id": "question-notitle",
+                "topic": "Why do fireflies glow in the dark?",
+                "sources": [
+                    {"title": "Source one", "url": "https://example.test/one", "observation": "Ice was stored below ground."},
+                    {"title": "Source two", "url": "https://example.test/two", "observation": "Wind and shade reduced heat."},
+                ],
+                "unknown_facts": "The exact temperature varied by season.",
+            }), memory_type="decision", source="test", importance=4)
+            StoryEpisodeStager(memory, root).stage_once()
+            episode = CreatorSeriesRegistry(root).episodes()[0]
+            self.assertEqual("Why do fireflies glow in the dark?", episode["title"])
+
     def test_clean_never_cuts_a_word_in_half(self):
         # Regression for 2026-09-22: a bare [:limit] slice once produced
         # narration reading "...deep reddish pu" -- the source text ran

@@ -38,5 +38,9 @@ class ResearchStoryHandoffTests(unittest.TestCase):
             self.assertEqual("story-handoff-created", result["stage"])
             self.assertEqual(5, len(result["handoff"]["beats"]))
             self.assertIn("AION", result["handoff"]["visual_rule"])
+            # Owner, 2026-09-27: lead the public title with the hook itself,
+            # not a repeated "AION Wonders:" channel-name prefix -- matches
+            # every one of the 4 comparable channels studied that day.
+            self.assertEqual("Why does ice last in a desert?", result["handoff"]["working_title"])
             self.assertTrue(result["handoff"]["work_task_id"])
             self.assertEqual("waiting-for-research-brief", ResearchStoryHandoff(memory).create_once()["stage"])

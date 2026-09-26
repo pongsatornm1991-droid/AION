@@ -67,6 +67,25 @@ class HasUnsafeClaimTests(unittest.TestCase):
         self.assertFalse(has_unsafe_claim("แผนที่ดาวเทียมแสดงพื้นผิวโลก"))
 
 
+class FilenameSlugTests(unittest.TestCase):
+    def test_builds_a_readable_slug_from_the_real_video_title(self):
+        # Owner, 2026-09-27: "อยากให้ตั้งชื่อตามคลิป จะได้หาเจอ" -- the old
+        # filename was the opaque episode id (e.g.
+        # "aion-auto-0b5a0385b87d-7d3a5028-short-thai.mp3"), unrecognizable
+        # at a glance in content/reels_thai/.
+        slug = ThaiDubCycle._filename_slug("AION Wonders: Why do fireflies glow in the dark? #Fireflies")
+        self.assertEqual("fireflies-glow-dark", slug)
+
+    def test_drops_the_channel_name_noise_words_but_keeps_real_content(self):
+        slug = ThaiDubCycle._filename_slug("AION Explains: Why do fireflies glow in the dark?")
+        self.assertNotIn("aion", slug)
+        self.assertNotIn("explains", slug)
+        self.assertIn("fireflies", slug)
+
+    def test_falls_back_to_a_placeholder_when_no_keyword_survives_at_all(self):
+        self.assertEqual("episode", ThaiDubCycle._filename_slug("How is it"))
+
+
 class ThaiDubCycleTests(unittest.TestCase):
     def test_a_relative_root_is_resolved_to_an_absolute_path(self):
         # Regression: a relative root (e.g. ".") used to be kept as-is, so
@@ -101,7 +120,7 @@ class ThaiDubCycleTests(unittest.TestCase):
                 result = cycle.dub_once()
             self.assertEqual("dubbed", result["stage"])
             self.assertEqual("ep-1", result["episode_id"])
-            self.assertEqual("content/reels_thai/ep-1-thai.mp3", result["audio_path"])
+            self.assertEqual("content/reels_thai/live-title-vid-1-thai.mp3", result["audio_path"])
             localize_fn.assert_called_once_with("vid-1", "th", "ทำไมแผนที่ถึงแตกต่างกัน", "คำอธิบายภาษาไทย")
             saved = json.loads(memory.all(CATEGORY)[0]["content"])
             self.assertEqual("ep-1", saved["episode_id"])

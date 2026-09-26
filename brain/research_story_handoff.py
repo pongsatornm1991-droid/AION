@@ -61,7 +61,14 @@ class ResearchStoryHandoff:
             "topic": topic,
             "topic_key": brief.get("topic_key") or topic,
             "scout_lane": brief.get("scout_lane"),
-            "working_title": f"AION Wonders: {topic}",
+            # Owner, 2026-09-27: lead with the hook itself, not the channel
+            # name -- none of the 4 channels studied that day (Kurzgesagt,
+            # Pure Logic, two direct-niche Thai comparables) prefix a
+            # video's title with their own channel name; the first words
+            # carry the most search/feed-scan weight, and a redundant
+            # brand prefix pushes the actual hook toward where mobile
+            # truncation cuts a long title off.
+            "working_title": topic,
             "hook": "AION walks into a place that seems impossible — then asks what the evidence actually says.",
             "audience_value": "A viewer of any age can see how careful observation turns a surprising historical or scientific idea into something understandable.",
             "beats": [
