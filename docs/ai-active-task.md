@@ -14,7 +14,7 @@ Scope: None.
 Handoff: See docs/ai-session-log.md's 2026-09-26/27 entries for full detail
 (commits f69b858, af28e02, 63970ef, 92fc52f, 34512b1, ef1dbac, 18ad2c8,
 cd6174c, 2f76f90, 58f2ef3, fb4459a, d32392a, 2359b32, 508567b, 82a7b1b,
-2849873, 8b6bbcd). Quick summary of where things stand:
+2849873, 8b6bbcd, 806fd12). Quick summary of where things stand:
 
 1. AION's identity signature is a glowing cyan question-mark held in one
    hand (not a chest core, not a crystal) -- updated everywhere it's
@@ -175,6 +175,20 @@ cd6174c, 2f76f90, 58f2ef3, fb4459a, d32392a, 2359b32, 508567b, 82a7b1b,
     tools/youtube.py:update_video_description(), a read-modify-write like
     set_video_localization() but for the primary snippet) and its Thai
     localization, since that's the exact video the owner was looking at.
+
+19. Owner: name Thai audio files after the clip so they're findable.
+    ThaiDubCycle._filename_slug() builds a readable slug from the video's
+    real title (e.g. "fireflies-glow-dark-TsGxyRCTcaE-thai.mp3" instead of
+    the opaque episode id) -- renamed the 2 existing files and their real
+    aion-memory-data audio_path records to match.
+20. Owner: why does every title start with "AION Wonders"/"AION Explains"
+    instead of going straight to SEO. None of the 4 channels studied
+    2026-09-27 prefix a title with their own channel name. Removed that
+    prefix from research_story_handoff.py's working_title (the real
+    source of every episode's title) and story_episode_stager.py's
+    fallback -- both now start with the bare hook/topic. The internal
+    `series` field (still "AION Wonders", for dashboard/pillar grouping)
+    is untouched; only the public title text changed.
 
 Nothing urgent open. The owner has been told, and agreed, that the
 easy/code-findable technical gaps in this pipeline are largely closed for

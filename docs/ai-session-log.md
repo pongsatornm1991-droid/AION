@@ -13,6 +13,36 @@ Format:
 Commits: <hash> [, <hash> ...]
 ```
 
+## 2026-09-27 — Claude Code — Readable Thai filenames; dropped the channel-name title prefix
+
+Two more owner requests, same session.
+
+- "คลิปเสียงไทย อยากให้ตั้งชื่อตาม คลิป เวลาหาจะได้หาเจอ" (name the Thai
+  audio files after the clip). ThaiDubCycle._filename_slug() builds a
+  short slug from the real video title, reusing the same keyword
+  extraction YouTubeCreatorQueue's title-hashtag/tags already use, minus
+  pure channel-name noise words ("aion", "wonders", "explains") that
+  would otherwise start every single filename. Renamed both existing
+  files (episode-id-named -> slug-named) and updated the real
+  aion-memory-data audio_path records to match, via MemoryEngine.update()
+  on the exact entry ids.
+- "ทำไมชื่อคลิปต้อง aion wonders ทำไมไม่ตั้งตาม SEO" (why must the title
+  be "AION Wonders", why not SEO). Checked against the 4 channels studied
+  earlier that day: none of them (Kurzgesagt, Pure Logic, two direct
+  Thai comparables) prefix a title with their own channel name -- every
+  one leads with the hook, since the first words carry the most search/
+  feed-scan weight and mobile truncation cuts the end of a long title,
+  not the start. Traced the actual source: every real episode's title
+  came from research_story_handoff.py's `working_title: f"AION Wonders:
+  {topic}"` (story_episode_stager.py's own fallback formula had the same
+  pattern but was rarely hit, since working_title is always populated
+  upstream). Both now use the bare topic. `series` (still "AION Wonders",
+  internal dashboard/pillar grouping only) is untouched.
+
+5 new/updated tests. Full `python run_tests.py`: PASS.
+
+Commits: 806fd12 (AION repo), 61927f9 (aion-memory-data repo)
+
 ## 2026-09-27 — Claude Code — Skipped the pre-launch backlog; added topical hashtags to descriptions
 
 Two quick follow-ups after the real Thai-dub run below.
