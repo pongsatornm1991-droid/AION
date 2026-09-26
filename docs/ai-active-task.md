@@ -14,7 +14,7 @@ Scope: None.
 Handoff: See docs/ai-session-log.md's 2026-09-26/27 entries for full detail
 (commits f69b858, af28e02, 63970ef, 92fc52f, 34512b1, ef1dbac, 18ad2c8,
 cd6174c, 2f76f90, 58f2ef3, fb4459a, d32392a, 2359b32, 508567b, 82a7b1b,
-2849873, 8b6bbcd, 806fd12). Quick summary of where things stand:
+2849873, 8b6bbcd, 806fd12, aedfaea). Quick summary of where things stand:
 
 1. AION's identity signature is a glowing cyan question-mark held in one
    hand (not a chest core, not a crystal) -- updated everywhere it's
@@ -189,6 +189,24 @@ cd6174c, 2f76f90, 58f2ef3, fb4459a, d32392a, 2359b32, 508567b, 82a7b1b,
     fallback -- both now start with the bare hook/topic. The internal
     `series` field (still "AION Wonders", for dashboard/pillar grouping)
     is untouched; only the public title text changed.
+
+21. Owner shared a plush-toy reference image and liked its candy-color
+    highlights and glow/sparkle particles, but explicitly did not want the
+    whole plush/felt material or look adopted (would risk imitating that
+    reference's overall visual identity, the same concern raised earlier
+    over the Spider-Verse comparison). Applied both requested elements
+    narrowly to AION's own existing signature prop only: the held glowing
+    question-mark is now candy-bright cyan with soft rainbow-tinted
+    highlights plus a few tiny sparkle particles drifting around it. The
+    diorama material/rendering style itself is unchanged. Updated in the
+    real image-prompt source (brain/costume_direction.py), both
+    visual-planning gates (visual_narrative_gate.py,
+    fact_first_visual_gate.py), and every identity/constitution doc
+    (core/visual_identity.md, core/creator_bible.md,
+    docs/AION_VISUAL_DIRECTION.md, assets/content-library/aion-character/
+    README.md) -- same file set touched for the earlier crystal→
+    question-mark change. Forward-looking only; no existing rendered
+    image/video touched. Full test suite (python run_tests.py) green.
 
 Nothing urgent open. The owner has been told, and agreed, that the
 easy/code-findable technical gaps in this pipeline are largely closed for

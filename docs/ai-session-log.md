@@ -13,6 +13,30 @@ Format:
 Commits: <hash> [, <hash> ...]
 ```
 
+## 2026-09-27 — Claude Code — AION's signature question-mark gains candy-color + sparkle
+
+Owner shared a plush-toy reference image (rainbow-maned unicorn, "3D Plush/
+Felt Toy" / blind-box style) and asked for exactly two of its elements:
+candy-bright color on highlight details, and glow + sparkle particles
+drifting around it — explicitly not the plush/felt material or the overall
+look, echoing the earlier Spider-Verse conversation's "don't imitate a whole
+reference's visual identity" boundary.
+
+Applied both, bounded, to AION's own existing signature prop only (the held
+glowing question-mark), not to the diorama material/style itself: now
+described everywhere as candy-bright cyan with soft rainbow-tinted
+highlights, with a few tiny sparkle particles drifting around it. Updated
+the real image-generation prompt source (brain/costume_direction.py), both
+visual-planning gates (brain/visual_narrative_gate.py,
+brain/fact_first_visual_gate.py), and every identity/constitution doc
+(core/visual_identity.md, core/creator_bible.md,
+docs/AION_VISUAL_DIRECTION.md, assets/content-library/aion-character/
+README.md) — the same file set touched for the earlier crystal→
+question-mark signature change. Forward-looking only; existing rendered
+images/videos untouched. Full test suite green (`python run_tests.py`:
+1102 unit tests + both offline benchmarks, 100%).
+Commits: aedfaea
+
 ## 2026-09-27 — Claude Code — Readable Thai filenames; dropped the channel-name title prefix
 
 Two more owner requests, same session.
