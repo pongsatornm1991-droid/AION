@@ -261,6 +261,39 @@ class CreatorSceneProduction:
             "never imitate a named studio or franchise."
         )
 
+    # Beats present in both short- and long-form storyboards that carry the
+    # most weight for a viewer: the opening hook and the payoff/reveal.
+    # Every other beat keeps the channel's calm, wide diorama framing
+    # unchanged.
+    _DYNAMIC_HOOK_BEATS = frozenset({"hook"})
+    _DYNAMIC_REVEAL_BEATS = frozenset({"takeaway"})
+
+    @classmethod
+    def _composition_direction(cls, beat):
+        """More visual energy at the hook and the reveal, still the same
+        warm 3D diorama style -- never a different art style.
+
+        Owner feedback, 2026-09-27, after comparing the channel to a
+        dramatic reference clip: keep AION's own friendly, all-ages 3D
+        identity (imitating a named franchise's exact look is already
+        prohibited by VisualStoryPolicy), but every scene using identical
+        flat wide framing reads as static rather than as told content.
+        Only affects new scene-image prompts going forward; an already
+        staged episode's own scenes are never touched by this.
+        """
+        beat = str(beat or "")
+        if beat in cls._DYNAMIC_HOOK_BEATS:
+            return (
+                "closer, dynamic framing with a bold, attention-grabbing angle for this opening moment, "
+                "still the channel's warm 3D diorama material and palette; never make AION the hero of the frame"
+            )
+        if beat in cls._DYNAMIC_REVEAL_BEATS:
+            return (
+                "a striking, more dramatic angle with richer contrast light for this reveal/payoff moment, "
+                "still the channel's warm 3D diorama material and palette; never make AION the hero of the frame"
+            )
+        return "wide or medium-wide environmental storytelling; never make AION the hero of the frame"
+
     def _prompt(self, episode, scene):
         direction = episode.get("visual_direction") or {}
         wardrobe = CostumeDirection.brief_for(episode, scene)
@@ -289,7 +322,7 @@ class CreatorSceneProduction:
             "Keep AION contextual rather than dominant.",
             presence,
             VisualStoryPolicy.prompt_rules(wardrobe, direction.get("aion_frame_share_max")),
-            f"Composition: {aspect}, wide or medium-wide environmental storytelling; never make AION the hero of the frame.",
+            f"Composition: {aspect}, {self._composition_direction(scene.get('beat'))}.",
             style_rule,
             "No words, captions, logos, watermark, UI, or named-studio imitation.",
         ))

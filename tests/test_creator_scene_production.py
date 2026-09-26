@@ -102,6 +102,35 @@ class CreatorSceneProductionTests(unittest.TestCase):
         self.assertIn("never make AION the hero", prompt)
         self.assertIn("story-specific chosen presence", prompt)
 
+    def test_hook_beat_gets_dynamic_framing_within_the_same_diorama_style(self):
+        # Owner feedback, 2026-09-27: every scene used identical flat wide
+        # framing, reading as static rather than as told content. Only the
+        # hook/takeaway beats change; everything else keeps the original
+        # wide, calm composition unchanged.
+        episode = {"format": "illustrated-narrated-short", "visual_direction": {}}
+        prompt = CreatorSceneProduction()._prompt(episode, {"beat": "hook", "visual": "AION explores a historical place."})
+        self.assertIn("dynamic framing with a bold, attention-grabbing angle", prompt)
+        self.assertIn("warm 3D diorama material and palette", prompt)
+        self.assertIn("never make AION the hero", prompt)
+
+    def test_takeaway_beat_gets_a_more_dramatic_reveal_angle(self):
+        episode = {"format": "illustrated-narrated-short", "visual_direction": {}}
+        prompt = CreatorSceneProduction()._prompt(episode, {"beat": "takeaway", "visual": "AION returns to the subject."})
+        self.assertIn("more dramatic angle with richer contrast light", prompt)
+        self.assertIn("reveal/payoff moment", prompt)
+
+    def test_an_ordinary_beat_keeps_the_original_wide_calm_composition(self):
+        episode = {"format": "illustrated-narrated-short", "visual_direction": {}}
+        prompt = CreatorSceneProduction()._prompt(episode, {"beat": "evidence-one-a", "visual": "Show the documented clue."})
+        self.assertIn("wide or medium-wide environmental storytelling", prompt)
+        self.assertNotIn("dynamic framing", prompt)
+        self.assertNotIn("more dramatic angle", prompt)
+
+    def test_a_scene_with_no_beat_at_all_keeps_the_original_wide_calm_composition(self):
+        episode = {"format": "illustrated-narrated-short", "visual_direction": {}}
+        prompt = CreatorSceneProduction()._prompt(episode, {"visual": "A Roman baker pulls bread from a busy oven."})
+        self.assertIn("wide or medium-wide environmental storytelling", prompt)
+
     def test_animated_documentary_episode_uses_the_approved_original_style(self):
         episode = {"format": "illustrated-narrated-short", "visual_direction": {},
                    "visual_style": {"id": "aion-animated-documentary-v1"}}
