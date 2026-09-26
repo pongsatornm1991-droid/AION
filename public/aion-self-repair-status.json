@@ -5,23 +5,23 @@
     "content/quarantine"
   ],
   "subtitle_backfill": {
-    "stage": "subtitle-backfill-failed",
-    "count": 0,
-    "error": "aion-auto-32006eab7f3a-899f27ed-short violates visual narrative policy: each-scene-needs-a-distinct-story-step"
+    "stage": "subtitle-backfill-complete",
+    "repaired": [],
+    "count": 0
   },
   "asset_hygiene": {
-    "total_files": 249,
-    "active": 214,
+    "total_files": 305,
+    "active": 270,
     "protected": 22,
     "recent_unreferenced": 13,
     "review": 0,
     "review_bytes": 0,
-    "managed_bytes": 797998339,
+    "managed_bytes": 976122553,
     "storage_state": "healthy",
     "warning_bytes": 1572864000,
     "critical_bytes": 3145728000
   },
   "boundary": "ซ่อมได้เฉพาะโฟลเดอร์งานและ caption track ที่สร้างใหม่จาก storyboard เดิม; ไม่แก้โค้ด สิทธิ์ ข้อมูลรับรอง เงิน กฎความปลอดภัย หรือเผยแพร่งาน",
   "next": "ข้อผิดพลาดนอกบัญชีซ่อมที่กำหนดจะถูกแสดงใน Operations Center พร้อมหลักฐาน เพื่อให้เกิดการแก้โค้ดที่ทดสอบได้ ไม่ใช่การแก้แบบเดาสุ่ม",
-  "generated_at": "2026-09-25T08:49:03.894276+00:00"
+  "generated_at": "2026-09-26T08:35:03.585309+00:00"
 }
