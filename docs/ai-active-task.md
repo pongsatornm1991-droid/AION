@@ -13,8 +13,8 @@ Lease expires: n/a
 Scope: None.
 Handoff: See docs/ai-session-log.md's 2026-09-26/27 entries for full detail
 (commits f69b858, af28e02, 63970ef, 92fc52f, 34512b1, ef1dbac, 18ad2c8,
-cd6174c, 2f76f90, 58f2ef3, fb4459a, d32392a, 2359b32). Quick summary of
-where things stand:
+cd6174c, 2f76f90, 58f2ef3, fb4459a, d32392a, 2359b32, 508567b). Quick
+summary of where things stand:
 
 1. AION's identity signature is a glowing cyan question-mark held in one
    hand (not a chest core, not a crystal) -- updated everywhere it's
@@ -109,12 +109,25 @@ where things stand:
     a since-fixed performance regression in ResearchToStory.propose_once()
     (was scoring every candidate twice), and a failed competitive-scan
     permanently blocking same-day retries. 11 new regression tests.
-    Not fixed, flagged only: beat names ("hook", "takeaway", ...) are
-    matched independently in 5 files with 3 different strategies and no
-    shared source of truth; and _evidence_parts()'s widened boundary
-    window is no longer capped to a beat's fixed 5-second scene budget
-    with no downstream length gate. Both are real but bigger design
-    questions than a one-line fix.
+14. Owner said "พัฒนาทันที" (develop immediately) to both remaining
+    findings above:
+    - New brain/story_beats.py centralizes beat names ("hook", "takeaway",
+      "evidence-one-a", ...): story_episode_stager.py's scene construction
+      now writes these same imported constants (not just matching string
+      literals) into each scene's "beat" field, and
+      creator_scene_production.py imports the identical
+      DYNAMIC_HOOK_BEATS/DYNAMIC_REVEAL_BEATS objects -- verified
+      byte-for-byte identical output before/after. fact_first_visual_gate.py
+      and watchability_gate.py's own looser substring/broader-set beat
+      matching are pre-existing, already-tested gates, deliberately left
+      alone and documented as a known separate case.
+    - The "no max-length gate" finding turned out, on investigation, to
+      already be covered: brain/narration_preflight.py measures each
+      beat's *real* synthesized voice duration before any scene image is
+      generated (wired into creator-scene-production.yml) and
+      auto-splits an overlong beat -- strictly better than any
+      word-count heuristic. No code change; a docstring note now points
+      at it so it isn't re-flagged as a gap later.
 
 Nothing urgent open. The owner has been told, and agreed, that the
 easy/code-findable technical gaps in this pipeline are largely closed for

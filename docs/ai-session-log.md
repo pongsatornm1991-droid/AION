@@ -13,6 +13,47 @@ Format:
 Commits: <hash> [, <hash> ...]
 ```
 
+## 2026-09-27 — Claude Code — Closed the last two self-review findings
+
+Owner said "พัฒนาทันที" to both findings left open by the self-review
+below (the ones not fixed inline because they looked like bigger design
+questions).
+
+- Beat names ("hook", "takeaway", "evidence-one-a", "evidence-N", ...)
+  were independently re-declared in story_episode_stager.py (scene
+  construction, and separately its AI-rewrite eligibility check) and
+  creator_scene_production.py (camera/lighting composition), with no
+  shared source of truth -- exactly the kind of silent-drift risk the
+  review flagged, and one this session's own new code had already created
+  (two files, two hand-typed copies of the same vocabulary). New
+  brain/story_beats.py is the single source now: scene construction
+  writes the *same imported constant objects* into each scene's "beat"
+  field (not new strings that merely match), and both consumer files
+  import those exact objects. Verified the actual episode output is
+  byte-for-byte identical to before, for both short- and long-form.
+  brain/fact_first_visual_gate.py and brain/watchability_gate.py's own
+  deliberately looser substring/broader-set beat matching were left
+  alone -- pre-existing, already-tested gates, not part of today's drift,
+  and documented as a known separate case in the new module's docstring
+  rather than silently ignored.
+- The "no max-length gate for widened narration beats" finding turned out
+  to already be handled, once actually traced downstream:
+  brain/narration_preflight.py's NarrationPreflight measures each beat's
+  *real* synthesized voice duration (not a word-count guess) before any
+  scene image is generated -- wired into creator-scene-production.yml via
+  tools/preflight_creator_narration.py -- and automatically splits any
+  beat that actually runs long, remeasuring afterward. That's strictly
+  more accurate than any word-count heuristic this session could have
+  bolted onto _evidence_parts(), so nothing was added there except a
+  docstring note pointing at the real gate, so a future review doesn't
+  re-raise the same non-issue.
+
+5 new tests (story_beats' own behavior, plus a cross-file identity check
+that fails loudly if creator_scene_production.py ever stops importing the
+same constant objects). Full `python run_tests.py`: PASS.
+
+Commits: 508567b
+
 ## 2026-09-27 — Claude Code — Self-review of the whole day's work; fixed 8 real bugs
 
 Owner asked "ยังมีบั๊คอะไรมั้ย" (any bugs left?) after a long session of
