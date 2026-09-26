@@ -13,6 +13,43 @@ Format:
 Commits: <hash> [, <hash> ...]
 ```
 
+## 2026-09-27 — Claude Code — Narration was reading like a research memo, not told content
+
+Owner feedback after listening to the Thai dub: "การเล่าเรื่อง อยากให้เล่า
+แบบคอนเท้นมากกว่านะ" (the narration should sound like told content, not
+this). Traced this to `brain/story_episode_stager.py`'s evidence-to-
+narration splitting -- deliberately literal by design (every word of
+narration is the cited source's own text, never invented, for
+traceability), but with two real, fixable defects riding on top of that
+literalism, both visible in the exact EP.005 script read earlier this
+session: narration lines starting with a bare "- " (a source's own
+Markdown list bullet, copy-pasted straight through), and beats cut at a
+blind fixed word count regardless of where a sentence actually ended
+("...satellite imagery, aerial." -- stopping mid-list, not at a natural
+pause).
+
+Fixed both without weakening the traceability guarantee at all -- every
+narrated word is still 100% literal from the source:
+- `_clean()` strips a "- " bullet marker at the start of text or right
+  after a sentence boundary, never touching a real hyphen inside a word
+  (e.g. "real-time", which has no surrounding spaces).
+- `_evidence_parts()` now prefers a real sentence end within a natural
+  window around its target word count, then a comma, and only falls back
+  to the exact word count when no such boundary exists nearby -- and that
+  blind fallback ends in an ellipsis rather than a fabricated period, so
+  it honestly reads as a continuing thought rather than a false complete
+  sentence.
+
+Not addressed (flagged, not decided): the deeper question of whether
+narration should eventually be an LLM paraphrase of the evidence rather
+than a literal excerpt at all -- a bigger, deliberate trade-off against
+the codebase's whole evidence-traceability design that needs the owner's
+own call, not a silent change. 6 new/updated tests (bullet-stripping,
+hyphen-preservation, sentence/comma-boundary preference, ellipsis
+fallback). Full `python run_tests.py`: PASS.
+
+Commits: 58f2ef3
+
 ## 2026-09-27 — Claude Code — Thai dubbing pilot, then a full automated pipeline
 
 Follow-up to the same-day entry below (Thai-localization feasibility).

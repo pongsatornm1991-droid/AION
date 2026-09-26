@@ -13,7 +13,7 @@ Lease expires: n/a
 Scope: None.
 Handoff: See docs/ai-session-log.md's 2026-09-26/27 entries for full detail
 (commits f69b858, af28e02, 63970ef, 92fc52f, 34512b1, ef1dbac, 18ad2c8,
-cd6174c, 2f76f90). Quick summary of where things stand:
+cd6174c, 2f76f90, 58f2ef3). Quick summary of where things stand:
 
 1. AION's identity signature is a glowing cyan question-mark held in one
    hand (not a chest core, not a crystal) -- updated everywhere it's
@@ -68,6 +68,15 @@ cd6174c, 2f76f90). Quick summary of where things stand:
    EP.005 yet (only manually dubbed, not through the new cycle), so the
    first scheduled thai-dub.yml run may harmlessly redo EP.005 once before
    moving on to genuinely new episodes.
+
+10. brain/story_episode_stager.py's narration splitting no longer lets a
+    source's own "- " list-bullet markup through into spoken narration,
+    and prefers a real sentence/comma boundary over a blind word-count cut
+    (owner: narration should read like told content, not a research
+    memo). Every narrated word is still 100% literal from the cited
+    source -- an intentionally NOT-yet-decided bigger question is whether
+    narration should eventually be an LLM paraphrase instead of a literal
+    excerpt at all; flagged for the owner, not changed.
 
 Nothing urgent open. The owner has been told, and agreed, that the
 easy/code-findable technical gaps in this pipeline are largely closed for
