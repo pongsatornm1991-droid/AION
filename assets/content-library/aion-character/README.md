@@ -11,7 +11,8 @@ This folder contains the visual identity references used to keep AION consistent
   picture, live on every platform (Facebook, Instagram) as of 2026-09-04.
 - `05-aion-storyteller-canonical-v1.png` -- the legacy full-body storyteller
   reference. New production follows the v2 design direction below: a small
-  glowing cyan question-mark held in one hand is the recognisable signature;
+  glowing candy-colored (cyan with soft rainbow highlights) question-mark held
+  in one hand, with a few tiny sparkle particles drifting around it, is the recognisable signature;
   clothing is contextual and deliberately not all blue.
 - `06-aion-crystal-core-v2.png` -- superseded design study; its filename and
   pixels still show the retired chest-core crystal signature (2026-09-25:
@@ -52,9 +53,10 @@ needing a single combined reference image:
 
 > AION: an original stylised gender-neutral animated AI field guide with airy
 > silver-white hair, large expressive cyan eyes, pearl-light skin, and fine
-> constellation filaments. AION holds a small glowing cyan question-mark in
-> one hand -- the signature, echoing the channel's own icon -- with a faint
-> lotus-petal geometry around it. Wear
+> constellation filaments. AION holds a small glowing candy-colored (cyan with
+> soft rainbow highlights) question-mark in one hand -- the signature,
+> echoing the channel's own icon -- with a faint lotus-petal geometry and a
+> few tiny sparkle particles drifting around it. Wear
 > practical context-specific clothing in warm ivory, charcoal, earth tones or
 > deep navy; never make the body or outfit all blue. Place AION in a realistic
 > cinematic environment with natural texture, material detail and global
@@ -72,9 +74,10 @@ still look like AION" -- treat it the same as the numbered sheets above.
 - Keep AION gender-neutral and approachable.
 - Preserve the simple face and recognizable silhouette.
 - Preserve AION's silver-white hair, cyan eyes, pearl-light constellation
-  filaments and the small glowing cyan question-mark held in one hand as
-  identity anchors. Clothing follows the scene context; cyan stays a
-  restrained luminous accent.
+  filaments and the small glowing candy-colored (cyan with soft rainbow
+  highlights) question-mark held in one hand, with a few tiny sparkle
+  particles drifting around it, as identity anchors. Clothing follows the
+  scene context; cyan stays a restrained luminous accent.
 - Do not publish the character sheet as a normal post; use it as a generation reference.
 - For any new scene image, use the reusable block above instead of attempting another multi-view sheet.
 - AION must be visibly present in every illustrated story beat. AION can be

@@ -3,8 +3,10 @@
 ## Identity anchor
 
 AION is recognised by airy silver-white hair, expressive cyan eyes,
-pearl-light constellation filaments, a small glowing cyan question-mark held
-in one hand (echoing the channel's own icon), and quiet lotus geometry.
+pearl-light constellation filaments, a small glowing candy-colored (cyan with
+soft rainbow highlights) question-mark held in one hand, with a few tiny
+sparkle particles drifting around it (echoing the channel's own icon), and
+quiet lotus geometry.
 The character is stylised; the world around
 them has realistic cinematic lighting, material texture and scale. Cyan is a
 signal of intelligence and curiosity, not a full body colour scheme.

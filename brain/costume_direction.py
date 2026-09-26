@@ -19,9 +19,10 @@ class CostumeDirection:
         appearance = str(deliberation.get("appearance_choice") or "").strip()
         base = (
             "AION is an original contextual guide, not a fixed mascot. Keep only a subtle recognisable curiosity "
-            "signature (a small glowing cyan question-mark shape held in one hand) when AION appears. "
-            "AION has pearl-light human-toned skin, silver-white hair, cyan eyes and holds a small glowing cyan "
-            "question-mark shape; never use an all-blue body or an all-blue outfit. "
+            "signature (a small glowing question-mark shape held in one hand, candy-bright cyan with soft "
+            "rainbow-tinted highlights, with a few tiny sparkle particles drifting around it) when AION appears. "
+            "AION has pearl-light human-toned skin, silver-white hair, cyan eyes and holds this small glowing "
+            "candy-colored question-mark shape with drifting sparkles; never use an all-blue body or an all-blue outfit. "
             f"AION's chosen appearance for this story: {appearance or 'Choose a practical, understated appearance that belongs to the scene.'} "
             "AION remains small and never dominates the frame; no logo, no cape, no armour, no fashion-pose."
         )

@@ -48,7 +48,7 @@ class FactFirstVisualGate:
                 "Reveal only the conclusion supported by the evidence.",
             ],
             "creative_boundary": {
-                "allowed": "Cinematic light, colour, the small glowing cyan question-mark AION holds, and mood may guide attention.",
+                "allowed": "Cinematic light, colour, the small glowing candy-colored question-mark AION holds with its drifting sparkle particles, and mood may guide attention.",
                 "prohibited": "Atmosphere may not replace, contradict, or be presented as the documented mechanism.",
             },
             "scene_roles": roles,
