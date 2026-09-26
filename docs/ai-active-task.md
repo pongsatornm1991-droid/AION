@@ -11,9 +11,9 @@ Owner: none
 Started: n/a
 Lease expires: n/a
 Scope: None.
-Handoff: See docs/ai-session-log.md's three 2026-09-26 entries for full
-detail (commits f69b858, af28e02, 63970ef, 92fc52f, 34512b1). Quick summary
-of where things stand:
+Handoff: See docs/ai-session-log.md's 2026-09-26/27 entries for full detail
+(commits f69b858, af28e02, 63970ef, 92fc52f, 34512b1, ef1dbac, 18ad2c8,
+cd6174c). Quick summary of where things stand:
 
 1. AION's identity signature is a glowing cyan question-mark held in one
    hand (not a chest core, not a crystal) -- updated everywhere it's
@@ -40,6 +40,28 @@ of where things stand:
    day, keeps top 15 results) → persisted into the separate
    `aion-memory-data` repo, not this one. Quota checked and safe (see
    session log).
+7. `ResearchToStory.propose_once()` no longer picks the next story topic by
+   alphabetical accident -- it now prefers whichever ResearchPortfolio lane
+   has the fewest existing briefs, fixing the exact concentration (6) made
+   visible on the dashboard.
+8. `YouTubeCreatorQueue` appends one discovery hashtag to a Short's on-screen
+   title (e.g. "... #Maps"), derived from the same keyword extraction
+   `_video_tags()` uses. Never applied to long-form.
+9. Thai-language expansion (owner-initiated, in progress): investigated
+   feasibility -- TTS (OpenAI/edge-tts) already handles Thai text natively,
+   brain/evaluator.py's claim-safety consciousness/emotion gates already
+   have real Thai patterns (built for Phase 10 social posting), and
+   research_to_story.py's brief schema already says "English-first,
+   optional Thai companion text". Owner then found, by hand in YouTube
+   Studio, that translated title/description ("localizations") is a real
+   per-video feature with no Thai entry on any upload yet. Added
+   tools/youtube.py's set_video_localization() (confirmed via YouTube's own
+   API docs to be a stable, long-standing API field, unlike multi-language
+   audio dubbing, which has no confirmed public API endpoint and gates on
+   the channel having "Advanced features" -- unverified for this channel).
+   Not yet run against any real published video -- that needs the owner's
+   own go-ahead per video, plus actual Thai translations to write (not
+   generated yet).
 
 Nothing urgent open. The owner has been told, and agreed, that the
 easy/code-findable technical gaps in this pipeline are largely closed for
@@ -51,4 +73,6 @@ hardcoded to en.wikipedia.org; noted as a gap, not acted on since it
 implies a bigger call about the channel's target language). The recovery
 catalogue (brain/initiative.py) is still correctly at 0/57 fresh topics
 with its 21-day cooldown safety net not yet eligible -- an expected state,
-not a bug, per the 2026-09-25 entries.
+not a bug, per the 2026-09-25 entries. Whether to actually pursue Thai
+audio dubbing (vs. just translated metadata) is still an open owner
+decision pending the "Advanced features" channel-eligibility check.

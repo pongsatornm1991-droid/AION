@@ -13,6 +13,49 @@ Format:
 Commits: <hash> [, <hash> ...]
 ```
 
+## 2026-09-27 — Claude Code — Lane-balanced story selection, a Short title hashtag, and a Thai-localization feasibility pass
+
+Follow-up to the two 2026-09-26 entries below. Owner said "ทำเลยทั้งหมด" to
+the three proposed next steps:
+
+- `ResearchToStory.propose_once()` picked its next candidate by
+  alphabetical topic-text sort, which is exactly what concentrated every
+  ready episode into one ResearchPortfolio lane (visible on the dashboard
+  added earlier that day). Now prefers whichever eligible candidate's lane
+  has fewest existing briefs; ties still resolve alphabetically, so
+  behavior is unchanged while lane counts are equal. New test constructs
+  the imbalance and confirms the fix.
+- `YouTubeCreatorQueue` gains `_title_hashtag()`: one capitalized hashtag
+  appended to a Short's on-screen title only, from the same keyword
+  extraction `_video_tags()` uses. Refactored keyword extraction into a
+  shared `_topic_and_keywords()` after catching a real bug in review: the
+  first draft scanned `_video_tags()`'s combined output for the first
+  lowercase word, which would have wrongly grabbed the fixed channel tag
+  "education" or "curiosity" on a topic with no surviving keyword.
+- Owner asked for a feasibility read on Thai-language expansion. Found
+  more readiness than expected without writing any code: OpenAI/edge-tts
+  already handle Thai text natively (no new TTS integration needed);
+  `brain/evaluator.py`'s claim-safety consciousness/emotion/subjective-
+  experience gates already have real Thai patterns, built for "Phase 10
+  (social posting)"; `brain/social.py` already generates Thai social posts
+  with a plain prompt-language switch on the same provider; and
+  `research_to_story.py`'s brief schema already says "English-first,
+  optional Thai companion text" -- the architecture anticipated this.
+  Owner then found, by hand in YouTube Studio's own per-video Language
+  tab, that translated title/description ("localizations") is real and
+  API-backed, distinct from multi-language audio dubbing (confirmed via
+  YouTube's own API docs: localizations is stable/long-standing;
+  multi-language audio has no confirmed public API endpoint and gates on
+  the channel having "Advanced features", unverified for this channel).
+  Added `tools/youtube.py`'s `set_video_localization()` (read-modify-write
+  so it can't clobber the existing snippet or other languages). Not run
+  against any real video yet -- needs the owner's go-ahead per video plus
+  actual Thai translations, neither of which exist yet.
+
+9 new/updated tests across three files. Full `python run_tests.py`: PASS.
+
+Commits: 18ad2c8, cd6174c
+
 ## 2026-09-26 — Claude Code — Scheduled the competitive scan daily
 
 Follow-up to the same-day entry below. Owner asked whether running
