@@ -20,6 +20,7 @@ from brain.fact_first_visual_gate import FactFirstVisualGate
 from brain.creator_source_integrity import CreatorSourceIntegrity
 from brain.aion_visual_director import AionVisualDirector
 from brain.aion_creative_director import AionCreativeDirector
+from brain.evaluator import OutputEvaluator
 
 
 class StoryEpisodeStager:
@@ -131,6 +132,114 @@ class StoryEpisodeStager:
         if len(str(part).split()) >= 9:
             return part
         return f"{part} This is a direct observation about {topic}."
+
+    # Beats whose narration is a literal (or near-literal) excerpt of a
+    # source observation -- the ones an AI rewrite is meant to retell, not
+    # the already hand-authored template lines (question, boundary,
+    # takeaway, invitation, ...), which stay as they are.
+    _SHORT_REWRITE_BEATS = {
+        "hook", "evidence-one-a", "evidence-one-b", "evidence-two-a", "evidence-two-b", "connection",
+    }
+    _LONG_FORM_REWRITE_BEAT = re.compile(r"^evidence-\d+$")
+
+    @classmethod
+    def _rewritable_beat(cls, beat):
+        return beat in cls._SHORT_REWRITE_BEATS or bool(cls._LONG_FORM_REWRITE_BEAT.match(str(beat or "")))
+
+    @staticmethod
+    def _key_terms(text):
+        """Rough proper-noun/number fingerprint of a piece of source text.
+
+        Not a real NER model -- a plain, honest heuristic (capitalized or
+        digit-bearing tokens) used only to catch an AI rewrite that drifted
+        away from the facts it was given, not to prove correctness.
+        """
+        return {
+            token.strip(".,;:!?\"'()")
+            for token in str(text or "").split()
+            if token.strip(".,;:!?\"'()") and (token[0].isupper() or any(char.isdigit() for char in token))
+        }
+
+    @classmethod
+    def _preserves_key_facts(cls, original, rewritten):
+        key_terms = cls._key_terms(original)
+        if not key_terms:
+            return True
+        rewritten_lower = str(rewritten or "").lower()
+        kept = sum(1 for term in key_terms if term.lower() in rewritten_lower)
+        return (kept / len(key_terms)) >= 0.6
+
+    def _rewrite_scene_narrations(self, scenes, topic):
+        """Retell each evidence-literal beat as natural, engaging spoken
+        narration, using only facts already present in that beat's own
+        current narration -- never inventing a new fact, number, name, or
+        claim, and never letting AION claim to feel or be conscious.
+
+        Owner feedback, 2026-09-27: "ทำให้เป็นคอนเทนที่สนุก ฟังแล้วไม่ใช่
+        เหมือนนั่งเรียน... ให้ AI เขียนบทใหม่จากหลักฐานเดิม" (make it fun
+        content, not like sitting in class; have AI write a fresh script
+        from the same evidence). This is a deliberate, requested trade
+        against the module's long-standing default of narrating a literal
+        source excerpt -- every rewrite is still screened against
+        claim-safety and a rough fact-preservation check before use, and
+        any beat that fails either check, or the whole pass if no provider
+        is configured (offline/test paths, or a real provider outage),
+        quietly keeps its original literal narration instead of blocking
+        staging. Returns (scenes, meta) -- meta is recorded on the episode
+        for the same auditability reason visual_style/aion_deliberation
+        record their own "bounded-fallback" origin.
+        """
+        targets = [scene for scene in scenes if self._rewritable_beat(scene.get("beat"))]
+        if self.provider is None:
+            return scenes, {"version": "ai-narration-rewrite-v1", "origin": "bounded-fallback", "reason": "provider-unavailable"}
+        if not targets:
+            return scenes, {"version": "ai-narration-rewrite-v1", "origin": "bounded-fallback", "reason": "no-rewritable-beats"}
+
+        prompt = "\n".join([
+            "You are helping AION, an AI documentary narrator, retell short evidence-grounded beats as fun, natural, engaging spoken narration for a fast-paced short video.",
+            "Absolute rules:",
+            "- Use ONLY information already present in each beat's own given text. Never add a new fact, number, name, or claim that is not already stated there.",
+            "- Never phrase anything as AION having feelings, consciousness, or subjective experience -- AION is an AI narrator describing evidence, never a sentient being.",
+            "- Keep each beat's rewrite close to its target word count (+/-25%), since it must still fit a fixed five-second scene.",
+            "- Sound like a curious, energetic documentary narrator talking directly to a viewer -- never a research abstract, never a bullet list.",
+            f"Topic of the whole video: {topic}",
+            "Rewrite each beat below. Return ONLY a JSON object mapping each beat's scene number (as a string) to its rewritten narration string -- no markdown fences, no commentary, no extra keys.",
+            json.dumps(
+                {str(scene["n"]): {"original": scene["narration"], "target_words": len(str(scene["narration"]).split())} for scene in targets},
+                ensure_ascii=False,
+            ),
+        ])
+        try:
+            raw = self.provider.generate(prompt).strip()
+            if raw.startswith("```"):
+                raw = raw.strip("`")
+                if raw.startswith("json"):
+                    raw = raw[4:]
+            rewritten_by_number = json.loads(raw.strip())
+        except Exception as exc:
+            return scenes, {"version": "ai-narration-rewrite-v1", "origin": "bounded-fallback", "reason": f"provider-error:{type(exc).__name__}"}
+
+        applied, skipped = [], []
+        for scene in targets:
+            candidate = rewritten_by_number.get(str(scene["n"]))
+            if not isinstance(candidate, str) or not candidate.strip():
+                skipped.append({"n": scene["n"], "reason": "missing-or-empty"})
+                continue
+            if OutputEvaluator.has_unsafe_claim(candidate):
+                skipped.append({"n": scene["n"], "reason": "claim-safety"})
+                continue
+            if not self._preserves_key_facts(scene["narration"], candidate):
+                skipped.append({"n": scene["n"], "reason": "fact-drift"})
+                continue
+            scene["narration"] = candidate.strip()
+            applied.append(scene["n"])
+
+        if not applied:
+            return scenes, {"version": "ai-narration-rewrite-v1", "origin": "bounded-fallback", "reason": "no-candidate-passed-checks", "skipped": skipped}
+        return scenes, {
+            "version": "ai-narration-rewrite-v1", "origin": "ai-rewrite",
+            "rewritten_scenes": applied, "skipped": skipped,
+        }
 
     @staticmethod
     def _episode_id(root_id, episode_format="short"):
@@ -353,6 +462,7 @@ class StoryEpisodeStager:
                 "scenes": long_scenes,
                 "content_angle_key": "evidence-walkthrough-primary",
             })
+        episode["scenes"], episode["narration_style"] = self._rewrite_scene_narrations(episode["scenes"], topic)
         episode["visual_narrative"] = VisualNarrativeGate.plan(topic, episode["scenes"])
         episode["fact_first_visual"] = FactFirstVisualGate.plan(topic, handoff.get("sources"), episode["scenes"])
         visual_narrative = VisualNarrativeGate.assess(episode)

@@ -22,7 +22,6 @@ experience) before being used for anything.
 """
 
 import json
-import re
 import subprocess
 import tempfile
 from datetime import datetime, timezone
@@ -35,22 +34,10 @@ CATEGORY = "youtube_thai_dubs"
 SOURCE_PREFIX = "aion-thai-dub:"
 THAI_AUDIO_DIR = "content/reels_thai"
 
-_CLAIM_UNSAFE_PATTERN_GROUPS = (
-    OutputEvaluator.CONSCIOUSNESS_PATTERNS,
-    OutputEvaluator.SUBJECTIVE_EXPERIENCE_PATTERNS,
-    OutputEvaluator.EMOTION_PATTERNS,
-    OutputEvaluator.PERSONAL_EXPERIENCE_PATTERNS,
-)
-
-
-def has_unsafe_claim(text):
-    """True if `text` trips any of AION's existing claim-safety patterns."""
-    text = str(text or "")
-    return any(
-        re.search(pattern, text, re.IGNORECASE)
-        for patterns in _CLAIM_UNSAFE_PATTERN_GROUPS
-        for pattern in patterns
-    )
+# Re-exported for existing call sites/tests; the check itself lives on
+# OutputEvaluator so every module that needs it (Thai dubbing, the AI
+# narration rewrite in story_episode_stager.py, ...) shares one definition.
+has_unsafe_claim = OutputEvaluator.has_unsafe_claim
 
 
 class ThaiDubCycle:

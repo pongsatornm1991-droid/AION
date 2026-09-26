@@ -9,6 +9,84 @@ from brain.story_episode_stager import StoryEpisodeStager
 from brain.creator_scene_production import CreatorSceneProduction
 
 
+class FakeProvider:
+    def __init__(self, response=None, exc=None):
+        self.response = response
+        self.exc = exc
+        self.calls = 0
+
+    def generate(self, prompt):
+        self.calls += 1
+        if self.exc:
+            raise self.exc
+        return self.response
+
+
+class RewriteSceneNarrationsTests(unittest.TestCase):
+    SCENES = [
+        {"n": 1, "beat": "hook", "narration": "Chromatophores let an octopus change color in under one second."},
+        {"n": 2, "beat": "question", "narration": "We will follow what was actually observed."},
+        {"n": 4, "beat": "evidence-one-a", "narration": "Muscles stretch each pigment sac to reveal or hide its color."},
+    ]
+
+    def test_no_provider_is_a_bounded_fallback_and_leaves_narration_untouched(self):
+        stager = StoryEpisodeStager(memory=None, root=".", provider=None)
+        scenes, meta = stager._rewrite_scene_narrations([dict(s) for s in self.SCENES], "octopus color change")
+        self.assertEqual("bounded-fallback", meta["origin"])
+        self.assertEqual("provider-unavailable", meta["reason"])
+        self.assertEqual(self.SCENES[0]["narration"], scenes[0]["narration"])
+
+    def test_applies_a_safe_rewrite_that_preserves_key_facts(self):
+        response = json.dumps({
+            "1": "Meet the octopus: it can flip its whole color scheme in under a second using Chromatophores!",
+            "4": "Here's the trick -- Muscles stretch each pigment sac open to flash color, or hide it.",
+        })
+        stager = StoryEpisodeStager(memory=None, root=".", provider=FakeProvider(response=response))
+        scenes, meta = stager._rewrite_scene_narrations([dict(s) for s in self.SCENES], "octopus color change")
+        self.assertEqual("ai-rewrite", meta["origin"])
+        self.assertEqual([1, 4], meta["rewritten_scenes"])
+        self.assertIn("Chromatophores", scenes[0]["narration"])
+        self.assertNotEqual(self.SCENES[0]["narration"], scenes[0]["narration"])
+        # The untargeted "question" beat is never touched.
+        self.assertEqual(self.SCENES[1]["narration"], scenes[1]["narration"])
+
+    def test_falls_back_to_the_original_line_when_a_candidate_claims_consciousness(self):
+        response = json.dumps({
+            "1": "I feel so alive watching this octopus change color!",
+            "4": "Muscles stretch each pigment sac to reveal or hide its color, live on screen.",
+        })
+        stager = StoryEpisodeStager(memory=None, root=".", provider=FakeProvider(response=response))
+        scenes, meta = stager._rewrite_scene_narrations([dict(s) for s in self.SCENES], "octopus color change")
+        self.assertEqual(self.SCENES[0]["narration"], scenes[0]["narration"])
+        self.assertIn({"n": 1, "reason": "claim-safety"}, meta["skipped"])
+        self.assertIn(4, meta["rewritten_scenes"])
+
+    def test_falls_back_to_the_original_line_when_a_candidate_drifts_from_the_facts(self):
+        response = json.dumps({
+            "1": "This amazing creature can do all sorts of incredible things you would never expect!",
+            "4": "Muscles stretch each pigment sac to reveal or hide its color.",
+        })
+        stager = StoryEpisodeStager(memory=None, root=".", provider=FakeProvider(response=response))
+        scenes, meta = stager._rewrite_scene_narrations([dict(s) for s in self.SCENES], "octopus color change")
+        self.assertEqual(self.SCENES[0]["narration"], scenes[0]["narration"])
+        self.assertIn({"n": 1, "reason": "fact-drift"}, meta["skipped"])
+
+    def test_a_provider_failure_is_a_bounded_fallback_not_a_crash(self):
+        stager = StoryEpisodeStager(memory=None, root=".", provider=FakeProvider(exc=RuntimeError("provider down")))
+        scenes, meta = stager._rewrite_scene_narrations([dict(s) for s in self.SCENES], "octopus color change")
+        self.assertEqual("bounded-fallback", meta["origin"])
+        self.assertEqual("provider-error:RuntimeError", meta["reason"])
+        self.assertEqual(self.SCENES[0]["narration"], scenes[0]["narration"])
+
+    def test_no_rewritable_beats_is_a_bounded_fallback(self):
+        stager = StoryEpisodeStager(memory=None, root=".", provider=FakeProvider(response="{}"))
+        scenes, meta = stager._rewrite_scene_narrations(
+            [{"n": 1, "beat": "question", "narration": "We will follow what was actually observed."}], "topic",
+        )
+        self.assertEqual("bounded-fallback", meta["origin"])
+        self.assertEqual("no-rewritable-beats", meta["reason"])
+
+
 class StoryEpisodeStagerTests(unittest.TestCase):
     def test_stages_one_traceable_subject_first_short(self):
         with tempfile.TemporaryDirectory() as root:
@@ -33,6 +111,34 @@ class StoryEpisodeStagerTests(unittest.TestCase):
             self.assertEqual(60, episode["target_duration_seconds"])
             self.assertEqual("bounded-fallback", episode["visual_style"]["aion_deliberation"]["origin"])
             self.assertEqual("no-story-ready-handoff", StoryEpisodeStager(memory, root).stage_once()["stage"])
+            self.assertEqual("bounded-fallback", episode["narration_style"]["origin"])
+
+    def test_stages_with_an_ai_narration_rewrite_when_a_provider_is_configured(self):
+        with tempfile.TemporaryDirectory() as root:
+            root = Path(root)
+            memory = MemoryEngine(root / "memory")
+            memory.remember("creator_research_handoffs", json.dumps({
+                "status": "story-ready", "root_question_id": "question-rewrite",
+                "topic": "How did an ancient ice house work?",
+                "working_title": "AION Wonders: Desert Ice",
+                "sources": [
+                    {"title": "Source one", "url": "https://example.test/one", "observation": "Ice was stored below ground in a Yakhchal."},
+                    {"title": "Source two", "url": "https://example.test/two", "observation": "Wind and shade reduced heat near the structure."},
+                ],
+                "unknown_facts": "The exact temperature varied by season.",
+            }), memory_type="decision", source="test", importance=4)
+
+            class RewriteProvider:
+                def generate(self, prompt):
+                    payload = json.loads(prompt.splitlines()[-1])
+                    return json.dumps({n: f"Picture this: {item['original']}" for n, item in payload.items()})
+
+            report = StoryEpisodeStager(memory, root, provider=RewriteProvider()).stage_once()
+            self.assertEqual("storyboard-staged", report["stage"])
+            episode = CreatorSeriesRegistry(root).episodes()[0]
+            self.assertEqual("ai-rewrite", episode["narration_style"]["origin"])
+            hook = episode["scenes"][0]
+            self.assertTrue(hook["narration"].startswith("Picture this:"))
 
     def test_clean_never_cuts_a_word_in_half(self):
         # Regression for 2026-09-22: a bare [:limit] slice once produced

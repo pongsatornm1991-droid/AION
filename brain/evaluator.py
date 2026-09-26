@@ -163,6 +163,23 @@ class OutputEvaluator:
         r"ฉันเคยรู้สึก",
     ]
 
+    @classmethod
+    def has_unsafe_claim(cls, text):
+        """True if `text` trips any consciousness/emotion/subjective-
+        experience claim-safety pattern. A narrow, fast check for content
+        that never goes through full evaluate() scoring -- e.g. a single
+        translated or AI-rewritten narration line -- but still must never
+        let AION claim to feel, experience, or be conscious."""
+        text = str(text or "")
+        for patterns in (
+            cls.CONSCIOUSNESS_PATTERNS, cls.SUBJECTIVE_EXPERIENCE_PATTERNS,
+            cls.EMOTION_PATTERNS, cls.PERSONAL_EXPERIENCE_PATTERNS,
+        ):
+            for pattern in patterns:
+                if re.search(pattern, text, re.IGNORECASE):
+                    return True
+        return False
+
     # ============================================================
     # External data / statistics / sources
     # ============================================================
