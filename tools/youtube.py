@@ -139,6 +139,23 @@ def set_video_privacy(video_id, privacy_status="public"):
     }
 
 
+def get_video_snippet(video_id):
+    """Read a video's current live title/description (e.g. before translating
+    them). Read-only; never used to infer anything beyond what's returned."""
+    from googleapiclient.discovery import build
+
+    identifier = str(video_id or "").strip()
+    if not identifier:
+        raise ValueError("A YouTube video id is required")
+    youtube = build("youtube", "v3", credentials=youtube_credentials([YOUTUBE_COMMENT_SCOPE]), cache_discovery=False)
+    response = youtube.videos().list(part="snippet", id=identifier).execute()
+    items = response.get("items") or []
+    if not items:
+        raise RuntimeError(f"No YouTube video found for id {identifier}")
+    snippet = items[0]["snippet"]
+    return {"title": snippet.get("title") or "", "description": snippet.get("description") or ""}
+
+
 def set_video_localization(video_id, language_code, title, description):
     """Add or replace one language's localized title/description for an
     existing upload, without touching audio, captions, thumbnail, or any

@@ -3,7 +3,9 @@ import tempfile
 import unittest
 from unittest import mock
 
-from tools.youtube import YOUTUBE_UPLOAD_SCOPE, set_video_localization, upload_short, youtube_credentials
+from tools.youtube import (
+    YOUTUBE_UPLOAD_SCOPE, get_video_snippet, set_video_localization, upload_short, youtube_credentials,
+)
 
 
 class YouTubeUploadTests(unittest.TestCase):
@@ -64,6 +66,32 @@ class YouTubeUploadTests(unittest.TestCase):
             kept = body["snippet"]["tags"]
             self.assertLess(len(kept), len(long_tags))
             self.assertLessEqual(sum(len(t) + 1 for t in kept), 500)
+
+
+class GetVideoSnippetTests(unittest.TestCase):
+    ENV = {"YOUTUBE_REFRESH_TOKEN": "t", "YOUTUBE_CLIENT_ID": "c", "YOUTUBE_CLIENT_SECRET": "s"}
+
+    def test_rejects_a_blank_video_id_before_contacting_youtube(self):
+        with self.assertRaises(ValueError):
+            get_video_snippet("")
+
+    def test_returns_the_live_title_and_description(self):
+        fake_youtube = mock.MagicMock()
+        fake_youtube.videos.return_value.list.return_value.execute.return_value = {
+            "items": [{"snippet": {"title": "Real title", "description": "Real description"}}],
+        }
+        with mock.patch.dict(os.environ, self.ENV, clear=False), \
+             mock.patch("googleapiclient.discovery.build", return_value=fake_youtube):
+            result = get_video_snippet("abc")
+        self.assertEqual({"title": "Real title", "description": "Real description"}, result)
+
+    def test_raises_when_the_video_id_does_not_resolve(self):
+        fake_youtube = mock.MagicMock()
+        fake_youtube.videos.return_value.list.return_value.execute.return_value = {"items": []}
+        with mock.patch.dict(os.environ, self.ENV, clear=False), \
+             mock.patch("googleapiclient.discovery.build", return_value=fake_youtube):
+            with self.assertRaises(RuntimeError):
+                get_video_snippet("missing")
 
 
 class SetVideoLocalizationTests(unittest.TestCase):

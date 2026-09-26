@@ -49,6 +49,33 @@ def _openai_speech(text, output_path, speed=None):
         return False
 
 
+def synthesize_thai_voice(text, output_path, attempts=3):
+    """Thai-language narration for a dubbed audio track.
+
+    Deliberately independent of REEL_VOICE/REEL_VOICE_PROVIDER (the main
+    English narration config) -- a Thai dub must always use a real Thai
+    voice regardless of whichever provider/voice the primary pipeline
+    happens to be configured with. edge-tts's websocket to Microsoft is
+    intermittently flaky (observed 2026-09-27: an isolated mid-run
+    failure that succeeded on retry), so this retries before giving up.
+    """
+    import asyncio
+    import time
+
+    voice = os.getenv("THAI_VOICE", "th-TH-PremwadeeNeural")
+    for attempt in range(attempts):
+        try:
+            import edge_tts
+
+            asyncio.run(edge_tts.Communicate(str(text), voice=voice).save(str(output_path)))
+            return True
+        except Exception:
+            if attempt == attempts - 1:
+                return False
+            time.sleep(2 * (attempt + 1))
+    return False
+
+
 def synthesize_reel_voice(text, output_path, speed=None):
     provider = os.getenv("REEL_VOICE_PROVIDER", "edge-tts").strip().lower()
     if provider == "openai":
