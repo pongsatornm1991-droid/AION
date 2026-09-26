@@ -13,6 +13,31 @@ Format:
 Commits: <hash> [, <hash> ...]
 ```
 
+## 2026-09-27 — Claude Code — More visual energy at the hook/reveal, without copying another franchise's style
+
+Owner shared a reference clip (Post Malone/Swae Lee "Sunflower", built on
+Spider-Man: Into the Spider-Verse's footage) asking if AION's visuals look
+like that. Watched it via the browser: no -- that's a halftone-dot,
+bold-outline comic-book aesthetic, nothing like AION's glossy warm 3D
+diorama. Flagged, unprompted, that copying it would also conflict with
+VisualStoryPolicy's existing "never imitate a named artist, studio,
+channel, franchise" rule. Asked for a recommendation; gave one: keep the
+diorama identity (matches the content -- curiosity/education, not
+action/hero -- and ~20 already-published episodes), but add real per-beat
+camera/lighting energy, since every scene using identical flat wide
+framing was a separate, genuine issue.
+
+Owner agreed, for new episodes only ("ไม่ต้องไปแก้ของเก่า").
+CreatorSceneProduction._composition_direction(beat) now gives "hook"
+closer/dynamic framing and "takeaway" a more dramatic reveal angle +
+richer contrast light, both still explicitly the same diorama material
+and palette; every other beat's composition line is byte-for-byte
+unchanged, and no already-staged episode's own JSON is touched (this only
+affects the prompt built at scene-image-generation time). 5 new tests.
+Full python run_tests.py: PASS.
+
+Commits: d32392a
+
 ## 2026-09-27 — Claude Code — Narration was reading like a research memo, not told content
 
 Owner feedback after listening to the Thai dub: "การเล่าเรื่อง อยากให้เล่า
@@ -49,6 +74,41 @@ hyphen-preservation, sentence/comma-boundary preference, ellipsis
 fallback). Full `python run_tests.py`: PASS.
 
 Commits: 58f2ef3
+
+## 2026-09-27 — Claude Code — AI-rewrite narration into fun, told content (not a literal excerpt)
+
+Direct follow-up: owner chose the bigger option flagged above --
+"ทำให้เป็นคอนเทนที่สนุก ฟังแล้วไม่ใช่เหมือนนั่งเรียน... ให้ AI เขียนบทใหม่
+จากหลักฐานเดิม" (make it fun content, not like sitting in class; have AI
+write a fresh script from the same evidence).
+
+StoryEpisodeStager._rewrite_scene_narrations() asks AION's own provider to
+retell each evidence-literal beat (hook, evidence-one-a/b, evidence-two-a/b,
+connection for Shorts; evidence-N for long-form) as natural, energetic
+spoken narration, explicitly constrained to only the facts already present
+in that beat's own text -- never a new fact, number, name, or claim. Every
+candidate is screened before use: moved has_unsafe_claim() out of
+brain/thai_dub_cycle.py's private copy into a shared
+OutputEvaluator.has_unsafe_claim() classmethod (rejects any consciousness/
+emotion/subjective-experience phrasing), plus a new, honestly-documented
+rough fact-preservation heuristic (_key_terms/_preserves_key_facts: does
+the rewrite still contain most of the original's proper nouns/numbers).
+A beat that fails either check, or the whole pass when no provider is
+configured (every existing offline/test path) or the provider call itself
+fails, quietly keeps that scene's original literal narration -- can never
+block staging. Verified live against real EP.005 evidence text with the
+real Gemini provider, e.g. "The article describes that Google Maps
+presents multiple map representations, satellite imagery." became "Take
+Google Maps, which presents multiple map representations, including
+satellite imagery!" -- same fact, told rather than read aloud.
+
+14 new tests (five rewrite outcome paths, an end-to-end stage_once() with
+a fake provider, the moved-and-shared has_unsafe_claim). Full
+`python run_tests.py`: PASS (one transient local ffmpeg-detection flake on
+the first run, confirmed clean on immediate rerun -- a known environment
+quirk unrelated to this change).
+
+Commits: fb4459a
 
 ## 2026-09-27 — Claude Code — Thai dubbing pilot, then a full automated pipeline
 

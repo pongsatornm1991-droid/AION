@@ -13,7 +13,8 @@ Lease expires: n/a
 Scope: None.
 Handoff: See docs/ai-session-log.md's 2026-09-26/27 entries for full detail
 (commits f69b858, af28e02, 63970ef, 92fc52f, 34512b1, ef1dbac, 18ad2c8,
-cd6174c, 2f76f90, 58f2ef3). Quick summary of where things stand:
+cd6174c, 2f76f90, 58f2ef3, fb4459a, d32392a). Quick summary of where things
+stand:
 
 1. AION's identity signature is a glowing cyan question-mark held in one
    hand (not a chest core, not a crystal) -- updated everywhere it's
@@ -72,11 +73,26 @@ cd6174c, 2f76f90, 58f2ef3). Quick summary of where things stand:
 10. brain/story_episode_stager.py's narration splitting no longer lets a
     source's own "- " list-bullet markup through into spoken narration,
     and prefers a real sentence/comma boundary over a blind word-count cut
-    (owner: narration should read like told content, not a research
-    memo). Every narrated word is still 100% literal from the cited
-    source -- an intentionally NOT-yet-decided bigger question is whether
-    narration should eventually be an LLM paraphrase instead of a literal
-    excerpt at all; flagged for the owner, not changed.
+    (owner: narration should read like told content, not a research memo).
+11. Went further per explicit owner direction ("ให้ AI เขียนบทใหม่จาก
+    หลักฐานเดิม"): StoryEpisodeStager._rewrite_scene_narrations() now asks
+    AION's own provider to retell each evidence-literal beat as natural,
+    fun spoken narration, constrained to only the facts already in that
+    beat's text. Screened by OutputEvaluator.has_unsafe_claim() (new
+    shared classmethod) and a rough fact-preservation check
+    (_preserves_key_facts); any beat that fails either, or the whole pass
+    with no provider configured, quietly keeps its original literal line.
+    Episode records this as `narration_style` ("ai-rewrite" or
+    "bounded-fallback" + reason).
+12. Owner compared the channel to a dramatic reference clip (Into the
+    Spider-Verse) and asked for a recommendation -- keep AION's own warm
+    3D diorama identity (copying a named franchise's exact look is
+    already prohibited), but add real per-beat visual energy.
+    CreatorSceneProduction._composition_direction() now gives the "hook"
+    beat closer/dynamic framing and "takeaway" a more dramatic reveal
+    angle+lighting, both still explicitly the same diorama material/
+    palette; every other beat is unchanged. Owner: "ไม่ต้องไปแก้ของเก่า" --
+    only affects new episodes' scene-image prompts going forward.
 
 Nothing urgent open. The owner has been told, and agreed, that the
 easy/code-findable technical gaps in this pipeline are largely closed for
@@ -88,6 +104,4 @@ hardcoded to en.wikipedia.org; noted as a gap, not acted on since it
 implies a bigger call about the channel's target language). The recovery
 catalogue (brain/initiative.py) is still correctly at 0/57 fresh topics
 with its 21-day cooldown safety net not yet eligible -- an expected state,
-not a bug, per the 2026-09-25 entries. Whether to actually pursue Thai
-audio dubbing (vs. just translated metadata) is still an open owner
-decision pending the "Advanced features" channel-eligibility check.
+not a bug, per the 2026-09-25 entries.
