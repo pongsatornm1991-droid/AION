@@ -44,6 +44,51 @@ class StoryEpisodeStagerTests(unittest.TestCase):
         for word in cleaned.split():
             self.assertIn(word, long_text.split())
 
+    def test_clean_strips_leading_and_mid_text_bullet_markup(self):
+        # Regression for 2026-09-27 (owner: narration should sound like told
+        # content, not a research memo): a source observation copy-pasted
+        # from an encyclopedia carried its own "- " list markers straight
+        # into spoken narration.
+        text = "- The article describes maps. - It notes satellite views."
+        cleaned = StoryEpisodeStager._clean(text)
+        self.assertEqual("The article describes maps. It notes satellite views.", cleaned)
+
+    def test_clean_never_touches_a_real_hyphen_inside_a_word(self):
+        cleaned = StoryEpisodeStager._clean("Real-time traffic layers update continuously.")
+        self.assertIn("Real-time", cleaned)
+
+    def test_evidence_parts_prefer_a_real_sentence_end_over_a_blind_word_count_cut(self):
+        # Regression for 2026-09-27: a blind 12-word cut landed mid-clause
+        # ("...satellite imagery, aerial.") instead of a real sentence end
+        # that falls within the natural window around words_per_part.
+        observation = (
+            "Google Maps presents several distinct map representations to explore. "
+            "It moved from a flat 2D projection to a 3D globe view in 2018."
+        )
+        parts = StoryEpisodeStager._evidence_parts(observation, part_count=2, words_per_part=12)
+        self.assertTrue(parts[0].endswith("explore."))
+
+    def test_evidence_parts_prefer_a_comma_over_a_mid_word_cut_when_no_sentence_end_is_near(self):
+        # The bug this whole change targets: the original code would cut
+        # this exact sentence to "...satellite imagery, aerial." -- stopping
+        # mid-list on a word that isn't even a natural pause.
+        observation = (
+            "The article describes that Google Maps presents multiple map representations, "
+            "satellite imagery, aerial photos, street maps, and real-time traffic layers, "
+            "and allows users to switch among them."
+        )
+        parts = StoryEpisodeStager._evidence_parts(observation, part_count=2, words_per_part=12)
+        self.assertNotEqual("aerial", parts[0].rstrip(".").split()[-1])
+        self.assertTrue(parts[0].endswith("."))
+
+    def test_evidence_parts_use_an_ellipsis_not_a_fabricated_period_when_cut_is_blind(self):
+        # A single run-on sentence with no comma or sentence end anywhere
+        # near the window must not be presented as if it were complete.
+        observation = " ".join(f"word{i}" for i in range(40)) + "."
+        parts = StoryEpisodeStager._evidence_parts(observation, part_count=2, words_per_part=12)
+        self.assertTrue(parts[0].endswith("…"))
+        self.assertNotIn(".", parts[0])
+
     def test_connection_beat_states_real_evidence_instead_of_generic_filler(self):
         with tempfile.TemporaryDirectory() as root:
             root = Path(root)

@@ -28,6 +28,16 @@ class StoryEpisodeStager:
     CATEGORY = "creator_research_handoffs"
     SOURCE = "aion-story-episode-stager"
 
+    # A source observation copy-pasted from an encyclopedia/paper abstract
+    # often carries its original list-bullet markup ("- The article
+    # describes... - It notes that..."). That "-" is Markdown structure,
+    # not spoken content, and reading it aloud is exactly what made
+    # narration sound like a research memo instead of a told story (owner
+    # feedback, 2026-09-27). Matches a literal "- " at the very start of the
+    # text or right after a sentence boundary, never a real hyphen inside or
+    # between words (e.g. "real-time"), which never has surrounding spaces.
+    _BULLET_ARTIFACT = re.compile(r"(^|(?<=[.!?]) )-\s+")
+
     def __init__(self, memory, root, provider=None):
         self.memory = memory
         self.root = Path(root)
@@ -42,9 +52,9 @@ class StoryEpisodeStager:
             return None
         return value if isinstance(value, dict) else None
 
-    @staticmethod
-    def _clean(value, limit=220):
-        """Collapse whitespace and truncate, but never mid-word.
+    @classmethod
+    def _clean(cls, value, limit=220):
+        """Collapse whitespace, drop bullet markup, but never cut mid-word.
 
         Found 2026-09-22: a bare `[:limit]` character slice could cut the
         last word in half (an octopus episode's narration read "...deep
@@ -54,6 +64,7 @@ class StoryEpisodeStager:
         actually keeps that promise.
         """
         text = " ".join(str(value or "").split())
+        text = cls._BULLET_ARTIFACT.sub(lambda match: match.group(1), text)
         if len(text) <= limit:
             return text.strip()
         truncated = text[:limit]
@@ -64,19 +75,54 @@ class StoryEpisodeStager:
 
     @classmethod
     def _evidence_parts(cls, value, part_count=2, words_per_part=12):
-        """Split a source observation without cutting a sentence mid-word.
+        """Split a source observation into spoken-length narration beats.
 
         These are source-backed narration beats, not filler used to stretch a
-        Reel.  If research supplies a short observation, a later timing gate
-        returns it to Research/Story instead of padding a silent ending.
+        Reel -- every word still comes from the source, nothing is invented.
+        Each beat's boundary prefers a real sentence ending within a natural
+        window around `words_per_part` (found 2026-09-27: a blind word-count
+        cut landed mid-clause on almost every multi-sentence observation,
+        e.g. "...satellite imagery." stopping right after a list separator
+        instead of at the sentence's own end). A comma is the next best
+        boundary -- still a real pause in the source's own text, just not a
+        full sentence end. Only a source sentence longer than the whole
+        window forces a blind word-count cut; that fragment ends in an
+        ellipsis rather than a fabricated period, so it honestly reads as a
+        continuing thought instead of a false complete sentence. If research
+        supplies a short observation, a later timing gate returns it to
+        Research/Story instead of padding a silent ending.
         """
         words = cls._clean(value, 520).split()
         parts = []
-        for index in range(part_count):
-            start = index * words_per_part
-            fragment = " ".join(words[start:start + words_per_part]).strip()
+        start = 0
+        for _ in range(part_count):
+            if start >= len(words):
+                break
+            min_end = start + max(1, round(words_per_part * 0.6))
+            max_end = min(start + round(words_per_part * 1.6), len(words))
+            end = None
+            for candidate in range(max_end, start, -1):
+                if candidate >= min_end and words[candidate - 1].rstrip(",;:\"')").endswith((".", "!", "?")):
+                    end = candidate
+                    break
+            natural_sentence_end = end is not None
+            if end is None:
+                for candidate in range(max_end, start, -1):
+                    if candidate >= min_end and words[candidate - 1].endswith(","):
+                        end = candidate
+                        break
+            if end is None:
+                end = min(start + words_per_part, len(words))
+            fragment = " ".join(words[start:end]).strip()
             if fragment:
-                parts.append(fragment.rstrip(" ,;:") + ".")
+                if natural_sentence_end:
+                    pass
+                elif fragment.endswith(","):
+                    fragment = fragment.rstrip(",") + "."
+                else:
+                    fragment = fragment.rstrip(" ,;:") + "…"
+                parts.append(fragment)
+            start = end
         return parts
 
     @staticmethod
