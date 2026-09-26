@@ -13,8 +13,8 @@ Lease expires: n/a
 Scope: None.
 Handoff: See docs/ai-session-log.md's 2026-09-26/27 entries for full detail
 (commits f69b858, af28e02, 63970ef, 92fc52f, 34512b1, ef1dbac, 18ad2c8,
-cd6174c, 2f76f90, 58f2ef3, fb4459a, d32392a). Quick summary of where things
-stand:
+cd6174c, 2f76f90, 58f2ef3, fb4459a, d32392a, 2359b32). Quick summary of
+where things stand:
 
 1. AION's identity signature is a glowing cyan question-mark held in one
    hand (not a chest core, not a crystal) -- updated everywhere it's
@@ -93,6 +93,28 @@ stand:
     angle+lighting, both still explicitly the same diorama material/
     palette; every other beat is unchanged. Owner: "ไม่ต้องไปแก้ของเก่า" --
     only affects new episodes' scene-image prompts going forward.
+
+13. Ran a full 8-angle self-review (correctness/removed-behavior/
+    cross-file/reuse/simplification/efficiency/altitude/conventions) over
+    everything built today and fixed 8 real bugs it found: two crash paths
+    that defeated the Thai-dub and narration-rewrite pipelines' own
+    "never blocks the run" guarantees (an uncaught KeyError and
+    AttributeError on a malformed/wrongly-shaped LLM JSON response), an
+    infinite loop in the ffmpeg atempo-stretch helper on a zero-length
+    clip, missing `creationflags=CREATE_NO_WINDOW` on 3 new ffmpeg calls
+    (an already-3x-fixed class of bug elsewhere in this repo), a spurious
+    "…" appended after an already-complete short sentence,
+    tools/recover_release_buffer.py never passing a provider (so
+    recovery-path episodes silently never got the AI narration rewrite),
+    a since-fixed performance regression in ResearchToStory.propose_once()
+    (was scoring every candidate twice), and a failed competitive-scan
+    permanently blocking same-day retries. 11 new regression tests.
+    Not fixed, flagged only: beat names ("hook", "takeaway", ...) are
+    matched independently in 5 files with 3 different strategies and no
+    shared source of truth; and _evidence_parts()'s widened boundary
+    window is no longer capped to a beat's fixed 5-second scene budget
+    with no downstream length gate. Both are real but bigger design
+    questions than a one-line fix.
 
 Nothing urgent open. The owner has been told, and agreed, that the
 easy/code-findable technical gaps in this pipeline are largely closed for

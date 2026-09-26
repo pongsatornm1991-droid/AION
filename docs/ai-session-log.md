@@ -13,6 +13,71 @@ Format:
 Commits: <hash> [, <hash> ...]
 ```
 
+## 2026-09-27 — Claude Code — Self-review of the whole day's work; fixed 8 real bugs
+
+Owner asked "ยังมีบั๊คอะไรมั้ย" (any bugs left?) after a long session of
+new pipelines (Thai dub, AI narration rewrite, competitive scan, lane
+balancing, camera direction). Ran a full 8-angle code-review pass
+(correctness line-by-line, removed-behavior, cross-file tracer, reuse,
+simplification, efficiency, altitude, conventions) over every commit made
+that day (34512b1~1..HEAD) via 8 parallel Explore agents, then verified
+and fixed the confirmed bugs directly rather than just reporting them:
+
+- brain/thai_dub_cycle.py: `_translate()` validated narration count but
+  not that `title`/`description` keys existed; `dub_once()` read those
+  keys outside any try/except, so a malformed-but-JSON-valid response
+  raised an uncaught KeyError instead of a clean "translation-failed"
+  stage. Now validated inside `_translate()`.
+- brain/story_episode_stager.py: `_rewrite_scene_narrations()` never
+  checked the parsed JSON was actually an object; a bare JSON array (a
+  plausible model slip) made `.get(...)` raise an uncaught AttributeError,
+  crashing staging -- defeating the method's own documented "never blocks
+  staging" guarantee. Now validated with `isinstance(..., dict)`.
+- brain/thai_dub_cycle.py: `_atempo_chain(0.0)` looped forever (halving
+  zero never exits), reachable from any zero-duration synthesized clip --
+  would hang a GitHub Actions job until CI force-killed it. Guarded; a
+  zero-length clip now raises a clear, caught error instead.
+- brain/thai_dub_cycle.py: its 3 new ffmpeg `subprocess.run` calls were
+  missing `creationflags=CREATE_NO_WINDOW` -- an already-established
+  pattern in reel_render.py/video_quality.py/sync_memory_from_github.py,
+  each fixed for the exact same console-window-flash bug before. Added.
+- brain/story_episode_stager.py: a source observation short enough that
+  neither boundary search ever reached its minimum window (e.g. "Ice was
+  stored below ground.") fell through to the blind-cut fallback and got a
+  spurious "…" appended after its own already-complete period.
+- tools/recover_release_buffer.py: never passed a `provider` to
+  StoryEpisodeStager, so episodes staged through the recovery path
+  silently never got that day's new AI narration rewrite -- a recovered
+  batch would read in the old "research memo" style with no error
+  anywhere pointing at why.
+- brain/research_to_story.py: the lane-balancing change from earlier that
+  day made `propose_once()` score every candidate with `ledger.assess()`
+  (a multi-category disk read) up front, then score all of them *again*
+  in the duplicate-block fallback. Computed once now, reused both places;
+  `_prefer_underrepresented_lane()` also stopped redundantly re-fetching
+  `_briefs()` a second time.
+- brain/creator_competitive_scan_cycle.py: a failed scan was recorded
+  under the same per-day dedupe key as a successful one, permanently
+  blocking any same-day retry -- including a manual workflow_dispatch
+  re-run meant specifically to try again. Only a success now counts as
+  "already scanned today"; a failure is still persisted for the record.
+
+Not fixed, flagged only (real, but a bigger design question than a
+one-line fix): beat names ("hook", "takeaway", "evidence-one-a", ...) are
+matched independently in 5 files (story_episode_stager.py twice,
+creator_scene_production.py, fact_first_visual_gate.py,
+watchability_gate.py) with 3 different matching strategies and no shared
+constant -- a future rename anywhere silently desyncs the others with no
+error, no test failure. And `_evidence_parts()`'s widened boundary-search
+window (up to 1.6x words_per_part) is no longer capped to fit a beat's
+fixed 5-second scene budget, with no downstream gate checking narration
+length against scene duration.
+
+11 new regression tests across 4 files, each demonstrating the bug existed
+before the fix. Full `python run_tests.py`: PASS.
+
+Commits: 2359b32
+
 ## 2026-09-27 — Claude Code — More visual energy at the hook/reveal, without copying another franchise's style
 
 Owner shared a reference clip (Post Malone/Swae Lee "Sunflower", built on
