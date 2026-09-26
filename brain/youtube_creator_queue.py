@@ -183,6 +183,22 @@ class YouTubeCreatorQueue:
         _, keywords = cls._topic_and_keywords(payload)
         return f"#{keywords[0].capitalize()}" if keywords else None
 
+    @classmethod
+    def _description_hashtags(cls, payload, limit=4):
+        """A handful of topical hashtags for the description, alongside the
+        fixed channel/format tags -- reuses the same keyword extraction as
+        _video_tags()/_title_hashtag(), so all three always agree on an
+        episode's real subject.
+
+        Found 2026-09-27: the description's own hashtags were a fixed
+        "#Shorts #AION #AI" with nothing about the episode's actual topic,
+        while the title's single hashtag and the invisible tags field both
+        already carry real subject keywords -- the description was the one
+        place that visibly fell short of what a viewer sees on the page.
+        """
+        _, keywords = cls._topic_and_keywords(payload)
+        return [f"#{word.capitalize()}" for word in keywords[:limit]]
+
     @staticmethod
     def _caption(episode):
         boundary = (
@@ -641,7 +657,10 @@ class YouTubeCreatorQueue:
             payload.get("content_kind") == "short"
             or (abs(video_ratio - (9 / 16)) <= 0.04 and technical.get("duration_seconds", 0) <= 180)
         )
+        topic_hashtags = " ".join(self._description_hashtags(payload))
         format_tags = "#Shorts #AION #AI" if is_youtube_short else "#AION #AI"
+        if topic_hashtags:
+            format_tags = f"{topic_hashtags} {format_tags}"
         description = "\n\n".join(part for part in (
             payload.get("caption"),
             self.SUBSCRIBE_CTA,

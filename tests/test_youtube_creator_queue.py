@@ -297,6 +297,7 @@ class YouTubeCreatorQueueTests(unittest.TestCase):
             # derived from the episode's wonder_hook ("...a small question...").
             self.assertEqual("A useful question #Small", captured["title"])
             self.assertIn("#Shorts", captured["description"])
+            self.assertIn("#Small", captured["description"])
             self.assertIn(YouTubeCreatorQueue.SUBSCRIBE_CTA, captured["description"])
             self.assertEqual("published", queue.candidates()[0]["status"])
             self.assertEqual("no-authorized-creator-episode", queue.publish_once()["stage"])
@@ -586,6 +587,20 @@ class YouTubeCreatorQueueTests(unittest.TestCase):
     def test_title_hashtag_picks_the_first_real_keyword_not_a_channel_tag(self):
         payload = {"topic_key": "Why do maps look different depending on what they are made for?"}
         self.assertEqual("#Maps", YouTubeCreatorQueue._title_hashtag(payload))
+
+    def test_description_hashtags_reuse_the_same_topic_keywords_as_the_title(self):
+        # Regression, 2026-09-27: the description's hashtags were a fixed
+        # "#Shorts #AION #AI" with nothing about the episode's actual
+        # subject, even though the title's hashtag and the invisible tags
+        # field both already carried real topic keywords.
+        payload = {"topic_key": "Why do fireflies glow in the dark?"}
+        tags = YouTubeCreatorQueue._description_hashtags(payload)
+        self.assertIn("#Fireflies", tags)
+        self.assertNotIn("#Shorts", tags)
+        self.assertNotIn("#AION", tags)
+
+    def test_description_hashtags_is_empty_when_no_keyword_survives_stopword_filtering(self):
+        self.assertEqual([], YouTubeCreatorQueue._description_hashtags({"topic_key": "How is it"}))
 
     def test_title_hashtag_is_none_when_no_keyword_survives_stopword_filtering(self):
         self.assertIsNone(YouTubeCreatorQueue._title_hashtag({"topic_key": "How is it"}))
