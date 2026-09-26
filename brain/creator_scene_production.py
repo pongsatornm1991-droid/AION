@@ -9,6 +9,7 @@ from brain.visual_story_policy import VisualStoryPolicy
 from brain.creator_source_integrity import CreatorSourceIntegrity
 from brain.visual_narrative_gate import VisualNarrativeGate
 from brain.fact_first_visual_gate import FactFirstVisualGate
+from brain.story_beats import DYNAMIC_HOOK_BEATS, DYNAMIC_REVEAL_BEATS
 
 
 class CreatorSceneProduction:
@@ -261,13 +262,6 @@ class CreatorSceneProduction:
             "never imitate a named studio or franchise."
         )
 
-    # Beats present in both short- and long-form storyboards that carry the
-    # most weight for a viewer: the opening hook and the payoff/reveal.
-    # Every other beat keeps the channel's calm, wide diorama framing
-    # unchanged.
-    _DYNAMIC_HOOK_BEATS = frozenset({"hook"})
-    _DYNAMIC_REVEAL_BEATS = frozenset({"takeaway"})
-
     @classmethod
     def _composition_direction(cls, beat):
         """More visual energy at the hook and the reveal, still the same
@@ -280,14 +274,19 @@ class CreatorSceneProduction:
         flat wide framing reads as static rather than as told content.
         Only affects new scene-image prompts going forward; an already
         staged episode's own scenes are never touched by this.
+
+        DYNAMIC_HOOK_BEATS/DYNAMIC_REVEAL_BEATS come from brain.story_beats
+        -- the same module brain/story_episode_stager.py builds a scene's
+        "beat" field from -- so this can never silently drift from the
+        actual beat names a storyboard produces.
         """
         beat = str(beat or "")
-        if beat in cls._DYNAMIC_HOOK_BEATS:
+        if beat in DYNAMIC_HOOK_BEATS:
             return (
                 "closer, dynamic framing with a bold, attention-grabbing angle for this opening moment, "
                 "still the channel's warm 3D diorama material and palette; never make AION the hero of the frame"
             )
-        if beat in cls._DYNAMIC_REVEAL_BEATS:
+        if beat in DYNAMIC_REVEAL_BEATS:
             return (
                 "a striking, more dramatic angle with richer contrast light for this reveal/payoff moment, "
                 "still the channel's warm 3D diorama material and palette; never make AION the hero of the frame"

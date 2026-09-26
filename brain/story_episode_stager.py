@@ -21,6 +21,11 @@ from brain.creator_source_integrity import CreatorSourceIntegrity
 from brain.aion_visual_director import AionVisualDirector
 from brain.aion_creative_director import AionCreativeDirector
 from brain.evaluator import OutputEvaluator
+from brain.story_beats import (
+    BOUNDARY, COMPARE, CONNECTION, EVIDENCE_ONE_A, EVIDENCE_ONE_B, EVIDENCE_ONE_INTRO,
+    EVIDENCE_TWO_A, EVIDENCE_TWO_B, EVIDENCE_TWO_INTRO, FIRST_SOURCE, HOOK, INVITATION,
+    MAP_THE_QUESTION, QUESTION, TAKEAWAY, UNCERTAINTY, is_evidence_literal_beat,
+)
 
 
 class StoryEpisodeStager:
@@ -92,6 +97,15 @@ class StoryEpisodeStager:
         continuing thought instead of a false complete sentence. If research
         supplies a short observation, a later timing gate returns it to
         Research/Story instead of padding a silent ending.
+
+        This function's own word-count window (up to 1.6x words_per_part)
+        is deliberately not a hard cap against the beat's fixed
+        `scene_seconds`: brain/narration_preflight.py's NarrationPreflight
+        already measures each beat's *real* synthesized voice duration
+        (not a word-count guess) before any scene image is generated, and
+        automatically splits any beat that actually runs long, remeasuring
+        afterward. That real-audio gate is strictly more accurate than a
+        word-count heuristic added here could ever be, so none is added.
         """
         words = cls._clean(value, 520).split()
         parts = []
@@ -141,18 +155,15 @@ class StoryEpisodeStager:
             return part
         return f"{part} This is a direct observation about {topic}."
 
-    # Beats whose narration is a literal (or near-literal) excerpt of a
-    # source observation -- the ones an AI rewrite is meant to retell, not
-    # the already hand-authored template lines (question, boundary,
-    # takeaway, invitation, ...), which stay as they are.
-    _SHORT_REWRITE_BEATS = {
-        "hook", "evidence-one-a", "evidence-one-b", "evidence-two-a", "evidence-two-b", "connection",
-    }
-    _LONG_FORM_REWRITE_BEAT = re.compile(r"^evidence-\d+$")
-
-    @classmethod
-    def _rewritable_beat(cls, beat):
-        return beat in cls._SHORT_REWRITE_BEATS or bool(cls._LONG_FORM_REWRITE_BEAT.match(str(beat or "")))
+    @staticmethod
+    def _rewritable_beat(beat):
+        """Beats whose narration is a literal (or near-literal) excerpt of a
+        source observation -- the ones an AI rewrite is meant to retell, not
+        the already hand-authored template lines (question, boundary,
+        takeaway, invitation, ...), which stay as they are. Delegates to
+        brain.story_beats so this can never drift from the exact strings
+        this same class writes into a scene's own "beat" field below."""
+        return is_evidence_literal_beat(beat)
 
     @staticmethod
     def _key_terms(text):
@@ -369,7 +380,7 @@ class StoryEpisodeStager:
                 "prohibited": ["all-blue body", "all-blue outfit", "cape", "armour", "fashion pose", "embedded text", "logo", "watermark"],
             },
             "scenes": [
-                {"n": 1, "beat": "hook", "visual": f"A cinematic educational opening centred on {topic}; the real subject and environment fill the frame, with AION only as a small guide at the edge.",
+                {"n": 1, "beat": HOOK, "visual": f"A cinematic educational opening centred on {topic}; the real subject and environment fill the frame, with AION only as a small guide at the edge.",
                  # Found 2026-09-22 (owner: focus on Shorts, aim for
                  # kurzgesagt-calibre memorability): "Today we are asking:
                  # {topic}" is throat-clearing -- it announces the show
@@ -379,14 +390,14 @@ class StoryEpisodeStager:
                  # fact itself still comes only from research's own
                  # sourced observation, nothing invented here.
                  "narration": f"{first_parts[0]} {topic}"},
-                {"n": 2, "beat": "question", "visual": f"Show the central subject of {topic} clearly before any explanation; AION observes from the distant edge.", "narration": "We will follow what was actually observed, step by step, rather than inventing an answer."},
-                {"n": 3, "beat": "evidence-one-intro", "visual": f"Show the first evidence scene for {topic}, guided by {first_title}; AION remains small and practical in the background.", "narration": f"Our first clue comes from {first_title}. We will use it to examine the subject closely."},
-                {"n": 4, "beat": "evidence-one-a", "visual": f"Depict this documented observation about {topic}: {first_parts[0]} Keep the subject dominant; AION is a small guide only.", "narration": self._narrated_evidence(first_parts[0], topic)},
-                {"n": 5, "beat": "evidence-one-b", "visual": f"Continue the first documented observation for {topic}: {(first_parts[1] if len(first_parts) > 1 else evidence_one)} Keep the evidence visible and AION in the background.", "narration": self._narrated_evidence(first_parts[1], topic) if len(first_parts) > 1 else f"This is the first direct observation connected to {topic}."},
-                {"n": 6, "beat": "evidence-two-intro", "visual": f"Move to a distinct second evidence scene for {topic}, guided by {second_title}; AION remains small at the edge.", "narration": f"A second clue comes from {second_title}. We compare it carefully with the first observation."},
-                {"n": 7, "beat": "evidence-two-a", "visual": f"Depict this documented observation about {topic}: {second_parts[0]} Keep the subject, action, and setting central; AION observes subtly from the distant edge.", "narration": self._narrated_evidence(second_parts[0], topic)},
-                {"n": 8, "beat": "evidence-two-b", "visual": f"Continue the second documented observation for {topic}: {(second_parts[1] if len(second_parts) > 1 else evidence_two)} AION is only a small contextual guide.", "narration": self._narrated_evidence(second_parts[1], topic) if len(second_parts) > 1 else f"This gives us a second direct observation about {topic}."},
-                {"n": 9, "beat": "connection", "visual": f"A visual comparison of the two documented observations about {topic}; show the subject and environment, with AION pointing only subtly from the edge.",
+                {"n": 2, "beat": QUESTION, "visual": f"Show the central subject of {topic} clearly before any explanation; AION observes from the distant edge.", "narration": "We will follow what was actually observed, step by step, rather than inventing an answer."},
+                {"n": 3, "beat": EVIDENCE_ONE_INTRO, "visual": f"Show the first evidence scene for {topic}, guided by {first_title}; AION remains small and practical in the background.", "narration": f"Our first clue comes from {first_title}. We will use it to examine the subject closely."},
+                {"n": 4, "beat": EVIDENCE_ONE_A, "visual": f"Depict this documented observation about {topic}: {first_parts[0]} Keep the subject dominant; AION is a small guide only.", "narration": self._narrated_evidence(first_parts[0], topic)},
+                {"n": 5, "beat": EVIDENCE_ONE_B, "visual": f"Continue the first documented observation for {topic}: {(first_parts[1] if len(first_parts) > 1 else evidence_one)} Keep the evidence visible and AION in the background.", "narration": self._narrated_evidence(first_parts[1], topic) if len(first_parts) > 1 else f"This is the first direct observation connected to {topic}."},
+                {"n": 6, "beat": EVIDENCE_TWO_INTRO, "visual": f"Move to a distinct second evidence scene for {topic}, guided by {second_title}; AION remains small at the edge.", "narration": f"A second clue comes from {second_title}. We compare it carefully with the first observation."},
+                {"n": 7, "beat": EVIDENCE_TWO_A, "visual": f"Depict this documented observation about {topic}: {second_parts[0]} Keep the subject, action, and setting central; AION observes subtly from the distant edge.", "narration": self._narrated_evidence(second_parts[0], topic)},
+                {"n": 8, "beat": EVIDENCE_TWO_B, "visual": f"Continue the second documented observation for {topic}: {(second_parts[1] if len(second_parts) > 1 else evidence_two)} AION is only a small contextual guide.", "narration": self._narrated_evidence(second_parts[1], topic) if len(second_parts) > 1 else f"This gives us a second direct observation about {topic}."},
+                {"n": 9, "beat": CONNECTION, "visual": f"A visual comparison of the two documented observations about {topic}; show the subject and environment, with AION pointing only subtly from the edge.",
                  # Found 2026-09-22 (quality_incident: "generic-template-
                  # story-does-not-explain-topic"): this beat used to say
                  # only "these two observations give us a clearer picture,"
@@ -396,9 +407,9 @@ class StoryEpisodeStager:
                  # transition -- the mechanism itself still comes from
                  # research's own sourced observations, never invented here.
                  "narration": f"Put together: {first_parts[0]} And from the second source: {second_parts[0] if second_parts else evidence_two}"},
-                {"n": 10, "beat": "boundary", "visual": f"Show the boundary between what the sources document and what they do not establish about {topic}; no invented action, AION remains in the background.", "narration": uncertainty or "The sources do not settle every detail, so we should not claim more than they show."},
-                {"n": 11, "beat": "takeaway", "visual": f"Return to the central subject of {topic} in a final meaningful wide scene; AION is a small observer, not the focus.", "narration": f"The careful takeaway is simple: begin with what was observed about {topic}, then separate it from interpretation."},
-                {"n": 12, "beat": "invitation", "visual": f"End on the real subject and environment of {topic}, leaving space for wonder; AION exits subtly at the edge.",
+                {"n": 10, "beat": BOUNDARY, "visual": f"Show the boundary between what the sources document and what they do not establish about {topic}; no invented action, AION remains in the background.", "narration": uncertainty or "The sources do not settle every detail, so we should not claim more than they show."},
+                {"n": 11, "beat": TAKEAWAY, "visual": f"Return to the central subject of {topic} in a final meaningful wide scene; AION is a small observer, not the focus.", "narration": f"The careful takeaway is simple: begin with what was observed about {topic}, then separate it from interpretation."},
+                {"n": 12, "beat": INVITATION, "visual": f"End on the real subject and environment of {topic}, leaving space for wonder; AION exits subtly at the edge.",
                  # Found 2026-09-22: "Keep asking better questions, and
                  # check the evidence with me" is the exact same closing
                  # line on every single episode regardless of topic -- it
@@ -431,15 +442,15 @@ class StoryEpisodeStager:
                         "narration": self._narrated_evidence(part, topic),
                     })
             framing = [
-                ("hook", f"Open on the most surprising visual question about {topic}; the subject fills the frame and AION is a small guide.", f"How can we explain {topic} without skipping what the evidence actually says?"),
-                ("map-the-question", f"Orient the viewer in the real setting relevant to {topic}; show scale, place and context before the explanation.", f"We will take this one clue at a time and compare independent sources about {topic}."),
-                ("first-source", f"Introduce {first_title} as the first evidence source for {topic}, showing what this source can and cannot directly support.", f"Our first source is {first_title}. It gives us a specific observation to examine."),
+                (HOOK, f"Open on the most surprising visual question about {topic}; the subject fills the frame and AION is a small guide.", f"How can we explain {topic} without skipping what the evidence actually says?"),
+                (MAP_THE_QUESTION, f"Orient the viewer in the real setting relevant to {topic}; show scale, place and context before the explanation.", f"We will take this one clue at a time and compare independent sources about {topic}."),
+                (FIRST_SOURCE, f"Introduce {first_title} as the first evidence source for {topic}, showing what this source can and cannot directly support.", f"Our first source is {first_title}. It gives us a specific observation to examine."),
             ]
             bridge = [
-                ("compare", f"Compare the two documented evidence trails about {topic} in one clear visual layout; do not turn interpretation into fact.", "Now compare the two sources. Agreement can strengthen a clue, but it does not answer every question by itself."),
-                ("uncertainty", f"Show the limit of the available evidence around {topic}; retain the real setting and avoid invented details.", uncertainty or "The sources do not settle every detail, so we should not claim more than they show."),
-                ("takeaway", f"Return to the subject of {topic} in a meaningful final wide scene, with AION only at the edge.", f"The useful takeaway is to start with what was observed about {topic}, then separate evidence from interpretation."),
-                ("invitation", f"End on the real subject and environment of {topic}, leaving visual space for the viewer's next question.", "There is always more to learn when we follow the evidence carefully."),
+                (COMPARE, f"Compare the two documented evidence trails about {topic} in one clear visual layout; do not turn interpretation into fact.", "Now compare the two sources. Agreement can strengthen a clue, but it does not answer every question by itself."),
+                (UNCERTAINTY, f"Show the limit of the available evidence around {topic}; retain the real setting and avoid invented details.", uncertainty or "The sources do not settle every detail, so we should not claim more than they show."),
+                (TAKEAWAY, f"Return to the subject of {topic} in a meaningful final wide scene, with AION only at the edge.", f"The useful takeaway is to start with what was observed about {topic}, then separate evidence from interpretation."),
+                (INVITATION, f"End on the real subject and environment of {topic}, leaving visual space for the viewer's next question.", "There is always more to learn when we follow the evidence carefully."),
             ]
             long_scenes = [
                 {"n": index, "beat": beat, "visual": visual, "narration": narration}
