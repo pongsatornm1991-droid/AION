@@ -68,6 +68,21 @@ class HasUnsafeClaimTests(unittest.TestCase):
 
 
 class ThaiDubCycleTests(unittest.TestCase):
+    def test_a_relative_root_is_resolved_to_an_absolute_path(self):
+        # Regression: a relative root (e.g. ".") used to be kept as-is, so
+        # the final audio file's output path, built as self.root / "...",
+        # stayed relative too -- and _synthesize_track() runs ffmpeg's
+        # concat step with cwd set to a temp directory, so ffmpeg resolved
+        # that relative output path against the temp dir instead of the
+        # real project tree and failed with "No such file or directory"
+        # on a path that looked correct at a glance. Confirmed in a real
+        # production run, 2026-09-27.
+        import os
+        cwd = os.getcwd()
+        cycle = _cycle(MemoryEngine(tempfile.mkdtemp()), ".", SAFE_TRANSLATION)
+        self.assertTrue(cycle.root.is_absolute())
+        self.assertEqual(Path(cwd), cycle.root)
+
     def test_reports_nothing_to_dub_when_no_episode_is_published(self):
         with tempfile.TemporaryDirectory() as root:
             memory = MemoryEngine(Path(root) / "memory")
@@ -90,6 +105,56 @@ class ThaiDubCycleTests(unittest.TestCase):
             localize_fn.assert_called_once_with("vid-1", "th", "ทำไมแผนที่ถึงแตกต่างกัน", "คำอธิบายภาษาไทย")
             saved = json.loads(memory.all(CATEGORY)[0]["content"])
             self.assertEqual("ep-1", saved["episode_id"])
+
+    def test_prefers_the_newest_published_episode_over_the_oldest(self):
+        # Regression, found running this for real on 2026-09-27: 12
+        # already-published episodes had no dub yet (this feature
+        # launched after they did), so an oldest-first order meant a
+        # brand new release -- the one actually asked about, the same
+        # night it published -- would queue behind that whole backlog.
+        import time
+        with tempfile.TemporaryDirectory() as root:
+            _write_episode(root, "ep-old")
+            _write_episode(root, "ep-new")
+            memory = MemoryEngine(Path(root) / "memory")
+            _publish_record(memory, "ep-old", "vid-old")
+            time.sleep(1.1)
+            _publish_record(memory, "ep-new", "vid-new")
+            localize_fn = mock.Mock()
+            with mock.patch("brain.thai_dub_cycle.subprocess.run"), \
+                 mock.patch.object(ThaiDubCycle, "_clip_duration", return_value=5.0):
+                cycle = _cycle(memory, root, SAFE_TRANSLATION, localize_fn=localize_fn)
+                result = cycle.dub_once()
+            self.assertEqual("ep-new", result["episode_id"])
+
+    def test_dub_batch_dubs_up_to_the_limit_newest_first(self):
+        import time
+        with tempfile.TemporaryDirectory() as root:
+            for episode_id in ("ep-1", "ep-2", "ep-3"):
+                _write_episode(root, episode_id)
+            memory = MemoryEngine(Path(root) / "memory")
+            for episode_id in ("ep-1", "ep-2", "ep-3"):
+                _publish_record(memory, episode_id, f"vid-{episode_id}")
+                time.sleep(1.1)
+            with mock.patch("brain.thai_dub_cycle.subprocess.run"), \
+                 mock.patch.object(ThaiDubCycle, "_clip_duration", return_value=5.0):
+                cycle = _cycle(memory, root, SAFE_TRANSLATION, localize_fn=mock.Mock())
+                report = cycle.dub_batch(limit=2)
+            self.assertEqual("dub-batch-complete", report["stage"])
+            self.assertEqual(2, report["dubbed_count"])
+            self.assertEqual(["ep-3", "ep-2"], [item["episode_id"] for item in report["results"]])
+
+    def test_dub_batch_stops_early_on_the_first_failure(self):
+        with tempfile.TemporaryDirectory() as root:
+            _write_episode(root, "ep-1")
+            _write_episode(root, "ep-2")
+            memory = MemoryEngine(Path(root) / "memory")
+            _publish_record(memory, "ep-1", "vid-1")
+            _publish_record(memory, "ep-2", "vid-2")
+            cycle = _cycle(memory, root, SAFE_TRANSLATION, tts_fn=lambda text, path: False)
+            report = cycle.dub_batch(limit=3)
+            self.assertEqual(0, report["dubbed_count"])
+            self.assertEqual(1, len(report["results"]))
 
     def test_skips_an_episode_that_was_already_dubbed(self):
         with tempfile.TemporaryDirectory() as root:

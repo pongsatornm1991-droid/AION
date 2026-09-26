@@ -49,30 +49,39 @@ def _openai_speech(text, output_path, speed=None):
         return False
 
 
-def synthesize_thai_voice(text, output_path, attempts=3):
+def synthesize_thai_voice(text, output_path, attempts=5):
     """Thai-language narration for a dubbed audio track.
 
     Deliberately independent of REEL_VOICE/REEL_VOICE_PROVIDER (the main
     English narration config) -- a Thai dub must always use a real Thai
     voice regardless of whichever provider/voice the primary pipeline
     happens to be configured with. edge-tts's websocket to Microsoft is
-    intermittently flaky (observed 2026-09-27: an isolated mid-run
-    failure that succeeded on retry), so this retries before giving up.
+    intermittently flaky -- confirmed twice in real production runs on
+    2026-09-27, including a case where 3 attempts with (2,4,6)s backoff
+    all failed (each at a different scene) but a later run succeeded --
+    so this retries more patiently before giving up, and logs the actual
+    exception to stderr on final failure (silently swallowing it, as the
+    first version did, left every failure looking identical -- an
+    isolated Microsoft outage indistinguishable from a permanent
+    misconfiguration like a retired THAI_VOICE name).
     """
     import asyncio
+    import sys
     import time
 
     voice = os.getenv("THAI_VOICE", "th-TH-PremwadeeNeural")
+    last_exc = None
     for attempt in range(attempts):
         try:
             import edge_tts
 
             asyncio.run(edge_tts.Communicate(str(text), voice=voice).save(str(output_path)))
             return True
-        except Exception:
-            if attempt == attempts - 1:
-                return False
-            time.sleep(2 * (attempt + 1))
+        except Exception as exc:
+            last_exc = exc
+            if attempt < attempts - 1:
+                time.sleep(3 * (attempt + 1))
+    print(f"synthesize_thai_voice: giving up after {attempts} attempts: {type(last_exc).__name__}: {last_exc}", file=sys.stderr)
     return False
 
 

@@ -17,5 +17,5 @@ if __name__ == "__main__":
         MemoryEngine(os.getenv("AION_MEMORY_ROOT", "memory")),
         root=ROOT, provider=build_provider(),
     )
-    report = cycle.dub_once()
+    report = cycle.dub_batch(limit=3)
     print(json.dumps(report, ensure_ascii=False, indent=2, default=str))

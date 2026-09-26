@@ -49,7 +49,13 @@ has_unsafe_claim = OutputEvaluator.has_unsafe_claim
 class ThaiDubCycle:
     def __init__(self, memory, root=None, provider=None, snippet_fn=None, localize_fn=None, tts_fn=None, ffmpeg_path=None):
         self.memory = memory
-        self.root = Path(root or Path(__file__).resolve().parents[1])
+        # Must be absolute: _synthesize_track() below runs ffmpeg with its
+        # own cwd set to a temp directory, so a relative root here would
+        # have the final audio's output path resolved against that temp
+        # directory instead of the real project tree -- ffmpeg then fails
+        # with a confusing "No such file or directory" on a path that
+        # looks correct at a glance. Found 2026-09-27 debugging a real run.
+        self.root = Path(root).resolve() if root else Path(__file__).resolve().parents[1]
         self.provider = provider
         if snippet_fn is None:
             from tools.youtube import get_video_snippet
@@ -80,7 +86,17 @@ class ThaiDubCycle:
         }
 
     def _published_candidates(self):
-        """Oldest-first published episodes with a real video id, not yet dubbed."""
+        """Newest-first published episodes with a real video id, not yet dubbed.
+
+        Found 2026-09-27 running this for real for the first time: 12
+        already-published episodes had no dub yet (this feature launched
+        after they went out), and an oldest-first order meant a brand new
+        episode -- the one the owner actually asked about, the same night
+        it published -- would sit behind that entire backlog for around
+        12 days at one dub/day. Newest-first means a fresh release is
+        always the very next thing dubbed, and dub_batch() below clears
+        the backlog faster than one-per-day without removing the bound.
+        """
         dubbed = self._dubbed_episode_ids()
         candidates = []
         for entry in self.memory.all(YouTubeCreatorQueue.CATEGORY):
@@ -96,7 +112,7 @@ class ThaiDubCycle:
             if youtube.get("privacy_status") not in ("public", "unlisted"):
                 continue
             candidates.append((str(entry.get("timestamp") or ""), episode_id, video_id))
-        candidates.sort()
+        candidates.sort(reverse=True)
         return candidates
 
     def _episode_file(self, episode_id):
@@ -273,3 +289,31 @@ class ThaiDubCycle:
             tags=["youtube", "thai", "localization", episode_id],
         )
         return {"stage": "dubbed", **record}
+
+    def dub_batch(self, limit=3):
+        """Dub up to `limit` newest-first undubbed episodes in one shift.
+
+        Found 2026-09-27 running this for real for the first time: this
+        feature launched after 12 episodes were already published, so a
+        strict one-per-day cadence would take ~12 days just to work
+        through that backlog -- during which a brand new release (already
+        prioritized ahead of the backlog by _published_candidates()'s
+        newest-first order) would still queue behind however many
+        earlier-still-undubbed episodes remain. A bounded batch clears
+        that backlog in days, not weeks, without removing the daily cap
+        entirely. Mirrors StoryEpisodeStager.stage_batch(): stops the
+        shift as soon as one attempt isn't a full success, so a real
+        problem (not just this one episode) doesn't burn the rest of the
+        batch's provider/TTS calls on likely-identical failures.
+        """
+        results = []
+        for _ in range(max(1, int(limit))):
+            result = self.dub_once()
+            results.append(result)
+            if result.get("stage") != "dubbed":
+                break
+        dubbed = [item for item in results if item.get("stage") == "dubbed"]
+        return {
+            "stage": "dub-batch-complete" if dubbed else results[-1].get("stage", "nothing-to-dub"),
+            "dubbed_count": len(dubbed), "results": results,
+        }
