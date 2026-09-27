@@ -119,6 +119,29 @@ class CreatorSceneProductionTests(unittest.TestCase):
         self.assertIn("more dramatic angle with richer contrast light", prompt)
         self.assertIn("reveal/payoff moment", prompt)
 
+    def test_hook_beat_allows_an_occasional_selfie_style_pov_angle(self):
+        # Owner feedback, 2026-09-27, after sharing a Pixar-style selfie
+        # reference image: adopt the close first-person POV framing
+        # technique, bounded to the hook beat only.
+        episode = {"format": "illustrated-narrated-short", "visual_direction": {}}
+        prompt = CreatorSceneProduction()._prompt(episode, {"beat": "hook", "visual": "AION explores a historical place."})
+        self.assertIn("first-person point-of-view angle", prompt)
+        self.assertIn("candid selfie framing", prompt)
+
+    def test_hook_and_takeaway_beats_allow_a_more_animated_but_still_restrained_reaction(self):
+        episode = {"format": "illustrated-narrated-short", "visual_direction": {}}
+        hook_prompt = CreatorSceneProduction()._prompt(episode, {"beat": "hook", "visual": "AION explores a historical place."})
+        takeaway_prompt = CreatorSceneProduction()._prompt(episode, {"beat": "takeaway", "visual": "AION returns to the subject."})
+        for prompt in (hook_prompt, takeaway_prompt):
+            self.assertIn("more visibly readable, animated reaction from AION", prompt)
+            self.assertIn("never a generic mascot mugging for the camera", prompt)
+
+    def test_an_ordinary_beat_gets_no_selfie_pov_or_heightened_reaction(self):
+        episode = {"format": "illustrated-narrated-short", "visual_direction": {}}
+        prompt = CreatorSceneProduction()._prompt(episode, {"beat": "evidence-one-a", "visual": "Show the documented clue."})
+        self.assertNotIn("first-person point-of-view angle", prompt)
+        self.assertNotIn("animated reaction from AION", prompt)
+
     def test_an_ordinary_beat_keeps_the_original_wide_calm_composition(self):
         episode = {"format": "illustrated-narrated-short", "visual_direction": {}}
         prompt = CreatorSceneProduction()._prompt(episode, {"beat": "evidence-one-a", "visual": "Show the documented clue."})

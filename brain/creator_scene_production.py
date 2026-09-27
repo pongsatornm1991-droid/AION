@@ -279,16 +279,31 @@ class CreatorSceneProduction:
         -- the same module brain/story_episode_stager.py builds a scene's
         "beat" field from -- so this can never silently drift from the
         actual beat names a storyboard produces.
+
+        Owner feedback, 2026-09-27, after sharing a Pixar-style selfie
+        reference image: adopt two of its techniques, bounded to these
+        same two already-dynamic beats only -- a close first-person POV
+        framing for the hook, and a more visibly readable, animated
+        reaction from AION where it appears in either beat. Never the
+        reference's whole look (no head-heavy proportions, no
+        photoreal-selfie lens rendering), and the reaction stays within
+        AION's own restrained, non-mascot identity -- every other beat's
+        framing and AION's expression are unchanged.
         """
         beat = str(beat or "")
         if beat in DYNAMIC_HOOK_BEATS:
             return (
                 "closer, dynamic framing with a bold, attention-grabbing angle for this opening moment, "
+                "occasionally a close first-person point-of-view angle (like a candid selfie framing) when it suits the scene, "
+                "with a more visibly readable, animated reaction from AION if AION appears here -- still restrained and "
+                "friendly, never a generic mascot mugging for the camera; "
                 "still the channel's warm 3D diorama material and palette; never make AION the hero of the frame"
             )
         if beat in DYNAMIC_REVEAL_BEATS:
             return (
                 "a striking, more dramatic angle with richer contrast light for this reveal/payoff moment, "
+                "with a more visibly readable, animated reaction from AION if AION appears here -- still restrained and "
+                "friendly, never a generic mascot mugging for the camera; "
                 "still the channel's warm 3D diorama material and palette; never make AION the hero of the frame"
             )
         return "wide or medium-wide environmental storytelling; never make AION the hero of the frame"
