@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-09-27T14:46:46.376801+00:00",
+  "generated_at": "2026-09-27T17:26:18.873080+00:00",
   "state": "warning",
   "policy": {
     "brand": {
@@ -44,7 +44,7 @@
       "status": "research-evidence-rejected-preserved",
       "style": "aion-neon-diorama-3d-v1",
       "scene_count": 12,
-      "updated_at": "2026-09-27T14:46:42.490545+00:00",
+      "updated_at": "2026-09-27T17:26:15.696746+00:00",
       "visual_qa": {
         "eligible": false,
         "reasons": [
@@ -72,7 +72,7 @@
       "status": "production-ready-assets-and-script",
       "style": "aion-neon-diorama-3d-v1",
       "scene_count": 13,
-      "updated_at": "2026-09-27T14:46:42.490962+00:00",
+      "updated_at": "2026-09-27T17:26:15.697046+00:00",
       "visual_qa": {
         "eligible": true,
         "reasons": [],
@@ -88,12 +88,68 @@
       }
     },
     {
+      "id": "aion-auto-1ff056dab4cd-b6eca890-short",
+      "title": "Why do lakes freeze from the top down instead of the bottom up?",
+      "status": "storyboard-ready-needs-assets",
+      "style": "aion-neon-diorama-3d-v1",
+      "scene_count": 12,
+      "updated_at": "2026-09-27T17:26:15.697046+00:00",
+      "visual_qa": {
+        "eligible": false,
+        "reasons": [
+          "missing-or-unreadable-scene-image",
+          "scene-image-not-vertical-9x16"
+        ],
+        "checked_scenes": 12,
+        "machine_check_only": true,
+        "editorial_limit": "Checks actual files, dimensions and exact duplicates. It cannot truthfully detect text, anatomy, factual depiction or style compliance without a reviewed vision model."
+      },
+      "release_blockers": [
+        "missing-or-unreadable-scene-image",
+        "scene-image-not-vertical-9x16",
+        "episode-status:storyboard-ready-needs-assets"
+      ],
+      "release_ready": false,
+      "portfolio": {
+        "id": "everyday-science",
+        "label": "ทีมสำรวจวิทยาศาสตร์ใกล้ตัว"
+      }
+    },
+    {
+      "id": "aion-auto-28bb6abcc9ee-d6402692-short",
+      "title": "Why do people yawn when they see someone else yawn?",
+      "status": "storyboard-ready-needs-assets",
+      "style": "aion-neon-diorama-3d-v1",
+      "scene_count": 12,
+      "updated_at": "2026-09-27T17:26:15.697046+00:00",
+      "visual_qa": {
+        "eligible": false,
+        "reasons": [
+          "missing-or-unreadable-scene-image",
+          "scene-image-not-vertical-9x16"
+        ],
+        "checked_scenes": 12,
+        "machine_check_only": true,
+        "editorial_limit": "Checks actual files, dimensions and exact duplicates. It cannot truthfully detect text, anatomy, factual depiction or style compliance without a reviewed vision model."
+      },
+      "release_blockers": [
+        "missing-or-unreadable-scene-image",
+        "scene-image-not-vertical-9x16",
+        "episode-status:storyboard-ready-needs-assets"
+      ],
+      "release_ready": false,
+      "portfolio": {
+        "id": "human-culture",
+        "label": "ทีมสำรวจมนุษย์ วัฒนธรรม และความคิด"
+      }
+    },
+    {
       "id": "aion-auto-32006eab7f3a-899f27ed-short",
       "title": "AION Wonders: Why do maps look different depending on what they are made for?",
       "status": "production-ready-assets-and-script",
       "style": "aion-neon-diorama-3d-v1",
       "scene_count": 13,
-      "updated_at": "2026-09-27T14:46:42.490962+00:00",
+      "updated_at": "2026-09-27T17:26:15.697046+00:00",
       "visual_qa": {
         "eligible": true,
         "reasons": [],
@@ -114,7 +170,7 @@
       "status": "retired-do-not-publish",
       "style": null,
       "scene_count": 24,
-      "updated_at": "2026-09-27T14:46:42.490962+00:00",
+      "updated_at": "2026-09-27T17:26:15.697046+00:00",
       "visual_qa": {
         "eligible": false,
         "reasons": [
@@ -141,7 +197,7 @@
       "status": "retired-do-not-publish",
       "style": null,
       "scene_count": 12,
-      "updated_at": "2026-09-27T14:46:42.490962+00:00",
+      "updated_at": "2026-09-27T17:26:15.697046+00:00",
       "visual_qa": {
         "eligible": false,
         "reasons": [
@@ -170,7 +226,7 @@
       "status": "retired-do-not-publish",
       "style": null,
       "scene_count": 5,
-      "updated_at": "2026-09-27T14:46:42.490962+00:00",
+      "updated_at": "2026-09-27T17:26:15.697046+00:00",
       "visual_qa": {
         "eligible": false,
         "reasons": [
@@ -197,7 +253,7 @@
       "status": "retired-do-not-publish",
       "style": null,
       "scene_count": 24,
-      "updated_at": "2026-09-27T14:46:42.490962+00:00",
+      "updated_at": "2026-09-27T17:26:15.697046+00:00",
       "visual_qa": {
         "eligible": false,
         "reasons": [
@@ -224,7 +280,7 @@
       "status": "retired-do-not-publish",
       "style": null,
       "scene_count": 12,
-      "updated_at": "2026-09-27T14:46:42.490962+00:00",
+      "updated_at": "2026-09-27T17:26:15.697046+00:00",
       "visual_qa": {
         "eligible": false,
         "reasons": [
@@ -253,7 +309,7 @@
       "status": "retired-do-not-publish",
       "style": null,
       "scene_count": 12,
-      "updated_at": "2026-09-27T14:46:42.490962+00:00",
+      "updated_at": "2026-09-27T17:26:15.697046+00:00",
       "visual_qa": {
         "eligible": false,
         "reasons": [
@@ -280,7 +336,7 @@
       "status": "research-returned-source-integrity",
       "style": null,
       "scene_count": 12,
-      "updated_at": "2026-09-27T14:46:42.490962+00:00",
+      "updated_at": "2026-09-27T17:26:15.697046+00:00",
       "visual_qa": {
         "eligible": false,
         "reasons": [
@@ -304,12 +360,96 @@
       }
     },
     {
+      "id": "aion-auto-e4651b672d19-6132ef86-short",
+      "title": "How did ancient people first learn to make glass?",
+      "status": "storyboard-ready-needs-assets",
+      "style": "aion-neon-diorama-3d-v1",
+      "scene_count": 12,
+      "updated_at": "2026-09-27T17:26:15.697046+00:00",
+      "visual_qa": {
+        "eligible": false,
+        "reasons": [
+          "missing-or-unreadable-scene-image",
+          "scene-image-not-vertical-9x16"
+        ],
+        "checked_scenes": 12,
+        "machine_check_only": true,
+        "editorial_limit": "Checks actual files, dimensions and exact duplicates. It cannot truthfully detect text, anatomy, factual depiction or style compliance without a reviewed vision model."
+      },
+      "release_blockers": [
+        "missing-or-unreadable-scene-image",
+        "scene-image-not-vertical-9x16",
+        "episode-status:storyboard-ready-needs-assets"
+      ],
+      "release_ready": false,
+      "portfolio": {
+        "id": "human-culture",
+        "label": "ทีมสำรวจมนุษย์ วัฒนธรรม และความคิด"
+      }
+    },
+    {
+      "id": "aion-auto-eab011d9f8f4-ff998493-short",
+      "title": "Why does a spinning top stay upright instead of falling over?",
+      "status": "storyboard-ready-needs-assets",
+      "style": "aion-neon-diorama-3d-v1",
+      "scene_count": 12,
+      "updated_at": "2026-09-27T17:26:15.697046+00:00",
+      "visual_qa": {
+        "eligible": false,
+        "reasons": [
+          "missing-or-unreadable-scene-image",
+          "scene-image-not-vertical-9x16"
+        ],
+        "checked_scenes": 12,
+        "machine_check_only": true,
+        "editorial_limit": "Checks actual files, dimensions and exact duplicates. It cannot truthfully detect text, anatomy, factual depiction or style compliance without a reviewed vision model."
+      },
+      "release_blockers": [
+        "missing-or-unreadable-scene-image",
+        "scene-image-not-vertical-9x16",
+        "episode-status:storyboard-ready-needs-assets"
+      ],
+      "release_ready": false,
+      "portfolio": {
+        "id": "everyday-science",
+        "label": "ทีมสำรวจวิทยาศาสตร์ใกล้ตัว"
+      }
+    },
+    {
+      "id": "aion-auto-f68134663f51-b53dd5d4-short",
+      "title": "How did trade routes connect people who never met each other?",
+      "status": "storyboard-ready-needs-assets",
+      "style": "aion-neon-diorama-3d-v1",
+      "scene_count": 12,
+      "updated_at": "2026-09-27T17:26:15.697046+00:00",
+      "visual_qa": {
+        "eligible": false,
+        "reasons": [
+          "missing-or-unreadable-scene-image",
+          "scene-image-not-vertical-9x16"
+        ],
+        "checked_scenes": 12,
+        "machine_check_only": true,
+        "editorial_limit": "Checks actual files, dimensions and exact duplicates. It cannot truthfully detect text, anatomy, factual depiction or style compliance without a reviewed vision model."
+      },
+      "release_blockers": [
+        "missing-or-unreadable-scene-image",
+        "scene-image-not-vertical-9x16",
+        "episode-status:storyboard-ready-needs-assets"
+      ],
+      "release_ready": false,
+      "portfolio": {
+        "id": "human-culture",
+        "label": "ทีมสำรวจมนุษย์ วัฒนธรรม และความคิด"
+      }
+    },
+    {
       "id": "aion-gentle-thailand-rice-journey-v1",
       "title": "How One Grain of Rice Reaches Your Bowl",
       "status": "production-ready-assets-and-script",
       "style": "aion-illustrated-postcard-v1",
       "scene_count": 12,
-      "updated_at": "2026-09-27T14:46:42.490962+00:00",
+      "updated_at": "2026-09-27T17:26:15.697046+00:00",
       "visual_qa": {
         "eligible": false,
         "reasons": [
@@ -335,7 +475,7 @@
       "status": "production-ready-assets-and-script",
       "style": "aion-illustrated-postcard-v1",
       "scene_count": 12,
-      "updated_at": "2026-09-27T14:46:42.490999+00:00",
+      "updated_at": "2026-09-27T17:26:15.697046+00:00",
       "visual_qa": {
         "eligible": false,
         "reasons": [
@@ -361,7 +501,7 @@
       "status": "production-ready-assets-and-script",
       "style": null,
       "scene_count": 24,
-      "updated_at": "2026-09-27T14:46:42.490999+00:00",
+      "updated_at": "2026-09-27T17:26:15.697046+00:00",
       "visual_qa": {
         "eligible": true,
         "reasons": [],
@@ -384,7 +524,7 @@
       "status": "production-ready-assets-and-script",
       "style": null,
       "scene_count": 12,
-      "updated_at": "2026-09-27T14:46:42.490999+00:00",
+      "updated_at": "2026-09-27T17:26:15.697046+00:00",
       "visual_qa": {
         "eligible": false,
         "reasons": [
@@ -410,7 +550,7 @@
       "status": "production-ready-assets-and-script",
       "style": "aion-original-warm-3d-storytelling-v1",
       "scene_count": 10,
-      "updated_at": "2026-09-27T14:46:42.490999+00:00",
+      "updated_at": "2026-09-27T17:26:15.697046+00:00",
       "visual_qa": {
         "eligible": false,
         "reasons": [
@@ -436,7 +576,7 @@
       "status": "production-ready-script",
       "style": null,
       "scene_count": 24,
-      "updated_at": "2026-09-27T14:46:42.490999+00:00",
+      "updated_at": "2026-09-27T17:26:15.697046+00:00",
       "visual_qa": {
         "eligible": false,
         "reasons": [
@@ -463,7 +603,7 @@
       "status": "retired-do-not-publish",
       "style": null,
       "scene_count": 4,
-      "updated_at": "2026-09-27T14:46:42.490999+00:00",
+      "updated_at": "2026-09-27T17:26:15.697046+00:00",
       "visual_qa": {
         "eligible": false,
         "reasons": [
@@ -490,7 +630,7 @@
       "status": "production-ready-assets-and-script",
       "style": null,
       "scene_count": 40,
-      "updated_at": "2026-09-27T14:46:42.490999+00:00",
+      "updated_at": "2026-09-27T17:26:15.697046+00:00",
       "visual_qa": {
         "eligible": true,
         "reasons": [],
@@ -513,7 +653,7 @@
       "status": "retired-do-not-publish",
       "style": null,
       "scene_count": 3,
-      "updated_at": "2026-09-27T14:46:42.490999+00:00",
+      "updated_at": "2026-09-27T17:26:15.697046+00:00",
       "visual_qa": {
         "eligible": true,
         "reasons": [],
@@ -537,7 +677,7 @@
       "status": "production-ready-assets-and-script",
       "style": "aion-neon-graphic-science-v1",
       "scene_count": 12,
-      "updated_at": "2026-09-27T14:46:42.490999+00:00",
+      "updated_at": "2026-09-27T17:26:15.697046+00:00",
       "visual_qa": {
         "eligible": false,
         "reasons": [
@@ -603,7 +743,7 @@
   },
   "release_artifact_freshness": {
     "state": "fresh",
-    "age_seconds": 49,
+    "age_seconds": 37,
     "policy_current": true
   },
   "recovery": {
@@ -612,7 +752,7 @@
     "target": 7,
     "ready": 2,
     "missing": 5,
-    "active_storyboards": 0,
+    "active_storyboards": 5,
     "cadence": "hourly while the buffer is below target",
     "next_steps": [
       "Seed a distinct fast-lane mechanism topic before spending another deep-research attempt.",
@@ -641,8 +781,8 @@
       "questions": 0,
       "qualified_evidence": 11,
       "story_briefs": 0,
-      "historical_story_briefs": 6,
-      "handed_to_story": 6,
+      "historical_story_briefs": 11,
+      "handed_to_story": 11,
       "preserved_attempts": 57,
       "fast_lane_questions": 0,
       "nearing_attempt_limit": 0,
@@ -650,7 +790,7 @@
     },
     "next_action": "research distinct reserve questions until two independent sources qualify",
     "content_expansion": {
-      "source_packages": 3,
+      "source_packages": 8,
       "planned_follow_ups": 0,
       "rule": "Follow-up angles are preserved, but each one independently earns evidence before production."
     },
@@ -699,7 +839,7 @@
     "boundary": "A question is not evidence, and evidence is not a publishable video. Qualified evidence requires independent traceable sources; story briefs still pass novelty, production, and final Quality Gates."
   },
   "integrity": {
-    "generated_at": "2026-09-27T14:46:46.770218+00:00",
+    "generated_at": "2026-09-27T17:26:19.212699+00:00",
     "state": "attention",
     "alerts": [
       {
@@ -734,6 +874,10 @@
       "recovery_catalogue": {
         "total": 57,
         "remaining": 0
+      },
+      "research_pipeline_stall": {
+        "pending_candidates": 1,
+        "oldest_ready_hours": 97.5
       }
     }
   },
