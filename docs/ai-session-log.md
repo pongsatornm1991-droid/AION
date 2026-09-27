@@ -13,6 +13,39 @@ Format:
 Commits: <hash> [, <hash> ...]
 ```
 
+## 2026-09-27 — Claude Code — Durable safety net: alert on a stalled research pipeline
+
+Owner followed up on the stall fix above: "จะทำยังไงป้องกันระยะยาว" (how
+do we prevent this long-term). Answer: a code fix only prevents the exact
+collision found; the durable protection is catching *any* future silent
+stall fast, since SystemIntegrity (brain/system_integrity.py) already
+exists for exactly this purpose but had a blind spot -- it only watches
+an episode that already reached authorized-for-aion-publish, and a
+novelty-gate block happens far earlier, leaving zero trace there.
+
+Added `SystemIntegrity._research_pipeline_stall()`: flags when >=3
+evidence-qualified topics (the same minimum-sample-size guard
+`_fallback_rate` already uses, so one legitimately-permanently-stuck
+candidate -- e.g. a citation follow-up question about an already-
+published video -- never alone trips it forever) have sat unconverted
+for 24h+ (research-to-story.yml runs every 3h; that's 8+ missed cycles).
+Age is judged by each candidate's own most-recently-arrived evidence
+source, not "no brief has ever existed," so a candidate that only just
+qualified never false-alarms.
+
+No new plumbing needed -- this flows through the exact path already
+built for the 2026-09-25 stale-OAuth incident: ProductionControl's
+"integrity" section -> dashboard/operations.html's existing generic
+alert renderer -> tools/production_control.py's `_notify_integrity_alerts()`
+pushing to Telegram hourly via production-control.yml. Verified against
+the real aion-memory-data backlog: reads "attention" now that the
+backlog is cleared (2 pre-existing warnings only), and would have read
+"critical" against today's original 100%-blocked backlog.
+
+5 new regression tests (tests/test_system_integrity.py); full suite
+(1114 tests) green.
+Commits: e0f17e0
+
 ## 2026-09-27 — Claude Code — Fixed a 2-day production stall (duplicate-topic false-positives)
 
 Owner asked "ทำไมไม่มีคลิปลง" (why hasn't a clip published today) and, once

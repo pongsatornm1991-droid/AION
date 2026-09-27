@@ -14,7 +14,7 @@ Scope: None.
 Handoff: See docs/ai-session-log.md's 2026-09-26/27 entries for full detail
 (commits f69b858, af28e02, 63970ef, 92fc52f, 34512b1, ef1dbac, 18ad2c8,
 cd6174c, 2f76f90, 58f2ef3, fb4459a, d32392a, 2359b32, 508567b, 82a7b1b,
-2849873, 8b6bbcd, 806fd12, aedfaea, fc7c8a3, fe19e99). Quick summary of where things stand:
+2849873, 8b6bbcd, 806fd12, aedfaea, fc7c8a3, fe19e99, e0f17e0). Quick summary of where things stand:
 
 1. AION's identity signature is a glowing cyan question-mark held in one
    hand (not a chest core, not a crystal) -- updated everywhere it's
@@ -242,6 +242,21 @@ cd6174c, 2f76f90, 58f2ef3, fb4459a, d32392a, 2359b32, 508567b, 82a7b1b,
     cron. 4 new regression tests; full suite green. Owner was told this
     fixes the confirmed cases, not a guarantee against every future
     possible word collision -- the mechanism is still a maintained list.
+
+24. Owner asked for long-term prevention, not just today's fix.
+    SystemIntegrity (brain/system_integrity.py) already alerts on stuck
+    episodes and pushes to Telegram hourly (built for the 2026-09-25
+    stale-OAuth incident), but only watches an episode already
+    authorized-for-aion-publish -- a novelty-gate block happens earlier
+    and was invisible to it. Added
+    SystemIntegrity._research_pipeline_stall(): critical alert when >=3
+    evidence-qualified topics sit unconverted for 24h+ (research-to-
+    story.yml runs every 3h). Reuses the exact existing alert path (no
+    new plumbing): dashboard's "integrity" card + hourly Telegram push
+    via tools/production_control.py. Verified against real production
+    data both ways: reads healthy-ish now (backlog cleared), would have
+    read critical against today's original 100%-blocked backlog. 5 new
+    regression tests; full suite green.
 
 Nothing urgent open. The owner has been told, and agreed, that the
 easy/code-findable technical gaps in this pipeline are largely closed for
