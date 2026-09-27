@@ -1,8 +1,8 @@
 {
-  "generated_at": "2026-09-28T05:18:07.726439+07:00",
+  "generated_at": "2026-09-28T05:19:55.160913+07:00",
   "timezone": "Asia/Bangkok",
   "horizon_hours": 168,
-  "state": "critical",
+  "state": "warning",
   "slots": [
     {
       "at": "2026-09-28T20:30:00+07:00",
@@ -35,26 +35,27 @@
   ],
   "available": {
     "short": [
-      "aion-auto-1ff056dab4cd-b6eca890-short"
+      "aion-auto-1ff056dab4cd-b6eca890-short",
+      "aion-auto-28bb6abcc9ee-d6402692-short"
     ]
   },
   "shortages": [
     {
       "content_kind": "short",
       "needed": 7,
-      "ready": 1,
-      "missing": 6
+      "ready": 2,
+      "missing": 5
     }
   ],
   "shorts_buffer": {
     "target": 7,
-    "quality_ready": 1,
-    "missing": 6,
-    "state": "critical",
+    "quality_ready": 2,
+    "missing": 5,
+    "state": "warning",
     "detail": "นับเฉพาะ Shorts ใหม่ที่ผ่าน Quality Gate แล้ว; storyboard หรือภาพครบยังไม่นับเป็นบัฟเฟอร์"
   },
   "early_warning": {
-    "state": "urgent",
+    "state": "warning",
     "threshold": 3,
     "detail": "คลังต่ำกว่า 3 ตอน: คิวกู้คลังต้องให้หัวข้อ fast lane มาก่อนงานวิจัยเชิงลึก"
   },
