@@ -14,7 +14,7 @@ Scope: None.
 Handoff: See docs/ai-session-log.md's 2026-09-26/27 entries for full detail
 (commits f69b858, af28e02, 63970ef, 92fc52f, 34512b1, ef1dbac, 18ad2c8,
 cd6174c, 2f76f90, 58f2ef3, fb4459a, d32392a, 2359b32, 508567b, 82a7b1b,
-2849873, 8b6bbcd, 806fd12, aedfaea). Quick summary of where things stand:
+2849873, 8b6bbcd, 806fd12, aedfaea, fc7c8a3). Quick summary of where things stand:
 
 1. AION's identity signature is a glowing cyan question-mark held in one
    hand (not a chest core, not a crystal) -- updated everywhere it's
@@ -207,6 +207,19 @@ cd6174c, 2f76f90, 58f2ef3, fb4459a, d32392a, 2359b32, 508567b, 82a7b1b,
     README.md) -- same file set touched for the earlier crystal→
     question-mark change. Forward-looking only; no existing rendered
     image/video touched. Full test suite (python run_tests.py) green.
+
+22. Owner shared a second reference image (Pixar-style selfie render) and
+    said any adaptable elements were welcome; offered two bounded options
+    (selfie-style first-person POV framing; a more visibly animated
+    reaction) and the owner picked both. Added to
+    CreatorSceneProduction._composition_direction()
+    (brain/creator_scene_production.py) -- the same per-beat method as
+    item 12's dynamic-framing change: selfie POV bounded to the hook beat
+    only, heightened reaction bounded to the hook/reveal beats where AION
+    appears, both explicitly still "restrained and friendly, never a
+    generic mascot mugging for the camera" so AION's existing restrained-
+    expression identity rule holds everywhere else. Forward-looking only.
+    4 new regression tests; full suite green.
 
 Nothing urgent open. The owner has been told, and agreed, that the
 easy/code-findable technical gaps in this pipeline are largely closed for

@@ -13,6 +13,26 @@ Format:
 Commits: <hash> [, <hash> ...]
 ```
 
+## 2026-09-27 — Claude Code — Selfie-style POV framing + animated hook/reveal reaction
+
+Same session, owner shared a second reference image: a Pixar-style "selfie"
+render (a child and dog, exaggerated expressions, close first-person camera
+angle). Asked "if it can be adapted, go ahead" -- offered two bounded
+options (selfie POV framing; more animated reaction) and the owner picked
+both.
+
+Both folded into CreatorSceneProduction._composition_direction()
+(brain/creator_scene_production.py) -- the same method already giving the
+hook/reveal beats dynamic camera energy (2026-09-27 entry below): the
+first-person selfie-style POV angle is offered only for the hook beat, and
+a more visibly readable animated reaction only for the hook/reveal beats
+where AION appears, explicitly still "restrained and friendly, never a
+generic mascot mugging for the camera" so it doesn't override AION's
+existing restrained-expression identity rule elsewhere. Every other beat's
+composition and AION's expression are unchanged. 4 new regression tests
+in tests/test_creator_scene_production.py. Forward-looking only.
+Commits: fc7c8a3
+
 ## 2026-09-27 — Claude Code — AION's signature question-mark gains candy-color + sparkle
 
 Owner shared a plush-toy reference image (rainbow-maned unicorn, "3D Plush/
