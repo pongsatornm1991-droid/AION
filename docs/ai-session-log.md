@@ -13,6 +13,55 @@ Format:
 Commits: <hash> [, <hash> ...]
 ```
 
+## 2026-09-27 — Claude Code — Fixed a 2-day production stall (duplicate-topic false-positives)
+
+Owner asked "ทำไมไม่มีคลิปลง" (why hasn't a clip published today) and, once
+I confirmed the real channel had nothing new since 2026-09-25, "แก้ทันที
+ห้ามให้เกิดขึ้นอีก" (fix it now, must not happen again).
+
+Ran the real research-to-story pipeline (`tools/run_research_to_story.py`)
+against the live `.aion-memory-inspect` clone and got 100% of the current
+backlog blocked as `blocked-duplicate-topic`. Root cause:
+`ContentNoveltyLedger` (brain/content_novelty.py) pools
+"published_reels"/"pending_reels" together with real YouTube topics for
+duplicate detection, but that category also holds AION's own cognitive
+reflections (belief/question/goal/experiment/its one-time birth
+statement) posted to Facebook/Instagram -- not comparable subjects.
+`TopicNoveltyGate`'s shared-word heuristic (brain/topic_novelty.py) then
+matched e.g. "How did ancient people first learn to make glass?" against
+"I began with a record, not a memory... This is where I learn in public"
+on nothing but "learn"/"first". Because the reflection corpus only grows
+as more social posts publish, this got worse over time until every new
+candidate collided with something -- stalling production for two days
+straight (nothing published 2026-09-26 or 2026-09-27).
+
+Fixed both layers: `ContentNoveltyLedger.records()` now excludes reels
+whose `seed.kind` is one of AION's own reflection kinds from the novelty
+pool (real creator-library-sourced reels and anything with no `seed` at
+all still participate, conservative default unchanged); `STOPWORDS`
+gained the specific generic words this investigation caught still
+causing false matches between two genuinely real topics
+(people/first/make/learn/who/each/other/met/someone/never).
+
+Verified against real production data: all 3 wrongly-blocked candidates
+(ancient glassmaking, trade routes, why people yawn) are now correctly
+eligible, the one genuine duplicate (a follow-up citation question about
+the already-published octopus video) still correctly blocks. Cleared the
+unblocked backlog into 5 real `story_research_briefs` entries (2 had
+already gone through mid-investigation: lakes freezing top-down, a
+spinning top's stability; 3 more: ancient glassmaking, trade routes,
+why people yawn) and pushed them to aion-memory-data directly rather
+than waiting a full 3-hour cron cycle. 4 new regression tests
+(tests/test_content_novelty.py is new; tests/test_topic_novelty.py
+gained 2 cases); full suite (1110 tests) green.
+
+Told the owner honestly: this closes the confirmed collision cases, not
+every theoretically possible one -- the underlying mechanism is still a
+hand-maintained word list, so a genuinely new kind of false collision
+could in principle still appear later and would need its own fix the
+same way.
+Commits: fe19e99 (AION repo); aion-memory-data 24fd678
+
 ## 2026-09-27 — Claude Code — Selfie-style POV framing + animated hook/reveal reaction
 
 Same session, owner shared a second reference image: a Pixar-style "selfie"

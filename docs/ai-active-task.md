@@ -14,7 +14,7 @@ Scope: None.
 Handoff: See docs/ai-session-log.md's 2026-09-26/27 entries for full detail
 (commits f69b858, af28e02, 63970ef, 92fc52f, 34512b1, ef1dbac, 18ad2c8,
 cd6174c, 2f76f90, 58f2ef3, fb4459a, d32392a, 2359b32, 508567b, 82a7b1b,
-2849873, 8b6bbcd, 806fd12, aedfaea, fc7c8a3). Quick summary of where things stand:
+2849873, 8b6bbcd, 806fd12, aedfaea, fc7c8a3, fe19e99). Quick summary of where things stand:
 
 1. AION's identity signature is a glowing cyan question-mark held in one
    hand (not a chest core, not a crystal) -- updated everywhere it's
@@ -220,6 +220,28 @@ cd6174c, 2f76f90, 58f2ef3, fb4459a, d32392a, 2359b32, 508567b, 82a7b1b,
     generic mascot mugging for the camera" so AION's existing restrained-
     expression identity rule holds everywhere else. Forward-looking only.
     4 new regression tests; full suite green.
+
+23. Owner noticed no clip had published in 2 days and asked for an
+    immediate, durable fix. Root cause: ContentNoveltyLedger
+    (brain/content_novelty.py) compared new video-topic candidates
+    against AION's own Facebook/Instagram cognitive-reflection posts
+    (belief/question/goal/experiment/birth-record), which share the
+    same "published_reels" category as real topics but aren't
+    comparable subjects -- TopicNoveltyGate's shared-word heuristic
+    (brain/topic_novelty.py) matched e.g. a glassmaking question against
+    a birth-statement reflection on nothing but "learn"/"first", and
+    since that reflection corpus only grows, this got worse until 100%
+    of the current backlog was blocked (confirmed by running the real
+    pipeline against .aion-memory-inspect). Fixed both the pooling (own
+    reflections excluded from the novelty pool; real creator-library
+    reels still compared) and the word list (added
+    people/first/make/learn/who/each/other/met/someone/never to
+    STOPWORDS, each with a concrete real collision found this session).
+    Cleared the real backlog into 5 story_research_briefs entries,
+    pushed directly to aion-memory-data instead of waiting a 3-hour
+    cron. 4 new regression tests; full suite green. Owner was told this
+    fixes the confirmed cases, not a guarantee against every future
+    possible word collision -- the mechanism is still a maintained list.
 
 Nothing urgent open. The owner has been told, and agreed, that the
 easy/code-findable technical gaps in this pipeline are largely closed for
