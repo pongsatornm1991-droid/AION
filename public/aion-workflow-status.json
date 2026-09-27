@@ -1,10 +1,10 @@
 {
-  "generated_at": "2026-09-27T18:34:48.329274+00:00",
+  "generated_at": "2026-09-27T18:36:42.870350+00:00",
   "tiles": {
-    "total": 44,
-    "ok": 37,
+    "total": 45,
+    "ok": 35,
     "attn": 1,
-    "running": 4
+    "running": 5
   },
   "groups": [
     {
@@ -30,19 +30,19 @@
         {
           "name": "AION - assemble illustrated Creator episode",
           "file": "assemble-creator-episode.yml",
-          "status_class": "failure",
-          "status_label": "ล้มเหลว",
-          "html_url": "https://github.com/pongsatornm1991-droid/AION/actions/runs/36339240314",
-          "created_at": "2026-09-27T18:03:44Z",
-          "detail": "ขั้นที่ล้มเหลว: Assemble only an asset-complete episode"
+          "status_class": "success",
+          "status_label": "ไม่มีเหตุให้ดำเนินการ",
+          "html_url": "https://github.com/pongsatornm1991-droid/AION/actions/runs/36341212589",
+          "created_at": "2026-09-27T18:35:26Z"
         },
         {
           "name": "AION - subject-first scene production",
           "file": "creator-scene-production.yml",
-          "status_class": "running",
-          "status_label": "กำลังรัน",
+          "status_class": "failure",
+          "status_label": "ล้มเหลว",
           "html_url": "https://github.com/pongsatornm1991-droid/AION/actions/runs/36341017262",
-          "created_at": "2026-09-27T18:32:17Z"
+          "created_at": "2026-09-27T18:32:17Z",
+          "detail": "ขั้นที่ล้มเหลว: Verify actual narration timing before creating scene images"
         }
       ]
     },
@@ -87,8 +87,8 @@
           "file": "learning-cycle.yml",
           "status_class": "running",
           "status_label": "กำลังรัน",
-          "html_url": "https://github.com/pongsatornm1991-droid/AION/actions/runs/36341085883",
-          "created_at": "2026-09-27T18:33:23Z"
+          "html_url": "https://github.com/pongsatornm1991-droid/AION/actions/runs/36341246095",
+          "created_at": "2026-09-27T18:36:00Z"
         },
         {
           "name": "AION - self-narrative",
@@ -153,8 +153,8 @@
           "file": "automation-health.yml",
           "status_class": "success",
           "status_label": "ไม่มีเหตุให้ดำเนินการ",
-          "html_url": "https://github.com/pongsatornm1991-droid/AION/actions/runs/36341108150",
-          "created_at": "2026-09-27T18:33:44Z"
+          "html_url": "https://github.com/pongsatornm1991-droid/AION/actions/runs/36341253919",
+          "created_at": "2026-09-27T18:36:08Z"
         },
         {
           "name": "AION - Cyber Guard defensive audit",
@@ -217,8 +217,8 @@
           "file": "publish-workflow-status.yml",
           "status_class": "running",
           "status_label": "กำลังรัน",
-          "html_url": "https://github.com/pongsatornm1991-droid/AION/actions/runs/36341096101",
-          "created_at": "2026-09-27T18:33:32Z"
+          "html_url": "https://github.com/pongsatornm1991-droid/AION/actions/runs/36341253916",
+          "created_at": "2026-09-27T18:36:08Z"
         },
         {
           "name": "AION - system reliability",
@@ -245,10 +245,10 @@
         {
           "name": "AION - Creator release readiness",
           "file": "release-readiness.yml",
-          "status_class": "success",
-          "status_label": "สำเร็จ",
-          "html_url": "https://github.com/pongsatornm1991-droid/AION/actions/runs/36341017265",
-          "created_at": "2026-09-27T18:32:17Z"
+          "status_class": "running",
+          "status_label": "กำลังรัน",
+          "html_url": "https://github.com/pongsatornm1991-droid/AION/actions/runs/36341212540",
+          "created_at": "2026-09-27T18:35:26Z"
         },
         {
           "name": "AION - Instagram feedback",
@@ -257,6 +257,14 @@
           "status_label": "สำเร็จ",
           "html_url": "https://github.com/pongsatornm1991-droid/AION/actions/runs/36336424574",
           "created_at": "2026-09-27T17:18:06Z"
+        },
+        {
+          "name": "AION - Thai dub",
+          "file": "thai-dub.yml",
+          "status_class": "success",
+          "status_label": "สำเร็จ",
+          "html_url": "https://github.com/pongsatornm1991-droid/AION/actions/runs/36341171389",
+          "created_at": "2026-09-27T18:34:47Z"
         },
         {
           "name": "AION - YouTube publication drift check",
@@ -271,8 +279,8 @@
           "file": "youtube-release-watchdog.yml",
           "status_class": "running",
           "status_label": "กำลังรัน",
-          "html_url": "https://github.com/pongsatornm1991-droid/AION/actions/runs/36341035629",
-          "created_at": "2026-09-27T18:32:33Z"
+          "html_url": "https://github.com/pongsatornm1991-droid/AION/actions/runs/36341257172",
+          "created_at": "2026-09-27T18:36:11Z"
         },
         {
           "name": "AION - YouTube release-window recovery",
@@ -302,9 +310,9 @@
           "name": "AION - automatic motion production",
           "file": "creator-motion-production.yml",
           "status_class": "success",
-          "status_label": "สำเร็จ",
-          "html_url": "https://github.com/pongsatornm1991-droid/AION/actions/runs/36339103495",
-          "created_at": "2026-09-27T18:01:38Z"
+          "status_label": "ไม่มีเหตุให้ดำเนินการ",
+          "html_url": "https://github.com/pongsatornm1991-droid/AION/actions/runs/36341212619",
+          "created_at": "2026-09-27T18:35:26Z"
         },
         {
           "name": "AION - autonomous internal improvement cycle",
@@ -373,10 +381,10 @@
         {
           "name": "AION - production control",
           "file": "production-control.yml",
-          "status_class": "success",
-          "status_label": "สำเร็จ",
-          "html_url": "https://github.com/pongsatornm1991-droid/AION/actions/runs/36341096106",
-          "created_at": "2026-09-27T18:33:32Z"
+          "status_class": "running",
+          "status_label": "กำลังรัน",
+          "html_url": "https://github.com/pongsatornm1991-droid/AION/actions/runs/36341253908",
+          "created_at": "2026-09-27T18:36:08Z"
         },
         {
           "name": "AION - revenue readiness",
