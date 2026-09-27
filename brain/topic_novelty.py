@@ -20,6 +20,18 @@ class TopicNoveltyGate:
         # posts also mentioned sunlight.  A duplicate still needs its actual
         # subject token, its source URL, or two meaningful topical terms.
         "sunlight", "reflection",
+        # Found 2026-09-27, stalling every new episode for two days: generic
+        # people/connective words are common enough that any two unrelated
+        # topics collide on two of them by chance -- "How did ancient people
+        # first learn to make glass?" was blocked as a repeat of "How Did
+        # Ancient Persia Make Ice in the Desert?" on nothing but "people" and
+        # "make"; "trade routes connect people who never met each other" on
+        # "people" and "never"; a yawning question on "someone" alone (a
+        # single word this long already counts as a match on its own). None
+        # of these words name a subject.
+        "people", "person", "someone", "everyone", "anyone",
+        "first", "make", "makes", "made", "learn", "learns", "learned",
+        "who", "each", "other", "met", "meet", "never",
     }
 
     @classmethod

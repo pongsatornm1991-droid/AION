@@ -16,6 +16,25 @@ class ContentNoveltyLedger:
 
     CATEGORIES = ("published_reels", "pending_reels", "youtube_creator_queue")
 
+    # "published_reels"/"pending_reels" hold two structurally different
+    # things under one category name: real topical videos (seed kind
+    # "creator-library") and AION's own cognitive reflections -- an open
+    # belief, question, goal, experiment, or its one-time birth statement,
+    # all pulled from SocialContentGenerator's own memory, never about a
+    # documented real-world subject. Found 2026-09-27: comparing a new
+    # research topic against these reflections' free-text captions by
+    # shared-word count produced false "duplicate" matches (e.g. "How did
+    # ancient people learn to make glass?" flagged as a repeat of "I began
+    # with a record, not a memory... This is where I learn in public" on
+    # the shared words "learn"/"first") -- and, because the reflection
+    # corpus only grows as more Facebook/Instagram posts publish, this got
+    # more likely over time until every new candidate was blocked,
+    # stalling all new production for two days straight. These seed kinds
+    # are excluded from the novelty pool entirely; genuinely topical reels
+    # (no "seed", an unrecognised future kind, or "creator-library") are
+    # still compared as before.
+    NON_TOPICAL_REEL_SEED_KINDS = {"belief", "question", "goal", "experiment", "lesson", "birth-record"}
+
     def __init__(self, memory):
         self.memory = memory
 
@@ -32,8 +51,13 @@ class ContentNoveltyLedger:
         for category in self.CATEGORIES:
             for entry in self.memory.all(category):
                 payload = self._payload(entry)
-                if payload:
-                    records.append({**payload, "_category": category, "_memory_id": entry.get("id")})
+                if not payload:
+                    continue
+                if category in ("published_reels", "pending_reels"):
+                    seed_kind = str((payload.get("seed") or {}).get("kind") or "")
+                    if seed_kind in self.NON_TOPICAL_REEL_SEED_KINDS:
+                        continue
+                records.append({**payload, "_category": category, "_memory_id": entry.get("id")})
         return records
 
     def assess(self, candidate, exclude_memory_ids=()):
