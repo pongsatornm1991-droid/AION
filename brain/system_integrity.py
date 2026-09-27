@@ -20,6 +20,7 @@ from pathlib import Path
 from brain.creator_series import CreatorSeriesRegistry
 from brain.curiosity import CuriosityEngine
 from brain.initiative import AutonomousInitiative
+from brain.research_to_story import ResearchToStory
 
 ROOT = Path(__file__).resolve().parents[1]
 
@@ -34,6 +35,16 @@ class SystemIntegrity:
     STALE_AUTHORIZATION_HOURS = 48
     FALLBACK_SAMPLE_EPISODES = 3
     RECOVERY_CATALOGUE_LOW = 5
+    # research-to-story.yml runs every 3h; 24h is at least 8 missed cycles
+    # in a row, well past anything a single delayed or skipped run explains.
+    RESEARCH_STALL_HOURS = 24
+    # A lone candidate can sit unconverted forever entirely by design (for
+    # example a citation follow-up question about an already-published
+    # video, which should never become a new episode) -- that must never
+    # alone trip this alert permanently. The real 2026-09-27 stall showed
+    # up as several distinct topics stuck at once, the same
+    # minimum-sample-size guard FALLBACK_SAMPLE_EPISODES already uses below.
+    RESEARCH_STALL_SAMPLE = 3
 
     def __init__(self, memory, root=None):
         self.memory = memory
@@ -131,11 +142,56 @@ class SystemIntegrity:
         )
         return {"total": total, "remaining": remaining}
 
+    def _research_pipeline_stall(self, now):
+        """Evidence is qualified and waiting, but nothing new has progressed.
+
+        Regression for 2026-09-27: a duplicate-topic false-positive in
+        ContentNoveltyLedger silently blocked every waiting candidate for
+        two days before the owner noticed and asked why nothing had
+        published. _stale_authorizations only sees an episode that already
+        reached "authorized-for-aion-publish" -- a novelty-gate block
+        happens far earlier in the pipeline and left no trace there at
+        all. This catches the same class of failure at the stage it
+        actually occurs: real, evidence-qualified topics sitting
+        unconverted while story_research_briefs goes quiet. Age is judged
+        per candidate by its own most recently arrived evidence source
+        (when the group actually became eligible) rather than by "no
+        brief has ever existed," so a candidate that only just qualified
+        never false-alarms before the next scheduled run even has a
+        chance to pick it up.
+        """
+        rts = ResearchToStory(self.memory)
+        briefs = rts._briefs()
+        existing_roots = {str(item.get("root_question_id") or "") for item in briefs}
+        try:
+            pending = [item for item in rts.candidates() if item["root_question_id"] not in existing_roots]
+        except (OSError, ValueError, TypeError, KeyError):
+            return {"pending_candidates": None, "oldest_ready_hours": None}
+        if not pending:
+            return {"pending_candidates": 0, "oldest_ready_hours": None}
+        ready_ages = []
+        for item in pending:
+            stamps = []
+            for source in item.get("sources") or []:
+                try:
+                    stamped = datetime.strptime(str(source.get("timestamp")), "%Y-%m-%d %H:%M:%S").replace(tzinfo=timezone.utc)
+                except (TypeError, ValueError):
+                    continue
+                stamps.append(stamped)
+            if stamps:
+                # the group became eligible once its last-arriving source landed
+                ready_ages.append((now - max(stamps)).total_seconds() / 3600)
+        return {
+            "pending_candidates": len(pending),
+            "oldest_ready_hours": round(max(ready_ages), 1) if ready_ages else None,
+        }
+
     def snapshot(self, now=None):
         now = now or datetime.now(timezone.utc)
         stale = self._stale_authorizations(now)
         fallback = self._fallback_rate()
         recovery = self._recovery_catalogue()
+        research_stall = self._research_pipeline_stall(now)
 
         alerts = []
         if stale:
@@ -171,6 +227,22 @@ class SystemIntegrity:
                 ),
                 "recovery": recovery,
             })
+        if (
+            (research_stall["pending_candidates"] or 0) >= self.RESEARCH_STALL_SAMPLE
+            and research_stall["oldest_ready_hours"] is not None
+            and research_stall["oldest_ready_hours"] >= self.RESEARCH_STALL_HOURS
+        ):
+            alerts.append({
+                "check": "research-pipeline-stall",
+                "severity": "critical",
+                "detail": (
+                    f"{research_stall['pending_candidates']} evidence-qualified topic(s) have been "
+                    f"ready for {research_stall['oldest_ready_hours']}h+ without becoming a story "
+                    "brief -- the last time this happened, a duplicate-topic false-positive silently "
+                    "blocked every candidate for two days before anyone noticed."
+                ),
+                "research_stall": research_stall,
+            })
 
         state = (
             "critical" if any(item["severity"] == "critical" for item in alerts) else
@@ -185,5 +257,6 @@ class SystemIntegrity:
                 "stale_authorizations": stale,
                 "motion_fallback": fallback,
                 "recovery_catalogue": recovery,
+                "research_pipeline_stall": research_stall,
             },
         }

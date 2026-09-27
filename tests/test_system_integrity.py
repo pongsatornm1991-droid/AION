@@ -146,3 +146,83 @@ class SystemIntegrityTests(unittest.TestCase):
             report = SystemIntegrity(memory, directory).snapshot()
             self.assertEqual("healthy", report["state"])
             self.assertEqual([], report["alerts"])
+
+    def _qualified_candidate(self, memory, root, topic):
+        # Both sources must be aged: _age_last_entry only rewrites the most
+        # recently written entry's header, and _research_pipeline_stall
+        # judges a group's age by whichever of its sources arrived LAST --
+        # leaving source one at its real (just-now) timestamp would make
+        # the group look freshly-ready no matter how old source two is.
+        from brain.curiosity import CuriosityEngine
+        from brain.learning import ResearchEvidenceStore
+        question = CuriosityEngine(memory).raise_question(topic, "Compare two cited sources.", priority=4)
+        store = ResearchEvidenceStore(memory, CuriosityEngine(memory))
+        store.remember(question["id"], question["id"], "official_primary", "Source one", "https://one.test/one", "Observation one.")
+        _age_last_entry(root, "research_evidence", datetime.now(timezone.utc) - timedelta(hours=40))
+        store.remember(question["id"], question["id"], "official_primary", "Source two", "https://two.test/two", "Observation two.")
+        _age_last_entry(root, "research_evidence", datetime.now(timezone.utc) - timedelta(hours=30))
+
+    def test_flags_several_qualified_topics_that_have_sat_unconverted_for_a_day(self):
+        # Regression for 2026-09-27: a duplicate-topic false-positive
+        # silently blocked every waiting candidate for two days before the
+        # owner noticed. _stale_authorizations never saw it, because the
+        # block happens before an episode is ever authorized. This check
+        # watches the earlier stage directly: real evidence-qualified
+        # topics sitting unconverted into a story brief. The real stall
+        # showed up as several distinct topics stuck at once (see the
+        # single-candidate test below for why one alone must not qualify).
+        with tempfile.TemporaryDirectory() as root:
+            memory = MemoryEngine(root)
+            self._qualified_candidate(memory, root, "How did ancient people first learn to make glass?")
+            self._qualified_candidate(memory, root, "How did trade routes connect people who never met?")
+            self._qualified_candidate(memory, root, "Why do people yawn when they see someone else yawn?")
+
+            report = SystemIntegrity(memory, root).snapshot()
+
+            self.assertEqual("critical", report["state"])
+            checks = [a["check"] for a in report["alerts"]]
+            self.assertIn("research-pipeline-stall", checks)
+            self.assertEqual(3, report["checks"]["research_pipeline_stall"]["pending_candidates"])
+
+    def test_a_single_permanently_stuck_candidate_never_alone_trips_the_alert(self):
+        # A candidate can sit unconverted forever entirely by design -- for
+        # example a citation follow-up question about an already-published
+        # video, which should never become a new episode. That must never
+        # alone cry wolf permanently just because it is old.
+        with tempfile.TemporaryDirectory() as root:
+            memory = MemoryEngine(root)
+            self._qualified_candidate(memory, root, "How did ancient people first learn to make glass?")
+
+            report = SystemIntegrity(memory, root).snapshot()
+
+            checks = [a["check"] for a in report["alerts"]]
+            self.assertNotIn("research-pipeline-stall", checks)
+
+    def test_does_not_flag_a_candidate_that_only_just_became_eligible(self):
+        with tempfile.TemporaryDirectory() as root:
+            memory = MemoryEngine(root)
+            from brain.curiosity import CuriosityEngine
+            from brain.learning import ResearchEvidenceStore
+            question = CuriosityEngine(memory).raise_question(
+                "How did ancient people first learn to make glass?", "Compare two cited sources.", priority=4,
+            )
+            store = ResearchEvidenceStore(memory, CuriosityEngine(memory))
+            store.remember(question["id"], question["id"], "official_primary", "Source one", "https://one.test/one", "Observation one.")
+            store.remember(question["id"], question["id"], "official_primary", "Source two", "https://two.test/two", "Observation two.")
+
+            report = SystemIntegrity(memory, root).snapshot()
+
+            checks = [a["check"] for a in report["alerts"]]
+            self.assertNotIn("research-pipeline-stall", checks)
+
+    def test_does_not_flag_once_the_candidate_becomes_a_real_brief(self):
+        with tempfile.TemporaryDirectory() as root:
+            memory = MemoryEngine(root)
+            from brain.research_to_story import ResearchToStory
+            self._qualified_candidate(memory, root, "How did ancient people first learn to make glass?")
+            ResearchToStory(memory).propose_once()
+
+            report = SystemIntegrity(memory, root).snapshot()
+
+            checks = [a["check"] for a in report["alerts"]]
+            self.assertNotIn("research-pipeline-stall", checks)
