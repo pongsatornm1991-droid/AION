@@ -14,7 +14,7 @@ Scope: None.
 Handoff: See docs/ai-session-log.md's 2026-09-26/27 entries for full detail
 (commits f69b858, af28e02, 63970ef, 92fc52f, 34512b1, ef1dbac, 18ad2c8,
 cd6174c, 2f76f90, 58f2ef3, fb4459a, d32392a, 2359b32, 508567b, 82a7b1b,
-2849873, 8b6bbcd, 806fd12, aedfaea, fc7c8a3, fe19e99, e0f17e0). Quick summary of where things stand:
+2849873, 8b6bbcd, 806fd12, aedfaea, fc7c8a3, fe19e99, e0f17e0, eeb5c5a). Quick summary of where things stand:
 
 1. AION's identity signature is a glowing cyan question-mark held in one
    hand (not a chest core, not a crystal) -- updated everywhere it's
@@ -257,6 +257,21 @@ cd6174c, 2f76f90, 58f2ef3, fb4459a, d32392a, 2359b32, 508567b, 82a7b1b,
     data both ways: reads healthy-ish now (backlog cleared), would have
     read critical against today's original 100%-blocked backlog. 5 new
     regression tests; full suite green.
+
+25. Fixed a real gap the owner spotted: uploads never declared
+    defaultLanguage/defaultAudioLanguage (now "en", confirmed with
+    owner). Also made thai-dub.yml trigger via workflow_run right after
+    youtube-creator.yml completes instead of waiting up to 1h for its
+    own daily cron tick (kept as a safety net).
+26. Open, awaiting owner decision: reading the real narration of the
+    next-to-publish episode found that 4 structural beats
+    (evidence-one/two-intro, takeaway, invitation --
+    brain/story_episode_stager.py lines ~402-430) are hardcoded
+    templates that literally speak the raw source-paper title or the
+    full raw question sentence -- still reads like a citation/lecture
+    despite the 2026-09-27 AI-rewrite feature already fixing the
+    evidence beats. Asked whether to extend that rewrite's scope to
+    cover these too; nothing changed yet pending the answer.
 
 Nothing urgent open. The owner has been told, and agreed, that the
 easy/code-findable technical gaps in this pipeline are largely closed for

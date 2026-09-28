@@ -13,6 +13,52 @@ Format:
 Commits: <hash> [, <hash> ...]
 ```
 
+## 2026-09-29 — Claude Code — Upload language metadata; Thai dub fires right after publish
+
+Owner: "ทำไมเวลาลงคลิป ไม่เลือกภาษาของคลิปเลย" (why doesn't publishing
+select the clip's language). Real bug: upload_short() (tools/youtube.py)
+never set defaultLanguage/defaultAudioLanguage on a new upload -- YouTube
+never learned the video's language, weakening recommendation matching
+and auto-captions. Every real upload's narration is English-first, so
+both fields are now set to "en" (confirmed with owner) -- the same value
+set_video_localization() already guessed as a fallback when this was
+missing.
+
+Owner also asked (garbled, confirmed via follow-up): make the Thai dub
+happen right after publish, not up to a fixed 1h buffer later.
+thai-dub.yml now triggers via workflow_run on youtube-creator.yml's own
+completion, keeping its daily cron only as a safety net (same
+event/cron pairing and cancelled-run guard as research-to-story.yml).
+dub_batch()'s durable per-episode dedupe makes a redundant fire from
+both triggers a harmless no-op.
+
+1 new regression test (tests/test_youtube.py); full suite (1115 tests)
+green.
+Commits: eeb5c5a
+
+## 2026-09-29 — Claude Code — Narration-quality finding: structural template beats still read like a citation
+
+Owner asked "การเล่าเรื่องเป็นยังไงตอนนี้ เล่าแบบคอนเท้นหรือเล่าแบบนั่ง
+เรียน" (is the storytelling content-like or classroom-like right now).
+Read the real narration of the next-to-publish episode (lakes freezing
+top-down) and found it's mixed: the evidence beats (already covered by
+the 2026-09-27 AI-narration-rewrite feature) read naturally, but 4
+structural beats -- evidence-one-intro, evidence-two-intro, takeaway,
+invitation -- are still hardcoded f-string templates in
+brain/story_episode_stager.py (lines ~402-430) that literally interpolate
+the raw source paper title ("Our first clue comes from An inventory of
+active subglacial lakes in Antarctica detected by ICESat (2003-2008).")
+or the full raw question sentence ("begin with what was observed about
+Why do lakes freeze...?") straight into spoken narration -- reading like
+a citation/lecture, not content. `_rewritable_beat()`'s own docstring
+explicitly excludes these as "already hand-authored template lines,"
+which turns out not to hold up against the real text.
+
+Reported the finding with the concrete quoted examples and asked the
+owner whether to extend the AI-rewrite scope to cover these beats too --
+awaiting their decision before touching the narration templates, since
+it changes every future episode's voice. No code changed this entry.
+
 ## 2026-09-27 — Claude Code — Durable safety net: alert on a stalled research pipeline
 
 Owner followed up on the stall fix above: "จะทำยังไงป้องกันระยะยาว" (how
