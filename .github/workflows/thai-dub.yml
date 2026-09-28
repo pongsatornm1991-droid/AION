@@ -2,9 +2,19 @@ name: AION - Thai dub
 
 on:
   schedule:
-    # Once daily, after the YouTube Creator publish slot (20:30 Bangkok /
-    # 13:30 UTC) has had time to actually land.
+    # Safety net only: fires once daily in case the workflow_run trigger
+    # below is ever missed (e.g. a recovery publish outside the normal
+    # slot). The real trigger is the publish workflow completing.
     - cron: "30 14 * * *"
+  workflow_run:
+    # Owner, 2026-09-29: "เละทำ ภาษาไทยให้ทันที" (make the Thai version
+    # happen right away) -- start dubbing the moment a new episode
+    # actually publishes instead of waiting up to a fixed 1h buffer for
+    # the next scheduled tick. dub_batch()'s own durable per-episode
+    # dedupe record makes firing this twice for the same publish (once
+    # here, once from the daily safety-net cron) a harmless no-op.
+    workflows: [AION - YouTube Creator Studio]
+    types: [completed]
   workflow_dispatch: {}
 
 concurrency:
@@ -16,6 +26,10 @@ permissions:
 
 jobs:
   thai-dub:
+    # A cancelled publish run persisted nothing new to dub; only skip on
+    # cancellation, never on failure -- a failed publish attempt can still
+    # leave an earlier, already-published episode waiting for its dub.
+    if: ${{ always() && (github.event_name != 'workflow_run' || github.event.workflow_run.conclusion != 'cancelled') }}
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4

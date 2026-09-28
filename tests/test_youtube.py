@@ -48,6 +48,30 @@ class YouTubeUploadTests(unittest.TestCase):
             body = fake_youtube.videos.return_value.insert.call_args.kwargs["body"]
             self.assertEqual(["maps", "cartography", "AION", "Shorts"], body["snippet"]["tags"])
 
+    def test_upload_declares_english_as_the_video_and_audio_language(self):
+        # Owner, 2026-09-29: "ทำไมเวลาลงคลิป ไม่เลือกภาษาของคลิปเลย" (why
+        # doesn't publishing ever select the clip's language). Every real
+        # upload's narration is English-first, but the upload request never
+        # said so -- weakening recommendation matching and auto-captions,
+        # and forcing set_video_localization() to guess "en" as a fallback
+        # later for the same reason.
+        with tempfile.NamedTemporaryFile(suffix=".mp4") as handle:
+            handle.write(b"video-bytes")
+            handle.flush()
+            fake_request = mock.MagicMock()
+            fake_request.next_chunk.return_value = (None, {"id": "abc", "status": {"privacyStatus": "public"}})
+            fake_youtube = mock.MagicMock()
+            fake_youtube.videos.return_value.insert.return_value = fake_request
+            with mock.patch.dict(os.environ, {
+                "YOUTUBE_REFRESH_TOKEN": "t", "YOUTUBE_CLIENT_ID": "c", "YOUTUBE_CLIENT_SECRET": "s",
+            }, clear=False), \
+                 mock.patch("googleapiclient.discovery.build", return_value=fake_youtube), \
+                 mock.patch("googleapiclient.http.MediaFileUpload"):
+                upload_short(handle.name, "A useful question", "desc", privacy_status="public")
+            body = fake_youtube.videos.return_value.insert.call_args.kwargs["body"]
+            self.assertEqual("en", body["snippet"]["defaultLanguage"])
+            self.assertEqual("en", body["snippet"]["defaultAudioLanguage"])
+
     def test_tags_are_trimmed_to_the_500_character_budget_not_rejected_outright(self):
         with tempfile.NamedTemporaryFile(suffix=".mp4") as handle:
             handle.write(b"video-bytes")

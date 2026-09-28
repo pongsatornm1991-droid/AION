@@ -56,6 +56,14 @@ def upload_short(video_path, title, description, privacy_status=None, thumbnail_
         "title": str(title).strip()[:100] or "AION is learning",
         "description": str(description).strip()[:5000],
         "categoryId": "28",  # Science & Technology
+        # Every real upload's narration is English-first (see core/visual_identity.md);
+        # without this YouTube never learns what language the video is in,
+        # which weakens recommendation matching and auto-caption quality,
+        # and set_video_localization() later has to guess "en" as a
+        # fallback for exactly the same reason. Set it once, correctly, at
+        # the only point that knows the real uploaded audio's language.
+        "defaultLanguage": "en",
+        "defaultAudioLanguage": "en",
     }
     if tags:
         # YouTube caps the combined tags string at 500 characters; trim from
