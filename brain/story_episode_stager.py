@@ -24,7 +24,7 @@ from brain.evaluator import OutputEvaluator
 from brain.story_beats import (
     BOUNDARY, COMPARE, CONNECTION, EVIDENCE_ONE_A, EVIDENCE_ONE_B, EVIDENCE_ONE_INTRO,
     EVIDENCE_TWO_A, EVIDENCE_TWO_B, EVIDENCE_TWO_INTRO, FIRST_SOURCE, HOOK, INVITATION,
-    MAP_THE_QUESTION, QUESTION, TAKEAWAY, UNCERTAINTY, is_evidence_literal_beat,
+    MAP_THE_QUESTION, QUESTION, TAKEAWAY, UNCERTAINTY, is_rewritable_narration_beat,
 )
 
 
@@ -157,13 +157,16 @@ class StoryEpisodeStager:
 
     @staticmethod
     def _rewritable_beat(beat):
-        """Beats whose narration is a literal (or near-literal) excerpt of a
-        source observation -- the ones an AI rewrite is meant to retell, not
-        the already hand-authored template lines (question, boundary,
-        takeaway, invitation, ...), which stay as they are. Delegates to
-        brain.story_beats so this can never drift from the exact strings
-        this same class writes into a scene's own "beat" field below."""
-        return is_evidence_literal_beat(beat)
+        """Beats the AI narration rewrite is allowed to retell: a literal
+        (or near-literal) excerpt of a source observation, plus the
+        structural template beats found 2026-09-29 to still read like a
+        citation or a lecture (see STRUCTURAL_TEMPLATE_BEATS's own
+        docstring). Question and boundary stay hand-authored as-is --
+        boundary in particular is a claim-safety-adjacent disclaimer that
+        must not drift in wording. Delegates to brain.story_beats so this
+        can never drift from the exact strings this same class writes into
+        a scene's own "beat" field below."""
+        return is_rewritable_narration_beat(beat)
 
     @staticmethod
     def _key_terms(text):
@@ -399,10 +402,22 @@ class StoryEpisodeStager:
                  # sourced observation, nothing invented here.
                  "narration": f"{first_parts[0]} {topic}"},
                 {"n": 2, "beat": QUESTION, "visual": f"Show the central subject of {topic} clearly before any explanation; AION observes from the distant edge.", "narration": "We will follow what was actually observed, step by step, rather than inventing an answer."},
-                {"n": 3, "beat": EVIDENCE_ONE_INTRO, "visual": f"Show the first evidence scene for {topic}, guided by {first_title}; AION remains small and practical in the background.", "narration": f"Our first clue comes from {first_title}. We will use it to examine the subject closely."},
+                {"n": 3, "beat": EVIDENCE_ONE_INTRO, "visual": f"Show the first evidence scene for {topic}, guided by {first_title}; AION remains small and practical in the background.",
+                 # Found 2026-09-29: this used to speak the source's raw
+                 # academic title aloud (e.g. "Our first clue comes from An
+                 # inventory of active subglacial lakes in Antarctica
+                 # detected by ICESat (2003-2008)"), reading like a
+                 # citation rather than narration. The title itself is
+                 # never a fact the viewer needs spoken; it is preserved
+                 # elsewhere (sources list, description) for anyone who
+                 # wants to check it.
+                 "narration": "Our first clue comes from a closer look at the evidence itself. Let's see what it actually shows."},
                 {"n": 4, "beat": EVIDENCE_ONE_A, "visual": f"Depict this documented observation about {topic}: {first_parts[0]} Keep the subject dominant; AION is a small guide only.", "narration": self._narrated_evidence(first_parts[0], topic)},
                 {"n": 5, "beat": EVIDENCE_ONE_B, "visual": f"Continue the first documented observation for {topic}: {(first_parts[1] if len(first_parts) > 1 else evidence_one)} Keep the evidence visible and AION in the background.", "narration": self._narrated_evidence(first_parts[1], topic) if len(first_parts) > 1 else f"This is the first direct observation connected to {topic}."},
-                {"n": 6, "beat": EVIDENCE_TWO_INTRO, "visual": f"Move to a distinct second evidence scene for {topic}, guided by {second_title}; AION remains small at the edge.", "narration": f"A second clue comes from {second_title}. We compare it carefully with the first observation."},
+                {"n": 6, "beat": EVIDENCE_TWO_INTRO, "visual": f"Move to a distinct second evidence scene for {topic}, guided by {second_title}; AION remains small at the edge.",
+                 # Same fix as EVIDENCE_ONE_INTRO above: no raw source title
+                 # spoken aloud.
+                 "narration": "A second clue adds to the picture. Let's compare it with what we just saw."},
                 {"n": 7, "beat": EVIDENCE_TWO_A, "visual": f"Depict this documented observation about {topic}: {second_parts[0]} Keep the subject, action, and setting central; AION observes subtly from the distant edge.", "narration": self._narrated_evidence(second_parts[0], topic)},
                 {"n": 8, "beat": EVIDENCE_TWO_B, "visual": f"Continue the second documented observation for {topic}: {(second_parts[1] if len(second_parts) > 1 else evidence_two)} AION is only a small contextual guide.", "narration": self._narrated_evidence(second_parts[1], topic) if len(second_parts) > 1 else f"This gives us a second direct observation about {topic}."},
                 {"n": 9, "beat": CONNECTION, "visual": f"A visual comparison of the two documented observations about {topic}; show the subject and environment, with AION pointing only subtly from the edge.",

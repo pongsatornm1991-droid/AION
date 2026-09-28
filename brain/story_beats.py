@@ -51,6 +51,21 @@ EVIDENCE_LITERAL_BEATS = frozenset({
     HOOK, EVIDENCE_ONE_A, EVIDENCE_ONE_B, EVIDENCE_TWO_A, EVIDENCE_TWO_B, CONNECTION,
 })
 
+# Beats built from a fixed narration template rather than a literal source
+# excerpt, kept out of EVIDENCE_LITERAL_BEATS on the theory that a hand-
+# authored line needs no rewrite. Found 2026-09-29, checking a real
+# next-to-publish episode against the owner's "does this sound like
+# content or like sitting in class" question: these specific templates
+# still read like a citation or a policy statement, e.g. "Our first clue
+# comes from An inventory of active subglacial lakes in Antarctica
+# detected by ICESat (2003-2008)" and "begin with what was observed about
+# Why do lakes freeze from the top down instead of the bottom up?" --
+# both speak a raw title or the full raw question sentence verbatim.
+# Eligible for the same AI narration rewrite as evidence-literal beats.
+STRUCTURAL_TEMPLATE_BEATS = frozenset({
+    EVIDENCE_ONE_INTRO, EVIDENCE_TWO_INTRO, TAKEAWAY, INVITATION,
+})
+
 # The two beats present in both short- and long-form storyboards that
 # creator_scene_production.py gives extra camera/lighting energy to.
 DYNAMIC_HOOK_BEATS = frozenset({HOOK})
@@ -61,3 +76,11 @@ def is_evidence_literal_beat(beat):
     """True for a short-form evidence-literal beat, or any long-form evidence-N beat."""
     beat = str(beat or "")
     return beat in EVIDENCE_LITERAL_BEATS or bool(EVIDENCE_BEAT_LONG_FORM_PATTERN.match(beat))
+
+
+def is_rewritable_narration_beat(beat):
+    """True for any beat the AI narration rewrite may retell: an
+    evidence-literal excerpt, or a structural template beat that still
+    reads like a citation or a lecture (see STRUCTURAL_TEMPLATE_BEATS)."""
+    beat = str(beat or "")
+    return is_evidence_literal_beat(beat) or beat in STRUCTURAL_TEMPLATE_BEATS

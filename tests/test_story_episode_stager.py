@@ -98,6 +98,35 @@ class RewriteSceneNarrationsTests(unittest.TestCase):
         self.assertEqual("bounded-fallback", meta["origin"])
         self.assertEqual("no-rewritable-beats", meta["reason"])
 
+    def test_structural_template_beats_are_now_eligible_for_rewrite(self):
+        # Owner, 2026-09-29: found (and asked to fix) that evidence-one/two
+        # -intro, takeaway, and invitation still read like a citation or a
+        # lecture even after the 2026-09-27 rewrite feature shipped, since
+        # they were excluded as "already hand-authored." They are now in
+        # scope; question and boundary (claim-safety-adjacent) stay excluded.
+        scenes = [
+            {"n": 3, "beat": "evidence-one-intro", "narration": "Our first clue comes from a closer look at the evidence itself. Let's see what it actually shows."},
+            {"n": 6, "beat": "evidence-two-intro", "narration": "A second clue adds to the picture. Let's compare it with what we just saw."},
+            {"n": 11, "beat": "takeaway", "narration": "The careful takeaway is simple: begin with what was observed about Why do lakes freeze from the top down?, then separate it from interpretation."},
+            {"n": 12, "beat": "invitation", "narration": "That's the real story behind Why do lakes freeze from the top down? Notice it again, and you will see it differently next time."},
+            {"n": 2, "beat": "question", "narration": "We will follow what was actually observed."},
+            {"n": 10, "beat": "boundary", "narration": "The sources do not settle every detail, so we should not claim more than they show."},
+        ]
+        response = json.dumps({str(s["n"]): f"Rewritten: {s['narration']}" for s in scenes})
+        stager = StoryEpisodeStager(memory=None, root=".", provider=FakeProvider(response=response))
+        rewritten, meta = stager._rewrite_scene_narrations([dict(s) for s in scenes], "Why do lakes freeze from the top down?")
+        self.assertEqual("ai-rewrite", meta["origin"])
+        self.assertEqual([3, 6, 11, 12], meta["rewritten_scenes"])
+        by_n = {s["n"]: s["narration"] for s in rewritten}
+        self.assertTrue(by_n[3].startswith("Rewritten:"))
+        self.assertTrue(by_n[6].startswith("Rewritten:"))
+        self.assertTrue(by_n[11].startswith("Rewritten:"))
+        self.assertTrue(by_n[12].startswith("Rewritten:"))
+        # question/boundary are never sent to rewrite even when eligible
+        # beats exist alongside them.
+        self.assertEqual("We will follow what was actually observed.", by_n[2])
+        self.assertEqual("The sources do not settle every detail, so we should not claim more than they show.", by_n[10])
+
 
 class StoryEpisodeStagerTests(unittest.TestCase):
     def test_stages_one_traceable_subject_first_short(self):
@@ -124,6 +153,30 @@ class StoryEpisodeStagerTests(unittest.TestCase):
             self.assertEqual("bounded-fallback", episode["visual_style"]["aion_deliberation"]["origin"])
             self.assertEqual("no-story-ready-handoff", StoryEpisodeStager(memory, root).stage_once()["stage"])
             self.assertEqual("bounded-fallback", episode["narration_style"]["origin"])
+
+    def test_evidence_intro_beats_never_speak_the_raw_source_title(self):
+        # Regression, 2026-09-29: these used to say e.g. "Our first clue
+        # comes from An inventory of active subglacial lakes in Antarctica
+        # detected by ICESat (2003-2008)" -- reading a citation aloud
+        # instead of narrating.
+        with tempfile.TemporaryDirectory() as root:
+            root = Path(root)
+            memory = MemoryEngine(root / "memory")
+            memory.remember("creator_research_handoffs", json.dumps({
+                "status": "story-ready", "root_question_id": "question-titles",
+                "topic": "Why do lakes freeze from the top down?",
+                "sources": [
+                    {"title": "An inventory of active subglacial lakes in Antarctica detected by ICESat (2003-2008)",
+                     "url": "https://example.test/one", "observation": "Ice was stored below ground."},
+                    {"title": "Subglacial lake", "url": "https://example.test/two", "observation": "Wind and shade reduced heat."},
+                ],
+                "unknown_facts": "The exact temperature varied by season.",
+            }), memory_type="decision", source="test", importance=4)
+            StoryEpisodeStager(memory, root).stage_once()
+            episode = CreatorSeriesRegistry(root).episodes()[0]
+            by_beat = {s["beat"]: s["narration"] for s in episode["scenes"]}
+            self.assertNotIn("ICESat", by_beat["evidence-one-intro"])
+            self.assertNotIn("Subglacial lake", by_beat["evidence-two-intro"])
 
     def test_stages_with_an_ai_narration_rewrite_when_a_provider_is_configured(self):
         with tempfile.TemporaryDirectory() as root:
