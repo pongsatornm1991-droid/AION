@@ -14,7 +14,7 @@ Scope: None.
 Handoff: See docs/ai-session-log.md's 2026-09-26/27 entries for full detail
 (commits f69b858, af28e02, 63970ef, 92fc52f, 34512b1, ef1dbac, 18ad2c8,
 cd6174c, 2f76f90, 58f2ef3, fb4459a, d32392a, 2359b32, 508567b, 82a7b1b,
-2849873, 8b6bbcd, 806fd12, aedfaea, fc7c8a3, fe19e99, e0f17e0, eeb5c5a). Quick summary of where things stand:
+2849873, 8b6bbcd, 806fd12, aedfaea, fc7c8a3, fe19e99, e0f17e0, eeb5c5a, 083091b, 9977956). Quick summary of where things stand:
 
 1. AION's identity signature is a glowing cyan question-mark held in one
    hand (not a chest core, not a crystal) -- updated everywhere it's
@@ -272,6 +272,28 @@ cd6174c, 2f76f90, 58f2ef3, fb4459a, d32392a, 2359b32, 508567b, 82a7b1b,
     despite the 2026-09-27 AI-rewrite feature already fixing the
     evidence beats. Asked whether to extend that rewrite's scope to
     cover these too; nothing changed yet pending the answer.
+
+27. "พัฒนาเลย" confirmed: extended the AI narration rewrite
+    (brain/story_beats.py's new STRUCTURAL_TEMPLATE_BEATS,
+    is_rewritable_narration_beat()) to evidence-one/two-intro, takeaway,
+    and invitation, plus fixed the two worst offenders' deterministic
+    fallback templates (no more raw source-title citations even with no
+    AI provider). question/boundary stay hand-authored (boundary is
+    claim-safety-adjacent). 3 new tests; full suite green.
+28. Owner: publish twice a day instead of once (18:00/20:30 Bangkok) --
+    "ปล่อยหลายตอนต่อวันยิ่งดี". No daily cap existed in publish_once() to
+    begin with, so this was purely a scheduling change:
+    channel_policy.py's shorts_times (now a list) + doubled
+    shorts_buffer_target (7->14, same 168h/7-day horizon) +
+    release_readiness.py's slots() + a second cron in
+    youtube-creator.yml + tools/youtube_release_watchdog.py rewritten to
+    self-heal each slot independently via its own bounded window (was
+    hardcoded to one slot) + tools/dashboard.py's separately-stale
+    hardcoded Thu/Fri/Sun@20:30 check replaced with a real policy read.
+    10 tests updated, 9 new; full suite green.
+29. Open: owner asked how the real channel's Thai-dub coverage compares
+    to two reference channels' storytelling style (ไอ้ก้าง เล่าเรื่อง,
+    Kurzgesagt Shorts) -- research in progress, not yet reported.
 
 Nothing urgent open. The owner has been told, and agreed, that the
 easy/code-findable technical gaps in this pipeline are largely closed for

@@ -13,6 +13,37 @@ Format:
 Commits: <hash> [, <hash> ...]
 ```
 
+## 2026-09-29 — Claude Code — Publish twice daily (18:00/20:30 Bangkok)
+
+Owner noticed yesterday's backlog-clearing burst (3 episodes published a
+few hours apart, once the duplicate-topic stall was fixed) and, instead
+of asking for a rate-limit, said more releases per day is better:
+"ปล่อยหลายตอนต่อวันยิ่งดี... ปรับเป็นปล่อย 18.00 / 20.30 วันละ 2".
+
+Confirmed first that publish_once() has no daily cap of its own -- the
+"once a day" cadence was purely an artifact of youtube-creator.yml's
+single cron, not an enforced limit -- so this needed no new gating, just
+a second scheduled slot. Changed brain/channel_policy.py's
+`shorts_time` (single string) to `shorts_times` (list, now
+["18:00","20:30"]), doubled `shorts_buffer_target` 7->14 to keep it
+meaning "one full week of buffer" against the unchanged 168h horizon,
+updated release_readiness.py's slots() to emit one slot per (day, time)
+pair, and added the matching second cron to youtube-creator.yml.
+
+Also rewrote tools/youtube_release_watchdog.py's self-heal logic (built
+2026-09-22 for a single missed 20:30 slot) to check each of the shared
+policy's slots independently via its own bounded time window, so a run
+covering one slot is never mistaken for covering a different missed one
+-- and fixed tools/dashboard.py's `_next_studio_release()`, which had a
+separate, already-stale hardcoded Thu/Fri/Sun@20:30 check (the real
+policy has published daily since 2026-09-21), to read the same shared
+policy instead of hardcoding anything a second time.
+
+10 existing tests updated for the new 14-slot math; 9 new regression
+tests for the watchdog's per-slot windows. Full suite (1127 tests)
+green.
+Commits: 9977956
+
 ## 2026-09-29 — Claude Code — Upload language metadata; Thai dub fires right after publish
 
 Owner: "ทำไมเวลาลงคลิป ไม่เลือกภาษาของคลิปเลย" (why doesn't publishing
