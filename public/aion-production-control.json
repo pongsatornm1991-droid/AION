@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-09-28T00:12:11.572258+00:00",
+  "generated_at": "2026-09-28T00:49:21.381079+00:00",
   "state": "attention",
   "policy": {
     "brand": {
@@ -34,8 +34,8 @@
   },
   "shorts_buffer": {
     "target": 7,
-    "quality_ready": 4,
-    "missing": 3
+    "quality_ready": 5,
+    "missing": 2
   },
   "episodes": [
     {
@@ -44,7 +44,7 @@
       "status": "research-evidence-rejected-preserved",
       "style": "aion-neon-diorama-3d-v1",
       "scene_count": 12,
-      "updated_at": "2026-09-28T00:12:07.422701+00:00",
+      "updated_at": "2026-09-28T00:49:16.633482+00:00",
       "visual_qa": {
         "eligible": false,
         "reasons": [
@@ -72,7 +72,7 @@
       "status": "production-ready-assets-and-script",
       "style": "aion-neon-diorama-3d-v1",
       "scene_count": 13,
-      "updated_at": "2026-09-28T00:12:07.423055+00:00",
+      "updated_at": "2026-09-28T00:49:16.633942+00:00",
       "visual_qa": {
         "eligible": true,
         "reasons": [],
@@ -93,7 +93,7 @@
       "status": "production-ready-assets-and-script",
       "style": "aion-neon-diorama-3d-v1",
       "scene_count": 13,
-      "updated_at": "2026-09-28T00:12:07.423055+00:00",
+      "updated_at": "2026-09-28T00:49:16.633942+00:00",
       "visual_qa": {
         "eligible": true,
         "reasons": [],
@@ -114,7 +114,7 @@
       "status": "production-ready-assets-and-script",
       "style": "aion-neon-diorama-3d-v1",
       "scene_count": 12,
-      "updated_at": "2026-09-28T00:12:07.423055+00:00",
+      "updated_at": "2026-09-28T00:49:16.633942+00:00",
       "visual_qa": {
         "eligible": true,
         "reasons": [],
@@ -135,7 +135,7 @@
       "status": "production-ready-assets-and-script",
       "style": "aion-neon-diorama-3d-v1",
       "scene_count": 13,
-      "updated_at": "2026-09-28T00:12:07.423055+00:00",
+      "updated_at": "2026-09-28T00:49:16.633942+00:00",
       "visual_qa": {
         "eligible": true,
         "reasons": [],
@@ -156,7 +156,7 @@
       "status": "retired-do-not-publish",
       "style": null,
       "scene_count": 24,
-      "updated_at": "2026-09-28T00:12:07.423055+00:00",
+      "updated_at": "2026-09-28T00:49:16.633942+00:00",
       "visual_qa": {
         "eligible": false,
         "reasons": [
@@ -183,7 +183,7 @@
       "status": "retired-do-not-publish",
       "style": null,
       "scene_count": 12,
-      "updated_at": "2026-09-28T00:12:07.423055+00:00",
+      "updated_at": "2026-09-28T00:49:16.633942+00:00",
       "visual_qa": {
         "eligible": false,
         "reasons": [
@@ -212,7 +212,7 @@
       "status": "retired-do-not-publish",
       "style": null,
       "scene_count": 5,
-      "updated_at": "2026-09-28T00:12:07.423055+00:00",
+      "updated_at": "2026-09-28T00:49:16.633942+00:00",
       "visual_qa": {
         "eligible": false,
         "reasons": [
@@ -239,7 +239,7 @@
       "status": "retired-do-not-publish",
       "style": null,
       "scene_count": 24,
-      "updated_at": "2026-09-28T00:12:07.423055+00:00",
+      "updated_at": "2026-09-28T00:49:16.633942+00:00",
       "visual_qa": {
         "eligible": false,
         "reasons": [
@@ -266,7 +266,7 @@
       "status": "retired-do-not-publish",
       "style": null,
       "scene_count": 12,
-      "updated_at": "2026-09-28T00:12:07.423055+00:00",
+      "updated_at": "2026-09-28T00:49:16.633942+00:00",
       "visual_qa": {
         "eligible": false,
         "reasons": [
@@ -295,7 +295,7 @@
       "status": "retired-do-not-publish",
       "style": null,
       "scene_count": 12,
-      "updated_at": "2026-09-28T00:12:07.423055+00:00",
+      "updated_at": "2026-09-28T00:49:16.633942+00:00",
       "visual_qa": {
         "eligible": false,
         "reasons": [
@@ -322,7 +322,7 @@
       "status": "research-returned-source-integrity",
       "style": null,
       "scene_count": 12,
-      "updated_at": "2026-09-28T00:12:07.423055+00:00",
+      "updated_at": "2026-09-28T00:49:16.633942+00:00",
       "visual_qa": {
         "eligible": false,
         "reasons": [
@@ -348,10 +348,10 @@
     {
       "id": "aion-auto-e4651b672d19-6132ef86-short",
       "title": "How did ancient people first learn to make glass?",
-      "status": "assets-ready-for-assembly",
+      "status": "production-ready-assets-and-script",
       "style": "aion-neon-diorama-3d-v1",
       "scene_count": 13,
-      "updated_at": "2026-09-28T00:12:07.423055+00:00",
+      "updated_at": "2026-09-28T00:49:16.633942+00:00",
       "visual_qa": {
         "eligible": true,
         "reasons": [],
@@ -359,10 +359,8 @@
         "machine_check_only": true,
         "editorial_limit": "Checks actual files, dimensions and exact duplicates. It cannot truthfully detect text, anatomy, factual depiction or style compliance without a reviewed vision model."
       },
-      "release_blockers": [
-        "episode-status:assets-ready-for-assembly"
-      ],
-      "release_ready": false,
+      "release_blockers": [],
+      "release_ready": true,
       "portfolio": {
         "id": "human-culture",
         "label": "ทีมสำรวจมนุษย์ วัฒนธรรม และความคิด"
@@ -374,7 +372,7 @@
       "status": "retired-do-not-publish",
       "style": "aion-neon-diorama-3d-v1",
       "scene_count": 12,
-      "updated_at": "2026-09-28T00:12:07.423055+00:00",
+      "updated_at": "2026-09-28T00:49:16.634350+00:00",
       "visual_qa": {
         "eligible": false,
         "reasons": [
@@ -402,7 +400,7 @@
       "status": "assets-ready-for-assembly",
       "style": "aion-neon-diorama-3d-v1",
       "scene_count": 12,
-      "updated_at": "2026-09-28T00:12:07.423055+00:00",
+      "updated_at": "2026-09-28T00:49:16.634350+00:00",
       "visual_qa": {
         "eligible": true,
         "reasons": [],
@@ -425,7 +423,7 @@
       "status": "production-ready-assets-and-script",
       "style": "aion-illustrated-postcard-v1",
       "scene_count": 12,
-      "updated_at": "2026-09-28T00:12:07.423055+00:00",
+      "updated_at": "2026-09-28T00:49:16.634350+00:00",
       "visual_qa": {
         "eligible": false,
         "reasons": [
@@ -451,7 +449,7 @@
       "status": "production-ready-assets-and-script",
       "style": "aion-illustrated-postcard-v1",
       "scene_count": 12,
-      "updated_at": "2026-09-28T00:12:07.423055+00:00",
+      "updated_at": "2026-09-28T00:49:16.634350+00:00",
       "visual_qa": {
         "eligible": false,
         "reasons": [
@@ -477,7 +475,7 @@
       "status": "production-ready-assets-and-script",
       "style": null,
       "scene_count": 24,
-      "updated_at": "2026-09-28T00:12:07.423055+00:00",
+      "updated_at": "2026-09-28T00:49:16.634350+00:00",
       "visual_qa": {
         "eligible": true,
         "reasons": [],
@@ -500,7 +498,7 @@
       "status": "production-ready-assets-and-script",
       "style": null,
       "scene_count": 12,
-      "updated_at": "2026-09-28T00:12:07.423055+00:00",
+      "updated_at": "2026-09-28T00:49:16.634350+00:00",
       "visual_qa": {
         "eligible": false,
         "reasons": [
@@ -526,7 +524,7 @@
       "status": "production-ready-assets-and-script",
       "style": "aion-original-warm-3d-storytelling-v1",
       "scene_count": 10,
-      "updated_at": "2026-09-28T00:12:07.424043+00:00",
+      "updated_at": "2026-09-28T00:49:16.634350+00:00",
       "visual_qa": {
         "eligible": false,
         "reasons": [
@@ -552,7 +550,7 @@
       "status": "production-ready-script",
       "style": null,
       "scene_count": 24,
-      "updated_at": "2026-09-28T00:12:07.424043+00:00",
+      "updated_at": "2026-09-28T00:49:16.634350+00:00",
       "visual_qa": {
         "eligible": false,
         "reasons": [
@@ -579,7 +577,7 @@
       "status": "retired-do-not-publish",
       "style": null,
       "scene_count": 4,
-      "updated_at": "2026-09-28T00:12:07.424043+00:00",
+      "updated_at": "2026-09-28T00:49:16.634350+00:00",
       "visual_qa": {
         "eligible": false,
         "reasons": [
@@ -606,7 +604,7 @@
       "status": "production-ready-assets-and-script",
       "style": null,
       "scene_count": 40,
-      "updated_at": "2026-09-28T00:12:07.424043+00:00",
+      "updated_at": "2026-09-28T00:49:16.634350+00:00",
       "visual_qa": {
         "eligible": true,
         "reasons": [],
@@ -629,7 +627,7 @@
       "status": "retired-do-not-publish",
       "style": null,
       "scene_count": 3,
-      "updated_at": "2026-09-28T00:12:07.424043+00:00",
+      "updated_at": "2026-09-28T00:49:16.634350+00:00",
       "visual_qa": {
         "eligible": true,
         "reasons": [],
@@ -653,7 +651,7 @@
       "status": "production-ready-assets-and-script",
       "style": "aion-neon-graphic-science-v1",
       "scene_count": 12,
-      "updated_at": "2026-09-28T00:12:07.424043+00:00",
+      "updated_at": "2026-09-28T00:49:16.634350+00:00",
       "visual_qa": {
         "eligible": false,
         "reasons": [
@@ -719,16 +717,16 @@
   },
   "release_artifact_freshness": {
     "state": "fresh",
-    "age_seconds": 192,
+    "age_seconds": 2192,
     "policy_current": true
   },
   "recovery": {
     "owner": "Production Recovery Manager",
     "state": "recovering",
     "target": 7,
-    "ready": 4,
-    "missing": 3,
-    "active_storyboards": 2,
+    "ready": 5,
+    "missing": 2,
+    "active_storyboards": 1,
     "cadence": "hourly while the buffer is below target",
     "next_steps": [
       "Seed a distinct fast-lane mechanism topic before spending another deep-research attempt.",
@@ -815,7 +813,7 @@
     "boundary": "A question is not evidence, and evidence is not a publishable video. Qualified evidence requires independent traceable sources; story briefs still pass novelty, production, and final Quality Gates."
   },
   "integrity": {
-    "generated_at": "2026-09-28T00:12:11.993402+00:00",
+    "generated_at": "2026-09-28T00:49:21.932981+00:00",
     "state": "attention",
     "alerts": [
       {
@@ -853,7 +851,7 @@
       },
       "research_pipeline_stall": {
         "pending_candidates": 1,
-        "oldest_ready_hours": 104.3
+        "oldest_ready_hours": 104.9
       }
     }
   },
