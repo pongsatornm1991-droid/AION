@@ -40,14 +40,14 @@ class ReleaseReadiness:
         for offset in range(0, 8):
             day = (now + timedelta(days=offset)).date()
             weekday = day.weekday()
-            if weekday in set(policy["shorts_days"]):
-                hour, minute = (int(part) for part in policy["shorts_time"].split(":", 1))
+            if weekday not in set(policy["shorts_days"]):
+                continue
+            for time_str in policy["shorts_times"]:
+                hour, minute = (int(part) for part in time_str.split(":", 1))
                 slot = datetime(day.year, day.month, day.day, hour, minute, tzinfo=self.BANGKOK)
                 kind = "short"
-            else:
-                continue
-            if now < slot <= horizon:
-                values.append({"at": slot.isoformat(), "content_kind": kind})
+                if now < slot <= horizon:
+                    values.append({"at": slot.isoformat(), "content_kind": kind})
         return values
 
     def snapshot(self, now=None):

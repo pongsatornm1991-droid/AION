@@ -9,7 +9,12 @@ class ChannelPolicy:
 
     DEFAULTS = {
         "brand": {"channel_name": "Wait, How?", "handle": "@waithow-aion", "youtube_url": "https://www.youtube.com/@waithow-aion", "tagline": "Big questions. Clear visual stories.", "guide_name": "AION"},
-        "publishing": {"timezone": "Asia/Bangkok", "shorts_days": list(range(7)), "shorts_time": "20:30", "shorts_buffer_target": 7, "readiness_horizon_hours": 168, "shorts_first": True},
+        # Owner, 2026-09-29: "ปล่อยหลายตอนต่อวันยิ่งดี... ปรับเป็นปล่อย
+        # 18.00 / 20.30 วันละ 2" (more releases per day is better; switch
+        # to two slots a day). shorts_buffer_target doubled alongside it to
+        # keep meaning "one full week of buffer" (readiness_horizon_hours
+        # stays 168 = 7 days; 7 days * 2 slots/day = 14).
+        "publishing": {"timezone": "Asia/Bangkok", "shorts_days": list(range(7)), "shorts_times": ["18:00", "20:30"], "shorts_buffer_target": 14, "readiness_horizon_hours": 168, "shorts_first": True},
         "production": {"automatic_release_visual_style": "aion-neon-diorama-3d-v1", "minimum_short_seconds": 50, "minimum_short_scenes": 10, "scene_seconds": 5},
     }
 

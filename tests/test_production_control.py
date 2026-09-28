@@ -39,7 +39,7 @@ class ProductionControlTests(unittest.TestCase):
             self.assertEqual("ready", report["provider_health"]["state"])
             self.assertEqual("unknown-not-inspectable-without-provider-api", report["provider_health"]["quota"])
             self.assertTrue(report["episodes"][0]["release_ready"])
-            self.assertEqual(6, report["shorts_buffer"]["missing"])
+            self.assertEqual(13, report["shorts_buffer"]["missing"])
             self.assertIn("integrity", report)
             self.assertEqual("healthy", report["integrity"]["state"])
             self.assertEqual("recovering", report["recovery"]["state"])

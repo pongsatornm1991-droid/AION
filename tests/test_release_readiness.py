@@ -10,26 +10,30 @@ from brain.release_readiness import ReleaseReadiness
 
 class ReleaseReadinessTests(unittest.TestCase):
     def test_requires_distinct_ready_episodes_for_each_upcoming_short_slot(self):
+        # Owner, 2026-09-29: two release slots a day (18:00/20:30 Bangkok)
+        # instead of one, so a full 7-day (168h) horizon now needs 14
+        # distinct ready episodes, not 7.
+        idents = [f"ep-{n}" for n in range(14)]
         with tempfile.TemporaryDirectory() as root:
             root = Path(root)
             (root / "content" / "creator_series").mkdir(parents=True)
             (root / "content" / "reels").mkdir(parents=True)
-            for ident, episode_format in (("one", "illustrated-narrated-short"), ("two", "illustrated-narrated-short"), ("three", "illustrated-narrated-short"), ("four", "illustrated-narrated-short"), ("five", "illustrated-narrated-short"), ("six", "illustrated-narrated-short"), ("seven", "illustrated-narrated-short")):
+            for ident in idents:
                 (root / "content" / "reels" / f"{ident}.mp4").write_bytes(b"video")
                 (root / "content" / "reels" / f"{ident}-cover.png").write_bytes(b"cover")
                 (root / "content" / "creator_series" / f"{ident}.json").write_text(json.dumps({
                     "id": ident, "series": "Test", "title": ident, "status": "production-ready-assets-and-script",
-                    "format": episode_format, "target_duration_seconds": 50 if episode_format == "illustrated-narrated-short" else 120, "scene_seconds": 5,
+                    "format": "illustrated-narrated-short", "target_duration_seconds": 50, "scene_seconds": 5,
                     "visual_style": {"id": "aion-neon-diorama-3d-v1", "approved": True},
                     "visual_qa": {"eligible": True, "reasons": []},
                     "audience_promise": "A clear evidence-led story with useful value for viewers of every age.",
                     "wonder_hook": "Could a surprising question change what we notice?", "creative_device": "journey",
                     "age_layers": {"children": "Ask.", "family": "Compare.", "deeper": "Check evidence."},
                     "science_boundary": "A boundary.", "sources": [{"url": "https://one.test"}, {"url": "https://two.test"}],
-                    "scenes": [{"n": n, "visual": "The subject leads; AION is a guide.", "narration": "A useful narrated beat."} for n in range(1, 11 if episode_format == "illustrated-narrated-short" else 25)],
+                    "scenes": [{"n": n, "visual": "The subject leads; AION is a guide.", "narration": "A useful narrated beat."} for n in range(1, 11)],
                 }), encoding="utf-8")
             memory = MemoryEngine(root / "memory")
-            for ident in ("one", "two", "three", "four", "five", "six", "seven"):
+            for ident in idents:
                 memory.remember("youtube_creator_queue", json.dumps({
                     "episode_id": ident,
                     "quality_gate": {"eligible": True, "reasons": []},
@@ -38,9 +42,9 @@ class ReleaseReadinessTests(unittest.TestCase):
                 datetime(2026, 9, 14, 9, 0, tzinfo=ReleaseReadiness.BANGKOK)
             )
             self.assertEqual("ready", report["state"])
-            self.assertEqual(7, len(report["available"]["short"]))
+            self.assertEqual(14, len(report["available"]["short"]))
             self.assertEqual("ready", report["shorts_buffer"]["state"])
-            self.assertEqual(7, report["shorts_buffer"]["quality_ready"])
+            self.assertEqual(14, report["shorts_buffer"]["quality_ready"])
 
     def test_does_not_count_a_video_without_a_saved_quality_gate(self):
         with tempfile.TemporaryDirectory() as root:
@@ -105,7 +109,7 @@ class ReleaseReadinessTests(unittest.TestCase):
             )
             self.assertEqual("critical", report["state"])
             self.assertTrue(report["shortages"])
-            self.assertEqual(7, report["shorts_buffer"]["missing"])
+            self.assertEqual(14, report["shorts_buffer"]["missing"])
             self.assertEqual("ผลิตจากเรื่องใหม่ที่มีหลักฐานครบ", report["recovery_action"])
             self.assertEqual("urgent", report["early_warning"]["state"])
             self.assertIn("fast lane", report["early_warning"]["detail"])

@@ -1,7 +1,7 @@
-"""Self-heal a missed daily YouTube Creator Studio release.
+"""Self-heal a missed YouTube Creator Studio release slot.
 
 Why this exists (2026-09-22): youtube-creator.yml's own `schedule:` trigger
-(cron "30 13 * * *", i.e. 20:30 Bangkok) silently did not fire for two
+(then a single daily cron, 20:30 Bangkok) silently did not fire for two
 consecutive days, even though dozens of this repo's other scheduled
 workflows kept firing normally in the same window, no run of it was ever
 left queued/in_progress, and the workflow itself was never disabled --
@@ -10,25 +10,34 @@ not a bug in this repo's code. automation-health.yml cannot catch this
 class of failure: it only reacts to a workflow_run event, and a schedule
 that never fires produces no such event to react to.
 
+Extended 2026-09-29 when the owner asked for two release slots a day
+(18:00 and 20:30 Bangkok) instead of one: each slot needs this same
+self-heal protection independently, so this now reads
+brain.channel_policy.ChannelPolicy's `shorts_times` instead of a single
+hardcoded hour, and can never silently drift out of sync with
+youtube-creator.yml's own cron lines the way two independently-maintained
+copies of the schedule eventually would.
+
 This script runs frequently (see youtube-release-watchdog.yml) and asks
-one narrow question: has youtube-creator.yml produced ANY run yet today,
-created at or after its own scheduled hour (in UTC, matching its cron)?
-If yes -- success, failure, or still running -- today's slot has already
-been handled by the real pipeline and this script does nothing, which is
-exactly what keeps it from ever causing a second, redundant publish. Only
-a complete absence of today's run is treated as a missed schedule, and
-only then does this script dispatch youtube-creator.yml itself through the
+one narrow question per configured slot: has youtube-creator.yml produced
+a run created within that slot's own window (from the slot's start until
+the next slot's start, or now for the day's last slot)? A slot with a run
+in its window -- success, failure, or still running -- has already been
+handled by the real pipeline, which is exactly what keeps this from ever
+causing a second, redundant publish for that same slot. Only a slot whose
+window has begun with no run in it at all is treated as missed, and only
+then does this script dispatch youtube-creator.yml itself through the
 Actions API. The target workflow's own `aion-youtube-release` concurrency
 group and its candidate-selection logic (brain/youtube_creator_queue.py
 only ever offers an episode still at status "upload-ready") are what make
 an accidental overlap with a delayed real trigger safe too -- this
-script's job is only to make sure at least one attempt happens each day,
-never to decide what gets published. The dispatch also sets
+script's job is only to make sure at least one attempt happens per slot
+each day, never to decide what gets published. The dispatch also sets
 youtube-creator.yml's `scheduled_recovery` input so its own strict
 human-operator check (fail loudly if an explicit workflow_dispatch didn't
 reach YouTube) does not misfire on this routine, automated self-heal --
-"nothing new to publish today" must stay a quiet, honest non-event here,
-exactly as it already is for a real schedule tick.
+"nothing new to publish for this slot" must stay a quiet, honest non-event
+here, exactly as it already is for a real schedule tick.
 
 Run with: python tools/youtube_release_watchdog.py [--dry-run]
 Needs GITHUB_TOKEN with `actions: write` (the default GITHUB_TOKEN already
@@ -42,15 +51,13 @@ import json
 import os
 import sys
 from datetime import datetime, time, timezone
+from pathlib import Path
 from urllib.error import HTTPError, URLError
 from urllib.request import Request, urlopen
 
 DEFAULT_REPO = "pongsatornm1991-droid/AION"
 WORKFLOW_FILE = "youtube-creator.yml"
-# Mirrors youtube-creator.yml's own `cron: "30 13 * * *"` (20:30 Bangkok).
-# A run created at or after this UTC time counts as today's attempt; an
-# earlier run (e.g. a late recovery run from the previous day) does not.
-SCHEDULED_HOUR_UTC = time(13, 30)
+ROOT = Path(__file__).resolve().parents[1]
 _HEADERS_BASE = {
     "Accept": "application/vnd.github+json",
     "X-GitHub-Api-Version": "2022-11-28",
@@ -80,31 +87,76 @@ def _dispatch_run(repo, token):
         return resp.status
 
 
-def todays_attempt_exists(runs, now):
-    """True if any run was created today at or after the scheduled UTC hour."""
+def _scheduled_hours_utc():
+    """Bangkok shorts_times (see brain.channel_policy) as UTC times-of-day,
+    matching youtube-creator.yml's own cron lines. Read from the shared
+    policy so the two can never silently drift apart the way two
+    independently hand-maintained copies of the schedule eventually would.
+    Bangkok has no DST, so a fixed UTC+7 offset is always correct.
+    """
+    if str(ROOT) not in sys.path:
+        sys.path.insert(0, str(ROOT))
+    from brain.channel_policy import ChannelPolicy
+
+    hours = []
+    for hhmm in ChannelPolicy(ROOT).publishing()["shorts_times"]:
+        hour, minute = (int(part) for part in hhmm.split(":", 1))
+        total_minutes = (hour * 60 + minute - 7 * 60) % (24 * 60)
+        hours.append(time(total_minutes // 60, total_minutes % 60))
+    return sorted(hours)
+
+
+def slot_windows(scheduled_hours, now):
+    """(start, end) for each of today's UTC scheduled hours that has
+    already begun. `end` is the next slot's start, or `now` for the day's
+    last slot -- bounding each window keeps one dispatch that covers an
+    earlier missed slot from being mistaken for also covering a later,
+    separately-missed slot."""
     today = now.date()
-    threshold = datetime.combine(today, SCHEDULED_HOUR_UTC, tzinfo=timezone.utc)
-    for run in runs:
-        created = run.get("created_at")
-        if not created:
+    starts = sorted(datetime.combine(today, hour, tzinfo=timezone.utc) for hour in scheduled_hours)
+    windows = []
+    for index, start in enumerate(starts):
+        if start > now:
             continue
-        created_at = datetime.strptime(created, "%Y-%m-%dT%H:%M:%SZ").replace(tzinfo=timezone.utc)
-        if created_at.date() == today and created_at >= threshold:
-            return True
-    return False
+        end = starts[index + 1] if index + 1 < len(starts) else now
+        windows.append((start, end))
+    return windows
 
 
-def check(repo, token, now=None, dry_run=False, fetch_runs=None, dispatch=None):
-    """Dispatch youtube-creator.yml only if today's schedule never fired."""
+def todays_attempt_exists(runs, now, scheduled_hours=None):
+    """True if every one of today's scheduled slots that has already begun
+    has at least one run created within its own window. True (nothing to
+    do) when no slot has begun yet today."""
+    hours = _scheduled_hours_utc() if scheduled_hours is None else scheduled_hours
+    windows = slot_windows(hours, now)
+    if not windows:
+        return True
+    created_ats = [
+        datetime.strptime(run["created_at"], "%Y-%m-%dT%H:%M:%SZ").replace(tzinfo=timezone.utc)
+        for run in runs if run.get("created_at")
+    ]
+    return all(
+        any(start <= created <= end for created in created_ats)
+        for start, end in windows
+    )
+
+
+def check(repo, token, now=None, dry_run=False, fetch_runs=None, dispatch=None, scheduled_hours=None):
+    """Dispatch youtube-creator.yml only if a scheduled slot today never fired.
+
+    `scheduled_hours` defaults to the real policy (brain.channel_policy);
+    tests inject an explicit list to stay deterministic.
+    """
     now = now or datetime.now(timezone.utc)
-    if now.time() < SCHEDULED_HOUR_UTC:
+    hours = _scheduled_hours_utc() if scheduled_hours is None else scheduled_hours
+    if not slot_windows(hours, now):
         return {"stage": "too-early"}
     fetch_runs = fetch_runs or (lambda: _get(
         f"https://api.github.com/repos/{repo}/actions/workflows/{WORKFLOW_FILE}/runs?per_page=10",
         token,
     ).get("workflow_runs", []))
     runs = fetch_runs()
-    if todays_attempt_exists(runs, now):
+    if todays_attempt_exists(runs, now, hours):
         return {"stage": "already-attempted-today"}
     if dry_run:
         return {"stage": "would-dispatch-missed-schedule"}

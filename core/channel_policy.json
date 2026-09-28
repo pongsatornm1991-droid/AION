@@ -10,8 +10,8 @@
   "publishing": {
     "timezone": "Asia/Bangkok",
     "shorts_days": [0, 1, 2, 3, 4, 5, 6],
-    "shorts_time": "20:30",
-    "shorts_buffer_target": 7,
+    "shorts_times": ["18:00", "20:30"],
+    "shorts_buffer_target": 14,
     "readiness_horizon_hours": 168,
     "shorts_first": true
   },

@@ -35,6 +35,7 @@ from brain.revenue_brain import RevenueBrain
 from brain.community_campaign import CommunityCampaignRegistry
 from brain.youtube_creator_queue import YouTubeCreatorQueue
 from brain.release_readiness import ReleaseReadiness
+from brain.channel_policy import ChannelPolicy
 from brain.aion_company import AionCompany
 from brain.social_intelligence import SocialIntelligence
 from brain.admin_operations import AdminOperations
@@ -639,13 +640,18 @@ def _next_studio_release(memory):
                 continue
             cover_path = candidate.with_name(f"{candidate.stem}-cover.png")
             now = datetime.now()
-            today_is_release_day = now.weekday() in {3, 4, 6}
-            before_release = (now.hour, now.minute) < (20, 30)
+            policy = ChannelPolicy(ROOT).publishing()
+            times_today = sorted(policy["shorts_times"])
+            today_is_release_day = now.weekday() in set(policy["shorts_days"])
+            still_upcoming_today = any(
+                (now.hour, now.minute) < tuple(int(part) for part in time_str.split(":", 1))
+                for time_str in times_today
+            )
             return {
                 "entry_id": item.get("episode_id"),
                 "title": item.get("display_title") or item.get("title") or "AION Studio Short",
-                "status": "พร้อมปล่อยคืนนี้" if today_is_release_day and before_release else "พร้อมสำหรับรอบเผยแพร่ถัดไป",
-                "release_time": "20:30 น. เวลาไทย · Shorts ทุกวัน",
+                "status": "พร้อมปล่อยคืนนี้" if today_is_release_day and still_upcoming_today else "พร้อมสำหรับรอบเผยแพร่ถัดไป",
+                "release_time": f"{' / '.join(times_today)} น. เวลาไทย · Shorts ทุกวัน",
                 "preview_url": f"/{video_path}",
                 "cover_url": "/" + str(cover_path.relative_to(ROOT)).replace("\\", "/") if cover_path.is_file() else None,
                 "viewer_value": item.get("viewer_value") or "มีคุณค่าต่อผู้ชมตาม Quality Gate",
