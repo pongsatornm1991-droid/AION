@@ -1,8 +1,8 @@
 {
-  "generated_at": "2026-09-28T08:46:15.306074+07:00",
+  "generated_at": "2026-09-28T08:47:44.959625+07:00",
   "timezone": "Asia/Bangkok",
   "horizon_hours": 168,
-  "state": "warning",
+  "state": "attention",
   "slots": [
     {
       "at": "2026-09-28T20:30:00+07:00",
@@ -37,28 +37,29 @@
     "short": [
       "aion-auto-1ff056dab4cd-b6eca890-short",
       "aion-auto-28bb6abcc9ee-d6402692-short",
-      "aion-auto-e4651b672d19-6132ef86-short"
+      "aion-auto-e4651b672d19-6132ef86-short",
+      "aion-auto-f68134663f51-b53dd5d4-short"
     ]
   },
   "shortages": [
     {
       "content_kind": "short",
       "needed": 7,
-      "ready": 3,
-      "missing": 4
+      "ready": 4,
+      "missing": 3
     }
   ],
   "shorts_buffer": {
     "target": 7,
-    "quality_ready": 3,
-    "missing": 4,
-    "state": "warning",
+    "quality_ready": 4,
+    "missing": 3,
+    "state": "building",
     "detail": "นับเฉพาะ Shorts ใหม่ที่ผ่าน Quality Gate แล้ว; storyboard หรือภาพครบยังไม่นับเป็นบัฟเฟอร์"
   },
   "early_warning": {
-    "state": "warning",
+    "state": "building",
     "threshold": 3,
-    "detail": "คลังต่ำกว่า 3 ตอน: คิวกู้คลังต้องให้หัวข้อ fast lane มาก่อนงานวิจัยเชิงลึก"
+    "detail": "คลังยังมีพื้นที่ปลอดภัยสำหรับงานวิจัยเชิงลึก"
   },
   "recovery_action": "ผลิตจากเรื่องใหม่ที่มีหลักฐานครบ",
   "policy": "ตรวจล่วงหน้า 168 ชั่วโมง; นับเฉพาะตอนใหม่ที่ผ่าน Quality Gate พร้อมและไม่ซ้ำ ไม่ใช้คลิปเก่าแทนวันปล่อย"
