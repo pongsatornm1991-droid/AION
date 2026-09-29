@@ -13,6 +13,38 @@ Format:
 Commits: <hash> [, <hash> ...]
 ```
 
+## 2026-09-29 — Claude Code — Stripped research/citation language from every beat
+
+Owner, still not satisfied after the hook-phrase fix: "ฉันยังต้องการการ
+เล่าเรื่องแบบ เพจ ไอก้าง ไม่ใช่อ่านวิจัยให้ฟัง" (I still want storytelling
+like the ไอ้ก้าง page, not reading research aloud). Found more of the
+same underlying problem elsewhere: CONNECTION's fallback said "And from
+the second source:", QUESTION's fixed opening line ("We will follow
+what was actually observed, step by step, rather than inventing an
+answer") is a methodology statement that opens literally every episode,
+and EVIDENCE_ONE/TWO_INTRO still had the leftover word "evidence" from
+this morning's citation-title fix.
+
+Fixed all three deterministic fallback templates directly (fixed,
+hand-authored lines, not research-derived, so no AI/safety re-review
+needed) and substantially rewrote _rewrite_scene_narrations()'s AI
+prompt: named the actual target style (ไอ้ก้าง เล่าเรื่อง / Kurzgesagt),
+explicitly banned "source(s)"/"evidence"/"observation"/"documented"/
+"the article"/"the authors"/"studies show"/"research", gave one
+bad/good example, and asked it to treat every beat as one continuous
+story rather than independent snippets.
+
+Told the owner honestly this closes the specific wording problems found
+today, but the underlying beat STRUCTURE (evidence-one intro/a/b,
+evidence-two intro/a/b, connection, boundary -- literally "present
+source 1, present source 2, compare, disclaim") is still a
+compare-two-citations shape, not a mystery-reveal story arc, even with
+research words removed from it -- a bigger, structural rework neither
+asked for nor done today.
+
+2 new regression tests; full suite (1156 tests) green.
+Commits: 74fd33e
+
 ## 2026-09-29 — Claude Code — Engagement loop: a viewer's own question can become an episode
 
 Owner asked what else to develop to feel more like a "content creator"

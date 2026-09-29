@@ -14,7 +14,7 @@ Scope: None.
 Handoff: See docs/ai-session-log.md's 2026-09-26/27 entries for full detail
 (commits f69b858, af28e02, 63970ef, 92fc52f, 34512b1, ef1dbac, 18ad2c8,
 cd6174c, 2f76f90, 58f2ef3, fb4459a, d32392a, 2359b32, 508567b, 82a7b1b,
-2849873, 8b6bbcd, 806fd12, aedfaea, fc7c8a3, fe19e99, e0f17e0, eeb5c5a, 083091b, 9977956, abcc207, b4cc255, 477a32f, ba35fdf). Quick summary of where things stand:
+2849873, 8b6bbcd, 806fd12, aedfaea, fc7c8a3, fe19e99, e0f17e0, eeb5c5a, 083091b, 9977956, abcc207, b4cc255, 477a32f, ba35fdf, 74fd33e). Quick summary of where things stand:
 
 1. AION's identity signature is a glowing cyan question-mark held in one
    hand (not a chest core, not a crystal) -- updated everywhere it's
@@ -356,6 +356,25 @@ cd6174c, 2f76f90, 58f2ef3, fb4459a, d32392a, 2359b32, 508567b, 82a7b1b,
     a video or a public post that a topic came from a viewer) --
     natural next step if the owner wants the loop to feel visible, not
     just functional.
+
+34. Owner, still not satisfied after item 27's hook-phrase fix: "ฉันยัง
+    ต้องการการเล่าเรื่องแบบ เพจ ไอก้าง ไม่ใช่อ่านวิจัยให้ฟัง". Found and
+    fixed more research/citation-flavored wording: CONNECTION's fallback
+    ("And from the second source:"), QUESTION's fixed opening
+    methodology line, and leftover "evidence" wording in the
+    EVIDENCE_ONE/TWO_INTRO fallback fixed this morning. Also rewrote the
+    AI-rewrite prompt to explicitly name the ไอ้ก้าง/Kurzgesagt style and
+    ban a list of research-sounding words. 2 new tests; full suite
+    green. IMPORTANT, told to owner: this fixes wording, not structure
+    -- the beat architecture itself (intro/a/b for source 1, intro/a/b
+    for source 2, connection, boundary) still shapes every episode like
+    "compare two citations," not a mystery-reveal story arc. A real fix
+    for that would mean redesigning brain/story_beats.py's beat set
+    itself (touches creator_scene_production.py, visual_narrative_gate.py,
+    fact_first_visual_gate.py, watchability_gate.py too, since beat names
+    are read across the whole pipeline) -- worth doing if the owner still
+    isn't satisfied once a new episode using today's wording fixes is
+    actually seen and heard.
 
 Nothing urgent open. The owner has been told, and agreed, that the
 easy/code-findable technical gaps in this pipeline are largely closed for
