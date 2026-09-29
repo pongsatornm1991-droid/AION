@@ -14,7 +14,7 @@ Scope: None.
 Handoff: See docs/ai-session-log.md's 2026-09-26/27 entries for full detail
 (commits f69b858, af28e02, 63970ef, 92fc52f, 34512b1, ef1dbac, 18ad2c8,
 cd6174c, 2f76f90, 58f2ef3, fb4459a, d32392a, 2359b32, 508567b, 82a7b1b,
-2849873, 8b6bbcd, 806fd12, aedfaea, fc7c8a3, fe19e99, e0f17e0, eeb5c5a, 083091b, 9977956, abcc207, b4cc255, 477a32f, ba35fdf, 74fd33e). Quick summary of where things stand:
+2849873, 8b6bbcd, 806fd12, aedfaea, fc7c8a3, fe19e99, e0f17e0, eeb5c5a, 083091b, 9977956, abcc207, b4cc255, 477a32f, ba35fdf, 74fd33e, 132537d). Quick summary of where things stand:
 
 1. AION's identity signature is a glowing cyan question-mark held in one
    hand (not a chest core, not a crystal) -- updated everywhere it's
@@ -375,6 +375,24 @@ cd6174c, 2f76f90, 58f2ef3, fb4459a, d32392a, 2359b32, 508567b, 82a7b1b,
     are read across the whole pipeline) -- worth doing if the owner still
     isn't satisfied once a new episode using today's wording fixes is
     actually seen and heard.
+
+35. Direct answer to item 34's open structural question. Owner: "ทำไม ไม่
+    สรุปออกมาก่อนแล้วเขียนบทละ ให้เป็นเรื่องเล่า ไม่ใช่นั่งฟังวิจัย" (why
+    not summarize first, then write the script as a story). Added
+    `StoryEpisodeStager._synthesize_understanding()`: one AI call that
+    reads both source observations together and produces a single
+    coherent, story-like understanding, screened the same way as
+    `hook_phrase`. The CONNECTION beat now states that synthesis
+    directly (instead of concatenating each source's first fragment),
+    and `_rewrite_scene_narrations()` gets it as shared context so the
+    whole episode can build toward one payoff instead of polishing
+    disconnected fragments. Bounded fallback on any failure -- never
+    blocks staging. This does NOT yet touch the beat architecture itself
+    (still 12 fixed beats: hook/question/evidence-one-intro/a/b/
+    evidence-two-intro/a/b/connection/boundary/takeaway/invitation) --
+    only what feeds the connection beat and the shared rewrite context.
+    A full beat-count/order redesign is still the bigger remaining option
+    from item 34, not yet requested. 5 new tests; full suite green.
 
 Nothing urgent open. The owner has been told, and agreed, that the
 easy/code-findable technical gaps in this pipeline are largely closed for

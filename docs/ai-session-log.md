@@ -13,6 +13,32 @@ Format:
 Commits: <hash> [, <hash> ...]
 ```
 
+## 2026-09-30 — Claude Code — Synthesize the research into one understanding before writing the beats
+
+Direct answer to the structural question left open at the end of the
+2026-09-29 entry below. Owner: "ทำไม ไม่สรุปออกมาก่อนแล้วเขียนบทละ ให้เป็น
+เรื่องเล่า ไม่ใช่นั่งฟังวิจัย" (why not summarize first, then write the
+script as a story, instead of sitting through a research read-out).
+Correctly diagnosed the remaining root cause: every beat, including the
+AI narration rewrite, was built from one pre-chopped source fragment in
+isolation -- there was no step where the whole story was understood
+before any line was written.
+
+Added `StoryEpisodeStager._synthesize_understanding()`: one AI call
+that reads both source observations together and produces a single
+coherent, story-like explanation of what is actually going on, with
+the same claim-safety + fact-preservation screening as every other
+AI-assisted field here (`hook_phrase`, narration rewrite). The
+CONNECTION beat now states that synthesis directly instead of
+concatenating each source's first fragment, and
+`_rewrite_scene_narrations()` receives it as shared context so the
+whole retelling can build toward one real payoff instead of polishing
+disconnected fragments. Any failure (no provider, unsafe claim, fact
+drift, provider error) falls back to exactly the prior literal
+per-source construction -- never blocks staging. New fields on the
+episode: `story_understanding`, `story_understanding_style`.
+Commits: 132537d
+
 ## 2026-09-29 — Claude Code — Stripped research/citation language from every beat
 
 Owner, still not satisfied after the hook-phrase fix: "ฉันยังต้องการการ
