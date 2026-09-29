@@ -10,6 +10,7 @@ import importlib.util
 import unittest
 from datetime import datetime, time, timezone
 from pathlib import Path
+from unittest import mock
 
 ROOT = Path(__file__).resolve().parents[1]
 SPEC = importlib.util.spec_from_file_location(
@@ -192,6 +193,89 @@ class CheckTests(unittest.TestCase):
         now = datetime(2026, 9, 29, 9, 0, tzinfo=timezone.utc)
         result = watchdog.check("owner/repo", "token", now=now, fetch_runs=lambda: [])
         self.assertEqual({"stage": "too-early"}, result)
+
+    def test_a_different_workflow_can_be_watched_with_its_own_schedule(self):
+        # Regression, 2026-09-29: thai-dub.yml's own daily 14:30 UTC cron
+        # was silently dropped by GitHub the same day as the original
+        # youtube-creator.yml incident -- found only because a published
+        # episode had no Thai dub at all. One script must be able to
+        # self-heal either workflow.
+        now = datetime(2026, 9, 29, 15, 0, tzinfo=timezone.utc)
+        fetched_urls = []
+
+        def fetch_runs():
+            fetched_urls.append(True)
+            return []
+
+        dispatched = []
+        result = watchdog.check(
+            "owner/repo", "token", now=now, fetch_runs=fetch_runs,
+            dispatch=lambda: dispatched.append(True),
+            workflow_file="thai-dub.yml", scheduled_hours=[time(14, 30)],
+        )
+        self.assertEqual({"stage": "dispatched-missed-schedule"}, result)
+        self.assertEqual([True], dispatched)
+        self.assertEqual([True], fetched_urls)
+
+
+class DispatchRunTests(unittest.TestCase):
+    def test_sends_scheduled_recovery_input_only_for_youtube_creator(self):
+        captured = {}
+        real_request_cls = watchdog.Request
+
+        def fake_request(url, method=None, data=None, headers=None):
+            captured["url"] = url
+            captured["data"] = data
+            return real_request_cls("https://example.test")
+
+        class FakeResponse:
+            status = 204
+            def __enter__(self):
+                return self
+            def __exit__(self, *args):
+                return False
+
+        with mock.patch.object(watchdog, "Request", side_effect=fake_request), \
+             mock.patch.object(watchdog, "urlopen", return_value=FakeResponse()):
+            watchdog._dispatch_run("owner/repo", "token")
+        self.assertIn("youtube-creator.yml", captured["url"])
+        self.assertIn(b"scheduled_recovery", captured["data"])
+
+    def test_sends_no_scheduled_recovery_input_for_another_workflow(self):
+        # thai-dub.yml declares no such input; sending it would be
+        # rejected by GitHub's dispatch API as an unknown field.
+        captured = {}
+        real_request_cls = watchdog.Request
+
+        def fake_request(url, method=None, data=None, headers=None):
+            captured["url"] = url
+            captured["data"] = data
+            return real_request_cls("https://example.test")
+
+        class FakeResponse:
+            status = 204
+            def __enter__(self):
+                return self
+            def __exit__(self, *args):
+                return False
+
+        with mock.patch.object(watchdog, "Request", side_effect=fake_request), \
+             mock.patch.object(watchdog, "urlopen", return_value=FakeResponse()):
+            watchdog._dispatch_run("owner/repo", "token", workflow_file="thai-dub.yml")
+        self.assertIn("thai-dub.yml", captured["url"])
+        self.assertNotIn(b"scheduled_recovery", captured["data"])
+        self.assertNotIn(b"inputs", captured["data"])
+
+
+class ParseScheduledHoursTests(unittest.TestCase):
+    def test_parses_one_hour(self):
+        self.assertEqual([time(14, 30)], watchdog._parse_scheduled_hours("14:30"))
+
+    def test_parses_several_comma_separated_hours(self):
+        self.assertEqual(
+            [time(11, 0), time(13, 30)],
+            watchdog._parse_scheduled_hours("11:00, 13:30"),
+        )
 
 
 if __name__ == "__main__":

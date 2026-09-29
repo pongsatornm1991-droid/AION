@@ -27,6 +27,14 @@ name: AION - YouTube release watchdog
 # run instead of waiting on its own cron's uncertain activation. The
 # check() logic itself does not care why it woke up, only whether today's
 # youtube-creator.yml run already exists, so no extra guard is needed here.
+#
+# 2026-09-29: also self-heals thai-dub.yml's own daily 14:30 UTC cron,
+# found dropped the same way on the same day -- an episode published with
+# no Thai dub even started, and thai-dub.yml had zero runs at all that
+# day (not even a failed one). Same script, same "only dispatch if no run
+# exists yet in today's window" safety property, just pointed at a
+# different --workflow/--scheduled-hours (see tools/youtube_release_
+# watchdog.py's own docstring for why one script can watch either).
 on:
   schedule:
     - cron: "12,42 * * * *"
@@ -66,4 +74,13 @@ jobs:
             python tools/youtube_release_watchdog.py --dry-run
           else
             python tools/youtube_release_watchdog.py
+          fi
+      - name: Check today's Thai dub schedule
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          if [[ "${{ github.event.inputs.dry_run }}" == "true" ]]; then
+            python tools/youtube_release_watchdog.py --workflow thai-dub.yml --scheduled-hours 14:30 --dry-run
+          else
+            python tools/youtube_release_watchdog.py --workflow thai-dub.yml --scheduled-hours 14:30
           fi

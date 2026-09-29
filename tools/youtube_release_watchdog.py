@@ -39,7 +39,19 @@ reach YouTube) does not misfire on this routine, automated self-heal --
 "nothing new to publish for this slot" must stay a quiet, honest non-event
 here, exactly as it already is for a real schedule tick.
 
+Extended again 2026-09-29 (same day, a few hours later) to watch a second
+workflow: thai-dub.yml's own daily cron (14:30 UTC) silently did not fire
+at all that day either -- the exact same class of dropped-schedule failure
+as the original 2026-09-22 incident, just on a different workflow, found
+only because the owner noticed a published episode had no Thai audio and
+asked why. `--workflow`/`--scheduled-hours` let one script watch either
+workflow: youtube-creator.yml stays the default (schedule read from
+ChannelPolicy); any other workflow, thai-dub.yml included, must pass its
+own schedule explicitly, since only youtube-creator.yml's lives in that
+shared policy.
+
 Run with: python tools/youtube_release_watchdog.py [--dry-run]
+  [--workflow WORKFLOW.yml] [--scheduled-hours "HH:MM[,HH:MM...]"]
 Needs GITHUB_TOKEN with `actions: write` (the default GITHUB_TOKEN already
 has this once the calling workflow declares that permission -- no new
 secret) and normally GITHUB_REPOSITORY, both set automatically inside a
@@ -71,14 +83,20 @@ def _get(url, token):
         return json.loads(resp.read().decode("utf-8"))
 
 
-def _dispatch_run(repo, token):
-    url = f"https://api.github.com/repos/{repo}/actions/workflows/{WORKFLOW_FILE}/dispatches"
-    # scheduled_recovery=true tells youtube-creator.yml this is a self-heal
-    # dispatch, not a human operator explicitly demanding a release right
-    # now -- without it, its own workflow_dispatch strict check turns an
-    # honest "nothing new to publish today" into a red failure (found
-    # 2026-09-22, the watchdog's very first real dispatch).
-    payload = {"ref": "main", "inputs": {"scheduled_recovery": "true"}}
+def _dispatch_run(repo, token, workflow_file=None):
+    workflow_file = workflow_file or WORKFLOW_FILE
+    url = f"https://api.github.com/repos/{repo}/actions/workflows/{workflow_file}/dispatches"
+    payload = {"ref": "main"}
+    if workflow_file == WORKFLOW_FILE:
+        # scheduled_recovery=true tells youtube-creator.yml this is a
+        # self-heal dispatch, not a human operator explicitly demanding a
+        # release right now -- without it, its own workflow_dispatch
+        # strict check turns an honest "nothing new to publish today"
+        # into a red failure (found 2026-09-22, the watchdog's very first
+        # real dispatch). Other watched workflows (e.g. thai-dub.yml) have
+        # no such input declared, so this is only ever sent to the one
+        # that actually understands it.
+        payload["inputs"] = {"scheduled_recovery": "true"}
     req = Request(
         url, method="POST", data=json.dumps(payload).encode("utf-8"),
         headers={**_HEADERS_BASE, "Authorization": f"Bearer {token}", "Content-Type": "application/json"},
@@ -141,18 +159,23 @@ def todays_attempt_exists(runs, now, scheduled_hours=None):
     )
 
 
-def check(repo, token, now=None, dry_run=False, fetch_runs=None, dispatch=None, scheduled_hours=None):
-    """Dispatch youtube-creator.yml only if a scheduled slot today never fired.
+def check(repo, token, now=None, dry_run=False, fetch_runs=None, dispatch=None, scheduled_hours=None, workflow_file=None):
+    """Dispatch `workflow_file` only if one of its scheduled slots today never fired.
 
-    `scheduled_hours` defaults to the real policy (brain.channel_policy);
-    tests inject an explicit list to stay deterministic.
+    `workflow_file` defaults to youtube-creator.yml; `scheduled_hours`
+    then defaults to the real publish policy (brain.channel_policy). A
+    caller watching a different workflow (e.g. thai-dub.yml) must pass
+    both explicitly, since that workflow's own schedule is not in
+    ChannelPolicy. Tests always inject explicit values to stay
+    deterministic.
     """
+    workflow_file = workflow_file or WORKFLOW_FILE
     now = now or datetime.now(timezone.utc)
     hours = _scheduled_hours_utc() if scheduled_hours is None else scheduled_hours
     if not slot_windows(hours, now):
         return {"stage": "too-early"}
     fetch_runs = fetch_runs or (lambda: _get(
-        f"https://api.github.com/repos/{repo}/actions/workflows/{WORKFLOW_FILE}/runs?per_page=10",
+        f"https://api.github.com/repos/{repo}/actions/workflows/{workflow_file}/runs?per_page=10",
         token,
     ).get("workflow_runs", []))
     runs = fetch_runs()
@@ -160,15 +183,30 @@ def check(repo, token, now=None, dry_run=False, fetch_runs=None, dispatch=None, 
         return {"stage": "already-attempted-today"}
     if dry_run:
         return {"stage": "would-dispatch-missed-schedule"}
-    dispatch = dispatch or (lambda: _dispatch_run(repo, token))
+    dispatch = dispatch or (lambda: _dispatch_run(repo, token, workflow_file))
     dispatch()
     return {"stage": "dispatched-missed-schedule"}
+
+
+def _parse_scheduled_hours(value):
+    hours = []
+    for part in value.split(","):
+        hour_str, minute_str = part.strip().split(":", 1)
+        hours.append(time(int(hour_str), int(minute_str)))
+    return hours
 
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--dry-run", action="store_true",
                          help="Report what would happen without dispatching anything.")
+    parser.add_argument("--workflow", default=WORKFLOW_FILE,
+                         help=f"Workflow file to self-heal (default: {WORKFLOW_FILE}).")
+    parser.add_argument("--scheduled-hours", default=None,
+                         help="Comma-separated HH:MM UTC hours this workflow is expected to "
+                              "run at (e.g. '14:30'). Defaults to youtube-creator.yml's own "
+                              "publish policy (brain.channel_policy) -- required for any other "
+                              "--workflow, since only youtube-creator.yml's schedule lives there.")
     args = parser.parse_args()
 
     repo = os.environ.get("GITHUB_REPOSITORY", DEFAULT_REPO)
@@ -177,10 +215,15 @@ def main():
         print("GITHUB_TOKEN not set -- cannot check or dispatch workflow runs", file=sys.stderr)
         sys.exit(1)
 
+    scheduled_hours = _parse_scheduled_hours(args.scheduled_hours) if args.scheduled_hours else None
+
     try:
-        result = check(repo, token, dry_run=args.dry_run)
+        result = check(
+            repo, token, dry_run=args.dry_run,
+            workflow_file=args.workflow, scheduled_hours=scheduled_hours,
+        )
     except (HTTPError, URLError) as exc:
-        print(f"Failed to check/dispatch {WORKFLOW_FILE}: {exc}", file=sys.stderr)
+        print(f"Failed to check/dispatch {args.workflow}: {exc}", file=sys.stderr)
         sys.exit(1)
 
     print(json.dumps(result, ensure_ascii=False))
