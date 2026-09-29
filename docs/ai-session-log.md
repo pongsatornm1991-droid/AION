@@ -13,6 +13,35 @@ Format:
 Commits: <hash> [, <hash> ...]
 ```
 
+## 2026-09-29 — Claude Code — Fixed a second dropped cron: thai-dub.yml
+
+Owner, frustrated: "ไหนภาษาไทย ทำไมไม่ทำเลย ต้องมาสั่งทุกครั้ง?" (where's
+the Thai audio, why doesn't it just happen, why do I have to ask every
+time), looking at a video whose Thai dub was missing. Investigated:
+thai-dub.yml had literally zero runs that day, not even a failed one --
+its 14:30 UTC daily cron never fired at all, the exact same "GitHub's
+own Actions scheduler drops this specific cron" failure already
+documented and self-healed for youtube-creator.yml back on 2026-09-22.
+Its own 2026-09-29 workflow_run trigger (added earlier this same day, to
+fire right after a publish) also never fired for the "trade routes"
+publish -- plausibly the same "a newly added trigger can sit a while
+before GitHub activates it" delay already documented for schedule
+triggers.
+
+Generalized tools/youtube_release_watchdog.py rather than duplicating it:
+check()/_dispatch_run() now take an explicit workflow_file (default
+youtube-creator.yml, schedule from ChannelPolicy); watching a different
+workflow requires its own --scheduled-hours explicitly.
+_dispatch_run() only sends the scheduled_recovery input for
+youtube-creator.yml, since thai-dub.yml declares no such input and
+GitHub's dispatch API rejects unknown fields. youtube-release-
+watchdog.yml runs a second check step for thai-dub.yml
+(--workflow thai-dub.yml --scheduled-hours 14:30), reusing the existing
+cron/workflow_run triggers -- no new workflow file, no new secret.
+
+9 new regression tests; full suite (1149 tests) green.
+Commits: 477a32f
+
 ## 2026-09-29 — Claude Code — New research source: primary/historical texts
 
 Owner asked "สามารถเพิ่มแหล่งเรียนรู้ได้อีกมั้ย?" (can we add more

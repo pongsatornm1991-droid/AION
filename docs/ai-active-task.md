@@ -14,7 +14,7 @@ Scope: None.
 Handoff: See docs/ai-session-log.md's 2026-09-26/27 entries for full detail
 (commits f69b858, af28e02, 63970ef, 92fc52f, 34512b1, ef1dbac, 18ad2c8,
 cd6174c, 2f76f90, 58f2ef3, fb4459a, d32392a, 2359b32, 508567b, 82a7b1b,
-2849873, 8b6bbcd, 806fd12, aedfaea, fc7c8a3, fe19e99, e0f17e0, eeb5c5a, 083091b, 9977956, abcc207, b4cc255). Quick summary of where things stand:
+2849873, 8b6bbcd, 806fd12, aedfaea, fc7c8a3, fe19e99, e0f17e0, eeb5c5a, 083091b, 9977956, abcc207, b4cc255, 477a32f). Quick summary of where things stand:
 
 1. AION's identity signature is a glowing cyan question-mark held in one
    hand (not a chest core, not a crystal) -- updated everywhere it's
@@ -318,6 +318,29 @@ cd6174c, 2f76f90, 58f2ef3, fb4459a, d32392a, 2359b32, 508567b, 82a7b1b,
     Registry entry renamed honestly (public library, not literally a
     government source) with scope_keywords targeting history/culture/
     literature. 12 new tests; full suite green.
+
+31. INCIDENT, 2026-09-29: the `MEMORY_REPO_PAT` fine-grained PAT expired,
+    breaking the private `aion-memory-data` checkout step in every
+    workflow that touches it (youtube-creator, creator-scene-production,
+    creator-queue-quality, research-to-story, production-control) for
+    several hours -- diagnosed by noticing every one of them failing at
+    the identical "Run actions/checkout@v4" step. Owner rotated the token
+    (new fine-grained PAT, Contents: Read/write on aion-memory-data only,
+    expires 2027-09-29) and updated the `MEMORY_REPO_PAT` secret; verified
+    fixed within minutes (production-control/research-to-story/
+    creator-scene-production all back to success). Buffer was fully
+    drained during the outage (0/14 ready); needs a few learning-cycle
+    ticks to rebuild before new episodes resume. No code change -- purely
+    a credential rotation only the owner could do.
+32. Same day, separately: owner noticed a published episode
+    ("trade routes") had no Thai dub at all and asked why it isn't
+    automatic. Found thai-dub.yml had zero runs that day -- its own daily
+    14:30 UTC cron was silently dropped by GitHub (same failure class as
+    youtube-creator.yml's 2026-09-22 incident) and its brand-new
+    workflow_run trigger (added earlier the same day) hadn't activated in
+    time either. Generalized tools/youtube_release_watchdog.py to watch
+    any workflow (not just youtube-creator.yml); youtube-release-
+    watchdog.yml now self-heals both. 9 new tests; full suite green.
 
 Nothing urgent open. The owner has been told, and agreed, that the
 easy/code-findable technical gaps in this pipeline are largely closed for
