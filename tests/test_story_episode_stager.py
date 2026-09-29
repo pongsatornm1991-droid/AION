@@ -218,6 +218,33 @@ class StoryEpisodeStagerTests(unittest.TestCase):
             by_beat = {s["beat"]: s["narration"] for s in episode["scenes"]}
             self.assertNotIn("ICESat", by_beat["evidence-one-intro"])
             self.assertNotIn("Subglacial lake", by_beat["evidence-two-intro"])
+            self.assertNotIn("evidence", by_beat["evidence-one-intro"].lower())
+            self.assertNotIn("evidence", by_beat["evidence-two-intro"].lower())
+
+    def test_fallback_narration_never_reads_like_a_research_citation(self):
+        # Owner, 2026-09-29: "ฉันยังต้องการการเล่าเรื่องแบบ เพจ ไอก้าง
+        # ไม่ใช่อ่านวิจัยให้ฟัง" (I still want storytelling like the
+        # ไอ้ก้าง page, not reading research aloud). No AI provider here,
+        # so every beat uses its deterministic fallback template -- none
+        # of them should say "source"/"the sources"/an explicit research
+        # methodology statement.
+        with tempfile.TemporaryDirectory() as root:
+            root = Path(root)
+            memory = MemoryEngine(root / "memory")
+            memory.remember("creator_research_handoffs", json.dumps({
+                "status": "story-ready", "root_question_id": "question-tone",
+                "topic": "Why do octopuses have three hearts?",
+                "sources": [
+                    {"title": "Source one", "url": "https://example.test/one", "observation": "Two hearts pump blood to the gills."},
+                    {"title": "Source two", "url": "https://example.test/two", "observation": "A third heart pumps blood to the rest of the body."},
+                ],
+            }), memory_type="decision", source="test", importance=4)
+            StoryEpisodeStager(memory, root).stage_once()
+            episode = CreatorSeriesRegistry(root).episodes()[0]
+            by_beat = {s["beat"]: s["narration"] for s in episode["scenes"]}
+            self.assertNotIn("second source", by_beat["connection"].lower())
+            self.assertNotIn("step by step", by_beat["question"])
+            self.assertNotIn("inventing an answer", by_beat["question"])
 
     def test_stages_with_an_ai_narration_rewrite_when_a_provider_is_configured(self):
         with tempfile.TemporaryDirectory() as root:
