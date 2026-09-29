@@ -13,6 +13,38 @@ Format:
 Commits: <hash> [, <hash> ...]
 ```
 
+## 2026-09-29 — Claude Code — New research source: primary/historical texts
+
+Owner asked "สามารถเพิ่มแหล่งเรียนรู้ได้อีกมั้ย?" (can we add more
+learning sources). Surveyed the real pipeline first (an Explore agent):
+6 sources are actually live (wikipedia, arxiv, europe_pmc_fulltext,
+openalex, hacker_news, social_signals); the real gap found was that
+history/human-culture research lanes have no scope-matched specialist
+source the way science/nature gets arXiv/Europe PMC, and
+core/source_registry.json's "official_primary_sources" tier had been
+declared enabled: false since before this file existed, waiting on "a
+source-specific retrieval adapter."
+
+Tried three real candidates before finding one that actually works:
+loc.gov returned HTTP 403 even with a compliant identifying User-Agent
+(not viable keyless from a datacenter IP); Wikidata's entity data is
+property-id/value claims, not narrative prose; Wikisource's proofread
+documents often transclude text from separate Page: namespace scans, so
+prop=extracts frequently returns nothing. Project Gutenberg's library,
+hosted via the Internet Archive, is the one that works end to end
+(confirmed live: search, metadata, and download endpoints all keyless
+and reliable) -- added search_primary_source_texts()/
+get_primary_source_text() (tools/web_search.py), which strip Gutenberg's
+license boilerplate before returning a bounded excerpt. Renamed the
+registry entry honestly ("Primary source texts (Project Gutenberg via
+the Internet Archive)", not literally a government source) and trimmed
+its capabilities to just official_primary. Auto-registers in
+brain/learning.py's WebLearningCycle the same way openalex/hacker_news
+do; scope_keywords target history/culture/literature topics.
+
+12 new tests; full suite (1144 tests) green.
+Commits: b4cc255
+
 ## 2026-09-29 — Claude Code — Hook phrase replaces repeated raw questions in narration
 
 Owner asked to compare AION's storytelling against two reference

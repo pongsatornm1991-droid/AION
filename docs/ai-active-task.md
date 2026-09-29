@@ -14,7 +14,7 @@ Scope: None.
 Handoff: See docs/ai-session-log.md's 2026-09-26/27 entries for full detail
 (commits f69b858, af28e02, 63970ef, 92fc52f, 34512b1, ef1dbac, 18ad2c8,
 cd6174c, 2f76f90, 58f2ef3, fb4459a, d32392a, 2359b32, 508567b, 82a7b1b,
-2849873, 8b6bbcd, 806fd12, aedfaea, fc7c8a3, fe19e99, e0f17e0, eeb5c5a, 083091b, 9977956, abcc207). Quick summary of where things stand:
+2849873, 8b6bbcd, 806fd12, aedfaea, fc7c8a3, fe19e99, e0f17e0, eeb5c5a, 083091b, 9977956, abcc207, b4cc255). Quick summary of where things stand:
 
 1. AION's identity signature is a glowing cyan question-mark held in one
    hand (not a chest core, not a crystal) -- updated everywhere it's
@@ -303,6 +303,21 @@ cd6174c, 2f76f90, 58f2ef3, fb4459a, d32392a, 2359b32, 508567b, 82a7b1b,
     of the raw topic in hook/takeaway/invitation narration only; the
     actual SEO title and image-generation `visual` fields are untouched.
     9 new tests; full suite green.
+
+30. Owner: "ทั้งหมดเลย หากเพิ่มข้อมูลได้อีกก็เพิ่มเลย" (add whatever you
+    can). Filled core/source_registry.json's long-declared, never-built
+    "official_primary_sources" tier and the history/human-culture lane
+    gap in one move: tried loc.gov (blocked, HTTP 403 even with a
+    compliant User-Agent), Wikidata (wrong shape -- property claims, not
+    prose), and Wikisource (many documents transclude text from Page:
+    namespace scans, extracts often empty) before landing on Project
+    Gutenberg via the Internet Archive, confirmed live end to end.
+    search_primary_source_texts()/get_primary_source_text()
+    (tools/web_search.py) strip Gutenberg's license boilerplate; auto-
+    registers in brain/learning.py the same way openalex/hacker_news do.
+    Registry entry renamed honestly (public library, not literally a
+    government source) with scope_keywords targeting history/culture/
+    literature. 12 new tests; full suite green.
 
 Nothing urgent open. The owner has been told, and agreed, that the
 easy/code-findable technical gaps in this pipeline are largely closed for
