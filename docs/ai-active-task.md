@@ -14,7 +14,7 @@ Scope: None.
 Handoff: See docs/ai-session-log.md's 2026-09-26/27 entries for full detail
 (commits f69b858, af28e02, 63970ef, 92fc52f, 34512b1, ef1dbac, 18ad2c8,
 cd6174c, 2f76f90, 58f2ef3, fb4459a, d32392a, 2359b32, 508567b, 82a7b1b,
-2849873, 8b6bbcd, 806fd12, aedfaea, fc7c8a3, fe19e99, e0f17e0, eeb5c5a, 083091b, 9977956). Quick summary of where things stand:
+2849873, 8b6bbcd, 806fd12, aedfaea, fc7c8a3, fe19e99, e0f17e0, eeb5c5a, 083091b, 9977956, abcc207). Quick summary of where things stand:
 
 1. AION's identity signature is a glowing cyan question-mark held in one
    hand (not a chest core, not a crystal) -- updated everywhere it's
@@ -291,9 +291,18 @@ cd6174c, 2f76f90, 58f2ef3, fb4459a, d32392a, 2359b32, 508567b, 82a7b1b,
     hardcoded to one slot) + tools/dashboard.py's separately-stale
     hardcoded Thu/Fri/Sun@20:30 check replaced with a real policy read.
     10 tests updated, 9 new; full suite green.
-29. Open: owner asked how the real channel's Thai-dub coverage compares
-    to two reference channels' storytelling style (ไอ้ก้าง เล่าเรื่อง,
-    Kurzgesagt Shorts) -- research in progress, not yet reported.
+29. Compared AION's real narration against two reference channels
+    (ไอ้ก้าง เล่าเรื่อง, Kurzgesagt Shorts) per owner request -- both lead
+    with a short declarative claim or casual question, never the full
+    formal research-question sentence repeated multiple times per video
+    the way AION's hook/takeaway/invitation beats did. Owner confirmed
+    "พัฒนาเลย": added StoryEpisodeStager._derive_hook_phrase()
+    (brain/story_episode_stager.py) -- AI-compresses the topic into one
+    short spoken phrase (screened by claim-safety + a new subject-drift
+    guard, falls back to the bare topic on any failure), used in place
+    of the raw topic in hook/takeaway/invitation narration only; the
+    actual SEO title and image-generation `visual` fields are untouched.
+    9 new tests; full suite green.
 
 Nothing urgent open. The owner has been told, and agreed, that the
 easy/code-findable technical gaps in this pipeline are largely closed for

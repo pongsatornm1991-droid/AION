@@ -13,6 +13,34 @@ Format:
 Commits: <hash> [, <hash> ...]
 ```
 
+## 2026-09-29 — Claude Code — Hook phrase replaces repeated raw questions in narration
+
+Owner asked to compare AION's storytelling against two reference
+channels (Kurzgesagt, ไอ้ก้าง เล่าเรื่อง's shorts) after asking "การเล่า
+เรื่อง เล่าแบบคอนเท้นหรือยัง? หรือยังเล่าแบบคำถาม?" (is it content-style
+yet, or still question-style). Both reference channels lead with either
+a bold declarative claim (Kurzgesagt: "Your Skeleton Is Electric") or a
+short, casual spoken question (ไอ้ก้าง: "เจ้าชู้ไหม?") -- never the full
+formal research-question sentence repeated multiple times the way
+AION's hook/takeaway/invitation beats did. Reported this with real
+examples; owner confirmed: "พัฒนาเลย เพราะเราต้องการให้ฟังแล้วสนุก
+ไม่ใช่นั่งฟังวิจัย".
+
+Added StoryEpisodeStager._derive_hook_phrase() (brain/story_episode_stager.py):
+AI-compresses the research question into one short spoken phrase when a
+provider is configured, screened by claim-safety and a new
+_hook_phrase_preserves_subject() check (reuses TopicNoveltyGate's
+stopword-filtered tokens rather than the existing _preserves_key_facts,
+which would uselessly only ever catch a topic's sentence-initial
+capital letter). Falls back to the bare topic on any failure -- today's
+exact behavior, never blocks staging. Replaces the raw topic in
+hook/takeaway/invitation narration only; the video's actual SEO title
+(2026-09-27 fix) and image-generation `visual` fields are untouched.
+
+9 new regression tests, 1 existing test updated for the new fallback
+punctuation; full suite (1132 tests) green.
+Commits: abcc207
+
 ## 2026-09-29 — Claude Code — Publish twice daily (18:00/20:30 Bangkok)
 
 Owner noticed yesterday's backlog-clearing burst (3 episodes published a
