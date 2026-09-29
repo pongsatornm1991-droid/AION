@@ -1,10 +1,10 @@
 {
-  "generated_at": "2026-09-29T01:26:44.038317+00:00",
+  "generated_at": "2026-09-29T01:28:09.022721+00:00",
   "tiles": {
     "total": 46,
-    "ok": 37,
+    "ok": 39,
     "attn": 0,
-    "running": 6
+    "running": 4
   },
   "groups": [
     {
@@ -86,8 +86,8 @@
           "file": "learning-cycle.yml",
           "status_class": "running",
           "status_label": "กำลังรัน",
-          "html_url": "https://github.com/pongsatornm1991-droid/AION/actions/runs/36507821454",
-          "created_at": "2026-09-29T01:25:24Z"
+          "html_url": "https://github.com/pongsatornm1991-droid/AION/actions/runs/36507953269",
+          "created_at": "2026-09-29T01:27:02Z"
         },
         {
           "name": "AION - self-narrative",
@@ -224,8 +224,8 @@
           "file": "publish-workflow-status.yml",
           "status_class": "running",
           "status_label": "กำลังรัน",
-          "html_url": "https://github.com/pongsatornm1991-droid/AION/actions/runs/36507869475",
-          "created_at": "2026-09-29T01:26:01Z"
+          "html_url": "https://github.com/pongsatornm1991-droid/AION/actions/runs/36507913063",
+          "created_at": "2026-09-29T01:26:33Z"
         },
         {
           "name": "AION - system reliability",
@@ -252,8 +252,8 @@
         {
           "name": "AION - Creator release readiness",
           "file": "release-readiness.yml",
-          "status_class": "running",
-          "status_label": "กำลังรัน",
+          "status_class": "success",
+          "status_label": "สำเร็จ",
           "html_url": "https://github.com/pongsatornm1991-droid/AION/actions/runs/36507869473",
           "created_at": "2026-09-29T01:26:01Z"
         },
@@ -388,8 +388,8 @@
         {
           "name": "AION - production control",
           "file": "production-control.yml",
-          "status_class": "running",
-          "status_label": "กำลังรัน",
+          "status_class": "success",
+          "status_label": "สำเร็จ",
           "html_url": "https://github.com/pongsatornm1991-droid/AION/actions/runs/36507869461",
           "created_at": "2026-09-29T01:26:01Z"
         },
