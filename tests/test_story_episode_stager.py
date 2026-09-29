@@ -128,6 +128,47 @@ class RewriteSceneNarrationsTests(unittest.TestCase):
         self.assertEqual("The sources do not settle every detail, so we should not claim more than they show.", by_n[10])
 
 
+class DeriveHookPhraseTests(unittest.TestCase):
+    # Owner, 2026-09-29, comparing AION's narration against Kurzgesagt and
+    # ไอ้ก้าง เล่าเรื่อง: neither channel ever speaks the same full formal
+    # question 2-3 times per video the way AION's hook/takeaway/invitation
+    # beats did. hook_phrase exists to replace those repeats with one
+    # short, punchy line instead.
+    TOPIC = "Why do lakes freeze from the top down instead of the bottom up?"
+
+    def test_no_provider_falls_back_to_the_bare_topic(self):
+        stager = StoryEpisodeStager(memory=None, root=".", provider=None)
+        phrase, meta = stager._derive_hook_phrase(self.TOPIC)
+        self.assertEqual(self.TOPIC, phrase)
+        self.assertEqual("bounded-fallback", meta["origin"])
+        self.assertEqual("provider-unavailable", meta["reason"])
+
+    def test_a_safe_rewrite_is_used(self):
+        stager = StoryEpisodeStager(memory=None, root=".", provider=FakeProvider(response="Lakes freeze top-down, not bottom-up"))
+        phrase, meta = stager._derive_hook_phrase(self.TOPIC)
+        self.assertEqual("Lakes freeze top-down, not bottom-up", phrase)
+        self.assertEqual("ai-rewrite", meta["origin"])
+
+    def test_falls_back_when_the_rewrite_drifts_to_a_different_subject(self):
+        stager = StoryEpisodeStager(memory=None, root=".", provider=FakeProvider(response="Why the sky turns red at sunset"))
+        phrase, meta = stager._derive_hook_phrase(self.TOPIC)
+        self.assertEqual(self.TOPIC, phrase)
+        self.assertEqual("bounded-fallback", meta["origin"])
+        self.assertEqual("subject-drift", meta["reason"])
+
+    def test_falls_back_when_the_rewrite_claims_consciousness(self):
+        stager = StoryEpisodeStager(memory=None, root=".", provider=FakeProvider(response="I feel so curious about lakes freezing"))
+        phrase, meta = stager._derive_hook_phrase(self.TOPIC)
+        self.assertEqual(self.TOPIC, phrase)
+        self.assertEqual("empty-or-unsafe", meta["reason"])
+
+    def test_a_provider_failure_is_a_bounded_fallback_not_a_crash(self):
+        stager = StoryEpisodeStager(memory=None, root=".", provider=FakeProvider(exc=RuntimeError("provider down")))
+        phrase, meta = stager._derive_hook_phrase(self.TOPIC)
+        self.assertEqual(self.TOPIC, phrase)
+        self.assertEqual("provider-error:RuntimeError", meta["reason"])
+
+
 class StoryEpisodeStagerTests(unittest.TestCase):
     def test_stages_one_traceable_subject_first_short(self):
         with tempfile.TemporaryDirectory() as root:
@@ -361,7 +402,11 @@ class StoryEpisodeStagerTests(unittest.TestCase):
             ending = episode["scenes"][-1]
             self.assertNotEqual("Keep asking better questions, and check the evidence with me.", ending["narration"])
             self.assertFalse(ending["narration"].strip().endswith("?"))
-            self.assertIn(episode["wonder_hook"], ending["narration"])
+            # No AI provider configured here, so hook_phrase falls back to
+            # the bare topic (see test_derive_hook_phrase_* below) -- its
+            # trailing "?" is stripped so the ending reads as a clean
+            # statement rather than "behind X? Notice...".
+            self.assertIn(episode["wonder_hook"].rstrip("?"), ending["narration"])
 
     def test_stages_a_bounded_batch_of_storyboards_instead_of_stopping_at_one(self):
         with tempfile.TemporaryDirectory() as root:

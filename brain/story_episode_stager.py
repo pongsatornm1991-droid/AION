@@ -21,6 +21,7 @@ from brain.creator_source_integrity import CreatorSourceIntegrity
 from brain.aion_visual_director import AionVisualDirector
 from brain.aion_creative_director import AionCreativeDirector
 from brain.evaluator import OutputEvaluator
+from brain.topic_novelty import TopicNoveltyGate
 from brain.story_beats import (
     BOUNDARY, COMPARE, CONNECTION, EVIDENCE_ONE_A, EVIDENCE_ONE_B, EVIDENCE_ONE_INTRO,
     EVIDENCE_TWO_A, EVIDENCE_TWO_B, EVIDENCE_TWO_INTRO, FIRST_SOURCE, HOOK, INVITATION,
@@ -191,6 +192,58 @@ class StoryEpisodeStager:
         kept = sum(1 for term in key_terms if term.lower() in rewritten_lower)
         return (kept / len(key_terms)) >= 0.6
 
+    @staticmethod
+    def _hook_phrase_preserves_subject(topic, candidate):
+        """A looser drift guard than _preserves_key_facts, deliberately:
+        a research topic like "Why do lakes freeze from the top down...?"
+        has no real proper nouns, so _key_terms would only ever catch the
+        sentence-initial "Why" -- meaningless here, since compressing the
+        whole sentence is the point. Reuses TopicNoveltyGate's own
+        stopword-filtered subject tokens instead, and only requires the
+        rewrite to still share a real subject word with the original.
+        """
+        original_tokens = TopicNoveltyGate.tokens({"topic_key": topic})
+        if not original_tokens:
+            return True
+        return bool(original_tokens & TopicNoveltyGate.tokens({"topic_key": candidate}))
+
+    def _derive_hook_phrase(self, topic):
+        """A short, energetic phrase to speak wherever the narration would
+        otherwise repeat the full raw research question verbatim.
+
+        Owner, 2026-09-29, comparing AION against two reference channels
+        (Kurzgesagt, ไอ้ก้าง เล่าเรื่อง): neither ever speaks a full formal
+        question more than once, let alone the same exact sentence 2-3
+        times per video the way AION's hook/takeaway/invitation beats
+        did -- "เราต้องการให้ฟังแล้วสนุก ไม่ใช่นั่งฟังวิจัย" (we want this
+        to sound fun to listen to, not like sitting through a research
+        read-out). This only affects what gets spoken; `topic` itself
+        (and the episode's actual SEO title, per the 2026-09-27 fix) is
+        untouched. Never blocks staging: any failure keeps `topic` as
+        the phrase, exactly today's behavior.
+        """
+        if self.provider is None:
+            return topic, {"origin": "bounded-fallback", "reason": "provider-unavailable"}
+        prompt = "\n".join([
+            "Rewrite this documentary short's research question as one short, punchy phrase "
+            "(roughly 4-9 words) a narrator could say out loud, in the energetic style of "
+            "Kurzgesagt or a viral science short -- a bold, confident statement works just as "
+            "well as a question.",
+            "Absolute rules:",
+            "- Preserve the actual subject; never invent a new fact or change what is being asked.",
+            "- Plain text only: no quotation marks, no trailing period.",
+            f"Research question: {topic}",
+        ])
+        try:
+            candidate = str(self.provider.generate(prompt) or "").strip().strip('"').rstrip(".")
+        except Exception as exc:
+            return topic, {"origin": "bounded-fallback", "reason": f"provider-error:{type(exc).__name__}"}
+        if not candidate or OutputEvaluator.has_unsafe_claim(candidate):
+            return topic, {"origin": "bounded-fallback", "reason": "empty-or-unsafe"}
+        if not self._hook_phrase_preserves_subject(topic, candidate):
+            return topic, {"origin": "bounded-fallback", "reason": "subject-drift"}
+        return candidate, {"origin": "ai-rewrite"}
+
     def _rewrite_scene_narrations(self, scenes, topic):
         """Retell each evidence-literal beat as natural, engaging spoken
         narration, using only facts already present in that beat's own
@@ -315,6 +368,7 @@ class StoryEpisodeStager:
         first_title = self._clean(first.get("title"), 100) or "the first source"
         second_title = self._clean(second.get("title"), 100) or "the second source"
         uncertainty = self._clean(handoff.get("unknown_facts"), 260)
+        hook_phrase, hook_phrase_meta = self._derive_hook_phrase(topic)
         # Owner, 2026-09-27: "ทำไมชื่อคลิปต้อง aion wonders ทำไมไม่ตั้งตาม
         # SEO" -- none of the 4 channels studied 2026-09-27 (Kurzgesagt,
         # Pure Logic, and two direct-niche Thai comparables) put their own
@@ -345,6 +399,8 @@ class StoryEpisodeStager:
             "pacing_policy": VisualStoryPolicy.VERSION,
             "audience_promise": audience_promise,
             "wonder_hook": topic,
+            "hook_phrase": hook_phrase,
+            "hook_phrase_style": hook_phrase_meta,
             "growth_plan": CreatorGrowthGate.default_plan(topic, audience_promise),
             "topic_key": topic,
             "creative_device": "mystery-reveal",
@@ -400,7 +456,7 @@ class StoryEpisodeStager:
                  # sourced fact instead, then land the question -- the
                  # fact itself still comes only from research's own
                  # sourced observation, nothing invented here.
-                 "narration": f"{first_parts[0]} {topic}"},
+                 "narration": f"{first_parts[0]} {hook_phrase}"},
                 {"n": 2, "beat": QUESTION, "visual": f"Show the central subject of {topic} clearly before any explanation; AION observes from the distant edge.", "narration": "We will follow what was actually observed, step by step, rather than inventing an answer."},
                 {"n": 3, "beat": EVIDENCE_ONE_INTRO, "visual": f"Show the first evidence scene for {topic}, guided by {first_title}; AION remains small and practical in the background.",
                  # Found 2026-09-29: this used to speak the source's raw
@@ -431,7 +487,7 @@ class StoryEpisodeStager:
                  # research's own sourced observations, never invented here.
                  "narration": f"Put together: {first_parts[0]} And from the second source: {second_parts[0] if second_parts else evidence_two}"},
                 {"n": 10, "beat": BOUNDARY, "visual": f"Show the boundary between what the sources document and what they do not establish about {topic}; no invented action, AION remains in the background.", "narration": uncertainty or "The sources do not settle every detail, so we should not claim more than they show."},
-                {"n": 11, "beat": TAKEAWAY, "visual": f"Return to the central subject of {topic} in a final meaningful wide scene; AION is a small observer, not the focus.", "narration": f"The careful takeaway is simple: begin with what was observed about {topic}, then separate it from interpretation."},
+                {"n": 11, "beat": TAKEAWAY, "visual": f"Return to the central subject of {topic} in a final meaningful wide scene; AION is a small observer, not the focus.", "narration": f"The careful takeaway is simple: begin with what was observed about {hook_phrase.rstrip('?.!')}, then separate it from interpretation."},
                 {"n": 12, "beat": INVITATION, "visual": f"End on the real subject and environment of {topic}, leaving space for wonder; AION exits subtly at the edge.",
                  # Found 2026-09-22: "Keep asking better questions, and
                  # check the evidence with me" is the exact same closing
@@ -442,7 +498,7 @@ class StoryEpisodeStager:
                  # sign-off. Must not end on "?" (WatchabilityGate) --
                  # topic itself is a question, so this closes past it, not
                  # on it.
-                 "narration": f"That's the real story behind {topic} Notice it again, and you will see it differently next time."},
+                 "narration": f"That's the real story behind {hook_phrase.rstrip('?.!')}. Notice it again, and you will see it differently next time."},
             ],
             "research_handoff_id": root_id,
             "story_package_id": handoff.get("story_package_id") or root_id,
