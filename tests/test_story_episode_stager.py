@@ -169,6 +169,49 @@ class DeriveHookPhraseTests(unittest.TestCase):
         self.assertEqual("provider-error:RuntimeError", meta["reason"])
 
 
+class SynthesizeUnderstandingTests(unittest.TestCase):
+    # Owner, 2026-09-30: "ทำไม ไม่สรุปออกมาก่อนแล้วเขียนบทละ ให้เป็นเรื่อง
+    # เล่า ไม่ใช่นั่งฟังวิจัย" -- the structural fix behind wording-only
+    # fixes like _derive_hook_phrase: understand the whole story once,
+    # before any beat is written, instead of only ever polishing one
+    # pre-chopped source fragment at a time.
+    TOPIC = "How did an ancient ice house keep ice frozen through summer?"
+    EVIDENCE_ONE = "A Yakhchal stored ice below ground in a thick insulated dome."
+    EVIDENCE_TWO = "Wind towers pulled air across the structure to carry heat away."
+
+    def test_no_provider_falls_back_to_none(self):
+        stager = StoryEpisodeStager(memory=None, root=".", provider=None)
+        understanding, meta = stager._synthesize_understanding(self.TOPIC, self.EVIDENCE_ONE, self.EVIDENCE_TWO)
+        self.assertIsNone(understanding)
+        self.assertEqual("bounded-fallback", meta["origin"])
+        self.assertEqual("provider-unavailable", meta["reason"])
+
+    def test_a_safe_synthesis_is_used(self):
+        response = "Ice sat below ground in a shaded dome while wind towers dragged the heat away above it."
+        stager = StoryEpisodeStager(memory=None, root=".", provider=FakeProvider(response=response))
+        understanding, meta = stager._synthesize_understanding(self.TOPIC, self.EVIDENCE_ONE, self.EVIDENCE_TWO)
+        self.assertEqual(response, understanding)
+        self.assertEqual("ai-synthesis", meta["origin"])
+
+    def test_falls_back_when_the_synthesis_claims_consciousness(self):
+        stager = StoryEpisodeStager(memory=None, root=".", provider=FakeProvider(response="I feel amazed imagining this ice house"))
+        understanding, meta = stager._synthesize_understanding(self.TOPIC, self.EVIDENCE_ONE, self.EVIDENCE_TWO)
+        self.assertIsNone(understanding)
+        self.assertEqual("empty-or-unsafe", meta["reason"])
+
+    def test_falls_back_when_the_synthesis_drifts_from_the_evidence(self):
+        stager = StoryEpisodeStager(memory=None, root=".", provider=FakeProvider(response="This is a totally different unrelated claim about something else entirely"))
+        understanding, meta = stager._synthesize_understanding(self.TOPIC, self.EVIDENCE_ONE, self.EVIDENCE_TWO)
+        self.assertIsNone(understanding)
+        self.assertEqual("fact-drift", meta["reason"])
+
+    def test_a_provider_failure_is_a_bounded_fallback_not_a_crash(self):
+        stager = StoryEpisodeStager(memory=None, root=".", provider=FakeProvider(exc=RuntimeError("provider down")))
+        understanding, meta = stager._synthesize_understanding(self.TOPIC, self.EVIDENCE_ONE, self.EVIDENCE_TWO)
+        self.assertIsNone(understanding)
+        self.assertEqual("provider-error:RuntimeError", meta["reason"])
+
+
 class StoryEpisodeStagerTests(unittest.TestCase):
     def test_stages_one_traceable_subject_first_short(self):
         with tempfile.TemporaryDirectory() as root:
@@ -272,6 +315,45 @@ class StoryEpisodeStagerTests(unittest.TestCase):
             self.assertEqual("ai-rewrite", episode["narration_style"]["origin"])
             hook = episode["scenes"][0]
             self.assertTrue(hook["narration"].startswith("Picture this:"))
+
+    def test_connection_beat_uses_a_synthesized_understanding_when_a_provider_is_configured(self):
+        # Owner, 2026-09-30: "ทำไม ไม่สรุปออกมาก่อนแล้วเขียนบทละ ให้เป็น
+        # เรื่องเล่า" -- once a provider is available, the connection beat
+        # should carry ONE synthesized understanding of both sources
+        # together, not the old template that just concatenates each
+        # source's own first fragment back to back.
+        synthesis = "Chromatophores are tiny pigment sacs, and muscles instantly stretch each one open to flash color across the skin."
+
+        class MultiPurposeProvider:
+            def generate(self, prompt):
+                if "Rewrite each beat below" in prompt:
+                    payload = json.loads(prompt.splitlines()[-1])
+                    return json.dumps({n: item["original"] for n, item in payload.items()})
+                if "explain, in 2-4 short sentences" in prompt:
+                    return synthesis
+                return "How can an octopus flash color so fast"
+
+        with tempfile.TemporaryDirectory() as root:
+            root = Path(root)
+            memory = MemoryEngine(root / "memory")
+            memory.remember("creator_research_handoffs", json.dumps({
+                "status": "story-ready", "root_question_id": "question-synthesis",
+                "topic": "How can an octopus change color so quickly?",
+                "working_title": "AION Wonders: Octopus Color",
+                "sources": [
+                    {"title": "Source one", "url": "https://example.test/one",
+                     "observation": "Chromatophores are pigment sacs controlled directly by nerves and muscles."},
+                    {"title": "Source two", "url": "https://example.test/two",
+                     "observation": "Muscles stretch each sac to reveal or hide its pigment within milliseconds."},
+                ],
+                "unknown_facts": "The exact neural pathway is still being mapped.",
+            }), memory_type="decision", source="test", importance=4)
+            StoryEpisodeStager(memory, root, provider=MultiPurposeProvider()).stage_once()
+            episode = CreatorSeriesRegistry(root).episodes()[0]
+            self.assertEqual(synthesis, episode["story_understanding"])
+            self.assertEqual("ai-synthesis", episode["story_understanding_style"]["origin"])
+            connection = next(scene for scene in episode["scenes"] if scene["beat"] == "connection")
+            self.assertEqual(synthesis, connection["narration"])
 
     def test_title_falls_back_to_the_bare_topic_not_a_channel_name_prefix(self):
         # Regression, 2026-09-27: none of the 4 comparable channels studied

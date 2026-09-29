@@ -244,7 +244,55 @@ class StoryEpisodeStager:
             return topic, {"origin": "bounded-fallback", "reason": "subject-drift"}
         return candidate, {"origin": "ai-rewrite"}
 
-    def _rewrite_scene_narrations(self, scenes, topic):
+    def _synthesize_understanding(self, topic, evidence_one, evidence_two):
+        """Read both source observations together and produce ONE synthesized
+        understanding of what is actually going on, before any beat is
+        written.
+
+        Owner, 2026-09-30, after the hook-phrase and per-beat wording fixes
+        still read like research: "ทำไม ไม่สรุปออกมาก่อนแล้วเขียนบทละ ให้
+        เป็นเรื่องเล่า ไม่ใช่นั่งฟังวิจัย" (why not summarize first, then
+        write the script as a story, instead of sitting through a research
+        read-out). Until now every beat was built by mechanically slicing
+        each source's own text in isolation (see _evidence_parts /
+        _narrated_evidence), so even the AI narration rewrite below could
+        only ever polish one pre-chopped fragment at a time -- it never had
+        the whole picture to tell a genuinely connected story from. This
+        produces that missing whole picture once, up front, and both the
+        connection beat and _rewrite_scene_narrations are given it so the
+        retelling can build toward one real payoff instead of stitching
+        disconnected facts. Never blocks staging: any failure returns
+        (None, meta) and every caller falls back to exactly today's
+        literal, per-source construction.
+        """
+        if self.provider is None:
+            return None, {"origin": "bounded-fallback", "reason": "provider-unavailable"}
+        prompt = "\n".join([
+            "You are helping AION understand a story before writing it. Here are two "
+            "independent, real observations about one topic. Read both together and "
+            "explain, in 2-4 short sentences of plain spoken language, what is actually "
+            "going on -- the real mechanism or connection a curious friend would want to "
+            "hear -- as if you just figured it out and want to tell someone.",
+            "Absolute rules:",
+            "- Use ONLY facts already stated in the two observations below. Never add a new fact, number, name, or claim that is not already there.",
+            "- Never phrase anything as AION having feelings, consciousness, or subjective experience.",
+            "- Do not mention \"source\", \"observation\", \"study\", or \"research\", and do not say this came from two separate texts -- just explain the thing itself, as one idea.",
+            "- Plain text only: no markdown, no preamble, no quotation marks.",
+            f"Topic: {topic}",
+            f"First observation: {evidence_one}",
+            f"Second observation: {evidence_two}",
+        ])
+        try:
+            candidate = str(self.provider.generate(prompt) or "").strip()
+        except Exception as exc:
+            return None, {"origin": "bounded-fallback", "reason": f"provider-error:{type(exc).__name__}"}
+        if not candidate or OutputEvaluator.has_unsafe_claim(candidate):
+            return None, {"origin": "bounded-fallback", "reason": "empty-or-unsafe"}
+        if not self._preserves_key_facts(f"{evidence_one} {evidence_two}", candidate):
+            return None, {"origin": "bounded-fallback", "reason": "fact-drift"}
+        return candidate, {"origin": "ai-synthesis"}
+
+    def _rewrite_scene_narrations(self, scenes, topic, understanding=None):
         """Retell each evidence-literal beat as natural, engaging spoken
         narration, using only facts already present in that beat's own
         current narration -- never inventing a new fact, number, name, or
@@ -263,6 +311,13 @@ class StoryEpisodeStager:
         staging. Returns (scenes, meta) -- meta is recorded on the episode
         for the same auditability reason visual_style/aion_deliberation
         record their own "bounded-fallback" origin.
+
+        `understanding`, when available, is the whole-story synthesis from
+        _synthesize_understanding: shared context so this rewrite can build
+        each beat toward one real payoff instead of only polishing each
+        beat's own isolated fragment (2026-09-30 structural fix -- see that
+        method's docstring). It never licenses a new fact into any single
+        beat; the per-beat "own given text only" rule below still applies.
         """
         targets = [scene for scene in scenes if self._rewritable_beat(scene.get("beat"))]
         if self.provider is None:
@@ -270,7 +325,7 @@ class StoryEpisodeStager:
         if not targets:
             return scenes, {"version": "ai-narration-rewrite-v1", "origin": "bounded-fallback", "reason": "no-rewritable-beats"}
 
-        prompt = "\n".join([
+        prompt_lines = [
             "You are helping AION retell short evidence-grounded beats as one flowing, "
             "casual, curiosity-driven story for a fast-paced short video -- the style of "
             "a popular Thai storytelling channel (ไอ้ก้าง เล่าเรื่อง) or Kurzgesagt, not a "
@@ -282,6 +337,16 @@ class StoryEpisodeStager:
             "- Never phrase anything as AION having feelings, consciousness, or subjective experience -- AION is an AI narrator describing evidence, never a sentient being.",
             "- Keep each beat's rewrite close to its target word count (+/-25%), since it must still fit a fixed five-second scene.",
             "- Treat every beat below as one continuous story in order, not independent snippets -- each line should feel like it flows from the one before it.",
+        ]
+        if understanding:
+            prompt_lines.append(
+                "- Here is the real payoff this whole story is building toward, already "
+                f"understood from the full evidence: {understanding} Use it only to decide "
+                "how each beat below should lean into that payoff and connect to the next "
+                "one -- never copy it verbatim into more than one beat, and never use it to "
+                "add a fact to a beat that isn't already in that beat's own given text."
+            )
+        prompt = "\n".join(prompt_lines + [
             "- Banned words and phrases, in any form: \"source\", \"sources\", \"evidence\" "
             "(the word itself, not the underlying fact), \"observation\", \"documented\", "
             "\"the article\", \"the authors\", \"studies show\", \"research\", \"clue\" used "
@@ -381,6 +446,7 @@ class StoryEpisodeStager:
         second_title = self._clean(second.get("title"), 100) or "the second source"
         uncertainty = self._clean(handoff.get("unknown_facts"), 260)
         hook_phrase, hook_phrase_meta = self._derive_hook_phrase(topic)
+        understanding, understanding_meta = self._synthesize_understanding(topic, evidence_one, evidence_two)
         # Owner, 2026-09-27: "ทำไมชื่อคลิปต้อง aion wonders ทำไมไม่ตั้งตาม
         # SEO" -- none of the 4 channels studied 2026-09-27 (Kurzgesagt,
         # Pure Logic, and two direct-niche Thai comparables) put their own
@@ -413,6 +479,8 @@ class StoryEpisodeStager:
             "wonder_hook": topic,
             "hook_phrase": hook_phrase,
             "hook_phrase_style": hook_phrase_meta,
+            "story_understanding": understanding,
+            "story_understanding_style": understanding_meta,
             "growth_plan": CreatorGrowthGate.default_plan(topic, audience_promise),
             "topic_key": topic,
             "creative_device": "mystery-reveal",
@@ -508,7 +576,7 @@ class StoryEpisodeStager:
                  # the story has a real synthesis moment instead of a filler
                  # transition -- the mechanism itself still comes from
                  # research's own sourced observations, never invented here.
-                 "narration": f"Put together: {first_parts[0]} And here's the second piece: {second_parts[0] if second_parts else evidence_two}"},
+                 "narration": understanding or f"Put together: {first_parts[0]} And here's the second piece: {second_parts[0] if second_parts else evidence_two}"},
                 {"n": 10, "beat": BOUNDARY, "visual": f"Show the boundary between what the sources document and what they do not establish about {topic}; no invented action, AION remains in the background.", "narration": uncertainty or "The sources do not settle every detail, so we should not claim more than they show."},
                 {"n": 11, "beat": TAKEAWAY, "visual": f"Return to the central subject of {topic} in a final meaningful wide scene; AION is a small observer, not the focus.", "narration": f"The careful takeaway is simple: begin with what was observed about {hook_phrase.rstrip('?.!')}, then separate it from interpretation."},
                 {"n": 12, "beat": INVITATION, "visual": f"End on the real subject and environment of {topic}, leaving space for wonder; AION exits subtly at the edge.",
@@ -587,7 +655,7 @@ class StoryEpisodeStager:
                 "scenes": long_scenes,
                 "content_angle_key": "evidence-walkthrough-primary",
             })
-        episode["scenes"], episode["narration_style"] = self._rewrite_scene_narrations(episode["scenes"], topic)
+        episode["scenes"], episode["narration_style"] = self._rewrite_scene_narrations(episode["scenes"], topic, understanding=understanding)
         episode["visual_narrative"] = VisualNarrativeGate.plan(topic, episode["scenes"])
         episode["fact_first_visual"] = FactFirstVisualGate.plan(topic, handoff.get("sources"), episode["scenes"])
         visual_narrative = VisualNarrativeGate.assess(episode)
