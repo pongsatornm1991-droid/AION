@@ -1,10 +1,10 @@
 {
-  "generated_at": "2026-09-29T10:13:24.000286+00:00",
+  "generated_at": "2026-09-29T10:15:09.808109+00:00",
   "tiles": {
     "total": 45,
     "ok": 14,
-    "attn": 26,
-    "running": 3
+    "attn": 27,
+    "running": 2
   },
   "groups": [
     {
@@ -53,11 +53,10 @@
         {
           "name": "AION - Research to story brief",
           "file": "research-to-story.yml",
-          "status_class": "failure",
-          "status_label": "ล้มเหลว",
-          "html_url": "https://github.com/pongsatornm1991-droid/AION/actions/runs/36544508289",
-          "created_at": "2026-09-29T08:43:12Z",
-          "detail": "ขั้นที่ล้มเหลว: Run actions/checkout@v4"
+          "status_class": "running",
+          "status_label": "กำลังรัน",
+          "html_url": "https://github.com/pongsatornm1991-droid/AION/actions/runs/36554223687",
+          "created_at": "2026-09-29T10:13:30Z"
         },
         {
           "name": "AION - Scientific Discovery Lab",
@@ -260,10 +259,11 @@
         {
           "name": "AION - Creator release readiness",
           "file": "release-readiness.yml",
-          "status_class": "running",
-          "status_label": "กำลังรัน",
+          "status_class": "failure",
+          "status_label": "ล้มเหลว",
           "html_url": "https://github.com/pongsatornm1991-droid/AION/actions/runs/36554038024",
-          "created_at": "2026-09-29T10:11:43Z"
+          "created_at": "2026-09-29T10:11:43Z",
+          "detail": "ขั้นที่ล้มเหลว: Run actions/checkout@v4"
         },
         {
           "name": "AION - Instagram feedback",
@@ -404,10 +404,11 @@
         {
           "name": "AION - production control",
           "file": "production-control.yml",
-          "status_class": "running",
-          "status_label": "กำลังรัน",
+          "status_class": "failure",
+          "status_label": "ล้มเหลว",
           "html_url": "https://github.com/pongsatornm1991-droid/AION/actions/runs/36554055908",
-          "created_at": "2026-09-29T10:11:53Z"
+          "created_at": "2026-09-29T10:11:53Z",
+          "detail": "ขั้นที่ล้มเหลว: Checkout private evidence record"
         },
         {
           "name": "AION - revenue readiness",
