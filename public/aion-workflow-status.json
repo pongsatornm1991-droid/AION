@@ -1,9 +1,9 @@
 {
-  "generated_at": "2026-09-29T15:42:19.030227+00:00",
+  "generated_at": "2026-09-29T15:56:19.881033+00:00",
   "tiles": {
     "total": 45,
     "ok": 13,
-    "attn": 29,
+    "attn": 28,
     "running": 1
   },
   "groups": [
@@ -162,9 +162,9 @@
           "name": "AION - Automation Health Monitor",
           "file": "automation-health.yml",
           "status_class": "success",
-          "status_label": "สำเร็จ",
-          "html_url": "https://github.com/pongsatornm1991-droid/AION/actions/runs/36582327807",
-          "created_at": "2026-09-29T14:23:34Z"
+          "status_label": "ไม่มีเหตุให้ดำเนินการ",
+          "html_url": "https://github.com/pongsatornm1991-droid/AION/actions/runs/36592241726",
+          "created_at": "2026-09-29T15:42:27Z"
         },
         {
           "name": "AION - Cyber Guard defensive audit",
@@ -232,8 +232,8 @@
           "file": "publish-workflow-status.yml",
           "status_class": "running",
           "status_label": "กำลังรัน",
-          "html_url": "https://github.com/pongsatornm1991-droid/AION/actions/runs/36592000209",
-          "created_at": "2026-09-29T15:40:32Z"
+          "html_url": "https://github.com/pongsatornm1991-droid/AION/actions/runs/36593729798",
+          "created_at": "2026-09-29T15:54:14Z"
         },
         {
           "name": "AION - system reliability",
@@ -298,8 +298,8 @@
           "file": "youtube-release-watchdog.yml",
           "status_class": "success",
           "status_label": "สำเร็จ",
-          "html_url": "https://github.com/pongsatornm1991-droid/AION/actions/runs/36582350915",
-          "created_at": "2026-09-29T14:23:46Z"
+          "html_url": "https://github.com/pongsatornm1991-droid/AION/actions/runs/36592249451",
+          "created_at": "2026-09-29T15:42:30Z"
         },
         {
           "name": "AION - YouTube release-window recovery",
@@ -406,11 +406,10 @@
         {
           "name": "AION - production control",
           "file": "production-control.yml",
-          "status_class": "failure",
-          "status_label": "ล้มเหลว",
-          "html_url": "https://github.com/pongsatornm1991-droid/AION/actions/runs/36582140536",
-          "created_at": "2026-09-29T14:22:04Z",
-          "detail": "ขั้นที่ล้มเหลว: Checkout private evidence record"
+          "status_class": "success",
+          "status_label": "สำเร็จ",
+          "html_url": "https://github.com/pongsatornm1991-droid/AION/actions/runs/36593578090",
+          "created_at": "2026-09-29T15:53:02Z"
         },
         {
           "name": "AION - revenue readiness",
