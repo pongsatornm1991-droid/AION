@@ -15,15 +15,15 @@
     },
     {
       "id": "official_primary_sources",
-      "name": "Official and primary sources",
+      "name": "Primary source texts (Project Gutenberg via the Internet Archive)",
       "tier": "A",
-      "enabled": false,
+      "enabled": true,
       "capabilities": [
-        "official_primary",
-        "research_paper"
+        "official_primary"
       ],
-      "role": "Official documentation, public institutions, standards, and other primary evidence.",
-      "limitations": "A source-specific retrieval adapter is required before this capability becomes usable."
+      "role": "Public-domain primary and historical texts (speeches, treaties, classic historical and literary works) for the history and human-culture lanes, which otherwise had no source more specific than Wikipedia/OpenAlex.",
+      "scope_keywords": ["history", "historical", "ancient", "civilization", "civilisation", "culture", "cultural", "war", "revolution", "empire", "kingdom", "king", "queen", "president", "congress", "constitution", "treaty", "independence", "slavery", "immigration", "literature", "philosophy", "religion", "mythology", "folklore", "tradition", "biography", "memoir"],
+      "limitations": "A public non-profit digital library, not a government agency -- less literally \"official\" than primary. Coverage is whatever has entered the public domain, skewed toward older works; a very recent topic will not be covered."
     },
     {
       "id": "europe_pmc_fulltext",

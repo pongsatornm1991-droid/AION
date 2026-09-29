@@ -11,6 +11,7 @@ from unittest import mock
 from tools.web_search import (
     WIKIPEDIA_API_BASE,
     ARXIV_API_BASE,
+    INTERNET_ARCHIVE_API_BASE,
     REQUEST_HEADERS,
     search_wikipedia,
     get_wikipedia_summary,
@@ -20,6 +21,8 @@ from tools.web_search import (
     get_europe_pmc_fulltext,
     search_openalex,
     get_openalex_work,
+    search_primary_source_texts,
+    get_primary_source_text,
 )
 
 
@@ -285,6 +288,108 @@ class GetArxivSummaryTests(unittest.TestCase):
         with mock.patch("requests.get", return_value=FakeResponse(500, content=b"")):
             with self.assertRaises(RuntimeError):
                 get_arxiv_summary("2301.12345")
+
+
+class SearchPrimarySourceTextsTests(unittest.TestCase):
+    def test_empty_query_is_rejected_before_any_network_call(self):
+        with mock.patch("requests.get") as mock_get:
+            with self.assertRaises(ValueError):
+                search_primary_source_texts("   ")
+            mock_get.assert_not_called()
+
+    def test_returns_archive_identifiers(self):
+        payload = {"response": {"docs": [
+            {"identifier": "ancientromefromt06989gut", "title": "Ancient Rome"},
+            {"identifier": "lrome10", "title": "Lays Of Ancient Rome"},
+        ]}}
+        with mock.patch("requests.get", return_value=FakeResponse(200, payload)) as mock_get:
+            results = search_primary_source_texts("ancient rome")
+        self.assertEqual(results, [{"title": "ancientromefromt06989gut"}, {"title": "lrome10"}])
+        self.assertEqual(mock_get.call_args.args[0], f"{INTERNET_ARCHIVE_API_BASE}/advancedsearch.php")
+        self.assertIn("collection:gutenberg", mock_get.call_args.kwargs["params"]["q"])
+
+    def test_no_results_returns_empty_list(self):
+        with mock.patch("requests.get", return_value=FakeResponse(200, {"response": {"docs": []}})):
+            self.assertEqual(search_primary_source_texts("asdkjfhqwoeiuraslkdjf"), [])
+
+    def test_sends_a_compliant_identifying_user_agent(self):
+        with mock.patch("requests.get", return_value=FakeResponse(200, {"response": {"docs": []}})) as mock_get:
+            search_primary_source_texts("rome")
+        self.assertEqual(mock_get.call_args.kwargs["headers"], REQUEST_HEADERS)
+
+    def test_http_error_raises_runtime_error(self):
+        with mock.patch("requests.get", return_value=FakeResponse(500, {})):
+            with self.assertRaises(RuntimeError):
+                search_primary_source_texts("rome")
+
+
+class GetPrimarySourceTextTests(unittest.TestCase):
+    def test_empty_identifier_is_rejected_before_any_network_call(self):
+        with mock.patch("requests.get") as mock_get:
+            with self.assertRaises(ValueError):
+                get_primary_source_text("   ")
+            mock_get.assert_not_called()
+
+    def test_strips_gutenberg_boilerplate_and_picks_the_plain_text_file(self):
+        meta = {
+            "metadata": {"title": "Ancient Rome"},
+            "files": [
+                {"name": "6989-8.txt"},
+                {"name": "pg6989.txt"},
+                {"name": "pg6989.txt_meta.txt"},
+                {"name": "pg6989_djvu.txt"},
+            ],
+        }
+        body = (
+            b"Produced by a volunteer transcriber\n"
+            b"*** START OF THE PROJECT GUTENBERG EBOOK ANCIENT ROME ***\n"
+            b"ANCIENT ROME\n\nA real history of Rome follows here.\n"
+            b"*** END OF THE PROJECT GUTENBERG EBOOK ANCIENT ROME ***\n"
+            b"Some license footer text nobody should see."
+        )
+        with mock.patch("requests.get", side_effect=[
+            FakeResponse(200, meta), FakeResponse(200, content=body),
+        ]) as mock_get:
+            result = get_primary_source_text("ancientromefromt06989gut")
+
+        self.assertEqual(result["title"], "Ancient Rome")
+        self.assertEqual(result["url"], "https://archive.org/details/ancientromefromt06989gut")
+        self.assertIn("A real history of Rome follows here.", result["extract"])
+        self.assertNotIn("Produced by", result["extract"])
+        self.assertNotIn("license footer", result["extract"])
+        # The second call must have downloaded the plain "pg<digits>.txt"
+        # file, not the OCR-derived "_djvu.txt" or a "_meta.txt" sidecar.
+        second_call_url = mock_get.call_args_list[1].args[0]
+        self.assertTrue(second_call_url.endswith("/pg6989.txt"))
+
+    def test_missing_item_returns_empty_fields_not_an_error(self):
+        with mock.patch("requests.get", return_value=FakeResponse(404, {})):
+            result = get_primary_source_text("does-not-exist")
+        self.assertEqual(result, {"title": "", "url": "", "extract": ""})
+
+    def test_no_text_file_available_returns_empty_extract(self):
+        meta = {"metadata": {"title": "Scanned Only"}, "files": [{"name": "cover.jpg"}]}
+        with mock.patch("requests.get", return_value=FakeResponse(200, meta)):
+            result = get_primary_source_text("scanned-only-item")
+        self.assertEqual(result["title"], "Scanned Only")
+        self.assertEqual(result["extract"], "")
+
+    def test_a_dead_text_file_on_one_storage_node_degrades_instead_of_raising(self):
+        # Regression: found live 2026-09-29 -- one real Gutenberg item's
+        # text file 500'd while its metadata and every other item's file
+        # served fine. A single bad node must never crash the shift.
+        meta = {"metadata": {"title": "Flaky Node"}, "files": [{"name": "pg1.txt"}]}
+        with mock.patch("requests.get", side_effect=[
+            FakeResponse(200, meta), FakeResponse(500, content=b""),
+        ]):
+            result = get_primary_source_text("flaky-item")
+        self.assertEqual(result["title"], "Flaky Node")
+        self.assertEqual(result["extract"], "")
+
+    def test_metadata_http_error_raises_runtime_error(self):
+        with mock.patch("requests.get", return_value=FakeResponse(500, {})):
+            with self.assertRaises(RuntimeError):
+                get_primary_source_text("ancientromefromt06989gut")
 
 
 if __name__ == "__main__":

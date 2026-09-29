@@ -1469,6 +1469,24 @@ class WebLearningCycleTests(BaseLearningTest):
         )
 
 
+class AutoRegisteredAdapterTests(BaseLearningTest):
+    def test_official_primary_sources_adapter_auto_registers_with_the_real_registry(self):
+        # 2026-09-29: fills core/source_registry.json's long-declared
+        # (previously enabled: false, no adapter) "official_primary_sources"
+        # tier -- the real SourceRegistry has the Phase 5F capability API,
+        # so this should now be wired in the same way openalex/hacker_news
+        # already are.
+        cycle = WebLearningCycle(
+            self.memory, self.curiosity,
+            WebLearningGenerator(SafeProvider()),
+            search_fn=fake_search([]), fetch_fn=fake_fetch({}),
+        )
+        self.assertIn("official_primary_sources", cycle.adapters)
+        adapter = cycle.adapters["official_primary_sources"]
+        self.assertTrue(callable(adapter["search"]))
+        self.assertTrue(callable(adapter["fetch"]))
+
+
 class FallbackSourceRegistry:
     """Fake registry for Wikipedia + fallback source."""
 

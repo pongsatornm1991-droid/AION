@@ -42,6 +42,7 @@ framing applies: an arXiv abstract is exactly as untrusted as a
 Wikipedia extract when handed to the drafting prompt.
 """
 
+import re
 from xml.etree import ElementTree
 
 WIKIPEDIA_API_BASE = "https://en.wikipedia.org/w/api.php"
@@ -693,3 +694,137 @@ def get_openalex_work(work_id, max_chars=12000):
         "url": url,
         "extract": abstract,
     }
+
+
+# ============================================================
+# PRIMARY-SOURCE TEXT ADAPTER (Project Gutenberg via the Internet Archive)
+# ============================================================
+#
+# core/source_registry.json declared an "official_primary_sources" tier
+# (tier A: "Official documentation, public institutions, standards, and
+# other primary evidence") since before this file existed, always with
+# enabled: false and a note that "a source-specific retrieval adapter is
+# required before this capability becomes usable." 2026-09-29: tried three
+# real candidates before this one --
+#   - loc.gov (Library of Congress): consistent HTTP 403 even with a
+#     compliant identifying User-Agent (the same fix that unblocked
+#     Wikipedia). Its bot protection appears to reject automated clients
+#     outright; not viable keyless from a datacenter IP like a GitHub
+#     Actions runner.
+#   - Wikidata (same Wikimedia infrastructure Wikipedia already uses
+#     successfully): search works, but an entity's data is a bag of
+#     property-id/value claims (e.g. "P373", "P508"), not narrative
+#     prose -- the wrong shape for this pipeline's "extract" contract
+#     without a lot of additional label-resolution work.
+#   - Wikisource (also Wikimedia): search works, but many proofread
+#     documents transclude their text from separate Page: namespace
+#     scans rather than holding it inline, so the same simple
+#     prop=extracts call that works for Wikipedia often returns nothing.
+# Project Gutenberg's full public-domain library, indexed and hosted by
+# the Internet Archive (archive.org's own advancedsearch/metadata/download
+# endpoints, confirmed live and keyless), is the one that actually works
+# end to end: real primary and historical texts (speeches, treaties,
+# classic historical and literary works), reliable JSON search, and a
+# plain-text file per item. It is a public non-profit digital library, not
+# a government agency -- less literally "official" than the registry
+# entry's own name suggests, but still squarely "primary evidence", which
+# its own role text already allows for.
+INTERNET_ARCHIVE_API_BASE = "https://archive.org"
+_GUTENBERG_START_RE = re.compile(
+    r"\*\*\*\s*START OF (?:THE|THIS) PROJECT GUTENBERG EBOOK.*?\*\*\*",
+    re.IGNORECASE | re.DOTALL,
+)
+_GUTENBERG_END_RE = re.compile(
+    r"\*\*\*\s*END OF (?:THE|THIS) PROJECT GUTENBERG EBOOK", re.IGNORECASE,
+)
+
+
+def _gutenberg_body(text):
+    """Strip Project Gutenberg's license header/footer boilerplate.
+
+    Handles the current convention ("*** START/END OF THE PROJECT
+    GUTENBERG EBOOK ***"); an older digitization with no such marker
+    falls back to skipping a fixed-size header-shaped prefix rather than
+    handing the whole license text to the drafting prompt as if it were
+    the work itself.
+    """
+    text = str(text or "")
+    start = _GUTENBERG_START_RE.search(text)
+    body = text[start.end():] if start else text[2500:]
+    end = _GUTENBERG_END_RE.search(body)
+    if end:
+        body = body[:end.start()]
+    return body.strip()
+
+
+def search_primary_source_texts(query, limit=3):
+    """Search Project Gutenberg's public-domain historical/primary texts,
+    indexed via the Internet Archive's own search API."""
+    query = str(query or "").strip()
+    if not query:
+        raise ValueError("query cannot be empty.")
+    import requests
+    response = requests.get(
+        f"{INTERNET_ARCHIVE_API_BASE}/advancedsearch.php",
+        params={
+            "q": f"({query}) AND collection:gutenberg AND mediatype:texts",
+            "fl[]": ["identifier", "title"],
+            "rows": min(max(1, int(limit)), 10),
+            "output": "json",
+        },
+        headers=REQUEST_HEADERS, timeout=20,
+    )
+    if response.status_code >= 400:
+        raise RuntimeError(f"Internet Archive search error: HTTP {response.status_code}")
+    try:
+        docs = response.json().get("response", {}).get("docs", [])
+    except (ValueError, AttributeError):
+        raise RuntimeError("Internet Archive search error: invalid JSON response.")
+    return [{"title": item.get("identifier")} for item in docs if item.get("identifier")]
+
+
+def get_primary_source_text(identifier, max_chars=12000):
+    """Fetch one Gutenberg item's plain-text file and return a bounded,
+    boilerplate-stripped excerpt for synthesis."""
+    identifier = str(identifier or "").strip()
+    if not identifier:
+        raise ValueError("identifier cannot be empty.")
+    import requests
+    meta_response = requests.get(
+        f"{INTERNET_ARCHIVE_API_BASE}/metadata/{identifier}",
+        headers=REQUEST_HEADERS, timeout=20,
+    )
+    if meta_response.status_code == 404:
+        return {"title": "", "url": "", "extract": ""}
+    if meta_response.status_code >= 400:
+        raise RuntimeError(f"Internet Archive metadata error: HTTP {meta_response.status_code}")
+    try:
+        meta = meta_response.json()
+    except (ValueError, AttributeError):
+        raise RuntimeError("Internet Archive metadata error: invalid JSON response.")
+    if not isinstance(meta, dict):
+        return {"title": "", "url": "", "extract": ""}
+    title = str((meta.get("metadata") or {}).get("title") or identifier).strip()
+    url = f"https://archive.org/details/{identifier}"
+    candidates = [
+        entry.get("name") for entry in (meta.get("files") or [])
+        if isinstance(entry, dict) and str(entry.get("name") or "").lower().endswith(".txt")
+        and "_meta" not in str(entry.get("name") or "") and "_djvu" not in str(entry.get("name") or "")
+    ]
+    if not candidates:
+        return {"title": title, "url": url, "extract": ""}
+    # Prefer Gutenberg's own plain "pg<digits>.txt" convention over an
+    # OCR-derived transcription of the same work.
+    candidates.sort(key=lambda name: (0 if re.match(r"^pg\d+\.txt$", name, re.IGNORECASE) else 1, name))
+    text_response = requests.get(
+        f"{INTERNET_ARCHIVE_API_BASE}/download/{identifier}/{candidates[0]}",
+        headers=REQUEST_HEADERS, timeout=30,
+    )
+    if text_response.status_code >= 400:
+        # A dead file on one storage node is a missing result, not a
+        # reason to fail the whole research shift.
+        return {"title": title, "url": url, "extract": ""}
+    body = _gutenberg_body(text_response.content.decode("utf-8", errors="replace"))
+    if len(body) > max_chars:
+        body = body[:max_chars].rsplit(" ", 1)[0] + "…"
+    return {"title": title, "url": url, "extract": body}

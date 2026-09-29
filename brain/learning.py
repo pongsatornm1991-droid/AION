@@ -1498,6 +1498,20 @@ class WebLearningCycle:
             except ImportError:
                 pass
 
+            # 2026-09-29: fills core/source_registry.json's long-declared
+            # (but until now unbuilt) "official_primary_sources" tier --
+            # public-domain primary/historical texts, the one real
+            # scope-matched source the history/human-culture lanes had
+            # never had (unlike science/nature's arXiv and Europe PMC).
+            try:
+                from tools.web_search import search_primary_source_texts, get_primary_source_text
+                self.adapters["official_primary_sources"] = {
+                    "search": search_primary_source_texts,
+                    "fetch": get_primary_source_text,
+                }
+            except ImportError:
+                pass
+
         self.evidence_store = (
             ResearchEvidenceStore(
                 memory,
