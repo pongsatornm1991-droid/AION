@@ -550,5 +550,103 @@ class FollowupDecisionTests(BaseCommentReplyTest):
         self.assertNotIn("คำถามต่อยอด", provider.calls[0])
 
 
+class AudienceCuriosityCaptureTests(BaseCommentReplyTest):
+    # Owner, 2026-09-29: "คนชอบความสงสัย อยากรู้ ไม่ใช่อยากเรียน" -- a real
+    # viewer question should be able to become a real future episode
+    # topic, not just get a polite one-off reply.
+
+    def test_a_genuine_question_is_captured_as_a_new_open_question(self):
+        cycle = CommentAutoReplyCycle(
+            self.memory, CommentReplyGenerator(SafeProvider()), self._lifecycle(),
+            "reply_to_facebook_comment", page_id="page-1",
+        )
+        comment = make_comment(message="Why do octopuses have three hearts?")
+
+        report = cycle.run_once(comments=[comment])
+
+        self.assertTrue(report["handled"])
+        self.assertEqual("captured", report["curiosity_capture"]["stage"])
+        from brain.curiosity import CuriosityEngine
+        open_qs = CuriosityEngine(self.memory).open_questions()
+        self.assertEqual(1, len(open_qs))
+        self.assertEqual("Why do octopuses have three hearts?", open_qs[0]["statement"])
+        self.assertIn("audience-suggested", open_qs[0].get("tags") or [])
+
+    def test_a_bare_reaction_is_never_captured(self):
+        cycle = CommentAutoReplyCycle(
+            self.memory, CommentReplyGenerator(SafeProvider()), self._lifecycle(),
+            "reply_to_facebook_comment", page_id="page-1",
+        )
+        report = cycle.run_once(comments=[make_comment(message="เยี่ยมเลย")])
+
+        self.assertTrue(report["handled"])
+        self.assertIsNone(report["curiosity_capture"])
+        from brain.curiosity import CuriosityEngine
+        self.assertEqual([], CuriosityEngine(self.memory).open_questions())
+
+    def test_a_comment_with_no_question_mark_is_never_captured(self):
+        cycle = CommentAutoReplyCycle(
+            self.memory, CommentReplyGenerator(SafeProvider()), self._lifecycle(),
+            "reply_to_facebook_comment", page_id="page-1",
+        )
+        comment = make_comment(message="I think this topic is really interesting honestly")
+
+        report = cycle.run_once(comments=[comment])
+
+        self.assertIsNone(report["curiosity_capture"])
+
+    def test_a_near_duplicate_of_an_already_open_question_is_not_captured_again(self):
+        from brain.curiosity import CuriosityEngine
+        CuriosityEngine(self.memory).raise_question(
+            "Why do octopuses have three hearts?", "Compare two cited sources.",
+        )
+        cycle = CommentAutoReplyCycle(
+            self.memory, CommentReplyGenerator(SafeProvider()), self._lifecycle(),
+            "reply_to_facebook_comment", page_id="page-1",
+        )
+        comment = make_comment(message="why does an octopus have three hearts??")
+
+        report = cycle.run_once(comments=[comment])
+
+        self.assertEqual("duplicate-of-open-question", report["curiosity_capture"]["stage"])
+        self.assertEqual(1, len(CuriosityEngine(self.memory).open_questions()))
+
+    def test_a_failed_reply_never_captures_the_question(self):
+        # Capturing is a side benefit of actually engaging with the
+        # person; a reply that never posted should not still succeed at
+        # this side effect.
+        def failing_reply(comment_id, message):
+            raise RuntimeError("Facebook error (simulated).")
+
+        cycle = CommentAutoReplyCycle(
+            self.memory, CommentReplyGenerator(SafeProvider()), self._lifecycle(failing_reply),
+            "reply_to_facebook_comment", page_id="page-1",
+        )
+        comment = make_comment(message="Why do octopuses have three hearts?")
+
+        report = cycle.run_once(comments=[comment])
+
+        self.assertFalse(report["handled"])
+        self.assertIsNone(report["curiosity_capture"])
+        from brain.curiosity import CuriosityEngine
+        self.assertEqual([], CuriosityEngine(self.memory).open_questions())
+
+    def test_hitting_the_open_question_cap_is_reported_not_raised(self):
+        from brain.curiosity import CuriosityEngine
+        curiosity = CuriosityEngine(self.memory)
+        for n in range(curiosity.DEFAULT_MAX_OPEN):
+            curiosity.raise_question(f"Filler question number {n}?", "Compare two cited sources.")
+        cycle = CommentAutoReplyCycle(
+            self.memory, CommentReplyGenerator(SafeProvider()), self._lifecycle(),
+            "reply_to_facebook_comment", page_id="page-1",
+        )
+        comment = make_comment(message="Why do octopuses have three hearts?")
+
+        report = cycle.run_once(comments=[comment])
+
+        self.assertTrue(report["handled"])
+        self.assertEqual("capture-failed", report["curiosity_capture"]["stage"])
+
+
 if __name__ == "__main__":
     unittest.main()

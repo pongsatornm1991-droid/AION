@@ -226,6 +226,12 @@ class CommentAutoReplyCycle:
     FOLLOWUP_TURN_MODULUS = 3
     FOLLOWUP_MIN_LENGTH = 20
 
+    # A comment long/short enough to plausibly be one real, askable
+    # question rather than a bare reaction ("nice!", an emoji) or an
+    # essay/rant that isn't really one topic.
+    CURIOSITY_MIN_LENGTH = 12
+    CURIOSITY_MAX_LENGTH = 300
+
     def __init__(
         self, memory, generator, lifecycle, tool_name, page_id=None,
         platform="facebook", account_id=None, fetch_comments=None, like_tool_name=None,
@@ -269,6 +275,56 @@ class CommentAutoReplyCycle:
         if not text or text.endswith(("?", "？")):  # ASCII "?" or fullwidth "？"
             return False
         return len(text) >= cls.FOLLOWUP_MIN_LENGTH
+
+    @classmethod
+    def _looks_like_audience_curiosity(cls, comment_text):
+        """A comment worth offering to AION's own research queue as a
+        possible future episode topic: it actually asks something (a "?"
+        somewhere in it, not necessarily at the end -- "why do cats purr
+        i wonder" reads as curiosity without one), and is neither a bare
+        reaction/emoji nor long enough to be an essay about many things
+        at once.
+
+        Owner, 2026-09-29: "คนชอบความสงสัย อยากรู้ ไม่ใช่อยากเรียน" (people
+        like curiosity/wonder, they want to be curious, not to study) --
+        a real viewer question becoming a real future episode is the
+        substance behind that, not just a friendlier reply tone.
+        """
+        text = str(comment_text or "").strip()
+        if "?" not in text and "？" not in text:
+            return False
+        return cls.CURIOSITY_MIN_LENGTH <= len(text) <= cls.CURIOSITY_MAX_LENGTH
+
+    def _capture_audience_curiosity(self, comment):
+        """Best-effort: raise a genuine viewer question as a new open
+        question in AION's own research queue, tagged for traceability,
+        so a real curiosity from a real person can become a future
+        episode instead of ending at a one-off reply. Never raises --
+        this is a side benefit of a successful reply, never a reason to
+        treat the reply itself as failed, and it must not create a
+        near-duplicate of a question already open.
+        """
+        text = str(comment.get("message") or "").strip()
+        if not self._looks_like_audience_curiosity(text):
+            return None
+        try:
+            from brain.curiosity import CuriosityEngine
+            from brain.topic_novelty import TopicNoveltyGate
+            candidate = {"topic_key": text}
+            curiosity = CuriosityEngine(self.memory)
+            for existing in curiosity.open_questions():
+                if TopicNoveltyGate.same_topic(candidate, {"topic_key": existing.get("statement")}):
+                    return {"stage": "duplicate-of-open-question"}
+            saved = curiosity.raise_question(
+                question=text,
+                completion_criteria="Record observations from at least two independent credible sources with stable URLs.",
+                priority=3,
+                tags=["audience-suggested", self.platform],
+                source=f"audience-comment:{self.platform}:{comment.get('id', '')}",
+            )
+            return {"stage": "captured", "id": saved.get("id")}
+        except Exception as exc:
+            return {"stage": "capture-failed", "error": str(exc)}
 
     def _is_followup_turn(self):
         try:
@@ -469,6 +525,8 @@ class CommentAutoReplyCycle:
                 # as audit evidence but never post the same reply twice.
                 like = {"status": "failed", "error": str(exc)}
 
+        curiosity_capture = self._capture_audience_curiosity(comment) if posted else None
+
         self._record_handled(comment, stage, detail, "comment-auto-reply")
 
         return {
@@ -476,5 +534,6 @@ class CommentAutoReplyCycle:
             "stage": stage,
             "action": executed,
             "like": like,
+            "curiosity_capture": curiosity_capture,
             **draft_report,
         }
