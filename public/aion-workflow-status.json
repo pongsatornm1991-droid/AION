@@ -1,10 +1,10 @@
 {
-  "generated_at": "2026-09-29T05:53:23.737035+00:00",
+  "generated_at": "2026-09-29T05:54:53.484955+00:00",
   "tiles": {
     "total": 46,
     "ok": 37,
-    "attn": 4,
-    "running": 2
+    "attn": 5,
+    "running": 1
   },
   "groups": [
     {
@@ -161,8 +161,8 @@
           "file": "automation-health.yml",
           "status_class": "success",
           "status_label": "ไม่มีเหตุให้ดำเนินการ",
-          "html_url": "https://github.com/pongsatornm1991-droid/AION/actions/runs/36528272922",
-          "created_at": "2026-09-29T05:52:55Z"
+          "html_url": "https://github.com/pongsatornm1991-droid/AION/actions/runs/36528321178",
+          "created_at": "2026-09-29T05:53:31Z"
         },
         {
           "name": "AION - Cyber Guard defensive audit",
@@ -392,10 +392,11 @@
         {
           "name": "AION - production control",
           "file": "production-control.yml",
-          "status_class": "running",
-          "status_label": "กำลังรัน",
+          "status_class": "failure",
+          "status_label": "ล้มเหลว",
           "html_url": "https://github.com/pongsatornm1991-droid/AION/actions/runs/36528269235",
-          "created_at": "2026-09-29T05:52:52Z"
+          "created_at": "2026-09-29T05:52:52Z",
+          "detail": "ขั้นที่ล้มเหลว: Checkout private evidence record"
         },
         {
           "name": "AION - revenue readiness",
