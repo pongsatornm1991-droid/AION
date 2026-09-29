@@ -1,9 +1,9 @@
 {
-  "generated_at": "2026-09-29T08:26:29.148761+00:00",
+  "generated_at": "2026-09-29T08:35:22.014762+00:00",
   "tiles": {
     "total": 46,
-    "ok": 23,
-    "attn": 17,
+    "ok": 22,
+    "attn": 18,
     "running": 1
   },
   "groups": [
@@ -230,8 +230,8 @@
           "file": "publish-workflow-status.yml",
           "status_class": "running",
           "status_label": "กำลังรัน",
-          "html_url": "https://github.com/pongsatornm1991-droid/AION/actions/runs/36542525207",
-          "created_at": "2026-09-29T08:24:30Z"
+          "html_url": "https://github.com/pongsatornm1991-droid/AION/actions/runs/36543512476",
+          "created_at": "2026-09-29T08:33:52Z"
         },
         {
           "name": "AION - system reliability",
@@ -360,10 +360,11 @@
         {
           "name": "AION - creator competitive scan",
           "file": "creator-competitive-scan.yml",
-          "status_class": "success",
-          "status_label": "สำเร็จ",
-          "html_url": "https://github.com/pongsatornm1991-droid/AION/actions/runs/36398957239",
-          "created_at": "2026-09-28T08:42:24Z"
+          "status_class": "failure",
+          "status_label": "ล้มเหลว",
+          "html_url": "https://github.com/pongsatornm1991-droid/AION/actions/runs/36543306166",
+          "created_at": "2026-09-29T08:31:55Z",
+          "detail": "ขั้นที่ล้มเหลว: Run actions/checkout@v4"
         },
         {
           "name": "AION - creator reference study",
@@ -405,8 +406,8 @@
           "file": "production-control.yml",
           "status_class": "failure",
           "status_label": "ล้มเหลว",
-          "html_url": "https://github.com/pongsatornm1991-droid/AION/actions/runs/36542341269",
-          "created_at": "2026-09-29T08:22:46Z",
+          "html_url": "https://github.com/pongsatornm1991-droid/AION/actions/runs/36543344818",
+          "created_at": "2026-09-29T08:32:16Z",
           "detail": "ขั้นที่ล้มเหลว: Checkout private evidence record"
         },
         {
