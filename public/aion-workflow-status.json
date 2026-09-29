@@ -1,10 +1,10 @@
 {
-  "generated_at": "2026-09-29T01:28:09.022721+00:00",
+  "generated_at": "2026-09-29T01:48:17.054419+00:00",
   "tiles": {
     "total": 46,
-    "ok": 39,
+    "ok": 42,
     "attn": 0,
-    "running": 4
+    "running": 1
   },
   "groups": [
     {
@@ -14,8 +14,8 @@
         {
           "name": "AION - Creator queue quality gate",
           "file": "creator-queue-quality.yml",
-          "status_class": "running",
-          "status_label": "กำลังรัน",
+          "status_class": "success",
+          "status_label": "สำเร็จ",
           "html_url": "https://github.com/pongsatornm1991-droid/AION/actions/runs/36507869469",
           "created_at": "2026-09-29T01:26:01Z"
         },
@@ -30,8 +30,8 @@
         {
           "name": "AION - assemble illustrated Creator episode",
           "file": "assemble-creator-episode.yml",
-          "status_class": "running",
-          "status_label": "กำลังรัน",
+          "status_class": "success",
+          "status_label": "สำเร็จ",
           "html_url": "https://github.com/pongsatornm1991-droid/AION/actions/runs/36507845247",
           "created_at": "2026-09-29T01:25:43Z"
         },
@@ -84,8 +84,8 @@
         {
           "name": "AION - external learning cycle",
           "file": "learning-cycle.yml",
-          "status_class": "running",
-          "status_label": "กำลังรัน",
+          "status_class": "success",
+          "status_label": "สำเร็จ",
           "html_url": "https://github.com/pongsatornm1991-droid/AION/actions/runs/36507953269",
           "created_at": "2026-09-29T01:27:02Z"
         },
@@ -224,8 +224,8 @@
           "file": "publish-workflow-status.yml",
           "status_class": "running",
           "status_label": "กำลังรัน",
-          "html_url": "https://github.com/pongsatornm1991-droid/AION/actions/runs/36507913063",
-          "created_at": "2026-09-29T01:26:33Z"
+          "html_url": "https://github.com/pongsatornm1991-droid/AION/actions/runs/36509513533",
+          "created_at": "2026-09-29T01:46:58Z"
         },
         {
           "name": "AION - system reliability",
