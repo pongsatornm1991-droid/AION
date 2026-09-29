@@ -13,6 +13,30 @@ Format:
 Commits: <hash> [, <hash> ...]
 ```
 
+## 2026-09-29 — Claude Code — Engagement loop: a viewer's own question can become an episode
+
+Owner asked what else to develop to feel more like a "content creator"
+channel; proposed a two-way engagement loop (viewers currently only ever
+get a one-off reply, never a real chance to shape future content).
+Owner agreed, adding the guiding principle: "คนชอบความสงสัย อยากรู้
+ไม่ใช่อยากเรียน" (people like curiosity/wonder, not studying).
+
+CommentAutoReplyCycle._capture_audience_curiosity() (brain/comment_reply.py)
+now runs after a successful reply: a comment that reads like a genuine
+question (_looks_like_audience_curiosity -- contains "?", 12-300 chars)
+gets raised as a new CuriosityEngine open question, tagged
+"audience-suggested" + platform, source "audience-comment:<platform>:<id>".
+From there it flows through the exact same evidence-gathering ->
+research-to-story pipeline as any of AION's own self-generated
+questions -- no shortcut, no fabricated answer handed back in the reply
+itself. Deduped against every already-open question via
+TopicNoveltyGate.same_topic() so repeated popular questions don't spam
+near-duplicates; a failed reply never captures anything; hitting
+CuriosityEngine's own 10-question open cap is reported, not raised.
+
+6 new regression tests; full suite (1155 tests) green.
+Commits: ba35fdf
+
 ## 2026-09-29 — Claude Code — Fixed a second dropped cron: thai-dub.yml
 
 Owner, frustrated: "ไหนภาษาไทย ทำไมไม่ทำเลย ต้องมาสั่งทุกครั้ง?" (where's

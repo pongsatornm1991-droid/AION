@@ -14,7 +14,7 @@ Scope: None.
 Handoff: See docs/ai-session-log.md's 2026-09-26/27 entries for full detail
 (commits f69b858, af28e02, 63970ef, 92fc52f, 34512b1, ef1dbac, 18ad2c8,
 cd6174c, 2f76f90, 58f2ef3, fb4459a, d32392a, 2359b32, 508567b, 82a7b1b,
-2849873, 8b6bbcd, 806fd12, aedfaea, fc7c8a3, fe19e99, e0f17e0, eeb5c5a, 083091b, 9977956, abcc207, b4cc255, 477a32f). Quick summary of where things stand:
+2849873, 8b6bbcd, 806fd12, aedfaea, fc7c8a3, fe19e99, e0f17e0, eeb5c5a, 083091b, 9977956, abcc207, b4cc255, 477a32f, ba35fdf). Quick summary of where things stand:
 
 1. AION's identity signature is a glowing cyan question-mark held in one
    hand (not a chest core, not a crystal) -- updated everywhere it's
@@ -341,6 +341,21 @@ cd6174c, 2f76f90, 58f2ef3, fb4459a, d32392a, 2359b32, 508567b, 82a7b1b,
     time either. Generalized tools/youtube_release_watchdog.py to watch
     any workflow (not just youtube-creator.yml); youtube-release-
     watchdog.yml now self-heals both. 9 new tests; full suite green.
+
+33. Owner: what else to level up toward "content creator." Agreed on a
+    two-way engagement loop (viewers currently only ever got a one-off
+    reply, never a real chance to shape content), guided by "คนชอบความ
+    สงสัย อยากรู้ ไม่ใช่อยากเรียน". Added
+    CommentAutoReplyCycle._capture_audience_curiosity()
+    (brain/comment_reply.py): a genuine viewer question, after a
+    successful reply, becomes a real CuriosityEngine open question
+    (tagged audience-suggested) that flows through the normal research
+    pipeline like any other -- deduped against open questions, never
+    raises, never fabricates an answer in the reply itself. 6 new tests;
+    full suite green. Not yet done: the reverse direction (surfacing in
+    a video or a public post that a topic came from a viewer) --
+    natural next step if the owner wants the loop to feel visible, not
+    just functional.
 
 Nothing urgent open. The owner has been told, and agreed, that the
 easy/code-findable technical gaps in this pipeline are largely closed for
