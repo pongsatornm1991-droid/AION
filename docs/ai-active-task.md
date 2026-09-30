@@ -394,7 +394,38 @@ cd6174c, 2f76f90, 58f2ef3, fb4459a, d32392a, 2359b32, 508567b, 82a7b1b,
     A full beat-count/order redesign is still the bigger remaining option
     from item 34, not yet requested. 5 new tests; full suite green.
 
-Nothing urgent open. The owner has been told, and agreed, that the
+36. Status check, 2026-09-30, ~02:20 UTC: read `public/aion-production-
+    control.json` and `public/aion-workflow-status.json` (both bot-
+    refreshed minutes earlier). Two things worth a look, neither blocking
+    release right now:
+    a. `integrity.alerts` has a live `motion-fallback-rate` warning: the
+       last 3 episodes that attempted motion used the ffmpeg still-hold
+       fallback (`tools/produce_creator_motion.py::render_static_
+       fallback`) for all 38 sampled scenes, not just an occasional
+       reject -- same *symptom* as the 2026-09-25 Veo-access incident
+       already documented in that file's own docstring, but not yet
+       confirmed to be the same root cause this time. `motion_contract.
+       fallback_error_type` on the affected episodes' JSON has the exact
+       provider error class and would confirm it in one read, but this
+       session couldn't quickly locate the live affected episode's JSON
+       in this checkout (git history for assets/content-library/aion-
+       stories/ only shows the .mp4s changing, not the manifest, in the
+       commit checked) -- worth a real look rather than more guessing.
+    b. 8 of 45 workflow tiles in aion-workflow-status.json still show
+       their LAST run as a failure, all dated 2026-09-29 and several
+       citing the exact `actions/checkout@v4` / "Checkout AION memory"
+       symptom from the MEMORY_REPO_PAT expiry (item 31) -- but none of
+       them have run again since the token was rotated to confirm the
+       fix actually reached them (their schedules are infrequent:
+       growth-pulse.yml, scientific-discovery.yml, obsidian-brain.yml,
+       propose-profile-change.yml, youtube-audience.yml, asset-hygiene.
+       yml, creator-competitive-scan.yml, revenue-brain.yml). Worth
+       checking after each one's next scheduled run, not urgent today.
+    `shorts_buffer` is 6/14 quality-ready (normal catch-up, not a stall --
+    no `research-pipeline-stall` alert fired), and the 18:00/20:30 cadence
+    is running.
+
+Nothing urgent open beyond item 36's two watch-items above. The owner has been told, and agreed, that the
 easy/code-findable technical gaps in this pipeline are largely closed for
 now -- what's next needs real time and view/subscriber data to accumulate,
 not more speculative code changes. Still explicitly deferred: wiring real
