@@ -14,7 +14,7 @@ Scope: None.
 Handoff: See docs/ai-session-log.md's 2026-09-26/27 entries for full detail
 (commits f69b858, af28e02, 63970ef, 92fc52f, 34512b1, ef1dbac, 18ad2c8,
 cd6174c, 2f76f90, 58f2ef3, fb4459a, d32392a, 2359b32, 508567b, 82a7b1b,
-2849873, 8b6bbcd, 806fd12, aedfaea, fc7c8a3, fe19e99, e0f17e0, eeb5c5a, 083091b, 9977956, abcc207, b4cc255, 477a32f, ba35fdf, 74fd33e, 132537d). Quick summary of where things stand:
+2849873, 8b6bbcd, 806fd12, aedfaea, fc7c8a3, fe19e99, e0f17e0, eeb5c5a, 083091b, 9977956, abcc207, b4cc255, 477a32f, ba35fdf, 74fd33e, 132537d, 619b660). Quick summary of where things stand:
 
 1. AION's identity signature is a glowing cyan question-mark held in one
    hand (not a chest core, not a crystal) -- updated everywhere it's
@@ -398,19 +398,27 @@ cd6174c, 2f76f90, 58f2ef3, fb4459a, d32392a, 2359b32, 508567b, 82a7b1b,
     control.json` and `public/aion-workflow-status.json` (both bot-
     refreshed minutes earlier). Two things worth a look, neither blocking
     release right now:
-    a. `integrity.alerts` has a live `motion-fallback-rate` warning: the
-       last 3 episodes that attempted motion used the ffmpeg still-hold
-       fallback (`tools/produce_creator_motion.py::render_static_
-       fallback`) for all 38 sampled scenes, not just an occasional
-       reject -- same *symptom* as the 2026-09-25 Veo-access incident
-       already documented in that file's own docstring, but not yet
-       confirmed to be the same root cause this time. `motion_contract.
-       fallback_error_type` on the affected episodes' JSON has the exact
-       provider error class and would confirm it in one read, but this
-       session couldn't quickly locate the live affected episode's JSON
-       in this checkout (git history for assets/content-library/aion-
-       stories/ only shows the .mp4s changing, not the manifest, in the
-       commit checked) -- worth a real look rather than more guessing.
+    a. RESOLVED same session: `integrity.alerts`' live `motion-fallback-
+       rate` warning (last 3 episodes, 38/38 scenes on still-hold). The
+       affected episodes' manifests actually live at
+       `content/creator_series/*.json` (not assets/content-library/aion-
+       stories/, which only holds binary assets) -- once found, all 4
+       recent fallback episodes showed the identical `motion_contract.
+       fallback_error_type: "ValueError"`. Reproduced the exact
+       `tools/gemini_video.py::generate_scene_video()` call locally
+       against the currently installed `google-genai` SDK and confirmed
+       the cause: `generate_audio=False` is rejected outright (plain
+       ValueError) in Gemini Developer API mode, which is what a bare
+       `GEMINI_API_KEY` uses. Fixed, plus a second latent bug found in
+       the same pass (`files.download()`'s `destination=` kwarg was
+       removed, would have raised TypeError right behind the ValueError)
+       and a proactive migration off the separately-deprecated
+       `prompt=`/`image=` args to `source=`. Pinned `google-genai==
+       2.25.0` in requirements.txt -- it was unpinned, which is *why*
+       this broke silently with no code change on our side. 1 new
+       regression test (exercises the real installed SDK types, mocks
+       only the network-calling Client). Full suite green.
+       Commits: 619b660
     b. 8 of 45 workflow tiles in aion-workflow-status.json still show
        their LAST run as a failure, all dated 2026-09-29 and several
        citing the exact `actions/checkout@v4` / "Checkout AION memory"

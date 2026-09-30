@@ -13,6 +13,31 @@ Format:
 Commits: <hash> [, <hash> ...]
 ```
 
+## 2026-09-30 — Claude Code — Fixed motion production's 100% still-hold fallback
+
+A routine status check found `integrity.alerts` carrying a live
+`motion-fallback-rate` warning: the last 3 episodes with motion
+attempts used the ffmpeg still-hold fallback for all 38 sampled
+scenes. Root-caused by actually reproducing `generate_scene_video()`'s
+exact call against the currently installed `google-genai` SDK (was
+unpinned in requirements.txt, so CI silently gets whatever the SDK's
+latest release is): passing `generate_audio=False` raises a plain
+`ValueError` in Gemini Developer API mode (this module authenticates
+with a bare `GEMINI_API_KEY`, i.e. Developer API mode -- only
+Enterprise Agent Platform mode accepts that parameter, even as an
+explicit False). `files.download()`'s `destination=` keyword was also
+removed in the same SDK version (now returns bytes) -- would have
+raised `TypeError` immediately behind the ValueError. Also migrated
+off the separately-deprecated `prompt=`/`image=` arguments to
+`source=` proactively (removal window already passed).
+
+Pinned `google-genai==2.25.0` (the verified-working version) so a
+future SDK release becomes a deliberate, tested bump instead of a
+repeat of this silent outage. Added a regression test that exercises
+the real installed `google.genai.types` classes with only the
+network-calling `Client` mocked. Full suite green.
+Commits: 619b660
+
 ## 2026-09-30 — Claude Code — Synthesize the research into one understanding before writing the beats
 
 Direct answer to the structural question left open at the end of the
