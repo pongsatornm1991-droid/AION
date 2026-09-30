@@ -14,7 +14,7 @@ Scope: None.
 Handoff: See docs/ai-session-log.md's 2026-09-26/27 entries for full detail
 (commits f69b858, af28e02, 63970ef, 92fc52f, 34512b1, ef1dbac, 18ad2c8,
 cd6174c, 2f76f90, 58f2ef3, fb4459a, d32392a, 2359b32, 508567b, 82a7b1b,
-2849873, 8b6bbcd, 806fd12, aedfaea, fc7c8a3, fe19e99, e0f17e0, eeb5c5a, 083091b, 9977956, abcc207, b4cc255, 477a32f, ba35fdf, 74fd33e, 132537d, 619b660). Quick summary of where things stand:
+2849873, 8b6bbcd, 806fd12, aedfaea, fc7c8a3, fe19e99, e0f17e0, eeb5c5a, 083091b, 9977956, abcc207, b4cc255, 477a32f, ba35fdf, 74fd33e, 132537d, 619b660, 7979703). Quick summary of where things stand:
 
 1. AION's identity signature is a glowing cyan question-mark held in one
    hand (not a chest core, not a crystal) -- updated everywhere it's
@@ -433,7 +433,15 @@ cd6174c, 2f76f90, 58f2ef3, fb4459a, d32392a, 2359b32, 508567b, 82a7b1b,
     no `research-pipeline-stall` alert fired), and the 18:00/20:30 cadence
     is running.
 
-Nothing urgent open beyond item 36's two watch-items above. The owner has been told, and agreed, that the
+37. Owner asked for a suggestion; agreed to it directly ("ทำได้เลย").
+    Pinned the remaining external-provider SDKs in requirements.txt --
+    `edge-tts`, `google-api-python-client`, `google-auth-oauthlib`,
+    `google-auth-httplib2` -- to their current, verified-working
+    installed versions, closing the same "unpinned dependency breaks
+    silently" risk class item 36.a just found and fixed for
+    `google-genai`. Full suite green. Commits: 7979703
+
+Nothing urgent open beyond item 36.b's watch-item above. The owner has been told, and agreed, that the
 easy/code-findable technical gaps in this pipeline are largely closed for
 now -- what's next needs real time and view/subscriber data to accumulate,
 not more speculative code changes. Still explicitly deferred: wiring real

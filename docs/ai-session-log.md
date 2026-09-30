@@ -13,6 +13,21 @@ Format:
 Commits: <hash> [, <hash> ...]
 ```
 
+## 2026-09-30 — Claude Code — Pinned the remaining external-provider SDKs
+
+Follow-up suggestion after the google-genai incident above: `edge-tts`
+and the `google-api-python-client` family (`google-auth-oauthlib`,
+`google-auth-httplib2` -- OAuth companions for the YouTube upload
+flow) were still unpinned in requirements.txt, carrying the identical
+"provider ships a breaking release, CI silently installs it" risk that
+had just fired for Veo. Pinned all four to their current, verified-
+working installed versions (edge-tts==7.2.8, google-api-python-
+client==2.199.0, google-auth-oauthlib==1.4.1, google-auth-
+httplib2==0.4.2). Left requests/Pillow/imageio-ffmpeg/pythainlp/
+python-dotenv unpinned -- general-purpose libraries, not provider
+SDKs with an API contract that can change under us. Full suite green.
+Commits: 7979703
+
 ## 2026-09-30 — Claude Code — Fixed motion production's 100% still-hold fallback
 
 A routine status check found `integrity.alerts` carrying a live
