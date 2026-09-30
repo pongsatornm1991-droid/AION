@@ -53,12 +53,26 @@ def generate_scene_video(prompt, source_image, destination, *, aspect_ratio="9:1
         client = genai.Client(api_key=_api_key())
         operation = client.models.generate_videos(
             model=(model or os.getenv("AION_VIDEO_MODEL") or DEFAULT_MODEL).strip(),
-            prompt=str(prompt),
-            image=types.Image(image_bytes=image_bytes, mime_type=mime_type),
+            # Found 2026-09-30: every scene of every recent episode was
+            # silently falling back to a still-hold clip. Root-caused (by
+            # reproducing this exact call against the currently installed
+            # google-genai SDK) to a plain ValueError raised client-side,
+            # before any network request: "generate_audio parameter is only
+            # supported in Gemini Enterprise Agent Platform mode, not in
+            # Gemini Developer API mode" -- this module authenticates with
+            # a bare GEMINI_API_KEY (Developer API mode), so `generate_audio`
+            # must not be passed at all, not even as an explicit False. The
+            # separate prompt=/image= arguments are also deprecated in the
+            # same SDK version (removal not before 2026-07-31, already
+            # passed) in favour of `source=`; migrated proactively so the
+            # next SDK release doesn't reopen this same failure mode.
+            source=types.GenerateVideosSource(
+                prompt=str(prompt),
+                image=types.Image(image_bytes=image_bytes, mime_type=mime_type),
+            ),
             config=types.GenerateVideosConfig(
                 aspect_ratio=aspect_ratio,
                 resolution="720p",
-                generate_audio=False,
                 person_generation="allow_adult",
             ),
         )
@@ -73,7 +87,12 @@ def generate_scene_video(prompt, source_image, destination, *, aspect_ratio="9:1
         if not videos:
             return {"ok": False, "state": "provider-returned-no-video", "operation": operation.name}
         target.parent.mkdir(parents=True, exist_ok=True)
-        client.files.download(file=videos[0].video, destination=str(target))
+        # Found in the same pass: `destination=` was removed from
+        # files.download() in this SDK version too (now returns bytes) --
+        # this raised TypeError immediately behind the ValueError above,
+        # so fixing only the ValueError would have traded one silent
+        # every-scene fallback for another.
+        target.write_bytes(client.files.download(file=videos[0].video))
         if not target.is_file() or target.stat().st_size == 0:
             return {"ok": False, "state": "download-output-missing", "operation": operation.name}
         return {"ok": True, "state": "completed", "operation": operation.name,
