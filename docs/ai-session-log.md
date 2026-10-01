@@ -3459,3 +3459,9 @@ Targeted pipeline and regression suites pass (24 tests). The full suite was
 also started locally; its pre-existing failures were traced to the timestamp,
 legacy reveal, and local ffmpeg test assumptions above, and each now passes
 in its focused suite.
+
+Follow-up: changed automatic motion's scheduled recovery from daily to hourly.
+The workflow-run handoff remains the normal immediate path; this is only a
+bounded no-op safety sweep for missed events, so an asset-complete Short can
+no longer wait a full day for its next motion attempt. Motion resilience and
+workflow-handoff tests pass (7 tests).

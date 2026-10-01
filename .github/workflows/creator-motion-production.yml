@@ -5,10 +5,11 @@ on:
     workflows: [AION - subject-first scene production]
     types: [completed]
   schedule:
-    # Daily recovery pass.  It turns only an approved current episode into
-    # motion, and uses the local kinetic fallback when Veo is unavailable, so
-    # a temporary provider credential/outage can never drain the Shorts queue.
-    - cron: "37 3 * * *"
+    # Hourly recovery net. The workflow-run handoff is the normal fast path,
+    # but scheduled events and bot-token pushes can occasionally be delayed
+    # or dropped. A one-day retry left image-complete Shorts idle far too long.
+    # The bounded worker is a cheap no-op when there is no ready episode.
+    - cron: "37 * * * *"
   workflow_dispatch: {}
 
 concurrency:
