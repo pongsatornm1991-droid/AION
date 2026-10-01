@@ -2847,6 +2847,21 @@ class WebLearningCycle:
             )
 
         else:
+            # ``CuriosityEngine.raise_question()`` returns the raw memory
+            # record, while ``open_questions()`` returns that same record
+            # enriched with the parsed statement and criteria.  Recovery
+            # planning creates a question and hands it straight to this
+            # method in one run, so accept either safe representation.  If
+            # we skip this normalization, a valid new question becomes an
+            # empty external-search query and the entire recovery batch is
+            # wasted before any evidence is fetched.
+            if not str(question_entry.get("statement") or "").strip():
+                parsed_question = self.curiosity._parse_content(
+                    question_entry.get("content") or ""
+                )
+                if parsed_question:
+                    question_entry = {**question_entry, **parsed_question}
+
             learning_mode = "direct"
 
             assessment = (

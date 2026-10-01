@@ -3346,3 +3346,18 @@ than two supporting objects, and no decorative set dressing, particles, or
 bokeh unless they explain the mechanism. Hook/reveal framing retains its
 existing energy but obeys the same object budget. This applies only to new
 renders. Creator Scene Production and visual-policy regression tests pass.
+
+## 2026-10-01 — Codex — Repaired recovery questions reaching Research with an empty query
+
+The Learning workflow itself was green but its recovery work did not happen:
+it seeded five valid questions, then passed their raw memory records directly
+to `WebLearningCycle`. Raw records contain the question inside `content`,
+whereas the retrieval layer expects a parsed `statement`; every source search
+therefore failed immediately with `query cannot be empty`.
+
+`WebLearningCycle.research_once()` now safely normalizes a direct raw
+Curiosity record before policy assessment or retrieval. This is deliberately
+representation-only: it changes neither the two-independent-source rule,
+research budget, claim-safety checks, nor publishing gate. A regression test
+asserts that a newly saved direct question produces non-empty planned search
+queries. Learning, initiative, and release-recovery targeted tests pass.

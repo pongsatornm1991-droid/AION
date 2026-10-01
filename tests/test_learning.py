@@ -379,6 +379,32 @@ class DraftAnswerTests(BaseLearningTest):
 
 class WebLearningCycleTests(BaseLearningTest):
 
+    def test_direct_raw_question_record_is_normalized_before_search(self):
+        """Recovery may hand a freshly saved (unparsed) question to research."""
+        raw_question = self._raise_question(
+            "Why does a moon appear to change shape?"
+        )
+        queries = []
+
+        def search(query, limit=3):
+            queries.append(query)
+            return []
+
+        cycle = WebLearningCycle(
+            self.memory,
+            self.curiosity,
+            WebLearningGenerator(SafeProvider()),
+            search_fn=search,
+            fetch_fn=fake_fetch({}),
+        )
+
+        report = cycle.research_once(question_entry=raw_question)
+
+        self.assertEqual("no-search-results", report["stage"])
+        self.assertTrue(queries)
+        self.assertTrue(all(query.strip() for query in queries))
+        self.assertTrue(any("moon" in query.lower() for query in queries))
+
     def test_disabled_source_is_never_contacted(self):
         self._raise_question()
 
