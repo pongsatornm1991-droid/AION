@@ -17,6 +17,31 @@ class ContentExpansionPlanner:
     CATEGORY = "content_expansion_maps"
     SOURCE = "aion-content-expansion"
     MAX_SEED_PER_SHIFT = 2
+    MAX_ANGLES_PER_STORY = 4
+
+    # Every solid subject can become more than one useful Short, but the
+    # follow-ups must not be a padded retelling of the parent.  These three
+    # editorial lenses make each continuation do a different job for the
+    # viewer: show the mechanism, connect it to an observation, or clarify a
+    # boundary.  They are deliberately questions, never claims inherited
+    # from the parent package.
+    GENERIC_CREATOR_ANGLES = (
+        (
+            "mechanism",
+            "What is the smallest observable mechanism that helps answer: {topic}",
+            "Zoom in on one moving part, then reveal how that small change produces the larger effect.",
+        ),
+        (
+            "everyday-test",
+            "Where could someone notice or test the idea behind: {topic}",
+            "Begin with a familiar scene, then connect it to one evidence-backed observation.",
+        ),
+        (
+            "boundary",
+            "What does this explanation not automatically mean: {topic}",
+            "Show the tempting oversimplification beside the supported boundary, ending with a clearer question.",
+        ),
+    )
 
     # These are editorial questions, not factual answers.  They turn a broad,
     # already-grounded topic into narrower questions a researcher can verify.
@@ -71,6 +96,41 @@ class ContentExpansionPlanner:
         tags = {str(tag) for tag in brief.get("question_tags") or []}
         return next((tag for tag in tags if tag in ContentExpansionPlanner.FAMILY_ANGLES), None)
 
+    @classmethod
+    def _follow_up_angles(cls, brief, family):
+        """Return a small, varied Creator mini-series for one source package.
+
+        Family-specific angles keep subjects such as money or Moon living
+        concrete.  The generic lenses then fill the remaining slots for any
+        evidence-backed subject, so a science story is not artificially
+        limited to one episode just because it lacks a hand-written family.
+        """
+        topic = str(brief.get("topic") or "this question").strip()
+        angles = []
+        for index, (question, visual) in enumerate(cls.FAMILY_ANGLES.get(family, ())):
+            angles.append({
+                "angle_key": f"{family or 'general'}-specific-{index + 1}",
+                "angle_type": "specific-follow-up",
+                "question": question,
+                "visual_metaphor": visual,
+                "status": "needs-independent-evidence",
+            })
+
+        for angle_type, question_template, visual in cls.GENERIC_CREATOR_ANGLES:
+            question = question_template.format(topic=topic)
+            if question.lower() in {item["question"].lower() for item in angles}:
+                continue
+            angles.append({
+                "angle_key": f"{family or 'general'}-{angle_type}",
+                "angle_type": angle_type,
+                "question": question,
+                "visual_metaphor": visual,
+                "status": "needs-independent-evidence",
+            })
+            if len(angles) >= cls.MAX_ANGLES_PER_STORY:
+                break
+        return angles
+
     def create_for_brief(self, brief):
         """Persist an angle map once; it never stages or publishes anything."""
         root_id = str(brief.get("root_question_id") or "").strip()
@@ -80,10 +140,11 @@ class ContentExpansionPlanner:
         if existing:
             return {"stage": "expansion-map-exists", "map": existing}
         family = self._family(brief)
-        angles = self.FAMILY_ANGLES.get(family, ())
+        topic = str(brief.get("topic") or "this question").strip()
+        angles = self._follow_up_angles(brief, family)
         source_urls = [str(item.get("url") or "") for item in brief.get("sources") or [] if item.get("url")]
         expansion_map = {
-            "version": 1,
+            "version": 2,
             "status": "planned",
             "root_question_id": root_id,
             "story_package_id": brief.get("story_package_id") or root_id,
@@ -95,15 +156,16 @@ class ContentExpansionPlanner:
                 "topic": brief.get("topic"),
                 "status": "research-ready-primary",
             },
-            "follow_up_angles": [
-                {
-                    "angle_key": f"{family or 'general'}-{index + 1}",
-                    "question": question,
-                    "visual_metaphor": visual,
-                    "status": "needs-independent-evidence",
-                }
-                for index, (question, visual) in enumerate(angles)
-            ],
+            "creator_series_summary": {
+                "series_shape": "one surprising question, then distinct mechanism, everyday, and boundary episodes",
+                "core_story": topic,
+                "planned_episode_count": 1 + len(angles),
+                "storytelling_rule": (
+                    "Each Short must open with one concrete surprise, show one visual change, "
+                    "deliver one evidence-backed reveal, and end with a useful takeaway or next question."
+                ),
+            },
+            "follow_up_angles": angles,
             "boundary": (
                 "Parent sources provide context only for follow-ups. Each follow-up must obtain "
                 "its own independent traceable evidence, novelty approval, and full production "
@@ -154,5 +216,11 @@ class ContentExpansionPlanner:
         return {
             "source_packages": len(maps),
             "planned_follow_ups": sum(len(item.get("follow_up_angles") or []) for item in maps),
+            "planned_creator_episodes": sum(
+                int((item.get("creator_series_summary") or {}).get(
+                    "planned_episode_count", 1 + len(item.get("follow_up_angles") or [])
+                ))
+                for item in maps
+            ),
             "rule": "Follow-up angles are preserved, but each one independently earns evidence before production.",
         }

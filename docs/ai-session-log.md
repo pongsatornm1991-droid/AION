@@ -3361,3 +3361,20 @@ representation-only: it changes neither the two-independent-source rule,
 research budget, claim-safety checks, nor publishing gate. A regression test
 asserts that a newly saved direct question produces non-empty planned search
 queries. Learning, initiative, and release-recovery targeted tests pass.
+
+## 2026-10-01 — Codex — Made every grounded subject a bounded Creator mini-series
+
+Every new evidence-backed story package now records a concise Creator-series
+summary: its core story, planned episode count, and a storytelling rule for
+one surprise, one visible change, one evidence-backed reveal, and one useful
+takeaway. It then preserves up to four genuinely distinct follow-up angles.
+
+Hand-written history angles remain first where available. All other subjects
+now receive the same bounded set of Creator lenses: mechanism, everyday test,
+and boundary/misconception. This makes a concrete subject such as orbital
+free fall capable of becoming a primary Short plus several future episodes,
+instead of one isolated clip. Follow-ups remain plans only: each must earn
+its own two independent sources, novelty approval, and full production gates;
+the parent evidence is context, never permission to repeat or publish.
+
+Content Expansion and Research-to-Story regression suites pass.

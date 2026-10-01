@@ -77,7 +77,7 @@ class ResearchToStoryTests(unittest.TestCase):
 
             brief = ResearchToStory(memory).propose_once()["brief"]
             self.assertEqual("planned", brief["content_expansion"]["status"])
-            self.assertEqual(2, len(brief["content_expansion"]["follow_up_angles"]))
+            self.assertEqual(4, len(brief["content_expansion"]["follow_up_angles"]))
             self.assertTrue(all(
                 angle["status"] == "needs-independent-evidence"
                 for angle in brief["content_expansion"]["follow_up_angles"]
