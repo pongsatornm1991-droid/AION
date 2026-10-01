@@ -3378,3 +3378,21 @@ its own two independent sources, novelty approval, and full production gates;
 the parent evidence is context, never permission to repeat or publish.
 
 Content Expansion and Research-to-Story regression suites pass.
+
+## 2026-10-01 — Codex — Moved future Shorts from research-report language to a visual story arc
+
+Owner clarified that verified material must stay behind the scenes: the
+viewer should receive fun, simple content storytelling rather than a
+research read-out. New Research-to-Story handoffs now explicitly plan a
+surprising moment, a small tension, a visible cause-and-effect reveal, an
+honest twist or boundary, and a short memorable landing. Their source links,
+two-independent-source requirement, claim-safety checks, and quality gates
+are unchanged; those are guardrails, not spoken lines.
+
+`StoryEpisodeStager` now gives both AI-written and no-provider fallback
+narration this same original mystery-to-reveal direction. It bans research
+process language from rewrite prompts, removes named-channel imitation from
+production prompts, and changes the fixed intro/question/transition/ending
+lines to story language. A regression test guards the required original arc
+and confirms reference-channel names cannot leak into the prompt. Story
+stager, handoff, and shared-beat suites pass (45 tests).

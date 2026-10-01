@@ -154,7 +154,9 @@ class StoryEpisodeStager:
         """Keep a short source observation intelligible for a five-second beat."""
         if len(str(part).split()) >= 9:
             return part
-        return f"{part} This is a direct observation about {topic}."
+        # The provenance stays in the episode handoff.  Spoken narration
+        # should carry the fact forward, not announce the research process.
+        return f"{part} That detail changes the picture."
 
     @staticmethod
     def _rewritable_beat(beat):
@@ -226,8 +228,8 @@ class StoryEpisodeStager:
             return topic, {"origin": "bounded-fallback", "reason": "provider-unavailable"}
         prompt = "\n".join([
             "Rewrite this documentary short's research question as one short, punchy phrase "
-            "(roughly 4-9 words) a narrator could say out loud, in the energetic style of "
-            "Kurzgesagt or a viral science short -- a bold, confident statement works just as "
+            "(roughly 4-9 words) a narrator could say out loud in an original, energetic "
+            "science-storytelling voice -- a bold, confident statement works just as "
             "well as a question.",
             "Absolute rules:",
             "- Preserve the actual subject; never invent a new fact or change what is being asked.",
@@ -326,17 +328,18 @@ class StoryEpisodeStager:
             return scenes, {"version": "ai-narration-rewrite-v1", "origin": "bounded-fallback", "reason": "no-rewritable-beats"}
 
         prompt_lines = [
-            "You are helping AION retell short evidence-grounded beats as one flowing, "
-            "casual, curiosity-driven story for a fast-paced short video -- the style of "
-            "a popular Thai storytelling channel (ไอ้ก้าง เล่าเรื่อง) or Kurzgesagt, not a "
-            "research summary. The person watching should feel like a friend is telling "
-            "them a wild thing they just found out, building curiosity beat to beat --"
-            "never like someone reading a lit-review or citing sources.",
+            "You are helping AION turn verified material into one flowing, casual, "
+            "curiosity-driven visual story for a fast-paced Short. Do not imitate any "
+            "creator, channel, studio, or franchise. The viewer should feel like a friend "
+            "is telling them a wild thing they just found out, never like someone reading "
+            "a report. Shape the flow as: surprising moment -> small tension -> visible "
+            "cause and effect -> one reframe or twist -> memorable landing.",
             "Absolute rules:",
             "- Use ONLY information already present in each beat's own given text. Never add a new fact, number, name, or claim that is not already stated there.",
             "- Never phrase anything as AION having feelings, consciousness, or subjective experience -- AION is an AI narrator describing evidence, never a sentient being.",
             "- Keep each beat's rewrite close to its target word count (+/-25%), since it must still fit a fixed five-second scene.",
             "- Treat every beat below as one continuous story in order, not independent snippets -- each line should feel like it flows from the one before it.",
+            "- Prefer concrete action and simple cause-and-effect over abstract explanation. Let the picture do most of the explaining.",
         ]
         if understanding:
             prompt_lines.append(
@@ -348,8 +351,8 @@ class StoryEpisodeStager:
             )
         prompt = "\n".join(prompt_lines + [
             "- Banned words and phrases, in any form: \"source\", \"sources\", \"evidence\" "
-            "(the word itself, not the underlying fact), \"observation\", \"documented\", "
-            "\"the article\", \"the authors\", \"studies show\", \"research\", \"clue\" used "
+                "(the word itself, not the underlying fact), \"observation\", \"documented\", "
+                "\"the article\", \"the authors\", \"studies show\", \"research\", \"clue\" used "
             "as a label for a citation. Say what was actually found, not that a source "
             "found it.",
             "- Bad (sounds like a citation): \"A study found that muscles stretch each pigment sac.\" "
@@ -548,7 +551,7 @@ class StoryEpisodeStager:
                  # review; it still promises the same rigor (real
                  # findings, not a guess), just without sounding like a
                  # methods section.
-                 "narration": "Let's dig into what we actually know."},
+                "narration": "So what tiny thing is making this happen?"},
                 {"n": 3, "beat": EVIDENCE_ONE_INTRO, "visual": f"Show the first evidence scene for {topic}, guided by {first_title}; AION remains small and practical in the background.",
                  # Found 2026-09-29: this used to speak the source's raw
                  # academic title aloud (e.g. "Our first clue comes from An
@@ -558,15 +561,15 @@ class StoryEpisodeStager:
                  # never a fact the viewer needs spoken; it is preserved
                  # elsewhere (sources list, description) for anyone who
                  # wants to check it.
-                 "narration": "Here's our first clue. Let's take a closer look."},
+                 "narration": "The first part of the trick is hiding in plain sight."},
                 {"n": 4, "beat": EVIDENCE_ONE_A, "visual": f"Depict this documented observation about {topic}: {first_parts[0]} Keep the subject dominant; AION is a small guide only.", "narration": self._narrated_evidence(first_parts[0], topic)},
-                {"n": 5, "beat": EVIDENCE_ONE_B, "visual": f"Continue the first documented observation for {topic}: {(first_parts[1] if len(first_parts) > 1 else evidence_one)} Keep the evidence visible and AION in the background.", "narration": self._narrated_evidence(first_parts[1], topic) if len(first_parts) > 1 else f"This is the first direct observation connected to {topic}."},
+                {"n": 5, "beat": EVIDENCE_ONE_B, "visual": f"Continue the first documented observation for {topic}: {(first_parts[1] if len(first_parts) > 1 else evidence_one)} Keep the evidence visible and AION in the background.", "narration": self._narrated_evidence(first_parts[1], topic) if len(first_parts) > 1 else "That is where the change begins."},
                 {"n": 6, "beat": EVIDENCE_TWO_INTRO, "visual": f"Move to a distinct second evidence scene for {topic}, guided by {second_title}; AION remains small at the edge.",
                  # Same fix as EVIDENCE_ONE_INTRO above: no raw source title
                  # spoken aloud.
-                 "narration": "Here's a second clue. Let's see how it fits."},
+                 "narration": "Then one more detail flips the whole picture."},
                 {"n": 7, "beat": EVIDENCE_TWO_A, "visual": f"Depict this documented observation about {topic}: {second_parts[0]} Keep the subject, action, and setting central; AION observes subtly from the distant edge.", "narration": self._narrated_evidence(second_parts[0], topic)},
-                {"n": 8, "beat": EVIDENCE_TWO_B, "visual": f"Continue the second documented observation for {topic}: {(second_parts[1] if len(second_parts) > 1 else evidence_two)} AION is only a small contextual guide.", "narration": self._narrated_evidence(second_parts[1], topic) if len(second_parts) > 1 else f"This gives us a second direct observation about {topic}."},
+                {"n": 8, "beat": EVIDENCE_TWO_B, "visual": f"Continue the second documented observation for {topic}: {(second_parts[1] if len(second_parts) > 1 else evidence_two)} AION is only a small contextual guide.", "narration": self._narrated_evidence(second_parts[1], topic) if len(second_parts) > 1 else "Now the hidden pattern starts to show."},
                 {"n": 9, "beat": CONNECTION, "visual": f"A visual comparison of the two documented observations about {topic}; show the subject and environment, with AION pointing only subtly from the edge.",
                  # Found 2026-09-22 (quality_incident: "generic-template-
                  # story-does-not-explain-topic"): this beat used to say
@@ -576,9 +579,9 @@ class StoryEpisodeStager:
                  # the story has a real synthesis moment instead of a filler
                  # transition -- the mechanism itself still comes from
                  # research's own sourced observations, never invented here.
-                 "narration": understanding or f"Put together: {first_parts[0]} And here's the second piece: {second_parts[0] if second_parts else evidence_two}"},
-                {"n": 10, "beat": BOUNDARY, "visual": f"Show the boundary between what the sources document and what they do not establish about {topic}; no invented action, AION remains in the background.", "narration": uncertainty or "The sources do not settle every detail, so we should not claim more than they show."},
-                {"n": 11, "beat": TAKEAWAY, "visual": f"Return to the central subject of {topic} in a final meaningful wide scene; AION is a small observer, not the focus.", "narration": f"The careful takeaway is simple: begin with what was observed about {hook_phrase.rstrip('?.!')}, then separate it from interpretation."},
+                 "narration": understanding or f"That is the reveal: {first_parts[0]} And the next piece is {second_parts[0] if second_parts else evidence_two}"},
+                {"n": 10, "beat": BOUNDARY, "visual": f"Show the boundary between what the sources document and what they do not establish about {topic}; no invented action, AION remains in the background.", "narration": uncertainty or "But the last piece is still not fully clear, so the mystery is not over yet."},
+                {"n": 11, "beat": TAKEAWAY, "visual": f"Return to the central subject of {topic} in a final meaningful wide scene; AION is a small observer, not the focus.", "narration": f"So that is what is really happening behind {hook_phrase.rstrip('?.!')}."},
                 {"n": 12, "beat": INVITATION, "visual": f"End on the real subject and environment of {topic}, leaving space for wonder; AION exits subtly at the edge.",
                  # Found 2026-09-22: "Keep asking better questions, and
                  # check the evidence with me" is the exact same closing
@@ -589,7 +592,7 @@ class StoryEpisodeStager:
                  # sign-off. Must not end on "?" (WatchabilityGate) --
                  # topic itself is a question, so this closes past it, not
                  # on it.
-                 "narration": f"That's the real story behind {hook_phrase.rstrip('?.!')}. Notice it again, and you will see it differently next time."},
+                 "narration": f"Next time you see it, {hook_phrase.rstrip('?.!')} will never look quite the same."},
             ],
             "research_handoff_id": root_id,
             "story_package_id": handoff.get("story_package_id") or root_id,

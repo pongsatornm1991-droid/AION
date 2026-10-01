@@ -14,9 +14,11 @@ class FakeProvider:
         self.response = response
         self.exc = exc
         self.calls = 0
+        self.last_prompt = ""
 
     def generate(self, prompt):
         self.calls += 1
+        self.last_prompt = prompt
         if self.exc:
             raise self.exc
         return self.response
@@ -49,6 +51,19 @@ class RewriteSceneNarrationsTests(unittest.TestCase):
         self.assertNotEqual(self.SCENES[0]["narration"], scenes[0]["narration"])
         # The untargeted "question" beat is never touched.
         self.assertEqual(self.SCENES[1]["narration"], scenes[1]["narration"])
+
+    def test_rewrite_prompt_requires_an_original_story_arc_not_channel_imitation(self):
+        provider = FakeProvider(response=json.dumps({
+            "1": self.SCENES[0]["narration"],
+            "4": self.SCENES[2]["narration"],
+        }))
+        stager = StoryEpisodeStager(memory=None, root=".", provider=provider)
+        stager._rewrite_scene_narrations([dict(s) for s in self.SCENES], "octopus color change")
+        prompt = provider.last_prompt
+        self.assertIn("surprising moment -> small tension -> visible", prompt)
+        self.assertIn("Do not imitate any creator, channel, studio, or franchise", prompt)
+        self.assertNotIn("Kurzgesagt", prompt)
+        self.assertNotIn("ไอ้ก้าง", prompt)
 
     def test_falls_back_to_the_original_line_when_a_candidate_claims_consciousness(self):
         response = json.dumps({
@@ -288,6 +303,9 @@ class StoryEpisodeStagerTests(unittest.TestCase):
             self.assertNotIn("second source", by_beat["connection"].lower())
             self.assertNotIn("step by step", by_beat["question"])
             self.assertNotIn("inventing an answer", by_beat["question"])
+            self.assertEqual("So what tiny thing is making this happen?", by_beat["question"])
+            self.assertEqual("The first part of the trick is hiding in plain sight.", by_beat["evidence-one-intro"])
+            self.assertEqual("Then one more detail flips the whole picture.", by_beat["evidence-two-intro"])
 
     def test_stages_with_an_ai_narration_rewrite_when_a_provider_is_configured(self):
         with tempfile.TemporaryDirectory() as root:

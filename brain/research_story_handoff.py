@@ -69,20 +69,25 @@ class ResearchStoryHandoff:
             # brand prefix pushes the actual hook toward where mobile
             # truncation cuts a long title off.
             "working_title": topic,
-            "hook": "AION walks into a place that seems impossible — then asks what the evidence actually says.",
-            "audience_value": "A viewer of any age can see how careful observation turns a surprising historical or scientific idea into something understandable.",
+            # Research is the safety rail, not the programme's voice.  The
+            # finished Short must feel like one small mystery unfolding,
+            # while the two independent sources remain available backstage
+            # for the quality gates and description.
+            "hook": "Open inside one surprising moment and let the viewer feel the question before explaining it.",
+            "audience_value": "A viewer of any age follows one vivid little mystery, sees its hidden cause, and leaves with a memorable new way to see an ordinary thing.",
             "beats": [
-                "AION meets the surprising question in a vivid setting.",
-                "AION shows what the first source supports.",
-                "AION compares the second source rather than repeating the claim.",
-                "AION names what remains uncertain and why it matters.",
-                "AION closes with one invitation for the viewer to keep wondering.",
+                "Open inside a concrete moment that looks surprising, strange, or impossible.",
+                "Raise one small tension: what is changing, and why does it matter?",
+                "Reveal the hidden cause as a clear visual chain of cause and effect.",
+                "Add one honest twist, boundary, or comparison that changes how the viewer sees it.",
+                "Close on one short line that makes the everyday world feel newly interesting.",
             ],
             "source_count": brief.get("source_count", 0),
             "sources": brief.get("sources", []),
             "unknown_facts": brief.get("unknown_facts", "State what the sources do not establish."),
             "cognitive_uncertainties": brief.get("cognitive_uncertainties", "Separate evidence from interpretation."),
             "visual_rule": "AION appears in every beat; create fresh scene-specific imagery and do not use text embedded in Instagram images.",
+            "narration_rule": "Tell a natural visual story, never a research report: do not mention sources, evidence, studies, research, or the checking process on screen. Verified facts remain in the handoff and quality gates, and appear through action, imagery, and cause-and-effect.",
             "handoff_rule": "Visual and audio production may begin only after this plan passes the existing quality gate.",
         }
         related = [root_id, brief.get("memory_id")] + [item.get("evidence_memory_id") for item in handoff["sources"]]
