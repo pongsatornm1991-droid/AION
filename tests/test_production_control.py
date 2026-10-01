@@ -115,6 +115,35 @@ class ProductionControlTests(unittest.TestCase):
             self.assertEqual(1, report["shorts_buffer"]["studio_ready"])
             self.assertTrue(report["episodes"][0]["release_ready"])
 
+    def test_published_queue_record_overrides_stale_storyboard_status(self):
+        # A storyboard file remains an immutable production artifact after
+        # upload.  The private Creator queue is the publication ledger, so a
+        # public video record must remove that episode from Studio's active
+        # and release-ready counts instead of showing it as work in progress.
+        with tempfile.TemporaryDirectory() as temp:
+            root = Path(temp)
+            (root / "content" / "creator_series").mkdir(parents=True)
+            (root / "assets").mkdir()
+            Image.new("RGB", (720, 1280), "navy").save(root / "assets" / "01.png")
+            Image.new("RGB", (720, 1280), "purple").save(root / "assets" / "02.png")
+            (root / "content" / "creator_series" / "test.json").write_text(json.dumps(_episode()), encoding="utf-8")
+            memory_root = root / "memory"
+            from brain.memory import MemoryEngine
+            MemoryEngine(memory_root).remember("youtube_creator_queue", json.dumps({
+                "episode_id": "test-short",
+                "upload_status": "published",
+                "youtube": {"video_id": "public123", "privacy_status": "public"},
+            }), memory_type="action")
+            env = dict(self._env())
+            env["AION_MEMORY_ROOT"] = str(memory_root)
+            report = ProductionControl(root, env).snapshot()
+            episode = report["episodes"][0]
+            self.assertEqual("published", episode["status"])
+            self.assertEqual("production-ready-assets-and-script", episode["source_status"])
+            self.assertFalse(episode["studio_ready"])
+            self.assertFalse(episode["release_ready"])
+            self.assertEqual(["test-short"], report["published_episode_ids"])
+
 
 class NotifyIntegrityAlertsTests(unittest.TestCase):
     def test_sends_one_message_summarizing_every_alert_when_telegram_is_configured(self):

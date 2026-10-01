@@ -9,6 +9,7 @@ from pathlib import Path
 from PIL import Image
 
 from brain.channel_policy import ChannelPolicy
+from brain.youtube_creator_queue import YouTubeCreatorQueue
 from brain.platform_preflight import PlatformPreflight
 from brain.research_portfolio import ResearchPortfolio
 from brain.memory import MemoryEngine
@@ -89,7 +90,33 @@ class ProductionControl:
         supplied_environment = environ if environ is not None else os.environ
         self.memory_root = Path(memory_root or supplied_environment.get("AION_MEMORY_ROOT") or (self.root / "memory"))
 
-    def _episodes(self, publish_ready_ids=None):
+    def _published_episode_ids(self):
+        """Return only Studio episodes with a durable public YouTube record.
+
+        The creator-series JSON is a production artifact, so its historical
+        ``production-ready-assets-and-script`` status is intentionally never
+        mutated by the uploader.  The private Creator queue is the durable
+        publication ledger.  Reading both here prevents a genuinely
+        published episode from looking like it is still waiting in Studio --
+        the exact dashboard error the owner caught on 2026-10-02.
+
+        This is deliberately ID-based, never title-based: a title can change
+        or recur, whereas a recorded public video ID attached to one episode
+        is unambiguous.  If memory is unavailable, return an empty set rather
+        than guessing that something was published.
+        """
+        try:
+            records = YouTubeCreatorQueue(MemoryEngine(self.memory_root), self.root)._records_by_episode()
+            return {
+                str(episode_id)
+                for episode_id, (_entry, payload) in records.items()
+                if str((payload.get("youtube") or {}).get("video_id") or "").strip()
+                and str((payload.get("youtube") or {}).get("privacy_status") or "").lower() == "public"
+            }
+        except (OSError, ValueError, TypeError, json.JSONDecodeError):
+            return set()
+
+    def _episodes(self, publish_ready_ids=None, published_ids=None):
         """Report Studio assets separately from the durable publish queue.
 
         A rendered episode is useful progress, but it is not a promise that
@@ -99,6 +126,7 @@ class ProductionControl:
         published (or merely assembled) episode as a future release.
         """
         publish_ready_ids = publish_ready_ids or set()
+        published_ids = published_ids or set()
         result = []
         gate = VisualArtifactGate(self.root)
         for path in sorted((self.root / "content" / "creator_series").glob("*.json")):
@@ -109,13 +137,16 @@ class ProductionControl:
             visual = gate.assess(episode)
             style = (episode.get("visual_style") or {}).get("id")
             ready = episode.get("status") == "production-ready-assets-and-script"
-            blockers = list(visual["reasons"])
-            if style != self.policy.production()["automatic_release_visual_style"]:
+            published = str(episode.get("id") or "") in published_ids
+            blockers = [] if published else list(visual["reasons"])
+            if not published and style != self.policy.production()["automatic_release_visual_style"]:
                 blockers.append("visual-style-not-channel-signature")
-            if not ready:
+            if not published and not ready:
                 blockers.append(f"episode-status:{episode.get('status') or 'unknown'}")
             result.append({
-                "id": episode.get("id"), "title": episode.get("title"), "status": episode.get("status"),
+                "id": episode.get("id"), "title": episode.get("title"),
+                "status": "published" if published else episode.get("status"),
+                "source_status": episode.get("status"),
                 "style": style, "scene_count": len(episode.get("scenes") or []),
                 "updated_at": datetime.fromtimestamp(path.stat().st_mtime, timezone.utc).isoformat(),
                 "visual_qa": visual, "studio_blockers": blockers,
@@ -123,8 +154,8 @@ class ProductionControl:
                 # code should use studio_blockers: this is not the final
                 # Creator release queue.
                 "release_blockers": blockers,
-                "studio_ready": not blockers,
-                "release_ready": episode.get("id") in publish_ready_ids,
+                "studio_ready": not published and not blockers,
+                "release_ready": not published and episode.get("id") in publish_ready_ids,
                 "portfolio": ResearchPortfolio.assign(episode.get("topic_key") or episode.get("title")),
             })
         return result
@@ -227,7 +258,8 @@ class ProductionControl:
         target = self.policy.publishing()["shorts_buffer_target"]
         release = self._release_readiness(now)
         publish_ready = release["publish_ready"]
-        episodes = self._episodes(release["publish_ready_ids"])
+        published_ids = self._published_episode_ids()
+        episodes = self._episodes(release["publish_ready_ids"], published_ids)
         studio_ready = [item for item in episodes if item["studio_ready"]]
         provider = ProviderHealth(self.environ).snapshot()
         freshness = self._artifact_freshness(now)
@@ -251,7 +283,8 @@ class ProductionControl:
                 "source": "aion-release-readiness.json" if release["state"] == "fresh" else "final-release-report-unavailable",
                 "detail": release["detail"],
             },
-            "episodes": episodes, "provider_health": provider, "release_artifact_freshness": freshness,
+            "episodes": episodes, "published_episode_ids": sorted(published_ids),
+            "provider_health": provider, "release_artifact_freshness": freshness,
             "recovery": self._recovery(episodes, target, publish_ready, evidence_reserve), "evidence_reserve": evidence_reserve,
             "integrity": integrity,
             "portfolio": ResearchPortfolio.snapshot(), "component_states": states,

@@ -3410,3 +3410,20 @@ not merely decorate. This works for science, history, nature, and everyday
 topics; it does not force a literal mechanical cutaway where another visual
 device communicates the relationship better. Visual gate, creator scene,
 and story staging tests pass (67 tests).
+
+## 2026-10-02 — Codex — Made the Operations report respect the real publication ledger
+
+Owner caught a concrete dashboard error: six episodes already public on
+YouTube were displayed as current or pending Studio work because their
+immutable storyboard JSON still said `production-ready-assets-and-script`.
+The private `youtube_creator_queue` already held the authoritative public
+YouTube video IDs; ProductionControl simply was not reading that ledger.
+
+ProductionControl now joins each storyboard with the private queue by stable
+episode ID (never fragile title matching). A record is marked published only
+when it has both a YouTube video ID and public privacy status. It is then
+removed from Studio-ready/release-ready counts and exposed as `published`,
+while retaining `source_status` for audit. Missing/unreadable private memory
+returns an empty set rather than guessing. This fixes the dashboard without
+auto-reconciling ambiguous orphaned YouTube uploads. Production control,
+Creator queue, and publication-drift suites pass (47 tests).
