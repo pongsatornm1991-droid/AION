@@ -333,6 +333,8 @@ class CreatorSceneProduction:
         fact_plan = episode.get("fact_first_visual") or {}
         fact_anchor = fact_plan.get("reality_anchor") or {}
         fact_boundary = fact_plan.get("creative_boundary") or {}
+        narrative_plan = episode.get("visual_narrative") or {}
+        reveal_plan = narrative_plan.get("reveal") or {}
         deliberation = visual_style.get("aion_deliberation") or {}
         style_rule = self._style_rule(visual_style, deliberation)
         return " ".join((
@@ -341,6 +343,8 @@ class CreatorSceneProduction:
             f"Reality anchor: {fact_anchor.get('rule') or 'Show the documented subject and mechanism first.'}",
             f"Documented claims to preserve: {' | '.join(fact_anchor.get('evidence_claims') or [])}",
             f"Creative boundary: {fact_boundary.get('prohibited') or 'Do not let atmosphere replace the documented mechanism.'}",
+            f"Picture-first reveal: {reveal_plan.get('rule') or 'Make the cause-and-effect relationship visible rather than merely describing it.'}",
+            f"Reveal placement: {reveal_plan.get('placement') or 'Let the clearest mechanism image carry the payoff.'}",
             "If AION appears, use AION's story-specific chosen presence: "
             f"{deliberation.get('appearance_choice') or 'a subtle cyan curiosity signal or practical contextual guide'}. "
             "Keep AION contextual rather than dominant.",

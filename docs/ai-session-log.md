@@ -3396,3 +3396,17 @@ production prompts, and changes the fixed intro/question/transition/ending
 lines to story language. A regression test guards the required original arc
 and confirms reference-channel names cannot leak into the prompt. Story
 stager, handoff, and shared-beat suites pass (45 tests).
+
+## 2026-10-01 — Codex — Enforced one picture-first reveal in every future Short
+
+Owner approved starting the new direction immediately after seeing the
+octopus pigment-sac example. `VisualNarrativeGate` now requires every future
+storyboard to plan one visible mechanism/relationship reveal: cutaway,
+before-and-after change, traced path, scale comparison, or another
+topic-appropriate cause-and-effect device. The scene-image prompt receives
+that exact plan, so it is a production instruction rather than a dashboard
+note. The reveal belongs at the connection/takeaway payoff and must explain,
+not merely decorate. This works for science, history, nature, and everyday
+topics; it does not force a literal mechanical cutaway where another visual
+device communicates the relationship better. Visual gate, creator scene,
+and story staging tests pass (67 tests).

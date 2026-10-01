@@ -27,6 +27,10 @@ class VisualNarrativeGate:
                 "deadline_seconds": 2,
                 "visual_question": f"Show the most surprising visible consequence of {topic} before any explanation.",
             },
+            "reveal": {
+                "rule": "Choose one picture-first reveal that makes the hidden mechanism or relationship understandable at a glance: a cutaway, before/after change, traced path, scale comparison, or another topic-appropriate cause-and-effect device.",
+                "placement": "Use the connection or takeaway beat as the clearest payoff; it must show the relationship, not merely decorate it.",
+            },
             "scene_progression": steps,
             "color_roles": {
                 "question": "vivid cobalt or deep indigo—what needs explaining",
@@ -55,6 +59,9 @@ class VisualNarrativeGate:
         opening = plan.get("opening") or {}
         if not str(opening.get("visual_question") or "").strip() or int(opening.get("deadline_seconds") or 99) > 2:
             reasons.append("opening-visual-must-land-within-2-seconds")
+        reveal = plan.get("reveal") or {}
+        if not str(reveal.get("rule") or "").strip() or not str(reveal.get("placement") or "").strip():
+            reasons.append("missing-picture-first-reveal-plan")
         progression = list(plan.get("scene_progression") or [])
         if len(progression) != len(scenes) or len(set(progression)) != len(progression):
             reasons.append("each-scene-needs-a-distinct-story-step")

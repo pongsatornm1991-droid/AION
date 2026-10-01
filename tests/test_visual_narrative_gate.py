@@ -25,3 +25,10 @@ class VisualNarrativeGateTests(unittest.TestCase):
         self.assertFalse(report["eligible"])
         self.assertIn("missing-single-focus-cover-plan", report["reasons"])
         self.assertIn("each-scene-needs-a-distinct-story-step", report["reasons"])
+
+    def test_rejects_a_plan_without_a_picture_first_reveal(self):
+        episode = self._episode()
+        episode["visual_narrative"].pop("reveal")
+        report = VisualNarrativeGate.assess(episode)
+        self.assertFalse(report["eligible"])
+        self.assertIn("missing-picture-first-reveal-plan", report["reasons"])

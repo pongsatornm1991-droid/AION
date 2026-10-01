@@ -216,6 +216,21 @@ class CreatorSceneProductionTests(unittest.TestCase):
         self.assertIn("no more than two supporting objects", prompt)
         self.assertIn("AION Neon Diorama 3D", prompt)
 
+    def test_scene_prompt_carries_the_picture_first_reveal_contract(self):
+        episode = {
+            "format": "illustrated-narrated-short", "visual_direction": {},
+            "visual_style": {"id": "aion-neon-diorama-3d-v1"},
+            "visual_narrative": {"reveal": {
+                "rule": "Show a cutaway that makes the hidden mechanism visible.",
+                "placement": "Use the takeaway as the clearest payoff.",
+            }},
+        }
+        prompt = CreatorSceneProduction()._prompt(
+            episode, {"beat": "takeaway", "visual": "A pigment sac opens beneath octopus skin."}
+        )
+        self.assertIn("Picture-first reveal", prompt)
+        self.assertIn("cutaway that makes the hidden mechanism visible", prompt)
+
     def test_neon_diorama_3d_is_glossy_and_replaces_the_restrained_palette(self):
         episode = {"format": "illustrated-narrated-short", "visual_direction": {},
                    "visual_style": {"id": "aion-neon-diorama-3d-v1"}}
