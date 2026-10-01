@@ -3334,3 +3334,15 @@ ten-new-questions-per-day guard, so an upstream research outage cannot burn
 the catalogue in repeated hourly recovery passes. This does not weaken the
 two-source rule, reuse old videos, or auto-publish. Targeted production
 control, initiative, integrity, release-recovery, and dashboard tests pass.
+
+## 2026-10-01 — Codex — Added an original calm-minimal composition layer
+
+Owner referenced a minimal bubble explainer and approved applying its
+readability principles to AION. The locked style ID remains
+`aion-neon-diorama-3d-v1`; no channel rebrand or imitation was introduced.
+New scene prompts now require a calm solid colour field or restrained
+two-tone gradient over most of the frame, one hero object/mechanism, no more
+than two supporting objects, and no decorative set dressing, particles, or
+bokeh unless they explain the mechanism. Hook/reveal framing retains its
+existing energy but obeys the same object budget. This applies only to new
+renders. Creator Scene Production and visual-policy regression tests pass.

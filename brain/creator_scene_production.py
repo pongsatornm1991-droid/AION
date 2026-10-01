@@ -202,7 +202,11 @@ class CreatorSceneProduction:
                 "orange, and acid green, glowing against a deep dark or near-black background. Keep "
                 "exactly one clear focal mechanism or subject per frame, generous negative space, "
                 "and instant one-second readability -- this is deliberate vivid saturation, not "
-                "clutter. Cyan beyond the background palette is still reserved only for AION's tiny "
+                "clutter. Apply the channel's Calm Minimal composition layer: let one quiet solid "
+                "colour field or restrained two-tone gradient occupy most of the frame; build one "
+                "hero object/mechanism and no more than two supporting objects. Keep all extra set "
+                "dressing, particles, and bokeh out unless they directly explain the mechanism; "
+                "leave clean breathing room around the hero so it is readable at a glance. Cyan beyond the background palette is still reserved only for AION's tiny "
                 "glowing question-mark held in one hand, never a full body colour. No text, logos, watermark, "
                 "photorealistic people, gritty noise, or anime, and never imitate a named artist, "
                 "studio, channel, mascot or franchise."
@@ -297,16 +301,22 @@ class CreatorSceneProduction:
                 "occasionally a close first-person point-of-view angle (like a candid selfie framing) when it suits the scene, "
                 "with a more visibly readable, animated reaction from AION if AION appears here -- still restrained and "
                 "friendly, never a generic mascot mugging for the camera; "
-                "still the channel's warm 3D diorama material and palette; never make AION the hero of the frame"
+                "still the channel's warm 3D diorama material and palette; use one hero object and at most "
+                "two supporting objects against a quiet colour field; never make AION the hero of the frame"
             )
         if beat in DYNAMIC_REVEAL_BEATS:
             return (
                 "a striking, more dramatic angle with richer contrast light for this reveal/payoff moment, "
                 "with a more visibly readable, animated reaction from AION if AION appears here -- still restrained and "
                 "friendly, never a generic mascot mugging for the camera; "
-                "still the channel's warm 3D diorama material and palette; never make AION the hero of the frame"
+                "still the channel's warm 3D diorama material and palette; use one hero object and at most "
+                "two supporting objects against a quiet colour field; never make AION the hero of the frame"
             )
-        return "wide or medium-wide environmental storytelling; never make AION the hero of the frame"
+        return (
+            "wide or medium-wide environmental storytelling with one immediately readable hero object or "
+            "mechanism, no more than two supporting objects, and a calm uncluttered colour field filling most "
+            "of the background; never make AION the hero of the frame"
+        )
 
     def _prompt(self, episode, scene):
         direction = episode.get("visual_direction") or {}

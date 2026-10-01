@@ -205,6 +205,17 @@ class CreatorSceneProductionTests(unittest.TestCase):
         self.assertNotIn("warm 3D educational storytelling with rounded appealing forms", cover_prompt)
         self.assertNotIn("do not use grey wash, neon clutter", cover_prompt)
 
+    def test_neon_diorama_uses_minimal_composition_without_changing_the_style_id(self):
+        episode = {"format": "illustrated-narrated-short", "visual_direction": {},
+                   "visual_style": {"id": "aion-neon-diorama-3d-v1"}}
+        prompt = CreatorSceneProduction()._prompt(
+            episode, {"beat": "evidence-one-a", "visual": "A single bubble becomes round."}
+        )
+        self.assertIn("Calm Minimal composition layer", prompt)
+        self.assertIn("one hero object/mechanism", prompt)
+        self.assertIn("no more than two supporting objects", prompt)
+        self.assertIn("AION Neon Diorama 3D", prompt)
+
     def test_neon_diorama_3d_is_glossy_and_replaces_the_restrained_palette(self):
         episode = {"format": "illustrated-narrated-short", "visual_direction": {},
                    "visual_style": {"id": "aion-neon-diorama-3d-v1"}}
@@ -217,6 +228,8 @@ class CreatorSceneProductionTests(unittest.TestCase):
         self.assertIn("shallow depth of field", prompt)
         self.assertIn("electric pink/magenta", prompt)
         self.assertIn("REPLACES the channel's usual restrained palette", prompt)
+        self.assertIn("Calm Minimal composition layer", prompt)
+        self.assertIn("no more than two supporting objects", prompt)
         self.assertIn("cyan", prompt)
         self.assertIn("never a full body colour", prompt)
         self.assertIn("never imitate a named artist, studio, channel, mascot or franchise", prompt)
