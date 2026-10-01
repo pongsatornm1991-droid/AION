@@ -1,10 +1,10 @@
 {
-  "generated_at": "2026-10-01T20:46:58.908758+00:00",
+  "generated_at": "2026-10-01T20:48:36.136724+00:00",
   "tiles": {
     "total": 45,
-    "ok": 38,
+    "ok": 41,
     "attn": 0,
-    "running": 4
+    "running": 1
   },
   "groups": [
     {
@@ -84,8 +84,8 @@
         {
           "name": "AION - external learning cycle",
           "file": "learning-cycle.yml",
-          "status_class": "running",
-          "status_label": "กำลังรัน",
+          "status_class": "success",
+          "status_label": "สำเร็จ",
           "html_url": "https://github.com/pongsatornm1991-droid/AION/actions/runs/36923972634",
           "created_at": "2026-10-01T20:46:00Z"
         },
@@ -276,8 +276,8 @@
         {
           "name": "AION - YouTube release watchdog",
           "file": "youtube-release-watchdog.yml",
-          "status_class": "running",
-          "status_label": "กำลังรัน",
+          "status_class": "success",
+          "status_label": "สำเร็จ",
           "html_url": "https://github.com/pongsatornm1991-droid/AION/actions/runs/36923783497",
           "created_at": "2026-10-01T20:44:27Z"
         },
@@ -380,8 +380,8 @@
         {
           "name": "AION - production control",
           "file": "production-control.yml",
-          "status_class": "running",
-          "status_label": "กำลังรัน",
+          "status_class": "success",
+          "status_label": "สำเร็จ",
           "html_url": "https://github.com/pongsatornm1991-droid/AION/actions/runs/36924001738",
           "created_at": "2026-10-01T20:46:15Z"
         },
