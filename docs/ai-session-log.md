@@ -3427,3 +3427,35 @@ while retaining `source_status` for audit. Missing/unreadable private memory
 returns an empty set rather than guessing. This fixes the dashboard without
 auto-reconciling ambiguous orphaned YouTube uploads. Production control,
 Creator queue, and publication-drift suites pass (47 tests).
+
+## 2026-10-02 — Codex — Removed the one-episode worker bottleneck from the Creator pipeline
+
+Owner authorized immediate reliability work after the real Operations report
+showed two image-complete Shorts sitting at `assets-ready-for-assembly` while
+the release buffer was empty. Root cause was structural: automatic motion
+production and final assembly each selected exactly one episode, while a
+commit made by GitHub Actions does not reliably create another push-triggered
+run. A second ready episode could therefore wait until the next daily motion
+or hourly assembly safety sweep.
+
+Both workers now drain a bounded batch of up to five ready episodes per run.
+Every episode still independently requires its completed motion sources,
+audio-visual timing plan, render, captions, and final video-quality gate;
+the change only removes accidental idle queue time. The two workflows invoke
+their batch mode and new tests ensure the bound cannot regress to one item.
+
+The same investigation found a real cross-host timestamp bug: the daily
+recovery-seed guard read timezone-free MemoryEngine timestamps as UTC, so a
+question created on the Bangkok workstation could appear to have been made
+"tomorrow" on a GitHub runner and bypass the daily seed limit. It now uses a
+rolling 24-hour guard, which is robust to that storage format. Finally,
+storyboards created before the picture-first reveal field was introduced are
+normalized in-memory at registry load; they are no longer hidden from the
+entire production queue, and the next ordinary status write persists the
+plan. This is a narrow compatibility migration—new story plans still have to
+include the reveal before any image generation.
+
+Targeted pipeline and regression suites pass (24 tests). The full suite was
+also started locally; its pre-existing failures were traced to the timestamp,
+legacy reveal, and local ffmpeg test assumptions above, and each now passes
+in its focused suite.

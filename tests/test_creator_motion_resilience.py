@@ -3,7 +3,7 @@ import unittest
 from pathlib import Path
 from unittest.mock import patch
 
-from tools.produce_creator_motion import _episode, produce_once, render_static_fallback
+from tools.produce_creator_motion import _episode, produce_batch, produce_once, render_static_fallback
 
 
 class CreatorMotionResilienceTests(unittest.TestCase):
@@ -12,7 +12,8 @@ class CreatorMotionResilienceTests(unittest.TestCase):
             source = Path(directory) / "scene.png"
             target = Path(directory) / "motion.mp4"
             source.write_bytes(b"new-scene")
-            with patch("tools.produce_creator_motion.subprocess.run") as run:
+            with patch("tools.produce_creator_motion._ffmpeg", return_value="ffmpeg"), \
+                 patch("tools.produce_creator_motion.subprocess.run") as run:
                 run.side_effect = lambda *args, **kwargs: target.write_bytes(b"new-motion")
                 self.assertTrue(render_static_fallback(source, target))
             command = run.call_args.args[0]
@@ -93,3 +94,19 @@ class CreatorMotionResilienceTests(unittest.TestCase):
                 fallback.side_effect = lambda source, target, **_: (Path(target).parent.mkdir(parents=True, exist_ok=True), Path(target).write_bytes(b"motion"), True)[2]
                 produce_once(root)
             self.assertEqual("PermissionDenied", episode["scenes"][0]["motion_contract"]["fallback_error_type"])
+
+    def test_batch_processes_each_ready_episode_once_without_waiting_for_a_new_workflow(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            with patch("tools.produce_creator_motion.CreatorSeriesRegistry") as registry, \
+                 patch("tools.produce_creator_motion.produce_once") as produce:
+                registry.return_value.episodes.return_value = [
+                    {"id": "first", "status": "assets-ready-for-assembly"},
+                    {"id": "second", "status": "assets-ready-for-assembly"},
+                ]
+                produce.side_effect = lambda _root, episode_id=None: {
+                    "stage": "motion-assets-complete", "episode_id": episode_id
+                }
+                report = produce_batch(root, limit=5)
+            self.assertEqual(["first", "second"], report["completed_episode_ids"])
+            self.assertEqual(2, produce.call_count)

@@ -14,6 +14,10 @@ ROOT = Path(__file__).resolve().parents[1]
 
 class CreatorSeriesRegistry:
     CREATIVE_DEVICES = {"time-window", "scale-shift", "visual-metaphor", "mystery-reveal", "journey"}
+    _PICTURE_FIRST_REVEAL = {
+        "rule": "Choose one picture-first reveal that makes the hidden mechanism or relationship understandable at a glance: a cutaway, before/after change, traced path, scale comparison, or another topic-appropriate cause-and-effect device.",
+        "placement": "Use the connection or takeaway beat as the clearest payoff; it must show the relationship, not merely decorate it.",
+    }
     def __init__(self, root=None):
         self.root = Path(root or ROOT)
         self.directory = self.root / "content" / "creator_series"
@@ -34,6 +38,7 @@ class CreatorSeriesRegistry:
         self.invalid = []
         for path in sorted(self.directory.glob("*.json")):
             item = json.loads(path.read_text(encoding="utf-8"))
+            self._backfill_pre_reveal_plan(item)
             try:
                 self._validate(item)
             except ValueError as exc:
@@ -47,6 +52,26 @@ class CreatorSeriesRegistry:
                 continue
             result.append({**item, "file": str(path.relative_to(self.root)).replace("\\", "/")})
         return result
+
+    @classmethod
+    def _backfill_pre_reveal_plan(cls, item):
+        """Normalize storyboard plans written before picture-first reveal v1.
+
+        The reveal requirement was added after several fully-rendered and two
+        asset-complete episodes already carried the same visual-narrative v1
+        plan.  Treating that one newly-required subfield as a fatal parse
+        error made the registry hide otherwise valid episodes from motion and
+        assembly forever.  This is a narrow compatibility migration: fresh
+        plans are created by VisualNarrativeGate.plan() with this field, and
+        the next normal status write persists the normalized plan.
+        """
+        plan = item.get("visual_narrative")
+        if not isinstance(plan, dict) or plan.get("version") != VisualNarrativeGate.VERSION:
+            return
+        reveal = plan.get("reveal")
+        if isinstance(reveal, dict) and str(reveal.get("rule") or "").strip() and str(reveal.get("placement") or "").strip():
+            return
+        plan["reveal"] = dict(cls._PICTURE_FIRST_REVEAL)
 
     def _validate(self, item):
         scenes = item.get("scenes") or []

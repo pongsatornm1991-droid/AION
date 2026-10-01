@@ -164,23 +164,57 @@ def assemble_once(root=ROOT, episode_id=None, renderer=render_reel):
             "scene_count": len(scenes), "format": episode.get("format")}
 
 
+def assemble_batch(root=ROOT, limit=5, renderer=render_reel):
+    """Assemble a bounded set of ready episodes without waiting for a new cron.
+
+    Each item still calls ``assemble_once`` and therefore retains its own
+    motion, timing, render, caption, and video-quality gates.  The batch only
+    removes an accidental one-episode-per-hour queue caused by bot commits not
+    recursively starting this workflow.
+    """
+    root = Path(root)
+    limit = max(1, int(limit))
+    candidates = [
+        str(item.get("id")) for item in CreatorSeriesRegistry(root).episodes(skip_invalid=True)
+        if item.get("status") == "assets-ready-for-assembly" and item.get("id")
+    ][:limit]
+    reports = [assemble_once(root, episode_id=episode_id, renderer=renderer) for episode_id in candidates]
+    rendered = [item.get("episode_id") for item in reports if item.get("stage") == "episode-rendered-for-quality"]
+    return {
+        "stage": "assembly-batch-complete" if reports else "no-asset-complete-episode",
+        "requested_limit": limit,
+        "episode_ids": candidates,
+        "rendered_episode_ids": rendered,
+        "reports": reports,
+    }
+
+
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("--episode-id")
+    parser.add_argument("--limit", type=int, default=1,
+                        help="Assemble up to this many ready episodes in one bounded shift.")
     parser.add_argument("--backfill-subtitles", action="store_true")
     parser.add_argument("--require-rendered", action="store_true",
                         help="Exit non-zero when final production fails; waiting for automatic motion is a valid handoff.")
     args = parser.parse_args()
-    report = backfill_subtitles_once() if args.backfill_subtitles else assemble_once(episode_id=args.episode_id)
+    report = (
+        backfill_subtitles_once() if args.backfill_subtitles else
+        assemble_once(episode_id=args.episode_id) if args.episode_id else
+        assemble_batch(limit=args.limit)
+    )
     print(json.dumps(report, ensure_ascii=False, indent=2))
     # A scheduled job may legitimately have no storyboard ready.  However,
     # once it starts on an asset-complete episode, any other result is a real
     # production failure and must be visible to downstream workflows.
-    if args.require_rendered and report.get("stage") not in {
+    acceptable = {
         "episode-rendered-for-quality", "no-asset-complete-episode",
         # Veo is intentionally a separate automatic worker.  Images may be
         # complete while it is creating the matching motion sources; that is
         # a visible handoff, not an assembly failure.
         "waiting-for-automatic-motion",
-    }:
+    }
+    if report.get("stage") == "assembly-batch-complete":
+        acceptable.add("assembly-batch-complete")
+    if args.require_rendered and report.get("stage") not in acceptable:
         raise SystemExit("creator-episode-assembly-failed")

@@ -417,8 +417,16 @@ class AutonomousInitiative:
         return statements
 
     def _new_recovery_count_today(self, now):
-        """Count newly opened reserve questions in the current UTC day."""
-        today = now.astimezone(timezone.utc).date()
+        """Count seeds in a rolling daily window without trusting host timezone.
+
+        MemoryEngine stores deliberately timezone-free timestamps, while a
+        GitHub runner and the owner's workstation can write them in different
+        local zones.  Comparing their parsed calendar dates to UTC made a
+        newly seeded question look as if it were tomorrow and silently bypass
+        the daily reserve limit.  A rolling 24-hour budget is stricter in the
+        useful direction and remains correct across those hosts.
+        """
+        window_start = now.replace(tzinfo=None).timestamp() - 24 * 60 * 60
         count = 0
         for entry in self.memory.all(self.curiosity.category):
             if entry.get("type") != self.curiosity.MEMORY_TYPE:
@@ -430,7 +438,9 @@ class AutonomousInitiative:
                 stamped = datetime.strptime(str(entry.get("timestamp")), "%Y-%m-%d %H:%M:%S").replace(tzinfo=timezone.utc)
             except (TypeError, ValueError):
                 continue
-            if stamped.date() == today:
+            # Timestamp text is legacy/local-time data.  Treat a small
+            # clock-zone skew as current, but never count an old record.
+            if stamped.timestamp() >= window_start:
                 count += 1
         return count
 

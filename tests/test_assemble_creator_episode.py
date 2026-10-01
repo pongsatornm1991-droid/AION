@@ -4,7 +4,7 @@ import unittest
 from unittest import mock
 from pathlib import Path
 
-from tools.assemble_creator_episode import _write_subtitles, assemble_once, backfill_subtitles_once
+from tools.assemble_creator_episode import _write_subtitles, assemble_batch, assemble_once, backfill_subtitles_once
 
 
 class AssembleCreatorEpisodeTests(unittest.TestCase):
@@ -121,3 +121,19 @@ class AssembleCreatorEpisodeTests(unittest.TestCase):
             self.assertEqual(1, report["count"])
             self.assertTrue((reels / "episode.srt").is_file())
             self.assertEqual(b"existing video", (reels / "episode.mp4").read_bytes())
+
+    def test_batch_assembles_each_ready_episode_once_without_waiting_for_a_new_workflow(self):
+        with tempfile.TemporaryDirectory() as temp:
+            root = Path(temp)
+            with mock.patch("tools.assemble_creator_episode.CreatorSeriesRegistry") as registry, \
+                 mock.patch("tools.assemble_creator_episode.assemble_once") as assemble:
+                registry.return_value.episodes.return_value = [
+                    {"id": "first", "status": "assets-ready-for-assembly"},
+                    {"id": "second", "status": "assets-ready-for-assembly"},
+                ]
+                assemble.side_effect = lambda _root, episode_id=None, renderer=None: {
+                    "stage": "episode-rendered-for-quality", "episode_id": episode_id
+                }
+                report = assemble_batch(root, limit=5)
+            self.assertEqual(["first", "second"], report["rendered_episode_ids"])
+            self.assertEqual(2, assemble.call_count)

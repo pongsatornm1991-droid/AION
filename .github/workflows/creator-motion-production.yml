@@ -31,7 +31,7 @@ jobs:
         env:
           GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
           AION_VIDEO_MODEL: ${{ vars.AION_VIDEO_MODEL || 'veo-3.1-lite-generate-preview' }}
-        run: python tools/produce_creator_motion.py --require-complete
+        run: python tools/produce_creator_motion.py --limit 5 --require-complete
       - name: Persist completed motion sources
         run: |
           git config user.name aion-bot

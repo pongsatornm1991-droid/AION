@@ -140,12 +140,47 @@ def produce_once(root=ROOT, episode_id=None):
             "provider_configured": config["configured"]}
 
 
+def produce_batch(root=ROOT, limit=5):
+    """Finish motion for several ready episodes in one bounded worker shift.
+
+    GitHub Actions commits made with its bot token do not reliably trigger a
+    second workflow run.  Processing just one ready storyboard therefore made
+    later episodes wait for the daily recovery cron even though their images
+    were already complete.  Keep each episode's own provider/fallback record,
+    but drain a small, deterministic batch in the same run.
+    """
+    root = Path(root)
+    limit = max(1, int(limit))
+    candidates = [
+        str(item.get("id")) for item in CreatorSeriesRegistry(root).episodes(skip_invalid=True)
+        if item.get("status") == "assets-ready-for-assembly" and item.get("id")
+    ][:limit]
+    reports = [produce_once(root, episode_id=episode_id) for episode_id in candidates]
+    completed = [item.get("episode_id") for item in reports if item.get("stage") == "motion-assets-complete"]
+    return {
+        "stage": "motion-batch-complete" if reports else "no-asset-complete-episode",
+        "requested_limit": limit,
+        "episode_ids": candidates,
+        "completed_episode_ids": completed,
+        "reports": reports,
+    }
+
+
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("--episode-id")
+    parser.add_argument("--limit", type=int, default=1,
+                        help="Complete up to this many ready episodes in one bounded shift.")
     parser.add_argument("--require-complete", action="store_true")
     args = parser.parse_args()
-    report = produce_once(episode_id=args.episode_id)
+    report = produce_once(episode_id=args.episode_id) if args.episode_id else produce_batch(limit=args.limit)
     print(json.dumps(report, ensure_ascii=False, indent=2))
-    if args.require_complete and report.get("stage") not in {"motion-assets-complete", "no-asset-complete-episode"}:
+    completed = (
+        report.get("stage") == "motion-assets-complete" or
+        report.get("stage") == "no-asset-complete-episode" or
+        report.get("stage") == "motion-batch-complete" and all(
+            item.get("stage") == "motion-assets-complete" for item in report.get("reports") or []
+        )
+    )
+    if args.require_complete and not completed:
         raise SystemExit("creator-motion-production-failed")
