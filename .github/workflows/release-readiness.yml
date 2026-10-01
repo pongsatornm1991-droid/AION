@@ -6,7 +6,7 @@ name: AION - Creator release readiness
 on:
   schedule:
     # The Production Recovery Manager checks the buffer every hour. It is
-    # harmless when full, but when the buffer is below seven it immediately
+    # harmless when full, but when the buffer is below its 14-Short target it immediately
     # batches only distinct, evidence-qualified storyboards into the existing
     # bounded Studio shift instead of waiting for tomorrow's production run.
     - cron: "30 * * * *"
@@ -54,7 +54,7 @@ jobs:
         # This is a bounded planning handoff: no upload, no reuse of old
         # content and no platform/account change. It can prepare up to five
         # distinct cited storyboards; the separate Studio shift remains capped
-        # at seven Shorts and retains all image, novelty and quality gates.
+        # at fourteen Shorts and retains all image, novelty and quality gates.
         env:
           AION_MEMORY_ROOT: memory_data
         run: python tools/recover_release_buffer.py | tee release-buffer-recovery.json

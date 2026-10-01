@@ -326,6 +326,32 @@ class AutonomousInitiative:
             "Show sound waves bouncing freely in an empty room and being absorbed in a furnished one.",
         ),
     )
+    # A second, independently worded reserve prevents a short-lived burst of
+    # failed research attempts from exhausting the entire starter catalogue.
+    # These are still only questions: they receive no production privilege
+    # until their own two-source evidence pass succeeds.
+    RECOVERY_INQUIRIES += (
+        ("space-orbits", "Why do astronauts appear to float while orbiting Earth?", "Show a spacecraft and its crew falling around Earth together."),
+        ("space-seasons", "Why do different parts of Earth have different seasons?", "Show a tilted Earth receiving sunlight from one fixed direction."),
+        ("space-moon", "Why does the Moon appear to change shape during a month?", "Show sunlight always lighting half the Moon as the viewing angle changes."),
+        ("weather-clouds", "Why do some clouds grow tall before a thunderstorm?", "Show warm moist air rising, cooling, and building a cloud tower."),
+        ("weather-wind", "Why does wind speed up between tall buildings?", "Show the same stream of air narrowing through a city gap."),
+        ("earth-geology", "Why do earthquakes often happen near the edges of tectonic plates?", "Show two simplified plates storing and releasing strain at a boundary."),
+        ("earth-volcanoes", "Why are some volcanoes explosive while others let lava flow quietly?", "Compare trapped gas in thick magma with easier gas escape in runny magma."),
+        ("ocean-tides", "Why are there usually two high tides in many places each day?", "Show the Earth moving through two broad tidal bulges."),
+        ("ocean-salinity", "Why is seawater salty but rainwater fresh?", "Follow minerals from rock to rivers to the sea and water back into clouds."),
+        ("light-colour", "Why does the sky look blue while sunsets can look red?", "Show short and long wavelengths scattering through different lengths of air."),
+        ("light-vision", "Why do mirrors reverse left and right but not up and down?", "Trace two rays from a person to a mirror and back to the viewer."),
+        ("materials-metal", "Why can a paper clip become magnetic near a magnet?", "Show tiny magnetic domains becoming more aligned for a short time."),
+        ("materials-glass", "Why can glass be transparent even though it is solid?", "Contrast a regular material that absorbs or scatters light with a clear pane."),
+        ("food-fermentation", "Why does bread dough rise before it bakes?", "Show yeast making gas bubbles that expand inside dough."),
+        ("food-temperature", "Why does salt help melt ice on a slippery path?", "Show dissolved salt lowering the temperature where liquid water can remain."),
+        ("body-breathing", "Why does breathing get faster during exercise?", "Show muscles using more oxygen and blood carrying carbon dioxide away."),
+        ("body-sleep", "Why can a short nap make people feel more alert?", "Show sleep pressure easing briefly without claiming a nap replaces night sleep."),
+        ("animal-navigation", "How do some birds find their way during long migrations?", "Show several researched cues rather than claiming one universal navigation system."),
+        ("plant-water", "How does water travel from a plant's roots to its leaves?", "Show a continuous water column pulled upward as water evaporates from leaves."),
+        ("technology-gps", "How can a phone estimate its location using satellites?", "Show distance signals from several satellites meeting at one point on a map."),
+    )
     RECOVERY_TAG = "shorts-recovery"
     FAST_RECOVERY_TAG = "shorts-fast-lane"
     # When the release buffer is critical, begin with questions whose core
@@ -342,6 +368,10 @@ class AutonomousInitiative:
     # creator queue.
     EVIDENCE_RESERVE_TARGET = 21
     RECOVERY_SEED_BATCH = 5
+    # This is a spending guard for research work, not a quality shortcut.
+    # It stops an hourly recovery loop from consuming a whole catalogue in a
+    # single day when an upstream source is temporarily unavailable.
+    RECOVERY_MAX_NEW_PER_DAY = 10
     # Last-resort reuse once the catalogue has no never-asked question left
     # at all (it reached exactly this point twice in one day, 2026-09-25,
     # even at 57 topics). A long cooldown -- long enough that source
@@ -385,6 +415,24 @@ class AutonomousInitiative:
             if statement:
                 statements.add(statement)
         return statements
+
+    def _new_recovery_count_today(self, now):
+        """Count newly opened reserve questions in the current UTC day."""
+        today = now.astimezone(timezone.utc).date()
+        count = 0
+        for entry in self.memory.all(self.curiosity.category):
+            if entry.get("type") != self.curiosity.MEMORY_TYPE:
+                continue
+            tags = {str(tag).lower() for tag in (entry.get("tags") or [])}
+            if self.RECOVERY_TAG not in tags or "shorts-recovery-cooldown-reattempt" in tags:
+                continue
+            try:
+                stamped = datetime.strptime(str(entry.get("timestamp")), "%Y-%m-%d %H:%M:%S").replace(tzinfo=timezone.utc)
+            except (TypeError, ValueError):
+                continue
+            if stamped.date() == today:
+                count += 1
+        return count
 
     def _cooldown_reattempt_candidate(self, now):
         """The oldest fully-exhausted recovery question eligible for reuse.
@@ -480,7 +528,8 @@ class AutonomousInitiative:
         # After every designed reserve topic has been tried, retain the
         # historical record and stop rather than silently recycling the first
         # question as if it were new evidence.
-        to_create = min(seed_limit, max(0, target - len(active)), len(candidates), queue_capacity)
+        daily_remaining = max(0, self.RECOVERY_MAX_NEW_PER_DAY - self._new_recovery_count_today(now))
+        to_create = min(seed_limit, max(0, target - len(active)), len(candidates), queue_capacity, daily_remaining)
         created = []
         created_domains = []
         created_visual_metaphors = []
@@ -560,6 +609,7 @@ class AutonomousInitiative:
                 "seeded-recovery-cooldown-reattempt" if cooldown_reattempt_of else
                 "seeded-recovery-reserve" if created else
                 "recovery-reserve-queue-full" if queue_capacity == 0 else
+                "recovery-reserve-rate-limited" if daily_remaining == 0 else
                 "recovery-reserve-exhausted"
             ),
             "created": bool(created),
@@ -571,6 +621,7 @@ class AutonomousInitiative:
             "active_count": len(active) + len(created),
             "target": target,
             "queue_capacity": queue_capacity,
+            "daily_new_remaining": max(0, daily_remaining - len(created)),
         }
 
     def initiate_recovery_once(self, missing=0):

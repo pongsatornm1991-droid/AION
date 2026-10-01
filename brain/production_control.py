@@ -89,7 +89,16 @@ class ProductionControl:
         supplied_environment = environ if environ is not None else os.environ
         self.memory_root = Path(memory_root or supplied_environment.get("AION_MEMORY_ROOT") or (self.root / "memory"))
 
-    def _episodes(self):
+    def _episodes(self, publish_ready_ids=None):
+        """Report Studio assets separately from the durable publish queue.
+
+        A rendered episode is useful progress, but it is not a promise that
+        a new Short can occupy a release slot.  That promise belongs to the
+        private Creator queue after its final Quality Gate.  Keeping the two
+        states separate prevents the dashboard from reporting an already
+        published (or merely assembled) episode as a future release.
+        """
+        publish_ready_ids = publish_ready_ids or set()
         result = []
         gate = VisualArtifactGate(self.root)
         for path in sorted((self.root / "content" / "creator_series").glob("*.json")):
@@ -109,8 +118,13 @@ class ProductionControl:
                 "id": episode.get("id"), "title": episode.get("title"), "status": episode.get("status"),
                 "style": style, "scene_count": len(episode.get("scenes") or []),
                 "updated_at": datetime.fromtimestamp(path.stat().st_mtime, timezone.utc).isoformat(),
-                "visual_qa": visual, "release_blockers": blockers,
-                "release_ready": not blockers,
+                "visual_qa": visual, "studio_blockers": blockers,
+                # Compatibility alias for older dashboard readers.  New
+                # code should use studio_blockers: this is not the final
+                # Creator release queue.
+                "release_blockers": blockers,
+                "studio_ready": not blockers,
+                "release_ready": episode.get("id") in publish_ready_ids,
                 "portfolio": ResearchPortfolio.assign(episode.get("topic_key") or episode.get("title")),
             })
         return result
@@ -126,15 +140,42 @@ class ProductionControl:
         except (OSError, ValueError, TypeError):
             return {"state": "missing", "age_seconds": None, "policy_current": False}
 
+    def _release_readiness(self, now):
+        """Read the one public report that is allowed to call work publish-ready."""
+        path = self.root / "public" / "aion-release-readiness.json"
+        try:
+            payload = json.loads(path.read_text(encoding="utf-8"))
+            generated = datetime.fromisoformat(str(payload.get("generated_at")).replace("Z", "+00:00"))
+            age = max(0, int((now - generated.astimezone(timezone.utc)).total_seconds()))
+            policy_current = int(payload.get("horizon_hours") or 0) == int(self.policy.publishing()["readiness_horizon_hours"])
+            fresh = policy_current and age <= self.ARTIFACT_MAX_AGE_SECONDS
+            buffer = payload.get("shorts_buffer") or {}
+            available = (payload.get("available") or {}).get("short") or []
+            ready = int(buffer.get("quality_ready") or 0)
+            return {
+                "state": "fresh" if fresh else "stale",
+                "publish_ready": ready if fresh else None,
+                "publish_ready_ids": {str(item) for item in available} if fresh else set(),
+                "source_generated_at": payload.get("generated_at"),
+                "age_seconds": age,
+                "detail": buffer.get("detail") or "Counts only new Shorts that passed the final Quality Gate.",
+            }
+        except (OSError, ValueError, TypeError, json.JSONDecodeError):
+            return {
+                "state": "missing", "publish_ready": None, "publish_ready_ids": set(),
+                "source_generated_at": None, "age_seconds": None,
+                "detail": "The final release queue has not reported yet; publish readiness is unknown.",
+            }
+
     @staticmethod
-    def _recovery(episodes, target, evidence_reserve=None):
-        ready = [item for item in episodes if item["release_ready"]]
+    def _recovery(episodes, target, publish_ready, evidence_reserve=None):
+        studio_ready = [item for item in episodes if item["studio_ready"]]
         active = [item for item in episodes if item.get("status") in {"storyboard-ready-needs-assets", "assets-ready-for-assembly"}]
-        missing = max(0, target - len(ready))
+        missing = max(0, target - publish_ready) if publish_ready is not None else target
         sla = (evidence_reserve or {}).get("recovery_sla") or {}
         next_steps = (
-            ["Keep the seven qualified Shorts ready for release."] if not missing else
-            ["Create distinct evidence-qualified story briefs.", "Stage up to five approved storyboards per recovery shift.", "Send staged Shorts to the bounded seven-episode Studio shift.", "Publish only after image, assembly, and Quality Gates pass."]
+            ["Keep the fourteen qualified Shorts ready for release."] if not missing else
+            ["Create distinct evidence-qualified story briefs.", "Stage up to five approved storyboards per recovery shift.", "Send staged Shorts to the bounded fourteen-episode Studio buffer.", "Publish only after image, assembly, and Quality Gates pass."]
         )
         if missing and not sla.get("fast_lane_active"):
             next_steps.insert(0, "Seed a distinct fast-lane mechanism topic before spending another deep-research attempt.")
@@ -142,7 +183,8 @@ class ProductionControl:
             "owner": "Production Recovery Manager",
             "state": "maintaining" if not missing else "recovering",
             "target": target,
-            "ready": len(ready),
+            "publish_ready": publish_ready,
+            "studio_ready": len(studio_ready),
             "missing": missing,
             "active_storyboards": len(active),
             "cadence": "hourly while the buffer is below target",
@@ -182,26 +224,36 @@ class ProductionControl:
 
     def snapshot(self, now=None):
         now = now or datetime.now(timezone.utc)
-        episodes = self._episodes()
         target = self.policy.publishing()["shorts_buffer_target"]
-        ready = [item for item in episodes if item["release_ready"]]
+        release = self._release_readiness(now)
+        publish_ready = release["publish_ready"]
+        episodes = self._episodes(release["publish_ready_ids"])
+        studio_ready = [item for item in episodes if item["studio_ready"]]
         provider = ProviderHealth(self.environ).snapshot()
         freshness = self._artifact_freshness(now)
         evidence_reserve = self._evidence_reserve()
         integrity = self._integrity()
         states = {"provider": provider["state"], "artifact": freshness["state"], "integrity": integrity["state"]}
         state = (
-            "critical" if provider["state"] != "ready" or len(ready) <= 1 or integrity["state"] == "critical" else
-            "warning" if len(ready) <= 3 else
-            "healthy" if len(ready) >= target and integrity["state"] == "healthy" else
-            "attention"
+            "critical" if provider["state"] != "ready" or integrity["state"] == "critical" else
+            "critical" if publish_ready is not None and publish_ready <= 1 else
+            "warning" if publish_ready is not None and publish_ready <= 3 else
+            "attention" if publish_ready is None else
+            "healthy" if publish_ready >= target and integrity["state"] == "healthy" else "attention"
         )
         return {
             "generated_at": now.isoformat(), "state": state, "policy": self.policy.load(),
-            "shorts_buffer": {"target": target, "quality_ready": len(ready), "missing": max(0, target - len(ready))},
+            "shorts_buffer": {
+                "target": target,
+                "publish_ready": publish_ready,
+                "studio_ready": len(studio_ready),
+                "missing": max(0, target - publish_ready) if publish_ready is not None else None,
+                "source": "aion-release-readiness.json" if release["state"] == "fresh" else "final-release-report-unavailable",
+                "detail": release["detail"],
+            },
             "episodes": episodes, "provider_health": provider, "release_artifact_freshness": freshness,
-            "recovery": self._recovery(episodes, target, evidence_reserve), "evidence_reserve": evidence_reserve,
+            "recovery": self._recovery(episodes, target, publish_ready, evidence_reserve), "evidence_reserve": evidence_reserve,
             "integrity": integrity,
             "portfolio": ResearchPortfolio.snapshot(), "component_states": states,
-            "next_action": "produce new cited episodes through image, assembly and quality gates" if len(ready) < target else "maintain the seven-episode buffer",
+            "next_action": "produce new cited episodes through image, assembly and quality gates" if publish_ready is None or publish_ready < target else "maintain the fourteen-episode buffer",
         }

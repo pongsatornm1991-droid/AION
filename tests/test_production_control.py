@@ -38,8 +38,10 @@ class ProductionControlTests(unittest.TestCase):
             report = ProductionControl(root, self._env()).snapshot()
             self.assertEqual("ready", report["provider_health"]["state"])
             self.assertEqual("unknown-not-inspectable-without-provider-api", report["provider_health"]["quota"])
-            self.assertTrue(report["episodes"][0]["release_ready"])
-            self.assertEqual(13, report["shorts_buffer"]["missing"])
+            self.assertTrue(report["episodes"][0]["studio_ready"])
+            self.assertFalse(report["episodes"][0]["release_ready"])
+            self.assertIsNone(report["shorts_buffer"]["publish_ready"])
+            self.assertIsNone(report["shorts_buffer"]["missing"])
             self.assertIn("integrity", report)
             self.assertEqual("healthy", report["integrity"]["state"])
             self.assertEqual("recovering", report["recovery"]["state"])
@@ -94,6 +96,24 @@ class ProductionControlTests(unittest.TestCase):
             (root / "content" / "creator_series" / "test.json").write_text(json.dumps(_episode("legacy")), encoding="utf-8")
             report = ProductionControl(root, self._env()).snapshot()
             self.assertIn("visual-style-not-channel-signature", report["episodes"][0]["release_blockers"])
+
+    def test_publish_buffer_uses_the_final_release_report_not_studio_assets(self):
+        with tempfile.TemporaryDirectory() as temp:
+            root = Path(temp)
+            (root / "content" / "creator_series").mkdir(parents=True); (root / "assets").mkdir(); (root / "public").mkdir()
+            Image.new("RGB", (720, 1280), "navy").save(root / "assets" / "01.png")
+            Image.new("RGB", (720, 1280), "purple").save(root / "assets" / "02.png")
+            (root / "content" / "creator_series" / "test.json").write_text(json.dumps(_episode()), encoding="utf-8")
+            from datetime import datetime, timezone
+            (root / "public" / "aion-release-readiness.json").write_text(json.dumps({
+                "generated_at": datetime.now(timezone.utc).isoformat(), "horizon_hours": 168,
+                "available": {"short": ["test-short"]},
+                "shorts_buffer": {"quality_ready": 1, "detail": "final quality only"},
+            }), encoding="utf-8")
+            report = ProductionControl(root, self._env()).snapshot()
+            self.assertEqual(1, report["shorts_buffer"]["publish_ready"])
+            self.assertEqual(1, report["shorts_buffer"]["studio_ready"])
+            self.assertTrue(report["episodes"][0]["release_ready"])
 
 
 class NotifyIntegrityAlertsTests(unittest.TestCase):

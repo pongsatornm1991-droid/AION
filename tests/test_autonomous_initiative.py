@@ -230,3 +230,19 @@ class AutonomousInitiativeTests(unittest.TestCase):
             self.assertEqual("recovery-reserve-queue-full", report["stage"])
             self.assertEqual(0, report["created_count"])
             self.assertEqual(0, report["queue_capacity"])
+
+    def test_daily_seed_guard_preserves_future_topics_when_research_is_unhealthy(self):
+        catalogue = tuple(
+            (f"topic-{index}", f"Why test mechanism {index}?", "Show one mechanism.")
+            for index in range(12)
+        )
+        with tempfile.TemporaryDirectory() as root, patch.object(AutonomousInitiative, "RECOVERY_INQUIRIES", catalogue):
+            memory = MemoryEngine(root)
+            planner = AutonomousInitiative(memory)
+            planner.RECOVERY_MAX_NEW_PER_DAY = 1
+            first = planner.initiate_recovery_batch(14, target=2, seed_limit=1)
+            self.assertTrue(first["created"])
+            question = first["questions"][0]
+            CuriosityEngine(memory).record_attempt(question["id"])
+            second = planner.initiate_recovery_batch(14, target=2, seed_limit=1)
+            self.assertEqual("recovery-reserve-rate-limited", second["stage"])

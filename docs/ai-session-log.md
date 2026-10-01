@@ -3314,3 +3314,23 @@ authorized Creator episode”, with no `upload-failed` result. This closes the
 previous `invalid_grant` blocker: future ready Shorts can again publish through
 the automatic YouTube lane. Separate image-generation capacity/queue issues
 remain independent production work and are not an OAuth failure.
+
+## 2026-10-01 — Codex — Corrected release readiness and protected the research reserve
+
+The six most recent Studio episodes had already been published, but
+`ProductionControl` was counting their local
+`production-ready-assets-and-script` manifests as future release-ready Shorts.
+This was an observability error, not a final-video stall.
+
+`brain/production_control.py` now reports `studio_ready` (local assets pass
+Studio checks) separately from `publish_ready` (the fresh final Creator-queue
+record in `aion-release-readiness.json`). A missing or stale release report is
+explicitly unknown; it cannot inflate the publish buffer. Per-episode
+`release_ready` now agrees with final queue IDs.
+
+The recovery catalogue had reached 0/57 after a burst of failed research
+attempts. It now contains 77 distinct evidence-friendly questions and has a
+ten-new-questions-per-day guard, so an upstream research outage cannot burn
+the catalogue in repeated hourly recovery passes. This does not weaken the
+two-source rule, reuse old videos, or auto-publish. Targeted production
+control, initiative, integrity, release-recovery, and dashboard tests pass.
