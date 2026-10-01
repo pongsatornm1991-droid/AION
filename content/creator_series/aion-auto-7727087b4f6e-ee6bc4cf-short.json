@@ -2,7 +2,7 @@
   "id": "aion-auto-7727087b4f6e-ee6bc4cf-short",
   "series": "AION Wonders",
   "title": "Why do some clouds grow tall before a thunderstorm?",
-  "status": "assets-ready-for-assembly",
+  "status": "production-ready-assets-and-script",
   "format": "illustrated-narrated-short",
   "target_duration_seconds": 65,
   "scene_seconds": 5,
@@ -539,7 +539,11 @@
       "primary_focus": "Why do some clouds grow tall before a thunderstorm?",
       "rule": "One object or one visible question; generous negative space; no competing details or embedded text."
     },
-    "aion_rule": "AION is a contextual guide, never the subject of every frame."
+    "aion_rule": "AION is a contextual guide, never the subject of every frame.",
+    "reveal": {
+      "rule": "Choose one picture-first reveal that makes the hidden mechanism or relationship understandable at a glance: a cutaway, before/after change, traced path, scale comparison, or another topic-appropriate cause-and-effect device.",
+      "placement": "Use the connection or takeaway beat as the clearest payoff; it must show the relationship, not merely decorate it."
+    }
   },
   "fact_first_visual": {
     "version": "aion-fact-first-visual-v1",
