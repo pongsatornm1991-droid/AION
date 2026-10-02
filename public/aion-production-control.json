@@ -1,6 +1,6 @@
 {
-  "generated_at": "2026-10-02T12:38:07.910724+00:00",
-  "state": "attention",
+  "generated_at": "2026-10-02T12:55:48.260017+00:00",
+  "state": "critical",
   "policy": {
     "brand": {
       "channel_name": "Wait, How?",
@@ -37,10 +37,10 @@
   },
   "shorts_buffer": {
     "target": 14,
-    "publish_ready": null,
+    "publish_ready": 0,
     "studio_ready": 0,
-    "missing": null,
-    "source": "final-release-report-unavailable",
+    "missing": 14,
+    "source": "aion-release-readiness.json",
     "detail": "นับเฉพาะ Shorts ใหม่ที่ผ่าน Quality Gate แล้ว; storyboard หรือภาพครบยังไม่นับเป็นบัฟเฟอร์"
   },
   "episodes": [
@@ -51,7 +51,7 @@
       "source_status": "research-evidence-rejected-preserved",
       "style": "aion-neon-diorama-3d-v1",
       "scene_count": 12,
-      "updated_at": "2026-10-02T12:38:03.831015+00:00",
+      "updated_at": "2026-10-02T12:55:44.895856+00:00",
       "visual_qa": {
         "eligible": false,
         "reasons": [
@@ -86,7 +86,7 @@
       "source_status": "production-ready-assets-and-script",
       "style": "aion-neon-diorama-3d-v1",
       "scene_count": 13,
-      "updated_at": "2026-10-02T12:38:03.831309+00:00",
+      "updated_at": "2026-10-02T12:55:44.896152+00:00",
       "visual_qa": {
         "eligible": true,
         "reasons": [],
@@ -110,7 +110,7 @@
       "source_status": "production-ready-assets-and-script",
       "style": "aion-neon-diorama-3d-v1",
       "scene_count": 13,
-      "updated_at": "2026-10-02T12:38:03.831309+00:00",
+      "updated_at": "2026-10-02T12:55:44.896152+00:00",
       "visual_qa": {
         "eligible": true,
         "reasons": [],
@@ -134,7 +134,7 @@
       "source_status": "production-ready-assets-and-script",
       "style": "aion-neon-diorama-3d-v1",
       "scene_count": 12,
-      "updated_at": "2026-10-02T12:38:03.831309+00:00",
+      "updated_at": "2026-10-02T12:55:44.896152+00:00",
       "visual_qa": {
         "eligible": true,
         "reasons": [],
@@ -158,7 +158,7 @@
       "source_status": "production-ready-assets-and-script",
       "style": "aion-neon-diorama-3d-v1",
       "scene_count": 13,
-      "updated_at": "2026-10-02T12:38:03.831309+00:00",
+      "updated_at": "2026-10-02T12:55:44.896152+00:00",
       "visual_qa": {
         "eligible": true,
         "reasons": [],
@@ -182,7 +182,7 @@
       "source_status": "retired-do-not-publish",
       "style": null,
       "scene_count": 24,
-      "updated_at": "2026-10-02T12:38:03.831309+00:00",
+      "updated_at": "2026-10-02T12:55:44.896152+00:00",
       "visual_qa": {
         "eligible": false,
         "reasons": [
@@ -216,7 +216,7 @@
       "source_status": "retired-do-not-publish",
       "style": null,
       "scene_count": 12,
-      "updated_at": "2026-10-02T12:38:03.831309+00:00",
+      "updated_at": "2026-10-02T12:55:44.896152+00:00",
       "visual_qa": {
         "eligible": false,
         "reasons": [
@@ -253,7 +253,7 @@
       "source_status": "retired-do-not-publish",
       "style": null,
       "scene_count": 5,
-      "updated_at": "2026-10-02T12:38:03.831309+00:00",
+      "updated_at": "2026-10-02T12:55:44.896152+00:00",
       "visual_qa": {
         "eligible": false,
         "reasons": [
@@ -287,7 +287,7 @@
       "source_status": "production-ready-assets-and-script",
       "style": "aion-neon-diorama-3d-v1",
       "scene_count": 13,
-      "updated_at": "2026-10-02T12:38:03.831309+00:00",
+      "updated_at": "2026-10-02T12:55:44.896152+00:00",
       "visual_qa": {
         "eligible": true,
         "reasons": [],
@@ -311,7 +311,7 @@
       "source_status": "retired-do-not-publish",
       "style": null,
       "scene_count": 24,
-      "updated_at": "2026-10-02T12:38:03.831309+00:00",
+      "updated_at": "2026-10-02T12:55:44.896152+00:00",
       "visual_qa": {
         "eligible": false,
         "reasons": [
@@ -345,7 +345,7 @@
       "source_status": "retired-do-not-publish",
       "style": null,
       "scene_count": 12,
-      "updated_at": "2026-10-02T12:38:03.831309+00:00",
+      "updated_at": "2026-10-02T12:55:44.896152+00:00",
       "visual_qa": {
         "eligible": false,
         "reasons": [
@@ -382,7 +382,7 @@
       "source_status": "retired-do-not-publish",
       "style": null,
       "scene_count": 12,
-      "updated_at": "2026-10-02T12:38:03.831309+00:00",
+      "updated_at": "2026-10-02T12:55:44.896152+00:00",
       "visual_qa": {
         "eligible": false,
         "reasons": [
@@ -408,7 +408,7 @@
       "source_status": "research-returned-source-integrity",
       "style": null,
       "scene_count": 12,
-      "updated_at": "2026-10-02T12:38:03.831309+00:00",
+      "updated_at": "2026-10-02T12:55:44.896152+00:00",
       "visual_qa": {
         "eligible": false,
         "reasons": [
@@ -445,7 +445,7 @@
       "source_status": "production-ready-assets-and-script",
       "style": "aion-neon-diorama-3d-v1",
       "scene_count": 13,
-      "updated_at": "2026-10-02T12:38:03.831309+00:00",
+      "updated_at": "2026-10-02T12:55:44.896152+00:00",
       "visual_qa": {
         "eligible": true,
         "reasons": [],
@@ -469,7 +469,7 @@
       "source_status": "production-ready-assets-and-script",
       "style": "aion-neon-diorama-3d-v1",
       "scene_count": 13,
-      "updated_at": "2026-10-02T12:38:03.831309+00:00",
+      "updated_at": "2026-10-02T12:55:44.896152+00:00",
       "visual_qa": {
         "eligible": true,
         "reasons": [],
@@ -493,7 +493,7 @@
       "source_status": "retired-do-not-publish",
       "style": "aion-neon-diorama-3d-v1",
       "scene_count": 12,
-      "updated_at": "2026-10-02T12:38:03.831309+00:00",
+      "updated_at": "2026-10-02T12:55:44.896152+00:00",
       "visual_qa": {
         "eligible": false,
         "reasons": [
@@ -528,7 +528,7 @@
       "source_status": "production-ready-assets-and-script",
       "style": "aion-neon-diorama-3d-v1",
       "scene_count": 12,
-      "updated_at": "2026-10-02T12:38:03.831309+00:00",
+      "updated_at": "2026-10-02T12:55:44.896152+00:00",
       "visual_qa": {
         "eligible": true,
         "reasons": [],
@@ -552,7 +552,7 @@
       "source_status": "production-ready-assets-and-script",
       "style": "aion-illustrated-postcard-v1",
       "scene_count": 12,
-      "updated_at": "2026-10-02T12:38:03.831309+00:00",
+      "updated_at": "2026-10-02T12:55:44.896152+00:00",
       "visual_qa": {
         "eligible": false,
         "reasons": [
@@ -578,7 +578,7 @@
       "source_status": "production-ready-assets-and-script",
       "style": "aion-illustrated-postcard-v1",
       "scene_count": 12,
-      "updated_at": "2026-10-02T12:38:03.831309+00:00",
+      "updated_at": "2026-10-02T12:55:44.896652+00:00",
       "visual_qa": {
         "eligible": false,
         "reasons": [
@@ -604,7 +604,7 @@
       "source_status": "production-ready-assets-and-script",
       "style": null,
       "scene_count": 24,
-      "updated_at": "2026-10-02T12:38:03.831309+00:00",
+      "updated_at": "2026-10-02T12:55:44.896652+00:00",
       "visual_qa": {
         "eligible": true,
         "reasons": [],
@@ -628,7 +628,7 @@
       "source_status": "production-ready-assets-and-script",
       "style": null,
       "scene_count": 12,
-      "updated_at": "2026-10-02T12:38:03.831309+00:00",
+      "updated_at": "2026-10-02T12:55:44.896652+00:00",
       "visual_qa": {
         "eligible": false,
         "reasons": [
@@ -654,7 +654,7 @@
       "source_status": "production-ready-assets-and-script",
       "style": "aion-original-warm-3d-storytelling-v1",
       "scene_count": 10,
-      "updated_at": "2026-10-02T12:38:03.831309+00:00",
+      "updated_at": "2026-10-02T12:55:44.896652+00:00",
       "visual_qa": {
         "eligible": false,
         "reasons": [
@@ -680,7 +680,7 @@
       "source_status": "production-ready-script",
       "style": null,
       "scene_count": 24,
-      "updated_at": "2026-10-02T12:38:03.831309+00:00",
+      "updated_at": "2026-10-02T12:55:44.896652+00:00",
       "visual_qa": {
         "eligible": false,
         "reasons": [
@@ -714,7 +714,7 @@
       "source_status": "retired-do-not-publish",
       "style": null,
       "scene_count": 4,
-      "updated_at": "2026-10-02T12:38:03.831309+00:00",
+      "updated_at": "2026-10-02T12:55:44.896652+00:00",
       "visual_qa": {
         "eligible": false,
         "reasons": [
@@ -740,7 +740,7 @@
       "source_status": "production-ready-assets-and-script",
       "style": null,
       "scene_count": 40,
-      "updated_at": "2026-10-02T12:38:03.831309+00:00",
+      "updated_at": "2026-10-02T12:55:44.896652+00:00",
       "visual_qa": {
         "eligible": true,
         "reasons": [],
@@ -764,7 +764,7 @@
       "source_status": "retired-do-not-publish",
       "style": null,
       "scene_count": 3,
-      "updated_at": "2026-10-02T12:38:03.831978+00:00",
+      "updated_at": "2026-10-02T12:55:44.896652+00:00",
       "visual_qa": {
         "eligible": true,
         "reasons": [],
@@ -788,7 +788,7 @@
       "source_status": "production-ready-assets-and-script",
       "style": "aion-neon-graphic-science-v1",
       "scene_count": 12,
-      "updated_at": "2026-10-02T12:38:03.831978+00:00",
+      "updated_at": "2026-10-02T12:55:44.896652+00:00",
       "visual_qa": {
         "eligible": false,
         "reasons": [
@@ -872,15 +872,15 @@
     "boundary": "A configured key is not proof of live quota or provider uptime; the scheduled workflow records real provider failures separately."
   },
   "release_artifact_freshness": {
-    "state": "stale",
-    "age_seconds": 12702,
+    "state": "fresh",
+    "age_seconds": 92,
     "policy_current": true
   },
   "recovery": {
     "owner": "Production Recovery Manager",
     "state": "recovering",
     "target": 14,
-    "publish_ready": null,
+    "publish_ready": 0,
     "studio_ready": 0,
     "missing": 14,
     "active_storyboards": 0,
@@ -971,7 +971,7 @@
     "boundary": "A question is not evidence, and evidence is not a publishable video. Qualified evidence requires independent traceable sources; story briefs still pass novelty, production, and final Quality Gates."
   },
   "integrity": {
-    "generated_at": "2026-10-02T12:38:08.380604+00:00",
+    "generated_at": "2026-10-02T12:55:48.663855+00:00",
     "state": "attention",
     "alerts": [
       {
@@ -1000,7 +1000,7 @@
       },
       "research_pipeline_stall": {
         "pending_candidates": 2,
-        "oldest_ready_hours": 212.7
+        "oldest_ready_hours": 213.0
       }
     }
   },
@@ -1028,7 +1028,7 @@
   ],
   "component_states": {
     "provider": "ready",
-    "artifact": "stale",
+    "artifact": "fresh",
     "integrity": "attention"
   },
   "next_action": "produce new cited episodes through image, assembly and quality gates"
