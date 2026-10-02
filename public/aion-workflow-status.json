@@ -1,10 +1,10 @@
 {
-  "generated_at": "2026-10-02T23:11:32.043992+00:00",
+  "generated_at": "2026-10-02T23:12:24.901391+00:00",
   "tiles": {
     "total": 45,
-    "ok": 36,
+    "ok": 35,
     "attn": 0,
-    "running": 5
+    "running": 6
   },
   "groups": [
     {
@@ -14,10 +14,10 @@
         {
           "name": "AION - Creator queue quality gate",
           "file": "creator-queue-quality.yml",
-          "status_class": "success",
-          "status_label": "สำเร็จ",
-          "html_url": "https://github.com/pongsatornm1991-droid/AION/actions/runs/37064340341",
-          "created_at": "2026-10-02T21:01:56Z"
+          "status_class": "running",
+          "status_label": "กำลังรัน",
+          "html_url": "https://github.com/pongsatornm1991-droid/AION/actions/runs/37076353195",
+          "created_at": "2026-10-02T23:11:18Z"
         },
         {
           "name": "AION - YouTube Creator Studio",
@@ -152,8 +152,8 @@
           "file": "automation-health.yml",
           "status_class": "success",
           "status_label": "ไม่มีเหตุให้ดำเนินการ",
-          "html_url": "https://github.com/pongsatornm1991-droid/AION/actions/runs/37076244308",
-          "created_at": "2026-10-02T23:10:00Z"
+          "html_url": "https://github.com/pongsatornm1991-droid/AION/actions/runs/37076378381",
+          "created_at": "2026-10-02T23:11:37Z"
         },
         {
           "name": "AION - Cyber Guard defensive audit",
@@ -278,8 +278,8 @@
           "file": "youtube-release-watchdog.yml",
           "status_class": "running",
           "status_label": "กำลังรัน",
-          "html_url": "https://github.com/pongsatornm1991-droid/AION/actions/runs/37076248363",
-          "created_at": "2026-10-02T23:10:03Z"
+          "html_url": "https://github.com/pongsatornm1991-droid/AION/actions/runs/37076382907",
+          "created_at": "2026-10-02T23:11:41Z"
         },
         {
           "name": "AION - YouTube release-window recovery",
