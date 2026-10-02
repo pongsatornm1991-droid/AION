@@ -100,7 +100,19 @@ class CreatorSceneProductionTests(unittest.TestCase):
         )
         self.assertIn("Do not include AION in this scene", prompt)
         self.assertIn("never make AION the hero", prompt)
-        self.assertIn("story-specific chosen presence", prompt)
+        self.assertIn("AION is absent", prompt)
+
+    def test_legacy_aion_wording_cannot_force_aion_into_an_unplanned_scene(self):
+        episode = {
+            "format": "illustrated-narrated-short",
+            "visual_direction": {"aion_presence_beats": ["hook", "takeaway"]},
+        }
+        prompt = CreatorSceneProduction()._prompt(
+            episode, {"beat": "evidence-one-a", "visual": "AION observes a working mechanism."}
+        )
+        self.assertIn("Do not include AION in this scene", prompt)
+        self.assertIn("AION is absent", prompt)
+        self.assertNotIn("Wardrobe:", prompt)
 
     def test_hook_beat_gets_dynamic_framing_within_the_same_diorama_style(self):
         # Owner feedback, 2026-09-27: every scene used identical flat wide

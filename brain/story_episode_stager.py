@@ -508,7 +508,9 @@ class StoryEpisodeStager:
                 "focus": "subject-first",
                 "aion_role": "contextual-guide",
                 "aion_frame_share_max": 0.20,
-                "aion_presence_rationale": "AION is a small guide who helps viewers notice evidence; the subject and environment remain central.",
+                "aion_presence_max_scenes": 2,
+                "aion_presence_beats": [HOOK, TAKEAWAY],
+                "aion_presence_rationale": "AION appears only for the opening orientation or final takeaway when it clarifies the story; the subject and mechanism lead every other scene.",
             },
             "visual_style": {
                 # The director may choose the setting, wardrobe and story
@@ -530,7 +532,7 @@ class StoryEpisodeStager:
                 "prohibited": ["all-blue body", "all-blue outfit", "cape", "armour", "fashion pose", "embedded text", "logo", "watermark"],
             },
             "scenes": [
-                {"n": 1, "beat": HOOK, "visual": f"A cinematic educational opening centred on {topic}; the real subject and environment fill the frame, with AION only as a small guide at the edge.",
+                {"n": 1, "beat": HOOK, "visual": f"A cinematic educational opening centred on {topic}; the real subject and environment fill the frame. AION may appear only as a tiny guide if it makes the opening question clearer.",
                  # Found 2026-09-22 (owner: focus on Shorts, aim for
                  # kurzgesagt-calibre memorability): "Today we are asking:
                  # {topic}" is throat-clearing -- it announces the show
@@ -540,7 +542,7 @@ class StoryEpisodeStager:
                  # fact itself still comes only from research's own
                  # sourced observation, nothing invented here.
                  "narration": f"{first_parts[0]} {hook_phrase}"},
-                {"n": 2, "beat": QUESTION, "visual": f"Show the central subject of {topic} clearly before any explanation; AION observes from the distant edge.",
+                {"n": 2, "beat": QUESTION, "visual": f"Show the central subject of {topic} clearly before any explanation. No AION character in this scene.",
                  # Found 2026-09-29: "We will follow what was actually
                  # observed, step by step, rather than inventing an
                  # answer" is a methodology statement, not a story
@@ -552,7 +554,7 @@ class StoryEpisodeStager:
                  # findings, not a guess), just without sounding like a
                  # methods section.
                 "narration": "So what tiny thing is making this happen?"},
-                {"n": 3, "beat": EVIDENCE_ONE_INTRO, "visual": f"Show the first evidence scene for {topic}, guided by {first_title}; AION remains small and practical in the background.",
+                {"n": 3, "beat": EVIDENCE_ONE_INTRO, "visual": f"Show the first evidence scene for {topic}, guided by {first_title}. No AION character in this scene.",
                  # Found 2026-09-29: this used to speak the source's raw
                  # academic title aloud (e.g. "Our first clue comes from An
                  # inventory of active subglacial lakes in Antarctica
@@ -562,15 +564,15 @@ class StoryEpisodeStager:
                  # elsewhere (sources list, description) for anyone who
                  # wants to check it.
                  "narration": "The first part of the trick is hiding in plain sight."},
-                {"n": 4, "beat": EVIDENCE_ONE_A, "visual": f"Depict this documented observation about {topic}: {first_parts[0]} Keep the subject dominant; AION is a small guide only.", "narration": self._narrated_evidence(first_parts[0], topic)},
-                {"n": 5, "beat": EVIDENCE_ONE_B, "visual": f"Continue the first documented observation for {topic}: {(first_parts[1] if len(first_parts) > 1 else evidence_one)} Keep the evidence visible and AION in the background.", "narration": self._narrated_evidence(first_parts[1], topic) if len(first_parts) > 1 else "That is where the change begins."},
-                {"n": 6, "beat": EVIDENCE_TWO_INTRO, "visual": f"Move to a distinct second evidence scene for {topic}, guided by {second_title}; AION remains small at the edge.",
+                {"n": 4, "beat": EVIDENCE_ONE_A, "visual": f"Depict this documented observation about {topic}: {first_parts[0]} Keep the subject and mechanism dominant. No AION character in this scene.", "narration": self._narrated_evidence(first_parts[0], topic)},
+                {"n": 5, "beat": EVIDENCE_ONE_B, "visual": f"Continue the first documented observation for {topic}: {(first_parts[1] if len(first_parts) > 1 else evidence_one)} Keep the evidence visible. No AION character in this scene.", "narration": self._narrated_evidence(first_parts[1], topic) if len(first_parts) > 1 else "That is where the change begins."},
+                {"n": 6, "beat": EVIDENCE_TWO_INTRO, "visual": f"Move to a distinct second evidence scene for {topic}, guided by {second_title}. No AION character in this scene.",
                  # Same fix as EVIDENCE_ONE_INTRO above: no raw source title
                  # spoken aloud.
                  "narration": "Then one more detail flips the whole picture."},
-                {"n": 7, "beat": EVIDENCE_TWO_A, "visual": f"Depict this documented observation about {topic}: {second_parts[0]} Keep the subject, action, and setting central; AION observes subtly from the distant edge.", "narration": self._narrated_evidence(second_parts[0], topic)},
-                {"n": 8, "beat": EVIDENCE_TWO_B, "visual": f"Continue the second documented observation for {topic}: {(second_parts[1] if len(second_parts) > 1 else evidence_two)} AION is only a small contextual guide.", "narration": self._narrated_evidence(second_parts[1], topic) if len(second_parts) > 1 else "Now the hidden pattern starts to show."},
-                {"n": 9, "beat": CONNECTION, "visual": f"A visual comparison of the two documented observations about {topic}; show the subject and environment, with AION pointing only subtly from the edge.",
+                {"n": 7, "beat": EVIDENCE_TWO_A, "visual": f"Depict this documented observation about {topic}: {second_parts[0]} Keep the subject, action, and setting central. No AION character in this scene.", "narration": self._narrated_evidence(second_parts[0], topic)},
+                {"n": 8, "beat": EVIDENCE_TWO_B, "visual": f"Continue the second documented observation for {topic}: {(second_parts[1] if len(second_parts) > 1 else evidence_two)} No AION character in this scene.", "narration": self._narrated_evidence(second_parts[1], topic) if len(second_parts) > 1 else "Now the hidden pattern starts to show."},
+                {"n": 9, "beat": CONNECTION, "visual": f"A visual comparison of the two documented observations about {topic}; show the causal relationship as the only focal point. No AION character in this scene.",
                  # Found 2026-09-22 (quality_incident: "generic-template-
                  # story-does-not-explain-topic"): this beat used to say
                  # only "these two observations give us a clearer picture,"
@@ -580,9 +582,9 @@ class StoryEpisodeStager:
                  # transition -- the mechanism itself still comes from
                  # research's own sourced observations, never invented here.
                  "narration": understanding or f"That is the reveal: {first_parts[0]} And the next piece is {second_parts[0] if second_parts else evidence_two}"},
-                {"n": 10, "beat": BOUNDARY, "visual": f"Show the boundary between what the sources document and what they do not establish about {topic}; no invented action, AION remains in the background.", "narration": uncertainty or "But the last piece is still not fully clear, so the mystery is not over yet."},
-                {"n": 11, "beat": TAKEAWAY, "visual": f"Return to the central subject of {topic} in a final meaningful wide scene; AION is a small observer, not the focus.", "narration": f"So that is what is really happening behind {hook_phrase.rstrip('?.!')}."},
-                {"n": 12, "beat": INVITATION, "visual": f"End on the real subject and environment of {topic}, leaving space for wonder; AION exits subtly at the edge.",
+                {"n": 10, "beat": BOUNDARY, "visual": f"Show the boundary between what the sources document and what they do not establish about {topic}; no invented action and no AION character in this scene.", "narration": uncertainty or "But the last piece is still not fully clear, so the mystery is not over yet."},
+                {"n": 11, "beat": TAKEAWAY, "visual": f"Return to the central subject of {topic} in a final meaningful wide scene. AION may appear only as a small guide if it helps land the takeaway; the mechanism remains the focus.", "narration": f"So that is what is really happening behind {hook_phrase.rstrip('?.!')}."},
+                {"n": 12, "beat": INVITATION, "visual": f"End on the real subject and environment of {topic}, leaving space for wonder. No AION character in this scene.",
                  # Found 2026-09-22: "Keep asking better questions, and
                  # check the evidence with me" is the exact same closing
                  # line on every single episode regardless of topic -- it
@@ -611,18 +613,18 @@ class StoryEpisodeStager:
                 for index, part in enumerate(parts, start=1):
                     source_beats.append({
                         "beat": f"evidence-{len(source_beats) + 1}",
-                        "visual": f"Examine documented evidence from {label} about {topic}: {part} The subject and setting lead the frame; AION is a small guide only.",
+                    "visual": f"Examine documented evidence from {label} about {topic}: {part} The subject and setting lead the frame. No AION character in this scene.",
                         "narration": self._narrated_evidence(part, topic),
                     })
             framing = [
-                (HOOK, f"Open on the most surprising visual question about {topic}; the subject fills the frame and AION is a small guide.", f"How can we explain {topic} without skipping what the evidence actually says?"),
+                (HOOK, f"Open on the most surprising visual question about {topic}; the subject fills the frame and AION may appear only if it clarifies the opening.", f"How can we explain {topic} without skipping what the evidence actually says?"),
                 (MAP_THE_QUESTION, f"Orient the viewer in the real setting relevant to {topic}; show scale, place and context before the explanation.", f"We will take this one clue at a time and compare independent sources about {topic}."),
                 (FIRST_SOURCE, f"Introduce {first_title} as the first evidence source for {topic}, showing what this source can and cannot directly support.", f"Our first source is {first_title}. It gives us a specific observation to examine."),
             ]
             bridge = [
                 (COMPARE, f"Compare the two documented evidence trails about {topic} in one clear visual layout; do not turn interpretation into fact.", "Now compare the two sources. Agreement can strengthen a clue, but it does not answer every question by itself."),
                 (UNCERTAINTY, f"Show the limit of the available evidence around {topic}; retain the real setting and avoid invented details.", uncertainty or "The sources do not settle every detail, so we should not claim more than they show."),
-                (TAKEAWAY, f"Return to the subject of {topic} in a meaningful final wide scene, with AION only at the edge.", f"The useful takeaway is to start with what was observed about {topic}, then separate evidence from interpretation."),
+                (TAKEAWAY, f"Return to the subject of {topic} in a meaningful final wide scene; AION may appear only if it clarifies the takeaway.", f"The useful takeaway is to start with what was observed about {topic}, then separate evidence from interpretation."),
                 (INVITATION, f"End on the real subject and environment of {topic}, leaving visual space for the viewer's next question.", "There is always more to learn when we follow the evidence carefully."),
             ]
             long_scenes = [
@@ -644,10 +646,6 @@ class StoryEpisodeStager:
                 })
             for number, scene in enumerate(long_scenes, start=1):
                 scene["n"] = number
-                if "aion" not in str(scene.get("visual") or "").lower():
-                    scene["visual"] = (
-                        f"{scene['visual']} AION appears briefly at the edge as a contextual guide."
-                    )
             episode.update({
                 # Same "lead with the hook, not the channel name" change as
                 # the short-form title above.

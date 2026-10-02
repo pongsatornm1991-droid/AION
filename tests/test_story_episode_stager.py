@@ -252,6 +252,12 @@ class StoryEpisodeStagerTests(unittest.TestCase):
             self.assertEqual("bounded-fallback", episode["visual_style"]["aion_deliberation"]["origin"])
             self.assertEqual("no-story-ready-handoff", StoryEpisodeStager(memory, root).stage_once()["stage"])
             self.assertEqual("bounded-fallback", episode["narration_style"]["origin"])
+            self.assertEqual(2, episode["visual_direction"]["aion_presence_max_scenes"])
+            self.assertEqual(["hook", "takeaway"], episode["visual_direction"]["aion_presence_beats"])
+            self.assertEqual(
+                2,
+                sum("may appear only" in str(scene["visual"]).lower() for scene in episode["scenes"]),
+            )
 
     def test_evidence_intro_beats_never_speak_the_raw_source_title(self):
         # Regression, 2026-09-29: these used to say e.g. "Our first clue

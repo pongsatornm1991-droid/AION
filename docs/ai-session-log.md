@@ -3465,3 +3465,21 @@ The workflow-run handoff remains the normal immediate path; this is only a
 bounded no-op safety sweep for missed events, so an asset-complete Short can
 no longer wait a full day for its next motion attempt. Motion resilience and
 workflow-handoff tests pass (7 tests).
+
+## 2026-10-02 — Codex — Made the subject, not AION, the visual lead
+
+Owner correctly noticed AION appearing in every scene. The issue existed in
+three layers: the Story Stager named AION in nearly all 12 visual briefs; the
+image prompt treated any name mention as an appearance instruction and still
+sent wardrobe/identity detail even when an image said to omit AION; and the
+registry validator literally required AION in every visual beat.
+
+New automatic episodes now reserve no more than two planned guide beats
+(hook and takeaway). Every other beat explicitly excludes the character and
+focuses the frame on the subject, mechanism, people, or environment. The
+image prompt honors that plan even for a legacy storyboard whose text still
+mentions AION, so repair renders cannot multiply the character again. The
+old all-scenes requirement is replaced with validation of the bounded plan;
+historical episodes without a plan remain readable and are never rewritten.
+Creator-series, scene-production, story-stager, and visual-narrative suites
+pass (74 tests).

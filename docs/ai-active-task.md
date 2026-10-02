@@ -10,10 +10,9 @@ Status: clear
 Owner: Codex
 Started: 2026-10-02 Asia/Bangkok
 Lease expires: completed 2026-10-02 Asia/Bangkok
-Scope: Completed: automatic-motion's scheduled recovery now runs hourly,
-instead of daily, as a safety net for a missed event handoff. Existing
-per-episode motion, timing, render, subtitle, and video-quality gates remain
-mandatory.
+Scope: Completed: AION is now an intentionally occasional contextual guide,
+with at most two planned guide beats per new episode. Subject/mechanism focus
+is enforced in staging and image-generation prompts with regression coverage.
 Handoff: See docs/ai-session-log.md's 2026-09-26/27 entries for full detail
 (commits f69b858, af28e02, 63970ef, 92fc52f, 34512b1, ef1dbac, 18ad2c8,
 cd6174c, 2f76f90, 58f2ef3, fb4459a, d32392a, 2359b32, 508567b, 82a7b1b,

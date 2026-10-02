@@ -121,10 +121,18 @@ class CreatorSeriesRegistry:
             raise ValueError(f"{item.get('id')} needs at least two traceable sources.")
         if any(not scene.get("narration") or not (scene.get("visual") or scene.get("image")) for scene in scenes):
             raise ValueError(f"{item.get('id')} has an incomplete visual beat.")
-        if any("aion" not in str(scene.get("visual", "")).lower() for scene in scenes):
+        # AION used to be required in every beat. That made a 12-scene
+        # educational Short read as mascot-led and directly contradicted the
+        # subject-first contract. New episodes may reserve at most two named
+        # guide beats (normally hook + takeaway); historical storyboards with
+        # no explicit plan remain valid rather than being rewritten.
+        aion_plan = (item.get("visual_direction") or {}).get("aion_presence_beats")
+        if aion_plan is not None and (
+            not isinstance(aion_plan, list) or len(aion_plan) > 2 or
+            any(str(beat) not in {str(scene.get("beat") or "") for scene in scenes} for beat in aion_plan)
+        ):
             raise ValueError(
-                f"{item.get('id')} must place AION in every visual beat; "
-                "AION is the recurring guide, not only the voice-over."
+                f"{item.get('id')} needs at most two valid planned AION guide beats."
             )
         boundary = any(
             str(item.get(key) or "").strip()

@@ -320,13 +320,20 @@ class CreatorSceneProduction:
 
     def _prompt(self, episode, scene):
         direction = episode.get("visual_direction") or {}
-        wardrobe = CostumeDirection.brief_for(episode, scene)
         aspect = "vertical 9:16" if episode.get("format") == "illustrated-narrated-short" else "widescreen 16:9"
         mentions_aion = "aion" in str(scene.get("visual") or "").lower()
+        # AION is a recognisable guide, not the episode's presenter.  Older
+        # scene descriptions used its name in every beat; treating every
+        # mention as an appearance instruction made the character compete
+        # with the mechanism viewers came to understand. New storyboards set
+        # these two beats explicitly; the fallback keeps historical assets
+        # from multiplying AION during a later repair render.
+        allowed_beats = set(direction.get("aion_presence_beats") or {"hook", "takeaway"})
+        aion_allowed = mentions_aion and str(scene.get("beat") or "") in allowed_beats
         presence = (
-            "AION may appear briefly as a small, contextual guide only if this scene description needs it; "
+            "AION may appear in this one planned guide beat only as a small, contextual guide; "
             "keep the subject, people, evidence, and environment dominant."
-            if mentions_aion else
+            if aion_allowed else
             "Do not include AION in this scene. Let the subject, people, evidence, and environment carry the story."
         )
         visual_style = episode.get("visual_style") or {}
@@ -345,11 +352,18 @@ class CreatorSceneProduction:
             f"Creative boundary: {fact_boundary.get('prohibited') or 'Do not let atmosphere replace the documented mechanism.'}",
             f"Picture-first reveal: {reveal_plan.get('rule') or 'Make the cause-and-effect relationship visible rather than merely describing it.'}",
             f"Reveal placement: {reveal_plan.get('placement') or 'Let the clearest mechanism image carry the payoff.'}",
-            "If AION appears, use AION's story-specific chosen presence: "
-            f"{deliberation.get('appearance_choice') or 'a subtle cyan curiosity signal or practical contextual guide'}. "
-            "Keep AION contextual rather than dominant.",
             presence,
-            VisualStoryPolicy.prompt_rules(wardrobe, direction.get("aion_frame_share_max")),
+            (
+                "If AION appears, use AION's story-specific chosen presence: "
+                f"{deliberation.get('appearance_choice') or 'a subtle cyan curiosity signal or practical contextual guide'}. "
+                "Keep AION contextual rather than dominant. "
+                + VisualStoryPolicy.prompt_rules(
+                    CostumeDirection.brief_for(episode, scene), direction.get("aion_frame_share_max")
+                )
+                if aion_allowed else
+                "Visual focus: the subject, mechanism, people, and environment are primary; AION is absent. "
+                "Use a new scene-specific image with the story's colour direction."
+            ),
             f"Composition: {aspect}, {self._composition_direction(scene.get('beat'))}.",
             style_rule,
             "No words, captions, logos, watermark, UI, or named-studio imitation.",
