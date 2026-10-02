@@ -1,10 +1,10 @@
 {
-  "generated_at": "2026-10-02T18:42:55.425873+00:00",
+  "generated_at": "2026-10-02T18:46:51.793294+00:00",
   "tiles": {
     "total": 45,
-    "ok": 41,
+    "ok": 39,
     "attn": 0,
-    "running": 2
+    "running": 4
   },
   "groups": [
     {
@@ -38,10 +38,10 @@
         {
           "name": "AION - subject-first scene production",
           "file": "creator-scene-production.yml",
-          "status_class": "success",
-          "status_label": "สำเร็จ",
-          "html_url": "https://github.com/pongsatornm1991-droid/AION/actions/runs/37048668892",
-          "created_at": "2026-10-02T18:37:19Z"
+          "status_class": "running",
+          "status_label": "กำลังรัน",
+          "html_url": "https://github.com/pongsatornm1991-droid/AION/actions/runs/37049547054",
+          "created_at": "2026-10-02T18:45:05Z"
         }
       ]
     },
@@ -52,8 +52,8 @@
         {
           "name": "AION - Research to story brief",
           "file": "research-to-story.yml",
-          "status_class": "running",
-          "status_label": "กำลังรัน",
+          "status_class": "success",
+          "status_label": "สำเร็จ",
           "html_url": "https://github.com/pongsatornm1991-droid/AION/actions/runs/37048828427",
           "created_at": "2026-10-02T18:38:44Z"
         },
@@ -152,8 +152,8 @@
           "file": "automation-health.yml",
           "status_class": "success",
           "status_label": "ไม่มีเหตุให้ดำเนินการ",
-          "html_url": "https://github.com/pongsatornm1991-droid/AION/actions/runs/37049039471",
-          "created_at": "2026-10-02T18:40:38Z"
+          "html_url": "https://github.com/pongsatornm1991-droid/AION/actions/runs/37049710644",
+          "created_at": "2026-10-02T18:46:29Z"
         },
         {
           "name": "AION - Cyber Guard defensive audit",
@@ -216,8 +216,8 @@
           "file": "publish-workflow-status.yml",
           "status_class": "running",
           "status_label": "กำลังรัน",
-          "html_url": "https://github.com/pongsatornm1991-droid/AION/actions/runs/37048968220",
-          "created_at": "2026-10-02T18:40:01Z"
+          "html_url": "https://github.com/pongsatornm1991-droid/AION/actions/runs/37049547001",
+          "created_at": "2026-10-02T18:45:05Z"
         },
         {
           "name": "AION - system reliability",
@@ -244,10 +244,10 @@
         {
           "name": "AION - Creator release readiness",
           "file": "release-readiness.yml",
-          "status_class": "success",
-          "status_label": "สำเร็จ",
-          "html_url": "https://github.com/pongsatornm1991-droid/AION/actions/runs/37048490380",
-          "created_at": "2026-10-02T18:35:42Z"
+          "status_class": "running",
+          "status_label": "กำลังรัน",
+          "html_url": "https://github.com/pongsatornm1991-droid/AION/actions/runs/37049547108",
+          "created_at": "2026-10-02T18:45:05Z"
         },
         {
           "name": "AION - Instagram feedback",
@@ -276,10 +276,10 @@
         {
           "name": "AION - YouTube release watchdog",
           "file": "youtube-release-watchdog.yml",
-          "status_class": "success",
-          "status_label": "สำเร็จ",
-          "html_url": "https://github.com/pongsatornm1991-droid/AION/actions/runs/37048856904",
-          "created_at": "2026-10-02T18:38:59Z"
+          "status_class": "running",
+          "status_label": "กำลังรัน",
+          "html_url": "https://github.com/pongsatornm1991-droid/AION/actions/runs/37049553469",
+          "created_at": "2026-10-02T18:45:08Z"
         },
         {
           "name": "AION - YouTube release-window recovery",
@@ -366,8 +366,8 @@
           "file": "autonomic-drive.yml",
           "status_class": "success",
           "status_label": "สำเร็จ",
-          "html_url": "https://github.com/pongsatornm1991-droid/AION/actions/runs/37011712197",
-          "created_at": "2026-10-02T13:14:43Z"
+          "html_url": "https://github.com/pongsatornm1991-droid/AION/actions/runs/37049430593",
+          "created_at": "2026-10-02T18:44:05Z"
         },
         {
           "name": "AION - platform delivery recovery",
