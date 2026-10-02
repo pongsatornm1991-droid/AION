@@ -1,0 +1,565 @@
+{
+  "id": "aion-auto-9d4429506300-98fb3ee0-short",
+  "series": "AION Wonders",
+  "title": "Where could someone notice or test the idea behind: Why does bread dough rise before it bakes?",
+  "status": "storyboard-ready-needs-assets",
+  "format": "illustrated-narrated-short",
+  "target_duration_seconds": 60,
+  "scene_seconds": 5,
+  "pacing_policy": "short-50-180-fact-first-v5",
+  "audience_promise": "A viewer of any age follows one vivid little mystery, sees its hidden cause, and leaves with a memorable new way to see an ordinary thing.",
+  "wonder_hook": "Where could someone notice or test the idea behind: Why does bread dough rise before it bakes?",
+  "hook_phrase": "Where to notice or test dough’s pre-bake rise",
+  "hook_phrase_style": {
+    "origin": "ai-rewrite"
+  },
+  "story_understanding": "Bread dough rises because carbon dioxide gas is made inside it. In soda bread, lactic acid in buttermilk reacts with baking soda (sodium bicarbonate) to make bubbles of CO2, so quick breads rise quickly without the time and labor of kneaded yeast breads. In yeast breads, Saccharomyces yeasts ferment sugars into ethanol and CO2, the same fermentation used in bread, beer, and wine making, so you can notice or test it in those settings.",
+  "story_understanding_style": {
+    "origin": "ai-synthesis"
+  },
+  "growth_plan": {
+    "version": "evidence-led-creator-growth-v1",
+    "hook_seconds": 2,
+    "hook_line": "What is the surprising truth about Where could someone notice or test the idea behind: Why does bread dough rise before it bakes??",
+    "retention_promise": "แต่ละฉากพาไปสู่คำตอบเดียวที่ชัดเจน: A viewer of any age follows one vivid little mystery, sees its hidden cause, and leaves with a memorable new way to see an ordinary thing.",
+    "follow_reason": "ติดตามเพื่อดูคำถามวิทยาศาสตร์และประวัติศาสตร์เรื่องถัดไปที่เล่าจากหลักฐาน",
+    "series_angle": "อีกมุมหนึ่งของ Where could someone notice or test the idea behind: Why does bread dough rise before it bakes? จะทำได้เมื่อมีข้อมูลผู้ชมจริงสนับสนุน",
+    "editing_rule": "ตัดคำเกริ่น ช่วงเงียบ และภาพที่ไม่พาเรื่องไปข้างหน้า; ทุกฉากต้องเพิ่มข้อมูลหรืออารมณ์ใหม่"
+  },
+  "topic_key": "Where could someone notice or test the idea behind: Why does bread dough rise before it bakes?",
+  "creative_device": "mystery-reveal",
+  "age_layers": {
+    "children": "Notice one surprising question and the clues that help answer it.",
+    "family": "Compare what two sources say before deciding what to believe.",
+    "deeper": "Separate direct observations from the interpretation built from them."
+  },
+  "sources": [
+    {
+      "title": "Soda bread",
+      "url": "https://en.wikipedia.org/wiki/Soda_bread",
+      "observation": "The article explains that in soda bread, lactic acid in buttermilk reacts with baking soda to form bubbles of carbon dioxide, using sodium bicarbonate as the leavening agent. It adds that this makes quick breads rise quickly and reliably without the time and labor of kneaded yeast breads."
+    },
+    {
+      "title": "Bread, beer and wine: Yeast domestication in the Saccharomyces sensu stricto complex",
+      "url": "https://doi.org/10.1016/j.crvi.2010.12.016",
+      "observation": "The authors state that Saccharomyces sensu stricto yeasts convert sugars into ethanol and CO2 through fermentation and have long been used to ferment foods and beverages. They cite bread, beer, and wine making as contexts where this fermentation occurs, initially likely started by naturally occurring yeasts before people began adding selected strains."
+    }
+  ],
+  "evidence_integrity": {
+    "eligible": true,
+    "reason": "two independent traceable sources",
+    "hosts": [
+      "doi.org",
+      "en.wikipedia.org"
+    ],
+    "human_perspective": false,
+    "off_topic_observation": false
+  },
+  "uncertainty_boundary": "The evidence may not settle every part of the question; state exactly what the sources do not establish.",
+  "visual_direction": {
+    "focus": "subject-first",
+    "aion_role": "contextual-guide",
+    "aion_frame_share_max": 0.2,
+    "aion_presence_max_scenes": 2,
+    "aion_presence_beats": [
+      "hook",
+      "takeaway"
+    ],
+    "aion_presence_rationale": "AION appears only for the opening orientation or final takeaway when it clarifies the story; the subject and mechanism lead every other scene."
+  },
+  "visual_style": {
+    "id": "aion-neon-diorama-3d-v1",
+    "approved": true,
+    "summary": "A warm-kitchen mini-mystery: two identical yeast-and-sugar bottles sit side by side—one by a sunny window, one by a chilly fridge. Only the warm-side balloon swells. A nearby cover",
+    "director": {
+      "id": "aion-thoughtscape-director-v1",
+      "world": "curiosity-atlas",
+      "mood": "a connected world of questions",
+      "palette_and_material": "bright sky blues, warm amber, fresh greens and a small cyan curiosity signal on grounded tactile materials",
+      "format": "vertical 9:16",
+      "principle": "AION chooses the world from the subject and emotional promise; evidence and the story lead the frame.",
+      "rendering_rule": "Use original all-ages warm 3D educational storytelling with rounded appealing forms, tactile natural materials, gentle cinematic light and a vibrant but controlled focal palette. Never imitate a named artist, studio, channel, franchise or existing composition."
+    },
+    "aion_deliberation": {
+      "version": "aion-creative-deliberation-v1",
+      "origin": "aion-model-deliberation",
+      "premise": "A warm-kitchen mini-mystery: two identical yeast-and-sugar bottles sit side by side—one by a sunny window, one by a chilly fridge. Only the warm-side balloon swells. A nearby cover",
+      "world": "Sunlit home kitchen counter as a cozy test bench: right side bathed in amber window light; left side cooled by an open, softly glowing blue fridge. Center stage holds two clear bot",
+      "mood": "Curious, hands-on, time-lapse wonder—quiet domestic lab energy where a tiny mystery unfolds gently and clearly.",
+      "palette_and_material": "Warm honeyed wood; butter-cream dough; sunny amber and saffron highlights; balanced by cool fridge blues and teal. Cranberry and sea-teal balloons. Matte ceramic bowl, frosted glas",
+      "aion_role": "AION is a small contextual guide: sets the two test spots, nudges a bottle toward the sun, places the thermometer, lifts the towel for a peek, and gestures between jar bubbles and",
+      "appearance_choice": "Compact rounded form with a smooth matte-silicone feel; warm translucent ember core glow; simple inlaid eyes; tiny felt-like mitts. Colors harmonize with the scene (amber body, tea",
+      "rendering_rule": "Original warm 3D educational storytelling with rounded appealing forms, tactile natural materials, gentle cinematic light and vibrant controlled colour. Vertical 9:16. One evolving tableau in three planes: foreground macro cutaway of dough’s stretchy bubble lattice; midground twin bottles with balloons (warm side visibly inflating"
+    }
+  },
+  "visual_identity": {
+    "version": "aion-animated-documentary-guide-v1",
+    "character": "AION is a contextual guide, not a fixed mascot: each story may choose its own form and clothing, while the channel keeps one recognizable Visual DNA—original warm 3D educational storytelling with readable staging, rounded appealing forms, tactile natural materials and gentle cinematic light.",
+    "environment": "Use original all-ages warm 3D educational storytelling with rounded appealing forms, tactile natural materials, gentle cinematic light and a vibrant but controlled focal palette. Never imitate a named artist, studio, channel, franchise or existing composition.",
+    "prohibited": [
+      "all-blue body",
+      "all-blue outfit",
+      "cape",
+      "armour",
+      "fashion pose",
+      "embedded text",
+      "logo",
+      "watermark"
+    ]
+  },
+  "scenes": [
+    {
+      "n": 1,
+      "beat": "hook",
+      "visual": "A cinematic educational opening centred on Where could someone notice or test the idea behind: Why does bread dough rise before it bakes?; the real subject and environment fill the frame. AION may appear only as a tiny guide if it makes the opening question clearer.",
+      "narration": "The article explains that in soda bread. Where to notice or test dough’s pre-bake rise"
+    },
+    {
+      "n": 2,
+      "beat": "question",
+      "visual": "Show the central subject of Where could someone notice or test the idea behind: Why does bread dough rise before it bakes? clearly before any explanation. No AION character in this scene.",
+      "narration": "So what tiny thing is making this happen?"
+    },
+    {
+      "n": 3,
+      "beat": "evidence-one-intro",
+      "visual": "Show the first evidence scene for Where could someone notice or test the idea behind: Why does bread dough rise before it bakes?, guided by Soda bread. No AION character in this scene.",
+      "narration": "First part of the trick is hiding in plain sight."
+    },
+    {
+      "n": 4,
+      "beat": "evidence-one-a",
+      "visual": "Depict this documented observation about Where could someone notice or test the idea behind: Why does bread dough rise before it bakes?: The article explains that in soda bread. Keep the subject and mechanism dominant. No AION character in this scene.",
+      "narration": "In soda bread, that tiny detail suddenly changes the whole picture."
+    },
+    {
+      "n": 5,
+      "beat": "evidence-one-b",
+      "visual": "Continue the first documented observation for Where could someone notice or test the idea behind: Why does bread dough rise before it bakes?: lactic acid in buttermilk reacts with baking soda to form bubbles of carbon dioxide. Keep the evidence visible. No AION character in this scene.",
+      "narration": "Because lactic acid in buttermilk reacts with baking soda to form carbon dioxide bubbles."
+    },
+    {
+      "n": 6,
+      "beat": "evidence-two-intro",
+      "visual": "Move to a distinct second evidence scene for Where could someone notice or test the idea behind: Why does bread dough rise before it bakes?, guided by Bread, beer and wine: Yeast domestication in the Saccharomyces sensu stricto complex. No AION character in this scene.",
+      "narration": "Then one more detail flips the picture again."
+    },
+    {
+      "n": 7,
+      "beat": "evidence-two-a",
+      "visual": "Depict this documented observation about Where could someone notice or test the idea behind: Why does bread dough rise before it bakes?: The authors state that Saccharomyces sensu stricto yeasts convert sugars into ethanol… Keep the subject, action, and setting central. No AION character in this scene.",
+      "narration": "The authors state that Saccharomyces sensu stricto yeasts convert sugars into ethanol…"
+    },
+    {
+      "n": 8,
+      "beat": "evidence-two-b",
+      "visual": "Continue the second documented observation for Where could someone notice or test the idea behind: Why does bread dough rise before it bakes?: and CO2 through fermentation and have long been used to ferment foods and beverages. No AION character in this scene.",
+      "narration": "and CO2 through fermentation, long used to ferment foods and beverages."
+    },
+    {
+      "n": 9,
+      "beat": "connection",
+      "visual": "A visual comparison of the two documented observations about Where could someone notice or test the idea behind: Why does bread dough rise before it bakes?; show the causal relationship as the only focal point. No AION character in this scene.",
+      "narration": "Here’s the punchline: bread dough puffs up because carbon dioxide forms inside it. In soda bread, lactic acid in buttermilk meets baking soda (sodium bicarbonate) and makes CO2 bubbles, so quick breads rise fast without the time and labor of kneaded yeast loaves. In yeast breads, Saccharomyces ferment sugars into ethanol and CO2—the same fermentation used in bread, beer, and wine—so you can notice or test it in those settings."
+    },
+    {
+      "n": 10,
+      "beat": "boundary",
+      "visual": "Show the boundary between what the sources document and what they do not establish about Where could someone notice or test the idea behind: Why does bread dough rise before it bakes?; no invented action and no AION character in this scene.",
+      "narration": "The evidence may not settle every part of the question; state exactly what the sources do not establish."
+    },
+    {
+      "n": 11,
+      "beat": "takeaway",
+      "visual": "Return to the central subject of Where could someone notice or test the idea behind: Why does bread dough rise before it bakes? in a final meaningful wide scene. AION may appear only as a small guide if it helps land the takeaway; the mechanism remains the focus.",
+      "narration": "So that’s what’s really happening behind where to notice or test dough’s pre-bake rise."
+    },
+    {
+      "n": 12,
+      "beat": "invitation",
+      "visual": "End on the real subject and environment of Where could someone notice or test the idea behind: Why does bread dough rise before it bakes?, leaving space for wonder. No AION character in this scene.",
+      "narration": "Next time you see it, where to notice or test dough’s pre-bake rise won’t look the same."
+    }
+  ],
+  "research_handoff_id": "9d4429506300",
+  "story_package_id": "9d4429506300",
+  "content_angle_key": "evidence-walkthrough",
+  "narration_style": {
+    "version": "ai-narration-rewrite-v1",
+    "origin": "ai-rewrite",
+    "rewritten_scenes": [
+      3,
+      4,
+      5,
+      6,
+      8,
+      9,
+      11,
+      12
+    ],
+    "skipped": [
+      {
+        "n": 1,
+        "reason": "fact-drift"
+      },
+      {
+        "n": 7,
+        "reason": "fact-drift"
+      }
+    ]
+  },
+  "visual_narrative": {
+    "version": "aion-visual-narrative-v1",
+    "visual_metaphor": {
+      "statement": "Follow one visible path of light, evidence, and consequence to understand Where could someone notice or test the idea behind: Why does bread dough rise before it bakes?.",
+      "rule": "Every scene must clarify this one visual idea; it may not introduce a competing metaphor."
+    },
+    "opening": {
+      "deadline_seconds": 2,
+      "visual_question": "Show the most surprising visible consequence of Where could someone notice or test the idea behind: Why does bread dough rise before it bakes? before any explanation."
+    },
+    "reveal": {
+      "rule": "Choose one picture-first reveal that makes the hidden mechanism or relationship understandable at a glance: a cutaway, before/after change, traced path, scale comparison, or another topic-appropriate cause-and-effect device.",
+      "placement": "Use the connection or takeaway beat as the clearest payoff; it must show the relationship, not merely decorate it."
+    },
+    "scene_progression": [
+      "hook",
+      "question",
+      "evidence-one-intro",
+      "evidence-one-a",
+      "evidence-one-b",
+      "evidence-two-intro",
+      "evidence-two-a",
+      "evidence-two-b",
+      "connection",
+      "boundary",
+      "takeaway",
+      "invitation"
+    ],
+    "color_roles": {
+      "question": "vivid cobalt or deep indigo—what needs explaining",
+      "evidence": "warm amber—observed clue or mechanism",
+      "answer": "fresh green or coral—resolved relationship or takeaway",
+      "aion_signature": "small glowing candy-colored (cyan with soft rainbow highlights) question-mark held in one hand only, with a few tiny sparkle particles drifting around it; never AION's skin or whole outfit"
+    },
+    "cover": {
+      "primary_focus": "Where could someone notice or test the idea behind: Why does bread dough rise before it bakes?",
+      "rule": "One object or one visible question; generous negative space; no competing details or embedded text."
+    },
+    "aion_rule": "AION is a contextual guide, never the subject of every frame."
+  },
+  "fact_first_visual": {
+    "version": "aion-fact-first-visual-v1",
+    "reality_anchor": {
+      "topic": "Where could someone notice or test the idea behind: Why does bread dough rise before it bakes?",
+      "evidence_claims": [
+        "The article explains that in soda bread, lactic acid in buttermilk reacts with baking soda to form bubbles of carbon dioxide, using sodium bicarbonate as the leavening agent. It adds that this makes quick breads rise quickly and reliably without the time and labor of kneaded yeast breads.",
+        "The authors state that Saccharomyces sensu stricto yeasts convert sugars into ethanol and CO2 through fermentation and have long been used to ferment foods and beverages. They cite bread, beer, and wine making as contexts where this fermentation occurs, initially likely started by naturally occurring yeasts before people began adding selected strains."
+      ],
+      "rule": "Depict the documented subject, place, object, action, or mechanism before decorative atmosphere."
+    },
+    "mechanism_flow": [
+      "Start with the visible question.",
+      "Show the documented observation or causal mechanism.",
+      "Reveal only the conclusion supported by the evidence."
+    ],
+    "creative_boundary": {
+      "allowed": "Cinematic light, colour, the small glowing candy-colored question-mark AION holds with its drifting sparkle particles, and mood may guide attention.",
+      "prohibited": "Atmosphere may not replace, contradict, or be presented as the documented mechanism."
+    },
+    "scene_roles": [
+      {
+        "n": 1,
+        "beat": "hook",
+        "role": "question"
+      },
+      {
+        "n": 2,
+        "beat": "question",
+        "role": "question"
+      },
+      {
+        "n": 3,
+        "beat": "evidence-one-intro",
+        "role": "evidence"
+      },
+      {
+        "n": 4,
+        "beat": "evidence-one-a",
+        "role": "evidence"
+      },
+      {
+        "n": 5,
+        "beat": "evidence-one-b",
+        "role": "evidence"
+      },
+      {
+        "n": 6,
+        "beat": "evidence-two-intro",
+        "role": "evidence"
+      },
+      {
+        "n": 7,
+        "beat": "evidence-two-a",
+        "role": "evidence"
+      },
+      {
+        "n": 8,
+        "beat": "evidence-two-b",
+        "role": "evidence"
+      },
+      {
+        "n": 9,
+        "beat": "connection",
+        "role": "comparison"
+      },
+      {
+        "n": 10,
+        "beat": "boundary",
+        "role": "boundary"
+      },
+      {
+        "n": 11,
+        "beat": "takeaway",
+        "role": "takeaway"
+      },
+      {
+        "n": 12,
+        "beat": "invitation",
+        "role": "mechanism"
+      }
+    ]
+  },
+  "director_plan": {
+    "version": "director-plan-v1",
+    "creative_promise": "A viewer of any age follows one vivid little mystery, sees its hidden cause, and leaves with a memorable new way to see an ordinary thing.",
+    "hook": {
+      "seconds": 5,
+      "narration": "The article explains that in soda bread. Where to notice or test dough’s pre-bake rise",
+      "visual_priority": "A cinematic educational opening centred on Where could someone notice or test the idea behind: Why does bread dough rise before it bakes?; the real subject and environment fill the frame. AION may appear only as a tiny guide if it makes the opening question clearer."
+    },
+    "visual_rule": "The real subject and setting lead each scene; AION is a contextual guide, not the foreground subject.",
+    "continuity": {
+      "aion_role": "contextual-guide",
+      "identity_version": "aion-animated-documentary-guide-v1",
+      "scene_seconds": 5
+    },
+    "ending": {
+      "narration": "Next time you see it, where to notice or test dough’s pre-bake rise won’t look the same.",
+      "viewer_reason_to_return": "End with a clear takeaway or an honest next question; never finish with a silent image."
+    }
+  },
+  "watchability_gate": {
+    "eligible": true,
+    "state": "pass",
+    "version": "watchability-v1",
+    "reasons": [],
+    "checks": {
+      "hook": "pass",
+      "narration_coverage": "pass",
+      "visual_variety": "pass",
+      "ending": "pass",
+      "viewer_value": "pass"
+    },
+    "detail": "บทพร้อมส่งผลิต"
+  },
+  "story_genome": {
+    "version": "story-genome-v1",
+    "topics": [
+      {
+        "episode_id": "aion-auto-0852d1078850-9b621016-short",
+        "topic": "How do honeybees, an insect, tell their nestmates where food is?",
+        "angle": "evidence-walkthrough",
+        "state": "research-evidence-rejected-preserved"
+      },
+      {
+        "episode_id": "aion-auto-0b5a0385b87d-7d3a5028-short",
+        "topic": "Why do fireflies glow in the dark?",
+        "angle": "evidence-walkthrough",
+        "state": "production-ready-assets-and-script"
+      },
+      {
+        "episode_id": "aion-auto-1ff056dab4cd-b6eca890-short",
+        "topic": "Why do lakes freeze from the top down instead of the bottom up?",
+        "angle": "evidence-walkthrough",
+        "state": "production-ready-assets-and-script"
+      },
+      {
+        "episode_id": "aion-auto-289db4b2bbf5-5c971173-short",
+        "topic": "Why does bread dough rise before it bakes?",
+        "angle": "evidence-walkthrough",
+        "state": "storyboard-ready-needs-assets"
+      },
+      {
+        "episode_id": "aion-auto-28bb6abcc9ee-d6402692-short",
+        "topic": "Why do people yawn when they see someone else yawn?",
+        "angle": "evidence-walkthrough",
+        "state": "production-ready-assets-and-script"
+      },
+      {
+        "episode_id": "aion-auto-32006eab7f3a-899f27ed-short",
+        "topic": "Why do maps look different depending on what they are made for?",
+        "angle": "evidence-walkthrough",
+        "state": "production-ready-assets-and-script"
+      },
+      {
+        "episode_id": "aion-auto-49122594501e-2c0fc6b1-long",
+        "topic": "How did ancient Persian Yakhchāl structures maintain sub-freezing temperatures to preserve ice during desert summers wit",
+        "angle": "evidence-walkthrough-primary",
+        "state": "retired-do-not-publish"
+      },
+      {
+        "episode_id": "aion-auto-49122594501e-2c0fc6b1-short",
+        "topic": "How did ancient Persian Yakhchāl structures maintain sub-freezing temperatures to preserve ice during desert summers wit",
+        "angle": "evidence-walkthrough-short",
+        "state": "retired-do-not-publish"
+      },
+      {
+        "episode_id": "aion-auto-49122594501e-2c0fc6b1",
+        "topic": "How did ancient Persian yakhchāls store ice through desert summers without electricity?",
+        "angle": "unspecified",
+        "state": "retired-do-not-publish"
+      },
+      {
+        "episode_id": "aion-auto-4ce0b376593e-60c09a2c-short",
+        "topic": "Why does breathing get faster during exercise?",
+        "angle": "evidence-walkthrough",
+        "state": "storyboard-ready-needs-assets"
+      },
+      {
+        "episode_id": "aion-auto-533a33223d29-7980464f-short",
+        "topic": "Why can a short nap make people feel more alert?",
+        "angle": "evidence-walkthrough",
+        "state": "storyboard-ready-needs-assets"
+      },
+      {
+        "episode_id": "aion-auto-7301c138b180-7cb13f87-short",
+        "topic": "Why can glass be transparent even though it is solid?",
+        "angle": "evidence-walkthrough",
+        "state": "storyboard-ready-needs-assets"
+      },
+      {
+        "episode_id": "aion-auto-7727087b4f6e-ee6bc4cf-short",
+        "topic": "Why do some clouds grow tall before a thunderstorm?",
+        "angle": "evidence-walkthrough",
+        "state": "production-ready-assets-and-script"
+      },
+      {
+        "episode_id": "aion-auto-77582dc47028-c5e046d2-short",
+        "topic": "How do some birds find their way during long migrations?",
+        "angle": "evidence-walkthrough",
+        "state": "storyboard-ready-needs-assets"
+      },
+      {
+        "episode_id": "aion-auto-85365510840c-00c30e5d-long",
+        "topic": "How can an octopus change color so quickly?",
+        "angle": "evidence-walkthrough-primary",
+        "state": "retired-do-not-publish"
+      },
+      {
+        "episode_id": "aion-auto-85365510840c-00c30e5d-short",
+        "topic": "How can an octopus change color so quickly?",
+        "angle": "evidence-walkthrough-short",
+        "state": "retired-do-not-publish"
+      },
+      {
+        "episode_id": "aion-auto-85365510840c-00c30e5d",
+        "topic": "How can an octopus change color so quickly?",
+        "angle": "unspecified",
+        "state": "retired-do-not-publish"
+      },
+      {
+        "episode_id": "aion-auto-9eebf33916e1-095c51d2-short",
+        "topic": "What can an AI learn from people that facts alone cannot teach it?",
+        "angle": "evidence-walkthrough",
+        "state": "research-returned-source-integrity"
+      },
+      {
+        "episode_id": "aion-auto-ab3d3722d0a8-8acbcc30-short",
+        "topic": "Why do earthquakes often happen near the edges of tectonic plates?",
+        "angle": "evidence-walkthrough",
+        "state": "production-ready-assets-and-script"
+      },
+      {
+        "episode_id": "aion-auto-e4651b672d19-6132ef86-short",
+        "topic": "How did ancient people first learn to make glass?",
+        "angle": "evidence-walkthrough",
+        "state": "production-ready-assets-and-script"
+      },
+      {
+        "episode_id": "aion-auto-eab011d9f8f4-ff998493-short",
+        "topic": "Why does a spinning top stay upright instead of falling over?",
+        "angle": "evidence-walkthrough",
+        "state": "retired-do-not-publish"
+      },
+      {
+        "episode_id": "aion-auto-f68134663f51-b53dd5d4-short",
+        "topic": "How did trade routes connect people who never met each other?",
+        "angle": "evidence-walkthrough",
+        "state": "production-ready-assets-and-script"
+      },
+      {
+        "episode_id": "aion-gentle-thailand-rice-journey-v1",
+        "topic": "rice journey field harvest drying milling market bowl",
+        "angle": "gentle-thailand-rice-field-to-bowl-postcard",
+        "state": "production-ready-assets-and-script"
+      },
+      {
+        "episode_id": "aion-illustrated-postcard-after-rain-v1",
+        "topic": "after rain where water goes runoff infiltration water cycle",
+        "angle": "thai-rainy-season-watercycle-postcard",
+        "state": "production-ready-assets-and-script"
+      },
+      {
+        "episode_id": "aion-longform-001-yakhchal",
+        "topic": "Before electricity, how could people keep ice through a desert summer?",
+        "angle": "unspecified",
+        "state": "production-ready-assets-and-script"
+      },
+      {
+        "episode_id": "aion-special-octopus-chromatophores-v1",
+        "topic": "octopus chromatophores colour change mechanism",
+        "angle": "mechanism-explainer",
+        "state": "production-ready-assets-and-script"
+      },
+      {
+        "episode_id": "aion-special-rainbow-perspective-v1",
+        "topic": "rainbow refraction reflection observer position sunlight water droplets",
+        "angle": "rainbow-perspective-mechanism-special-v1",
+        "state": "production-ready-assets-and-script"
+      },
+      {
+        "episode_id": "aion-wonders-001",
+        "topic": "Why can rain arrive at your nose before it reaches your eyes?",
+        "angle": "unspecified",
+        "state": "production-ready-script"
+      },
+      {
+        "episode_id": "aion-wonders-002",
+        "topic": "Could something as small as a droplet become the beginning of life?",
+        "angle": "unspecified",
+        "state": "retired-do-not-publish"
+      },
+      {
+        "episode_id": "aion-wonders-003",
+        "topic": "What would an ordinary day feel like for someone history barely named?",
+        "angle": "unspecified",
+        "state": "production-ready-assets-and-script"
+      },
+      {
+        "episode_id": "aion-wonders-004-yakhchal",
+        "topic": "How could people keep ice in a desert before electricity?",
+        "angle": "unspecified",
+        "state": "retired-do-not-publish"
+      },
+      {
+        "episode_id": "aion-wonders-005-venus-flytrap-counts",
+        "topic": "venus flytrap touch counting calcium action potentials",
+        "angle": "unspecified",
+        "state": "production-ready-assets-and-script"
+      }
+    ],
+    "tracked_public_or_queued_records": 26,
+    "rule": "หัวข้อซ้ำถูกตรวจจากผลงานเผยแพร่ คิวเผยแพร่ และ storyboard ก่อนเริ่มผลิตภาพ"
+  }
+}
