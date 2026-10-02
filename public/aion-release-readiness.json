@@ -1,13 +1,9 @@
 {
-  "generated_at": "2026-10-02T16:06:25.888053+07:00",
+  "generated_at": "2026-10-02T19:54:15.763926+07:00",
   "timezone": "Asia/Bangkok",
   "horizon_hours": 168,
   "state": "critical",
   "slots": [
-    {
-      "at": "2026-10-02T18:00:00+07:00",
-      "content_kind": "short"
-    },
     {
       "at": "2026-10-02T20:30:00+07:00",
       "content_kind": "short"
@@ -59,25 +55,27 @@
     {
       "at": "2026-10-08T20:30:00+07:00",
       "content_kind": "short"
+    },
+    {
+      "at": "2026-10-09T18:00:00+07:00",
+      "content_kind": "short"
     }
   ],
   "available": {
-    "short": [
-      "aion-auto-ab3d3722d0a8-8acbcc30-short"
-    ]
+    "short": []
   },
   "shortages": [
     {
       "content_kind": "short",
       "needed": 14,
-      "ready": 1,
-      "missing": 13
+      "ready": 0,
+      "missing": 14
     }
   ],
   "shorts_buffer": {
     "target": 14,
-    "quality_ready": 1,
-    "missing": 13,
+    "quality_ready": 0,
+    "missing": 14,
     "state": "critical",
     "detail": "นับเฉพาะ Shorts ใหม่ที่ผ่าน Quality Gate แล้ว; storyboard หรือภาพครบยังไม่นับเป็นบัฟเฟอร์"
   },
