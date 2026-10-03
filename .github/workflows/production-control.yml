@@ -33,11 +33,14 @@ jobs:
           path: memory_data
       - uses: actions/setup-python@v5
         with: {python-version: "3.11"}
-      - run: pip install Pillow
+      - run: pip install Pillow requests
       - name: Publish a truthful production-control report
         env:
           AION_MEMORY_ROOT: memory_data
           OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+          # One-character speech request: detects an exhausted OpenAI balance
+          # and raises the critical integrity alert (-> Telegram).
+          AION_PROBE_PROVIDER_CREDIT: "1"
           OPENAI_IMAGE_API_KEY: ${{ secrets.OPENAI_IMAGE_API_KEY }}
           GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
           YOUTUBE_CLIENT_ID: ${{ secrets.YOUTUBE_CLIENT_ID }}

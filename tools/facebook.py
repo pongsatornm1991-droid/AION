@@ -37,7 +37,7 @@ def _resolve_page_credentials(access_token=None, page_id=None):
 
 
 def publish_reel_to_facebook(video_url, caption="", access_token=None, page_id=None):
-    """Publish a public MP4 as a Facebook Page Reel.
+    """Publish an MP4 (public URL or local file path) as a Facebook Page Reel.
 
     The Reels API requires a three-stage transfer: start an upload session,
     stream the public video to Meta's upload URL, then finish as PUBLISHED.
@@ -69,15 +69,21 @@ def publish_reel_to_facebook(video_url, caption="", access_token=None, page_id=N
     if not video_id or not upload_url:
         raise RuntimeError("Facebook Reels API did not return video_id and upload_url.")
 
-    source = requests.get(video_url, stream=True, timeout=90)
-    if source.status_code >= 400:
-        raise RuntimeError(f"Could not download the rendered Reel for Facebook (HTTP {source.status_code}).")
-    # Meta's resumable-upload host validates the byte length twice.  Passing
-    # an iterator makes requests use chunked transfer encoding, which the
-    # host rejects unless it receives the matching entity-length headers.
-    # Reels produced by AION are intentionally short, so materialising this
-    # one bounded asset makes the transfer deterministic and inspectable.
-    video_bytes = b"".join(source.iter_content(chunk_size=1024 * 1024))
+    # A local file is read directly (the Thai-audio Reels are rendered inside
+    # the workflow run and never committed, so there is no public URL for them).
+    if not video_url.lower().startswith(("http://", "https://")) and os.path.isfile(video_url):
+        with open(video_url, "rb") as handle:
+            video_bytes = handle.read()
+    else:
+        source = requests.get(video_url, stream=True, timeout=90)
+        if source.status_code >= 400:
+            raise RuntimeError(f"Could not download the rendered Reel for Facebook (HTTP {source.status_code}).")
+        # Meta's resumable-upload host validates the byte length twice.  Passing
+        # an iterator makes requests use chunked transfer encoding, which the
+        # host rejects unless it receives the matching entity-length headers.
+        # Reels produced by AION are intentionally short, so materialising this
+        # one bounded asset makes the transfer deterministic and inspectable.
+        video_bytes = b"".join(source.iter_content(chunk_size=1024 * 1024))
     file_size = str(len(video_bytes))
     if not video_bytes:
         raise RuntimeError("The rendered Reel download was empty.")

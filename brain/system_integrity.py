@@ -46,9 +46,13 @@ class SystemIntegrity:
     # minimum-sample-size guard FALLBACK_SAMPLE_EPISODES already uses below.
     RESEARCH_STALL_SAMPLE = 3
 
-    def __init__(self, memory, root=None):
+    def __init__(self, memory, root=None, credit_probe=None):
         self.memory = memory
         self.root = Path(root or ROOT)
+        # Optional callable returning {"state": "ok"|"exhausted"|"unknown", ...}.
+        # Off by default so tests and the local dashboard never touch the
+        # network; production control passes brain.provider_credit's probe.
+        self.credit_probe = credit_probe
 
     def _latest_queue_records(self):
         """The latest durable youtube_creator_queue record per episode.
@@ -186,14 +190,34 @@ class SystemIntegrity:
             "oldest_ready_hours": round(max(ready_ages), 1) if ready_ages else None,
         }
 
+    def _provider_credit(self):
+        if self.credit_probe is None:
+            return None
+        try:
+            return self.credit_probe()
+        except Exception as exc:
+            return {"state": "unknown", "detail": f"probe failed: {type(exc).__name__}"}
+
     def snapshot(self, now=None):
         now = now or datetime.now(timezone.utc)
         stale = self._stale_authorizations(now)
         fallback = self._fallback_rate()
         recovery = self._recovery_catalogue()
         research_stall = self._research_pipeline_stall(now)
+        credit = self._provider_credit()
 
         alerts = []
+        if credit and credit.get("state") == "exhausted":
+            alerts.append({
+                "check": "provider-credit-exhausted",
+                "severity": "critical",
+                "detail": (
+                    f"the OpenAI credit balance is exhausted ({credit.get('detail')}) -- image "
+                    "generation and the narration-timing speech check stop on every run until "
+                    "credit is added (2026-10-03: this silently halted all new episodes for 2 days)."
+                ),
+                "credit": credit,
+            })
         if stale:
             alerts.append({
                 "check": "stale-authorization",
@@ -258,5 +282,6 @@ class SystemIntegrity:
                 "motion_fallback": fallback,
                 "recovery_catalogue": recovery,
                 "research_pipeline_stall": research_stall,
+                "provider_credit": credit,
             },
         }

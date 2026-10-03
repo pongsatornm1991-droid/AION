@@ -1,0 +1,69 @@
+name: AION - Thai Facebook Reels
+
+# Posts Thai-audio versions of already-published Shorts to the Facebook Page
+# (2026-10-04, owner: Facebook is the Thai-first channel). The Thai narration
+# already exists from thai-dub.yml (edge-tts, free); this only lays it over the
+# episode's own finished video with ffmpeg and posts it as a Reel -- no OpenAI
+# credit is spent. Newest dub first, a small batch per run, each episode at most
+# once (see brain/thai_facebook_crosspost.py).
+on:
+  workflow_run:
+    # Right after a new episode has been dubbed.
+    workflows: [AION - Thai dub]
+    types: [completed]
+  schedule:
+    # Also drains the backlog of existing dubs a little at a time.
+    - cron: "17 */6 * * *"
+  workflow_dispatch: {}
+
+concurrency:
+  group: aion-memory-data
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  thai-facebook-reels:
+    if: ${{ github.event_name != 'workflow_run' || github.event.workflow_run.conclusion != 'cancelled' }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout AION code
+        uses: actions/checkout@v4
+
+      - name: Checkout AION memory
+        uses: actions/checkout@v4
+        with:
+          repository: pongsatornm1991-droid/aion-memory-data
+          token: ${{ secrets.MEMORY_REPO_PAT }}
+          path: memory_data
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install ffmpeg and dependencies
+        run: |
+          sudo apt-get update && sudo apt-get install -y ffmpeg
+          pip install -r requirements.txt
+
+      - name: Post the next Thai-audio Reel
+        env:
+          AION_MEMORY_ROOT: memory_data
+          FACEBOOK_PAGE_ACCESS_TOKEN: ${{ secrets.FACEBOOK_PAGE_ACCESS_TOKEN }}
+          FACEBOOK_PAGE_ID: ${{ secrets.FACEBOOK_PAGE_ID }}
+        run: python tools/run_thai_facebook_crosspost.py --limit 1
+
+      - name: Persist memory changes
+        working-directory: memory_data
+        run: |
+          git config user.name "aion-bot"
+          git config user.email "aion-bot@users.noreply.github.com"
+          git add -A
+          if git diff --cached --quiet; then
+            echo "No Thai Facebook Reel changes this run."
+          else
+            git commit -m "AION Thai Facebook Reel ($(date -u +%Y-%m-%dT%H:%M:%SZ))"
+            { git push || { git pull --rebase --autostash origin main && git push; } || { sleep 10; git pull --rebase --autostash origin main && git push; } || { sleep 20; git pull --rebase --autostash origin main && git push; }; }
+          fi

@@ -59,6 +59,11 @@
   <div style="display:flex;gap:6px"><button id="modeNet" style="flex:1">เครือข่าย</button><button id="modeBrain" style="flex:1">🧠 สมองมนุษย์</button></div>
   <div id="brainNote" style="display:none;margin-top:8px;padding:8px;border:1px solid var(--line);border-radius:8px;color:var(--dim);font-size:11px">เป็นการเปรียบเทียบเชิงหน้าที่ว่าส่วนไหนของ AION ทำหน้าที่คล้ายบริเวณใดของสมองมนุษย์ ไม่ใช่การอ้างว่า AION ทำงานเหมือนสมองจริง หรือมีจิตสำนึก</div>
   <div id="regions"></div>
+  <div class="sec">กิจกรรมล่าสุดของสมอง</div>
+  <select id="activity" style="width:100%;padding:6px;border-radius:8px;border:1px solid var(--line);background:rgba(0,0,0,.35);color:var(--text)">
+    <option value="0">ปิด</option><option value="3600000">1 ชั่วโมงที่ผ่านมา</option><option value="86400000" selected>24 ชั่วโมงที่ผ่านมา</option><option value="604800000">7 วันที่ผ่านมา</option>
+  </select>
+  <div id="activityStat" style="margin-top:6px;color:var(--dim);font-size:11px"></div>
   <div class="sec">ชั้นข้อมูล</div>
   <div id="layers"></div>
   <div class="sec">เส้นเชื่อม</div>
@@ -183,7 +188,39 @@ Graph.d3Force('charge').strength((n) => (n.layer === 'hub' ? -900 : n.layer === 
 Graph.d3Force('link').distance((l) => (l.type === 'hub' ? 150 : l.type === 'tag' ? 46 : l.type === 'bridge' ? 120 : 42));
 
 // Hub notes are drawn as labelled landmarks so the brain has readable regions.
+// Activity: a note counts as active when it was WRITTEN inside the chosen window.
+// Reads are not recorded anywhere in AION's memory, so only writes can be shown.
+let activityMs = 86400000;
+const activityRef = Date.now();
+const isRecent = (n) => activityMs > 0 && n.date != null && n.date >= activityRef - activityMs;
+const pulses = [];
+function glowSprite(color) {
+  const canvas = document.createElement('canvas'); canvas.width = canvas.height = 128;
+  const ctx = canvas.getContext('2d'); const g = ctx.createRadialGradient(64, 64, 2, 64, 64, 62);
+  g.addColorStop(0, '#ffffff'); g.addColorStop(0.25, color); g.addColorStop(1, 'rgba(0,0,0,0)');
+  ctx.fillStyle = g; ctx.fillRect(0, 0, 128, 128);
+  const sprite = new THREE.Sprite(new THREE.SpriteMaterial({ map: new THREE.CanvasTexture(canvas), transparent: true, depthWrite: false, blending: THREE.AdditiveBlending }));
+  sprite.userData.phase = Math.random() * 6.28; sprite.scale.set(12, 12, 1);
+  return sprite;
+}
+(function animatePulses(t) {
+  for (const sprite of pulses) {
+    if (!sprite.visible) continue;
+    const k = 0.5 + 0.5 * Math.sin(t / 380 + sprite.userData.phase);
+    sprite.scale.set(9 + 12 * k, 9 + 12 * k, 1); sprite.material.opacity = 0.35 + 0.6 * k;
+  }
+  requestAnimationFrame(animatePulses);
+})(0);
+
 Graph.nodeThreeObjectExtend(true).nodeThreeObject((n) => {
+  // One (hidden) glow per dated note, shown while it is inside the activity
+  // window. Switching the window only flips visibility: re-setting
+  // nodeThreeObject would rebuild every node and restart the layout.
+  if (n.date != null && n.layer !== 'hub') {
+    const sprite = glowSprite(n.color);
+    sprite.visible = isRecent(n); sprite.userData.node = n; pulses.push(sprite);
+    return sprite;
+  }
   if (n.layer !== 'hub') return null;
   const canvas = document.createElement('canvas'); canvas.width = 512; canvas.height = 96;
   const ctx = canvas.getContext('2d');
@@ -351,8 +388,22 @@ $('modeNet').addEventListener('click', () => setMode('network'));
 $('modeBrain').addEventListener('click', () => setMode('brain'));
 $('modeNet').classList.add('on');
 $('regions').style.display = 'none';
-$('regions').innerHTML = `<div class="sec">บริเวณของสมอง ↔ ส่วนของ AION</div>` + Object.entries(REGIONS)
-  .map(([id, r]) => `<div class="reg"><span class="dot" style="display:inline-block;color:${r.color};background:${r.color};margin-right:6px"></span><b>${r.th}</b> <small style="display:inline">· ${r.en} · ${regionCount[id] || 0} โหนด</small><small>${r.does}</small></div>`).join('');
+function renderRegions() {
+  const recent = {};
+  for (const n of nodes) if (n.region && isRecent(n)) recent[n.region] = (recent[n.region] || 0) + 1;
+  $('regions').innerHTML = `<div class="sec">บริเวณของสมอง ↔ ส่วนของ AION</div>` + Object.entries(REGIONS)
+    .map(([id, r]) => `<div class="reg"><span class="dot" style="display:inline-block;color:${r.color};background:${r.color};margin-right:6px"></span><b>${r.th}</b> <small style="display:inline">· ${r.en} · ${regionCount[id] || 0} โหนด${activityMs ? ` · <span style="color:${r.color}">เขียนใหม่ ${recent[id] || 0}</span>` : ''}</small><small>${r.does}</small></div>`).join('');
+  const total = Object.values(recent).reduce((a, b) => a + b, 0);
+  $('activityStat').textContent = activityMs
+    ? `เขียนความจำใหม่ ${total} โน้ตในช่วงนี้ — โหนดที่เรืองกะพริบ (ไม่มีบันทึกการ "อ่าน" จึงแสดงเฉพาะการเขียน)`
+    : 'ปิดการแสดงกิจกรรม';
+}
+renderRegions();
+$('activity').addEventListener('change', (e) => {
+  activityMs = Number(e.target.value);
+  for (const sprite of pulses) sprite.visible = isRecent(sprite.userData.node);
+  renderRegions();
+});
 
 function refresh() {
   Graph.nodeVisibility(visibleNode).linkVisibility(Graph.linkVisibility()).nodeColor(Graph.nodeColor())

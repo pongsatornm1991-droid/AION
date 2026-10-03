@@ -13,6 +13,36 @@ Format:
 Commits: <hash> [, <hash> ...]
 ```
 
+## 2026-10-04 — Claude Code — Thai-audio Reels on Facebook, credit-exhaustion alert, brain activity pulses
+
+Owner approved three things in one message. (1) Thai Facebook: Facebook has
+no multi-language audio track, so a Thai version is a separate Reel:
+`brain/thai_facebook_crosspost.py` lays the existing scene-timed Thai
+narration (content/reels_thai/*.mp3 from ThaiDubCycle, edge-tts, free) over
+the episode's own finished video with ffmpeg (`mux_thai_audio`: shorter audio
+is padded and the video copied untouched; longer audio holds the last frame,
+never cuts speech) and posts it via `publish_reel_to_facebook`, which now
+also accepts a local file path (the render is not committed). Eligible: dub
+record exists + source video passes VideoQualityGate; newest first, ONE per
+run (`tools/run_thai_facebook_crosspost.py --limit 1`), each episode at most
+once (memory category `thai_facebook_crossposts`), failures retried 3x.
+Workflow `thai-facebook-reels.yml` (after Thai dub completes + every 6h) will
+drain the 8 existing dubs ~1 per run -- the first scheduled run publishes a
+REAL post. Cost: no OpenAI credit (audio/video already exist); only ffmpeg
+time. Real ffmpeg check on the earthquakes clip: 94.37s 1080x1920 H.264 +
+AAC, 9 MB, video untouched. Not tested live (tokens exist only in CI).
+Dubbing the 9 older clips with no Thai audio would cost a gpt-5 translation
+(now low-effort, cents) + free edge-tts -- not done.
+(2) `brain/provider_credit.py`: one-character speech probe; SystemIntegrity
+gains `provider-credit-exhausted` (critical -> existing hourly Telegram push
++ dashboard). Off unless AION_PROBE_PROVIDER_CREDIT=1, set only in
+production-control.yml (which now also pip-installs requests).
+(3) Brain 3D: "กิจกรรมล่าสุด" -- notes WRITTEN inside a chosen window (1h /
+24h / 7d) pulse, with per-region counts; reads are not recorded anywhere so
+only writes can be shown. Logic verified in the Browser pane; the final
+visual check was blocked because the pane went hidden (0 animation frames).
+Commits: see git log
+
 ## 2026-10-04 — Claude Code — Brain 3D: human-brain mode
 
 Owner: "อ้างอิงจากสมองของมนุษย์เลยทำได้มั้ย ... ทำต่อเลย". Added a "🧠 สมองมนุษย์"

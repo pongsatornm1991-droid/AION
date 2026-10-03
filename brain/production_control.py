@@ -249,7 +249,14 @@ class ProductionControl:
         below, instead of needing a separate report nobody remembers to open.
         """
         try:
-            return SystemIntegrity(MemoryEngine(self.memory_root), self.root).snapshot()
+            probe = None
+            # Only the scheduled production-control run (which holds the API
+            # keys) opts in; the local dashboard must never spend a request on
+            # every refresh.
+            if os.getenv("AION_PROBE_PROVIDER_CREDIT") == "1":
+                from brain.provider_credit import probe_openai_credit
+                probe = probe_openai_credit
+            return SystemIntegrity(MemoryEngine(self.memory_root), self.root, credit_probe=probe).snapshot()
         except (OSError, ValueError, TypeError, json.JSONDecodeError) as exc:
             return {"state": "unknown", "alerts": [], "checks": {}, "error_type": type(exc).__name__}
 
