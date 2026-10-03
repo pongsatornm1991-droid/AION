@@ -7,6 +7,30 @@ available for local development only.
 
 import asyncio
 import os
+import sys
+
+_ANNOUNCED = set()
+
+
+def _announce_speech_failure(reason):
+    """Surface WHY speech failed as a GitHub annotation (once per reason).
+
+    Every failure used to return a bare False, so a provider-wide problem
+    (exhausted quota, rejected key) looked identical to one bad line and
+    could only be diagnosed by someone able to read the run log. Carries a
+    status/error code only -- never the key, the text or the response body.
+    """
+    if reason not in _ANNOUNCED:
+        _ANNOUNCED.add(reason)
+        print(f"::warning title=openai-speech::{reason}", file=sys.stderr)
+
+
+def _error_code(response):
+    try:
+        error = (response.json() or {}).get("error") or {}
+        return str(error.get("code") or error.get("type") or "")[:60]
+    except Exception:
+        return ""
 
 
 def _openai_speech(text, output_path, speed=None):
@@ -21,6 +45,7 @@ def _openai_speech(text, output_path, speed=None):
 
         key = os.getenv("OPENAI_API_KEY") or os.getenv("OPENAI_IMAGE_API_KEY")
         if not key:
+            _announce_speech_failure("no OPENAI_API_KEY / OPENAI_IMAGE_API_KEY configured")
             return False
         payload = {
             "model": os.getenv("OPENAI_TTS_MODEL", "gpt-4o-mini-tts"),
@@ -41,11 +66,13 @@ def _openai_speech(text, output_path, speed=None):
             timeout=60,
         )
         if not response.ok or not response.content:
+            _announce_speech_failure(f"HTTP {response.status_code} {_error_code(response)}".strip())
             return False
         with open(output_path, "wb") as audio:
             audio.write(response.content)
         return True
-    except Exception:
+    except Exception as exc:
+        _announce_speech_failure(f"request failed: {type(exc).__name__}")
         return False
 
 

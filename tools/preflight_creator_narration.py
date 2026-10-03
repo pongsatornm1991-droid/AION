@@ -96,8 +96,10 @@ if __name__ == "__main__":
     args = parser.parse_args()
     result = preflight(write_timeline=args.write_timeline)
     print(json.dumps(result, ensure_ascii=False, indent=2))
-    for blocked in result["blocked"]:
-        print(f"::warning::storyboard {blocked} returned to Story: narration does not fit scene timing", file=sys.stderr)
+    for report in result["reports"]:
+        if not report.get("eligible"):
+            reasons = ", ".join((report.get("reasons") or ["timing-failed"])[:3])
+            print(f"::warning::storyboard {report.get('episode_id')} returned to Story: {reasons}", file=sys.stderr)
     # Fail loudly only when nothing can proceed to image production; an
     # individual blocked storyboard is flagged and skipped (see above).
     if args.require_eligible and blocks_everything(result):
