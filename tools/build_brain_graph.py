@@ -30,6 +30,9 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 TEMPLATE = ROOT / "dashboard" / "brain3d.template.html"
+# The analogy tables (which part of AION sits in which region of a human or a
+# fruit-fly brain) live in one reviewable config rather than inside the viewer.
+BRAIN_MAP = ROOT / "core" / "brain_map.json"
 DEFAULT_OUT = ROOT / "brain3d-output" / "brain.html"
 ID_RE = re.compile(r"\b[0-9a-f]{12}\b")
 NOTE_NAME_RE = re.compile(r"^(?P<category>.+)-(?P<id>[0-9a-f]{12})$")
@@ -176,12 +179,55 @@ def _code_excerpt(text, suffix):
     return " ".join(text.split())[:EXCERPT_CHARS]
 
 
-def build_graph(vault, root, include_code=True):
+def load_brain_map(path=None):
+    """The human/fruit-fly analogy tables, or None if the config is absent."""
+    path = Path(path or BRAIN_MAP)
+    if not path.is_file():
+        return None
+    return json.loads(path.read_text(encoding="utf-8"))
+
+
+def load_workflow_status(*candidates):
+    """{workflow file: {status, label, at, url}} from the bot-refreshed health report.
+
+    Reads public/aion-workflow-status.json (written by the publish-workflow-
+    status workflow); the first candidate path that exists wins. Missing or
+    unreadable means no status is shown, never an error.
+    """
+    for candidate in candidates:
+        path = Path(candidate) if candidate else None
+        if not path or not path.is_file():
+            continue
+        try:
+            report = json.loads(path.read_text(encoding="utf-8"))
+        except (OSError, ValueError):
+            continue
+        result = {}
+        for group in report.get("groups") or []:
+            for item in group.get("items") or []:
+                if item.get("file"):
+                    result[item["file"]] = {
+                        "status": item.get("status_class"), "label": item.get("status_label"),
+                        "at": item.get("created_at"), "url": item.get("html_url"),
+                    }
+        return result
+    return {}
+
+
+def build_graph(vault, root, include_code=True, status_file=None, brain_map=None):
     nodes, links, hubs = parse_memory(vault)
     if include_code:
         code_nodes, code_links = parse_code(root, {slug: stem for stem, slug in hubs.items()})
         nodes.update(code_nodes)
         links.extend(code_links)
+    health = load_workflow_status(status_file, ROOT / "public" / "aion-workflow-status.json",
+                                  Path(root) / "public" / "aion-workflow-status.json")
+    prefix = "code:.github/workflows/"
+    for node in nodes.values():
+        if node["id"].startswith(prefix) and node["id"][len(prefix):] in health:
+            info = health[node["id"][len(prefix):]]
+            node["status"], node["status_label"], node["status_at"], node["status_url"] = (
+                info["status"], info["label"], info["at"], info["url"])
     degree = {}
     for item in links:
         if item["type"] == "hub":
@@ -203,6 +249,11 @@ def build_graph(vault, root, include_code=True):
         "nodes": list(nodes.values()), "links": links, "colors": colors, "counts": counts,
         "layers": layers, "range": [min(dated), max(dated)] if dated else None,
         "generated": datetime.now().strftime("%Y-%m-%d %H:%M"),
+        "brainMap": brain_map if brain_map is not None else load_brain_map(),
+        "health": {
+            "workflows": sum(1 for n in nodes.values() if n.get("status")),
+            "failing": sum(1 for n in nodes.values() if n.get("status") == "failure"),
+        },
     }
 
 
@@ -232,13 +283,15 @@ def main(argv=None):
     parser.add_argument("--root", default=str(ROOT), help="repository root for the code layer")
     parser.add_argument("--out", default=str(DEFAULT_OUT), help="output html (keep it out of git)")
     parser.add_argument("--no-code", action="store_true", help="memory only, skip the code layer")
+    parser.add_argument("--status", help="aion-workflow-status.json for the workflow health overlay "
+                                         "(default: public/aion-workflow-status.json)")
     args = parser.parse_args(argv)
 
     vault = Path(args.memory) if args.memory else _default_vault()
     if not vault or not vault.is_dir():
         print("Brain vault not found. Pass --memory 'path/to/AION Brain Vault'.", file=sys.stderr)
         return 2
-    graph = build_graph(vault, args.root, include_code=not args.no_code)
+    graph = build_graph(vault, args.root, include_code=not args.no_code, status_file=args.status)
     out = Path(args.out)
     out.parent.mkdir(parents=True, exist_ok=True)
     out.write_text(render_html(graph), encoding="utf-8")

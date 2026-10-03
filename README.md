@@ -123,7 +123,15 @@ memory: it is git-ignored and must never be published or committed.**
 nodes out as a human brain (hemispheres, cerebellum, brainstem), each part of
 AION placed in the region with the most similar job (memory -> hippocampus,
 planning -> prefrontal, audience input -> sensory cortex, publishing -> motor
-cortex...). It is a functional analogy only, stated as such on the page.
+cortex...). A second model, the fruit fly (mushroom body = learning and memory,
+central complex = navigation and action selection, lateral horn = innate rules,
+optic/antennal lobes = vision/inputs...), uses real neuropil names: the fly brain
+is the first adult brain whose full wiring is mapped (FlyWire, 2024), so each
+region's job is better established. Both are functional analogies only, stated as
+such on the page, and live in one reviewable config, `core/brain_map.json`.
+Workflow nodes are coloured by their last run (red = failed, yellow = running)
+from `public/aion-workflow-status.json`, so the map doubles as a live health view
+per region.
 
 ### AION Observatory dashboard
 

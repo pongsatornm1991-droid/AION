@@ -13,6 +13,32 @@ Format:
 Commits: <hash> [, <hash> ...]
 ```
 
+## 2026-10-04 — Claude Code — Fly-brain model, one brain_map config, workflow health on the map
+
+Owner read about the fruit-fly brain (fully mapped connectome, FlyWire 2024)
+and said "นำมาปรับใช้ทั้งระบบได้เลย". Applied where it gives something real,
+NOT by re-architecting AION to match an analogy: (1) `core/brain_map.json`
+is now the single reviewable source for the analogy tables (regions,
+coordinates, category->region, code rules, shapes, a disclaimer note) for
+two models, human and fly; the viewer reads it instead of hardcoding. Fly
+regions are real neuropils (mushroom body = learning/memory, dopaminergic
+neurons = prediction-error teaching signal -> forecasts, central complex =
+goals/action selection, ellipsoid body = self narrative, lateral horn =
+innate rules -> claim-safety, optic/antennal lobes, AMMC = communication,
+descending neurons = publishing, VNC = infrastructure). (2) Third mode button
+"🪰 สมองแมลงวัน". (3) Workflow health overlay: the builder reads the bot-
+refreshed public/aion-workflow-status.json and colours workflow nodes
+(red failed / yellow running), with per-region "workflow ล้ม N" counts --
+the map is now a live health view by region (currently 1 of 41 failing in the
+local snapshot). Deliberately NOT done: changing AION's actual architecture
+(e.g. a dopamine-style reinforcement of topics by audience response) -- that
+needs a functional reason and real engagement data (only ~2.5k views so far);
+revisit when there is data. The Desktop launcher also fetches brain_map.json
+and the status report. Layout verified by script (all three modes, regions
+populated, no console errors); the fly-mode visual was NOT eyeballed because
+the browser pane was hidden (0 animation frames).
+Commits: see git log
+
 ## 2026-10-04 — Claude Code — YouTube Thai = the same storytelling script (no translation anywhere)
 
 Owner: "ของ youtube ก็เอาเสียงไทยแบบนี้ ไม่เอาแบบแปลแล้ว". Checked every Thai path: the

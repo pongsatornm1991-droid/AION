@@ -120,18 +120,75 @@ class BuildBrainGraphTests(unittest.TestCase):
         self.assertIn("const GRAPH = /*__GRAPH_DATA__*/null;", template)
 
 
-    def test_human_brain_mode_maps_every_category_to_a_region_and_states_it_is_an_analogy(self):
-        template = (Path(__file__).resolve().parents[1] / "dashboard" / "brain3d.template.html").read_text(encoding="utf-8")
-        # Every region a category or code rule points at must be defined...
+    # The brain-model analogy tables live in core/brain_map.json (human + fruit fly).
+    KNOWN_CATEGORIES = (
+        "beliefs", "goals", "questions", "lessons", "external_knowledge", "social_feedback",
+        "social_language_log", "learning_forecasts", "learning_forecast_reviews", "published_reels",
+        "pending_reels", "growth_insights", "self_narratives", "evolution_proposals",
+    )
+
+    def brain_map(self):
         import re
-        regions = set(re.findall(r"^  (\w+): \{ th: ", template, re.MULTILINE))
-        self.assertTrue({"prefrontal", "hippocampus", "motor", "sensory", "cerebellum", "brainstem", "amygdala", "dmn", "language", "visual"} <= regions)
-        used = set(re.findall(r":\s*'(\w+)'", template[template.index("const CAT_REGION"):template.index("function regionOf")]))
-        used |= set(re.findall(r"'(\w+)'\],", template[template.index("const CODE_RULES"):template.index("function regionOf")]))
-        self.assertLessEqual(used, regions)
-        # ...and the page must say this is a functional analogy, never a claim.
-        self.assertIn("ไม่ใช่การอ้างว่า AION ทำงานเหมือนสมองจริง", template)
-        self.assertIn("modeBrain", template)
+        path = Path(__file__).resolve().parents[1] / "core" / "brain_map.json"
+        return json.loads(path.read_text(encoding="utf-8")), re
+
+    def test_every_brain_model_is_complete_consistent_and_states_it_is_an_analogy(self):
+        brain_map, re = self.brain_map()
+        self.assertEqual({"human", "fly"}, set(brain_map["models"]))
+        for key, model in brain_map["models"].items():
+            regions = model["regions"]
+            for region_id, region in regions.items():
+                for field in ("th", "en", "c", "color", "does"):
+                    self.assertIn(field, region, f"{key}.{region_id} lacks {field}")
+            # Everything a category, rule or default points at must be a defined region...
+            used = set(model["catRegion"].values()) | {model["defaultRegion"], model["docRegion"], model["codeDefaultRegion"]}
+            for pattern, region_id in model["codeRules"]:
+                re.compile(pattern)
+                used.add(region_id)
+            self.assertLessEqual(used, set(regions), f"{key} points at an undefined region")
+            # ...every known memory category must land somewhere deliberate...
+            for category in self.KNOWN_CATEGORIES:
+                self.assertIn(category, model["catRegion"], f"{key} has no region for {category}")
+            # ...and the page must say it is a functional analogy, never a claim.
+            self.assertIn("ไม่ใช่การอ้างว่า AION ทำงานเหมือน", model["note"])
+            self.assertTrue(model["shapes"])
+
+    def test_the_fruit_fly_model_uses_real_neuropil_names(self):
+        brain_map, _ = self.brain_map()
+        names = {region["en"] for region in brain_map["models"]["fly"]["regions"].values()}
+        for neuropil in ("Mushroom body", "Central complex", "Optic lobes", "Antennal lobe", "Lateral horn", "Ventral nerve cord"):
+            self.assertIn(neuropil, names)
+
+    def test_the_viewer_builds_its_mode_buttons_from_the_config_not_from_hardcoded_regions(self):
+        template = (Path(__file__).resolve().parents[1] / "dashboard" / "brain3d.template.html").read_text(encoding="utf-8")
+        self.assertIn("GRAPH.brainMap", template)
+        self.assertIn("buildModeButtons", template)
+        self.assertNotIn("const REGIONS", template)
+
+    def test_the_graph_carries_the_brain_map_and_the_workflow_health_overlay(self):
+        with tempfile.TemporaryDirectory() as root:
+            vault, repo = write_vault(root), write_repo(root)
+            status = Path(root) / "status.json"
+            status.write_text(json.dumps({"groups": [{"items": [
+                {"file": "go.yml", "status_class": "failure", "status_label": "ล้มเหลว",
+                 "created_at": "2026-10-04T00:00:00Z", "html_url": "https://example.test/run/1"},
+                {"file": "other.yml", "status_class": "success"},
+            ]}]}), encoding="utf-8")
+            graph = build_graph(vault, repo, status_file=status)
+        workflow = next(node for node in graph["nodes"] if node["id"] == "code:.github/workflows/go.yml")
+        self.assertEqual("failure", workflow["status"])
+        self.assertEqual("https://example.test/run/1", workflow["status_url"])
+        self.assertEqual({"workflows": 1, "failing": 1}, graph["health"])
+        self.assertIn("human", graph["brainMap"]["models"])
+
+    def test_a_missing_or_broken_status_report_never_raises(self):
+        from tools.build_brain_graph import load_workflow_status
+        with tempfile.TemporaryDirectory() as root:
+            broken = Path(root) / "broken.json"
+            broken.write_text("{not json", encoding="utf-8")
+            self.assertEqual({}, load_workflow_status(Path(root) / "nope.json", broken, None))
+            graph = build_graph(write_vault(root), write_repo(root), status_file=Path(root) / "nope.json")
+        self.assertIn("workflows", graph["health"])
 
 
 if __name__ == "__main__":

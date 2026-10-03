@@ -56,14 +56,15 @@
   <div class="sub" id="gen"></div>
   <input id="q" type="search" placeholder="ค้นหาโน้ต / โค้ด / tag …" autocomplete="off">
   <div class="sec">โหมดมุมมอง</div>
-  <div style="display:flex;gap:6px"><button id="modeNet" style="flex:1">เครือข่าย</button><button id="modeBrain" style="flex:1">🧠 สมองมนุษย์</button></div>
-  <div id="brainNote" style="display:none;margin-top:8px;padding:8px;border:1px solid var(--line);border-radius:8px;color:var(--dim);font-size:11px">เป็นการเปรียบเทียบเชิงหน้าที่ว่าส่วนไหนของ AION ทำหน้าที่คล้ายบริเวณใดของสมองมนุษย์ ไม่ใช่การอ้างว่า AION ทำงานเหมือนสมองจริง หรือมีจิตสำนึก</div>
+  <div id="modes" style="display:flex;gap:6px;flex-wrap:wrap"></div>
+  <div id="brainNote" style="display:none;margin-top:8px;padding:8px;border:1px solid var(--line);border-radius:8px;color:var(--dim);font-size:11px"></div>
   <div id="regions"></div>
   <div class="sec">กิจกรรมล่าสุดของสมอง</div>
   <select id="activity" style="width:100%;padding:6px;border-radius:8px;border:1px solid var(--line);background:rgba(0,0,0,.35);color:var(--text)">
     <option value="0">ปิด</option><option value="3600000">1 ชั่วโมงที่ผ่านมา</option><option value="86400000" selected>24 ชั่วโมงที่ผ่านมา</option><option value="604800000">7 วันที่ผ่านมา</option>
   </select>
   <div id="activityStat" style="margin-top:6px;color:var(--dim);font-size:11px"></div>
+  <div id="healthStat" style="margin-top:4px;font-size:11px"></div>
   <div class="sec">ชั้นข้อมูล</div>
   <div id="layers"></div>
   <div class="sec">เส้นเชื่อม</div>
@@ -71,6 +72,7 @@
   <div class="sec">หมวด</div>
   <div id="cats"></div>
   <div class="sec">การแสดงผล</div>
+  <label class="row"><input type="checkbox" id="health" checked> สถานะ workflow (แดง = ล้มเหลว, เหลือง = กำลังรัน)</label>
   <label class="row"><input type="checkbox" id="rot"> หมุนอัตโนมัติ</label>
   <label class="row"><input type="checkbox" id="glow" checked> เรืองแสง (bloom)</label>
   <label class="row"><input type="checkbox" id="flow" checked> อนุภาคไหลตามเส้น</label>
@@ -121,6 +123,7 @@ const EDGE_LABEL = {
   bridge: ['โค้ด ↔ หมวดความจำ', '#7c4dff'], tag: ['Tag', '#5a6b8c'], hub: ['สังกัดฮับ (โครงเลย์เอาต์)', '#2a3a66'],
 };
 const state = {
+  health: true,
   layers: new Set(Object.keys(GRAPH.layers)),
   edges: new Set(['related', 'mention', 'import', 'runs', 'bridge']),
   cats: new Set(Object.keys(GRAPH.counts)),
@@ -162,8 +165,8 @@ const Graph = ForceGraph3D({ controlType: 'orbit' })($('graph'))
   .backgroundColor('#02030a')
   .graphData({ nodes, links })
   .nodeLabel((n) => `<div style="padding:4px 8px;background:#050a1c;border:1px solid ${n.color};border-radius:6px"><b style="color:${n.color}">${esc(n.label)}</b><br><span style="color:#8a9ac4">${esc(n.cat)}${n.date ? ' · ' + dateText(n.date) : ''}</span></div>`)
-  .nodeVal((n) => (n.layer === 'hub' ? 26 : n.layer === 'tag' ? 1.2 : 1.4 + Math.sqrt(n.deg) * 1.1 + (n.importance || 3) * 0.25))
-  .nodeColor((n) => ((state.selected && !highlighted(n.id)) || (state.query && !matches(n)) ? '#1a2240' : n.color))
+  .nodeVal((n) => (n.layer === 'hub' ? 26 : n.layer === 'tag' ? 1.2 : 1.4 + Math.sqrt(n.deg) * 1.1 + (n.importance || 3) * 0.25 + (state.health && n.status === 'failure' ? 5 : 0)))
+  .nodeColor((n) => ((state.selected && !highlighted(n.id)) || (state.query && !matches(n)) ? '#1a2240' : healthColor(n) || n.color))
   .nodeOpacity(0.95)
   .nodeResolution(14)
   .nodeVisibility(visibleNode)
@@ -232,6 +235,12 @@ Graph.nodeThreeObjectExtend(true).nodeThreeObject((n) => {
   return sprite;
 });
 
+// Workflow health overlay: the bot-refreshed status of each workflow shows on
+// its node (red = last run failed, yellow = running).
+function healthColor(n) {
+  if (!state.health || !n.status) return null;
+  return n.status === 'failure' ? '#ff3b3b' : n.status === 'running' ? '#ffd400' : null;
+}
 function endpoint(x) { return typeof x === 'object' ? x : byId.get(x); }
 function esc(s) { return String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c])); }
 
@@ -244,69 +253,49 @@ function setGlow(on) {
 try { setGlow(true); } catch (e) { console.warn('bloom unavailable', e); $('glow').disabled = true; }
 $('glow').addEventListener('change', (e) => setGlow(e.target.checked));
 $('flow').addEventListener('change', (e) => { state.flow = e.target.checked; refresh(); });
+$('health').addEventListener('change', (e) => { state.health = e.target.checked; renderRegions(); refresh(); });
 $('rot').addEventListener('change', (e) => { Graph.controls().autoRotate = e.target.checked; Graph.controls().autoRotateSpeed = 0.5; });
 $('reset').addEventListener('click', () => { select(null); fitView(); });
 
 
 // ---------------------------------------------------------------------------
-// Human-brain mode. A FUNCTIONAL ANALOGY only: each part of AION is placed in
-// the region of the human brain whose job is most similar. Coordinates are a
-// rough head frame (+y up, +z front, x = right) scaled by SCALE.
-const SCALE = 4.4;
-const REGIONS = {
-  prefrontal: { th: 'สมองส่วนหน้า', en: 'Prefrontal cortex', c: [0, 22, 72], color: '#00f0ff', does: 'วางแผน ตั้งเป้า ตัดสินใจ — เป้าหมาย คำถามที่ตั้งเอง ข้อเสนอพัฒนา' },
-  motor: { th: 'เปลือกสมองสั่งการ', en: 'Motor cortex', c: [0, 56, 18], color: '#ff7a00', does: 'ลงมือทำ — การเผยแพร่คลิปและโพสต์' },
-  sensory: { th: 'เปลือกสมองรับสัมผัส', en: 'Sensory cortex / thalamus', c: [0, 52, -34], color: '#a6ff00', does: 'รับสัญญาณจากภายนอก — ผู้ชม ฟีดแบ็ก คอมเมนต์' },
-  language: { th: 'บริเวณภาษา (Broca/Wernicke)', en: 'Language areas', c: [-50, 6, 4], color: '#e040fb', does: 'ภาษาและการสื่อสาร — บันทึกการใช้ภาษา เสียง การพากย์' },
-  hippocampus: { th: 'ฮิปโปแคมปัส / กลีบขมับ', en: 'Hippocampus / temporal lobe', c: [[-46, -18, 4], [46, -18, 4]], color: '#4d9bff', does: 'ความจำระยะยาว — บทเรียน ความเชื่อ ความรู้ภายนอก' },
-  amygdala: { th: 'อะมิกดาลา / การยับยั้ง', en: 'Amygdala / inhibitory control', c: [[-24, -10, 22], [24, -10, 22]], color: '#ff4d4d', does: 'ตรวจจับความเสี่ยงและยับยั้ง — claim-safety, Cyber Guard, ตัวตรวจคุณภาพ' },
-  dmn: { th: 'โครงข่ายโหมดพื้นฐาน', en: 'Default mode network', c: [0, 14, -8], color: '#ffb000', does: 'การคิดถึงตัวเอง — เรื่องเล่าตัวตน ข้อมูลเชิงลึกการเติบโต แก่นตัวตน' },
-  visual: { th: 'เปลือกสมองการเห็น', en: 'Visual cortex', c: [0, 4, -84], color: '#ff2bd6', does: 'ภาพและวิดีโอ — การสร้างภาพ ฉาก ลุคภาพ' },
-  cerebellum: { th: 'ซีรีเบลลัม', en: 'Cerebellum', c: [0, -46, -66], color: '#7c4dff', does: 'ทำนายและแก้ความคลาดเคลื่อน — การพยากรณ์ ผลย้อนหลัง การปรับปรุง' },
-  brainstem: { th: 'ก้านสมอง', en: 'Brainstem', c: [0, -62, -26], color: '#80d8ff', does: 'ระบบอัตโนมัติ — workflow ตัวตั้งเวลา โครงสร้างพื้นฐาน' },
-};
-const CAT_REGION = {
-  goals: 'prefrontal', questions: 'prefrontal', evolution_proposals: 'prefrontal', content_expansion: 'prefrontal',
-  lessons: 'hippocampus', beliefs: 'hippocampus', external_knowledge: 'hippocampus', learning_forecasts: 'cerebellum',
-  learning_forecast_reviews: 'cerebellum', social_feedback: 'sensory', social_language_log: 'language',
-  published_reels: 'motor', pending_reels: 'motor', self_narratives: 'dmn', growth_insights: 'dmn',
-};
-const CODE_RULES = [
-  [/safety|guard|evaluator|claim|cyber|integrity|gate|quarantine|disclosure|boundary/i, 'amygdala'],
-  [/voice|tts|speech|narrat|language|thai|dub|caption/i, 'language'],
-  [/image|visual|scene|render|video|motion|cover|thumbnail|costume|style|diorama|reel_render/i, 'visual'],
-  [/publish|upload|crosspost|post|release|queue|studio|creator_queue|youtube_creator/i, 'motor'],
-  [/comment|audience|feedback|signal|instagram|facebook|social|insight|analytics/i, 'sensory'],
-  [/memory|obsidian|reflect|narrative|identity|belief|lesson|persona|autobiograph/i, 'hippocampus'],
-  [/forecast|performance|growth|evolution|improv|repair|attribution|experiment|review|recover/i, 'cerebellum'],
-  [/goal|initiative|plan|decid|director|policy|channel|curios|inquiry|research|learning|brief|story|portfolio|constitution/i, 'prefrontal'],
-];
-function regionOf(n) {
+// Brain-model modes (human, fruit fly), driven by core/brain_map.json. A
+// FUNCTIONAL ANALOGY only: each part of AION is placed in the region of the
+// model brain whose job is most similar. Never a claim that AION works like a
+// brain. Coordinates are a head frame (+y up, +z front, x = right) times scale.
+const MODELS = (GRAPH.brainMap && GRAPH.brainMap.models) || {};
+for (const m of Object.values(MODELS)) m.compiledRules = m.codeRules.map(([rule, region]) => [new RegExp(rule, 'i'), region]);
+let mode = 'network';
+const model = () => MODELS[mode];
+const isBrainMode = () => mode !== 'network';
+
+function regionFor(m, n) {
   if (n.layer === 'tag') return null;
   if (n.layer === 'code') {
-    if (n.type === 'doc' || n.type === 'data') return 'dmn';
-    for (const [rule, region] of CODE_RULES) if (rule.test(n.source || n.label)) return region;
-    return 'brainstem';
+    if (n.type === 'doc' || n.type === 'data') return m.docRegion;
+    for (const [rule, region] of m.compiledRules) if (rule.test(n.source || n.label)) return region;
+    return m.codeDefaultRegion;
   }
-  if (n.layer === 'hub') return CAT_REGION[n.cat] || 'dmn';
-  return CAT_REGION[n.cat] || 'dmn';
+  return m.catRegion[n.cat] || m.defaultRegion;
 }
 const hash = (text) => { let h = 0; for (const ch of String(text)) h = (h * 31 + ch.charCodeAt(0)) | 0; return Math.abs(h); };
-const centerOf = (region, id) => {
-  const c = REGIONS[region].c;
+function centerOf(m, region, id) {
+  const c = m.regions[region].c;
   const p = Array.isArray(c[0]) ? c[hash(id) % c.length] : c;
-  return { x: p[0] * SCALE, y: p[1] * SCALE, z: p[2] * SCALE };
-};
-const regionCount = {};
-for (const n of nodes) {
-  const region = regionOf(n);
-  n.region = region;
-  if (region) { n.target = centerOf(region, n.id); regionCount[region] = (regionCount[region] || 0) + 1; }
+  return { x: p[0] * m.scale, y: p[1] * m.scale, z: p[2] * m.scale };
 }
-// Hubs become landmarks fixed at their region (fanned out a little so they never overlap).
-const hubSlot = {};
-for (const n of nodes) if (n.layer === 'hub' && n.region) { hubSlot[n.region] = (hubSlot[n.region] || 0) + 1; n.hubOffset = (hubSlot[n.region] - 1) * 22; }
-
+let regionCount = {};
+function assignRegions(m) {
+  regionCount = {};
+  const hubSlot = {};
+  for (const n of nodes) {
+    n.region = regionFor(m, n);
+    n.target = n.region ? centerOf(m, n.region, n.id) : null;
+    if (n.region) regionCount[n.region] = (regionCount[n.region] || 0) + 1;
+    // Hubs become landmarks fixed at their region (fanned out so they never overlap).
+    if (n.layer === 'hub' && n.region) { hubSlot[n.region] = (hubSlot[n.region] || 0) + 1; n.hubOffset = (hubSlot[n.region] - 1) * 22; }
+  }
+}
 function brainForce(alpha) {
   const k = 0.24 * alpha;
   for (const n of nodes) {
@@ -315,50 +304,53 @@ function brainForce(alpha) {
   }
 }
 
-let brainGroup = null;
-function ensureBrainShape() {
-  if (brainGroup) return brainGroup;
-  brainGroup = new THREE.Group();
-  const shell = (cx, cy, cz, rx, ry, rz, color) => {
+const shapeGroups = {};
+function shapeGroupFor(key) {
+  if (shapeGroups[key]) return shapeGroups[key];
+  const m = MODELS[key];
+  const group = new THREE.Group();
+  for (const sh of m.shapes) {
     const mesh = new THREE.Mesh(
       new THREE.SphereGeometry(1, 28, 20),
-      new THREE.MeshBasicMaterial({ color, wireframe: true, transparent: true, opacity: 0.16, depthWrite: false }),
+      new THREE.MeshBasicMaterial({ color: sh.color, wireframe: true, transparent: true, opacity: 0.16, depthWrite: false }),
     );
-    mesh.position.set(cx * SCALE, cy * SCALE, cz * SCALE); mesh.scale.set(rx * SCALE, ry * SCALE, rz * SCALE);
-    brainGroup.add(mesh); return mesh;
-  };
-  shell(-33, 8, 4, 36, 52, 86, 0x4d9bff); shell(33, 8, 4, 36, 52, 86, 0x4d9bff); // hemispheres
-  shell(0, -46, -66, 38, 24, 30, 0x7c4dff);                                         // cerebellum
-  shell(0, -62, -26, 12, 34, 13, 0x80d8ff);                                         // brainstem
-  for (const [id, r] of Object.entries(REGIONS)) {                                  // region name tags
+    mesh.position.set(sh.c[0] * m.scale, sh.c[1] * m.scale, sh.c[2] * m.scale);
+    mesh.scale.set(sh.r[0] * m.scale, sh.r[1] * m.scale, sh.r[2] * m.scale);
+    group.add(mesh);
+  }
+  for (const r of Object.values(m.regions)) {
     const canvas = document.createElement('canvas'); canvas.width = 640; canvas.height = 150;
     const ctx = canvas.getContext('2d'); ctx.textAlign = 'center'; ctx.shadowColor = r.color; ctx.shadowBlur = 16;
     ctx.fillStyle = '#ffffff'; ctx.font = '600 46px system-ui, sans-serif'; ctx.fillText(r.th, 320, 58);
     ctx.fillStyle = r.color; ctx.font = '500 34px system-ui, sans-serif'; ctx.fillText(r.en, 320, 112);
     const sprite = new THREE.Sprite(new THREE.SpriteMaterial({ map: new THREE.CanvasTexture(canvas), transparent: true, depthWrite: false, depthTest: false }));
     const c = Array.isArray(r.c[0]) ? r.c[0].map((v, i) => (v + r.c[1][i]) / 2) : r.c;
-    sprite.scale.set(190, 44.5, 1); sprite.position.set(c[0] * SCALE, c[1] * SCALE + 58, c[2] * SCALE);
-    sprite.renderOrder = 10; brainGroup.add(sprite);
+    sprite.scale.set(190, 44.5, 1); sprite.position.set(c[0] * m.scale, c[1] * m.scale + m.labelLift, c[2] * m.scale);
+    sprite.renderOrder = 10; group.add(sprite);
   }
-  return brainGroup;
+  shapeGroups[key] = group;
+  return group;
 }
 
-let mode = 'network';
-// Network mode: fit everything. Brain mode: a three-quarter view from the
-// front-left so the two hemispheres, cerebellum and brainstem read as a brain.
+// Network mode: fit everything. A brain mode: a three-quarter view from the
+// front-left so the shape (hemispheres, optic lobes...) reads as a brain.
 function fitView() {
-  if (mode !== 'brain') { Graph.zoomToFit(1200, 70); return; }
+  if (!isBrainMode()) { Graph.zoomToFit(1200, 70); return; }
+  const m = model();
   const extent = Math.max(...nodes.filter((n) => n.layer !== 'tag').map((n) => Math.hypot(n.x || 0, n.y || 0, n.z || 0)));
-  const d = Math.max(extent, SCALE * 120) * 2.6;
-  Graph.cameraPosition({ x: -d * 0.62, y: d * 0.3, z: d * 0.72 }, { x: 0, y: -10, z: 0 }, 1400);
+  const d = Math.max(extent, m.scale * m.camera.minExtent) * m.camera.distance;
+  const [dx, dy, dz] = m.camera.dir;
+  Graph.cameraPosition({ x: d * dx, y: d * dy, z: d * dz }, { x: 0, y: -10, z: 0 }, 1400);
 }
 let defaultLinkStrength = null;
 function setMode(next) {
   if (next === mode) return;
+  if (mode !== 'network' && shapeGroups[mode]) Graph.scene().remove(shapeGroups[mode]);
   mode = next;
-  const brain = mode === 'brain';
-  $('modeNet').classList.toggle('on', !brain); $('modeBrain').classList.toggle('on', brain);
+  const brain = isBrainMode();
+  document.querySelectorAll('#modes button').forEach((b) => b.classList.toggle('on', b.dataset.mode === mode));
   $('brainNote').style.display = brain ? 'block' : 'none'; $('regions').style.display = brain ? 'block' : 'none';
+  if (brain) { $('brainNote').textContent = model().note; assignRegions(model()); }
   const link = Graph.d3Force('link');
   if (defaultLinkStrength === null) defaultLinkStrength = link.strength();
   for (const n of nodes) {
@@ -370,33 +362,55 @@ function setMode(next) {
     Graph.d3Force('brain', brainForce);
     link.strength((l) => (l.type === 'hub' ? 0 : 0.012)).distance((l) => (l.type === 'hub' ? 60 : 28));
     Graph.d3Force('charge').strength((n) => (n.layer === 'hub' ? 0 : n.layer === 'tag' ? -8 : -34));
-    Graph.scene().add(ensureBrainShape());
+    Graph.scene().add(shapeGroupFor(mode));
     state.layers.delete('tag');
   } else {
     Graph.d3Force('brain', null);
     link.strength(defaultLinkStrength).distance((l) => (l.type === 'hub' ? 150 : l.type === 'tag' ? 46 : l.type === 'bridge' ? 120 : 42));
     Graph.d3Force('charge').strength((n) => (n.layer === 'hub' ? -900 : n.layer === 'tag' ? -30 : -75));
-    if (brainGroup) Graph.scene().remove(brainGroup);
+    for (const n of nodes) { n.region = null; n.target = null; }
   }
   document.querySelectorAll('#layers input')[2] && (document.querySelectorAll('#layers input')[2].checked = state.layers.has('tag'));
+  renderRegions();
   window.__fitted = false;
   Graph.d3ReheatSimulation();
   refresh();
   setTimeout(fitView, 4500);
 }
-$('modeNet').addEventListener('click', () => setMode('network'));
-$('modeBrain').addEventListener('click', () => setMode('brain'));
-$('modeNet').classList.add('on');
+// Buttons: network plus one per model in the config.
+(function buildModeButtons() {
+  const holder = $('modes');
+  const add = (key, text) => {
+    const button = document.createElement('button');
+    button.dataset.mode = key; button.textContent = text; button.style.flex = '1 1 45%';
+    button.addEventListener('click', () => setMode(key));
+    holder.appendChild(button);
+  };
+  add('network', 'เครือข่าย');
+  for (const [key, m] of Object.entries(MODELS)) add(key, m.button || m.label);
+  holder.querySelector('[data-mode="network"]').classList.add('on');
+})();
 $('regions').style.display = 'none';
+
 function renderRegions() {
-  const recent = {};
-  for (const n of nodes) if (n.region && isRecent(n)) recent[n.region] = (recent[n.region] || 0) + 1;
-  $('regions').innerHTML = `<div class="sec">บริเวณของสมอง ↔ ส่วนของ AION</div>` + Object.entries(REGIONS)
-    .map(([id, r]) => `<div class="reg"><span class="dot" style="display:inline-block;color:${r.color};background:${r.color};margin-right:6px"></span><b>${r.th}</b> <small style="display:inline">· ${r.en} · ${regionCount[id] || 0} โหนด${activityMs ? ` · <span style="color:${r.color}">เขียนใหม่ ${recent[id] || 0}</span>` : ''}</small><small>${r.does}</small></div>`).join('');
-  const total = Object.values(recent).reduce((a, b) => a + b, 0);
+  const failing = GRAPH.health && GRAPH.health.workflows
+    ? `<span style="color:${GRAPH.health.failing ? '#ff6b6b' : '#7dff9c'}">workflow ล้มเหลว ${GRAPH.health.failing} จาก ${GRAPH.health.workflows} (ตามรายงานล่าสุด)</span>`
+    : '';
+  $('healthStat').innerHTML = failing;
+  const total = nodes.filter(isRecent).length;
   $('activityStat').textContent = activityMs
     ? `เขียนความจำใหม่ ${total} โน้ตในช่วงนี้ — โหนดที่เรืองกะพริบ (ไม่มีบันทึกการ "อ่าน" จึงแสดงเฉพาะการเขียน)`
     : 'ปิดการแสดงกิจกรรม';
+  if (!isBrainMode()) return;
+  const m = model();
+  const recent = {}; const bad = {};
+  for (const n of nodes) {
+    if (!n.region) continue;
+    if (isRecent(n)) recent[n.region] = (recent[n.region] || 0) + 1;
+    if (n.status === 'failure') bad[n.region] = (bad[n.region] || 0) + 1;
+  }
+  $('regions').innerHTML = `<div class="sec">บริเวณของสมอง ↔ ส่วนของ AION</div>` + Object.entries(m.regions)
+    .map(([id, r]) => `<div class="reg"><span class="dot" style="display:inline-block;color:${r.color};background:${r.color};margin-right:6px"></span><b>${r.th}</b> <small style="display:inline">· ${r.en} · ${regionCount[id] || 0} โหนด${activityMs ? ` · <span style="color:${r.color}">เขียนใหม่ ${recent[id] || 0}</span>` : ''}${state.health && bad[id] ? ` · <span style="color:#ff6b6b">⚠ workflow ล้ม ${bad[id]}</span>` : ''}</small><small>${r.does}</small></div>`).join('');
 }
 renderRegions();
 $('activity').addEventListener('change', (e) => {
@@ -423,6 +437,7 @@ function select(node) {
   panel.innerHTML = `
     <div style="color:${node.color};font-weight:700;font-size:15px;text-shadow:0 0 10px ${node.color}">${esc(node.label)}</div>
     <div class="sub">${esc(LAYER_LABEL[node.layer] || node.layer)} · ${esc(node.cat)}${node.type ? ' · ' + esc(node.type) : ''}${node.date ? ' · ' + dateText(node.date) : ''}${node.source ? '<br>' + esc(node.source) : ''}</div>
+    ${node.status ? `<div class="sub" style="color:${node.status === 'failure' ? '#ff6b6b' : node.status === 'running' ? '#ffd400' : '#7dff9c'}">สถานะล่าสุด: ${esc(node.status_label || node.status)}${node.status_url ? ` · <a href="${esc(node.status_url)}" target="_blank" rel="noopener" style="color:inherit">ดูรัน</a>` : ''}</div>` : ''}
     ${node.tags.map((t) => `<span class="tag">#${esc(t)}</span>`).join('')}
     ${node.excerpt ? `<pre>${esc(node.excerpt)}</pre>` : ''}
     <div class="sec">เชื่อมกับ ${near.length}${neighbours.get(node.id).size > 40 ? '+' : ''} โหนด</div>
@@ -475,7 +490,7 @@ $('play').addEventListener('click', () => {
 
 addEventListener('resize', () => Graph.width(innerWidth).height(innerHeight));
 refresh();
-window.AION_BRAIN = { Graph, nodes, links, setMode, REGIONS };
+window.AION_BRAIN = { Graph, nodes, links, setMode, MODELS };
 </script>
 </body>
 </html>
