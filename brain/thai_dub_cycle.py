@@ -149,31 +149,93 @@ class ThaiDubCycle:
     # Translation
     # ------------------------------------------------------------------
 
-    def _translate(self, title, description, narration_lines):
-        prompt = "\n".join([
-            "Translate the following AION video metadata and narration into natural, clear, spoken Thai suitable for narration/dubbing.",
-            "Keep technical or proper terms understandable to a general audience.",
-            "Never phrase anything as AION having feelings, consciousness, or subjective experience -- "
-            "AION is an AI narrator describing evidence, never a sentient being.",
-            "Return ONLY valid JSON with exactly this shape, no markdown fences, no extra commentary:",
-            '{"title": "...", "description": "...", "narration": [%d strings, same order as given]}' % len(narration_lines),
-            "",
-            "TITLE:", str(title),
-            "DESCRIPTION:", str(description),
-            "NARRATION (in order):", json.dumps(narration_lines, ensure_ascii=False),
-        ])
-        raw = self.provider.generate(prompt).strip()
-        if raw.startswith("```"):
-            raw = raw.strip("`")
-            if raw.startswith("json"):
-                raw = raw[4:]
-        data = json.loads(raw.strip())
-        if not isinstance(data, dict):
-            raise ValueError("translation response was not a JSON object")
-        if not isinstance(data.get("title"), str) or not isinstance(data.get("description"), str):
-            raise ValueError("translation response is missing a title or description string")
-        if len(data.get("narration") or []) != len(narration_lines):
-            raise ValueError("translation returned a different number of narration lines than requested")
+    # Thai edge-tts speaks ~15 characters (no spaces) per second. Lines are
+    # written to ~13/s so the per-scene time-fit (_synthesize_track's atempo)
+    # stays near 1.0 instead of rushing or dragging every scene.
+    CHARS_PER_SECOND = 13
+    OVERLENGTH_TOLERANCE = 1.4
+
+    @staticmethod
+    def _spoken_chars(text):
+        return len("".join(str(text or "").split()))
+
+    def _overlength(self, narration, scene_durations):
+        """Indices of lines too long to be spoken naturally inside their scene."""
+        if not scene_durations:
+            return []
+        return [
+            index for index, (line, seconds) in enumerate(zip(narration, scene_durations))
+            if seconds and self._spoken_chars(line) > self.CHARS_PER_SECOND * seconds * self.OVERLENGTH_TOLERANCE
+        ]
+
+    def _translate(self, title, description, narration_lines, scene_durations=None):
+        """Retell the episode in Thai as spoken storytelling (not a translation).
+
+        Owner, 2026-10-04: the Thai audio should be "เล่าเป็นคอนเท้น" -- content
+        told the way a Thai storytelling page tells it -- not the English
+        research-flavoured narration translated word for word. Facts stay
+        exactly as given (and every line still goes through the claim-safety
+        screen in dub_once); only the telling changes. Each line is sized to
+        its scene (see CHARS_PER_SECOND) so the voice is not stretched or
+        rushed to fit the already-rendered visuals.
+        """
+        if scene_durations and len(scene_durations) == len(narration_lines):
+            lines = [
+                {"line": index + 1, "seconds": round(float(seconds), 1),
+                 "max_chars": int(self.CHARS_PER_SECOND * float(seconds)), "english": text}
+                for index, (text, seconds) in enumerate(zip(narration_lines, scene_durations))
+            ]
+        else:
+            lines, scene_durations = list(narration_lines), None
+
+        def ask(extra=""):
+            prompt = "\n".join([
+                "Retell the following AION video in Thai as SPOKEN STORYTELLING -- the way a friendly Thai "
+                "storytelling page (เพจเล่าเรื่อง) tells a surprising fact to a friend. It is NOT a translation.",
+                "Rules:",
+                "- Keep every fact, number and name exactly as given; add no new fact.",
+                "- Short, casual spoken sentences. Particles such as นะ / เลย / แหละ are fine.",
+                "- Open the first line from something the viewer has personally experienced, or a surprising question.",
+                "- No academic wording: avoid แหล่งข้อมูล, งานวิจัย, หลักฐาน, ผลการศึกษา, ตามที่ระบุ.",
+                "- Each narration line is spoken over ONE scene. When a line has max_chars, stay close to it "
+                "(Thai is spoken at about 13 characters per second) and never exceed it.",
+                "- Title: a short curious hook. Description: 2-3 casual sentences.",
+                "- Never phrase anything as AION having feelings, consciousness, or subjective experience -- "
+                "AION is an AI narrator describing evidence, never a sentient being.",
+                "Return ONLY valid JSON with exactly this shape, no markdown fences, no extra commentary:",
+                '{"title": "...", "description": "...", "narration": [%d strings, same order as given]}' % len(narration_lines),
+                extra,
+                "",
+                "TITLE:", str(title),
+                "DESCRIPTION:", str(description),
+                "NARRATION (in order):", json.dumps(lines, ensure_ascii=False),
+            ])
+            raw = self.provider.generate(prompt).strip()
+            if raw.startswith("```"):
+                raw = raw.strip("`")
+                if raw.startswith("json"):
+                    raw = raw[4:]
+            data = json.loads(raw.strip())
+            if not isinstance(data, dict):
+                raise ValueError("translation response was not a JSON object")
+            if not isinstance(data.get("title"), str) or not isinstance(data.get("description"), str):
+                raise ValueError("translation response is missing a title or description string")
+            if len(data.get("narration") or []) != len(narration_lines):
+                raise ValueError("translation returned a different number of narration lines than requested")
+            return data
+
+        data = ask()
+        too_long = self._overlength(data["narration"], scene_durations)
+        if too_long:
+            numbers = ", ".join(str(index + 1) for index in too_long)
+            data = ask(f"IMPORTANT: your previous answer made line(s) {numbers} far longer than max_chars. "
+                       "Rewrite the whole answer with those lines shortened to fit.")
+            too_long = self._overlength(data["narration"], scene_durations)
+            if too_long:
+                raise ValueError(
+                    "Thai narration is too long for its scenes: line(s) "
+                    + ", ".join(str(index + 1) for index in too_long)
+                )
         return data
 
     # ------------------------------------------------------------------
@@ -267,7 +329,7 @@ class ThaiDubCycle:
             return {"stage": "snippet-fetch-failed", "episode_id": episode_id, "error": str(exc).strip() or type(exc).__name__}
 
         try:
-            translated = self._translate(live["title"], live["description"], narration_lines)
+            translated = self._translate(live["title"], live["description"], narration_lines, scene_durations)
         except Exception as exc:
             return {"stage": "translation-failed", "episode_id": episode_id, "error": str(exc).strip() or type(exc).__name__}
 

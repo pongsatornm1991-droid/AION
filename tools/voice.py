@@ -102,7 +102,11 @@ def synthesize_thai_voice(text, output_path, attempts=5):
         try:
             import edge_tts
 
-            asyncio.run(edge_tts.Communicate(str(text), voice=voice).save(str(output_path)))
+            # Optional delivery tweaks (e.g. THAI_VOICE_RATE="+8%", THAI_VOICE_PITCH="+3Hz");
+            # unset by default so the voice is unchanged.
+            options = {key: os.getenv(env).strip() for key, env in (("rate", "THAI_VOICE_RATE"), ("pitch", "THAI_VOICE_PITCH"))
+                       if os.getenv(env, "").strip()}
+            asyncio.run(edge_tts.Communicate(str(text), voice=voice, **options).save(str(output_path)))
             return True
         except Exception as exc:
             last_exc = exc

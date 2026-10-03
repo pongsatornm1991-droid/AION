@@ -302,3 +302,60 @@ class ThaiDubCycleTests(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class SequenceProvider:
+    def __init__(self, *responses):
+        self.responses = list(responses)
+        self.prompts = []
+
+    def generate(self, prompt):
+        self.prompts.append(prompt)
+        return self.responses[min(len(self.prompts), len(self.responses)) - 1]
+
+
+def _translation(*lines):
+    return json.dumps({"title": "ชื่อ", "description": "คำอธิบาย", "narration": list(lines)}, ensure_ascii=False)
+
+
+class StorytellingTranslationTests(unittest.TestCase):
+    # Owner, 2026-10-04: the Thai audio should be told as content (storytelling),
+    # not the English narration translated word for word, and each line sized to
+    # its scene so the voice is not rushed or dragged by the time-fit.
+    def cycle(self, provider):
+        return ThaiDubCycle(memory=None, root=".", provider=provider, ffmpeg_path="x", tts_fn=lambda t, p: True,
+                            snippet_fn=lambda v: {}, localize_fn=lambda *a: None)
+
+    def test_the_prompt_asks_for_spoken_storytelling_and_gives_each_line_its_size(self):
+        provider = SequenceProvider(_translation("หนึ่ง", "สอง"))
+        self.cycle(provider)._translate("T", "D", ["Line one.", "Line two."], [5.0, 8.0])
+        prompt = provider.prompts[0]
+        self.assertIn("SPOKEN STORYTELLING", prompt)
+        self.assertIn("It is NOT a translation", prompt)
+        self.assertIn('"max_chars": 65', prompt)
+        self.assertIn('"max_chars": 104', prompt)
+        self.assertIn("แหล่งข้อมูล", prompt)  # named as wording to avoid
+
+    def test_a_line_far_too_long_for_its_scene_is_retried_once_with_a_shorten_note(self):
+        long_line = "ก" * 200
+        provider = SequenceProvider(_translation("สั้น", long_line), _translation("สั้น", "พอดี"))
+        data = self.cycle(provider)._translate("T", "D", ["a", "b"], [5.0, 5.0])
+        self.assertEqual(["สั้น", "พอดี"], data["narration"])
+        self.assertEqual(2, len(provider.prompts))
+        self.assertIn("line(s) 2", provider.prompts[1])
+
+    def test_a_line_that_stays_too_long_is_reported_never_silently_rushed(self):
+        long_line = "ก" * 200
+        provider = SequenceProvider(_translation("สั้น", long_line))
+        with self.assertRaises(ValueError) as caught:
+            self.cycle(provider)._translate("T", "D", ["a", "b"], [5.0, 5.0])
+        self.assertIn("line(s) 2", str(caught.exception))
+        self.assertEqual(2, len(provider.prompts))
+
+    def test_without_scene_durations_the_old_behaviour_is_unchanged(self):
+        provider = SequenceProvider(_translation("หนึ่ง", "สอง"))
+        data = self.cycle(provider)._translate("T", "D", ["Line one.", "Line two."])
+        self.assertEqual(["หนึ่ง", "สอง"], data["narration"])
+        self.assertEqual(1, len(provider.prompts))
+        self.assertNotIn("max_chars", provider.prompts[0].split("NARRATION (in order):")[1])
+

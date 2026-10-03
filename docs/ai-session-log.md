@@ -13,6 +13,25 @@ Format:
 Commits: <hash> [, <hash> ...]
 ```
 
+## 2026-10-04 — Claude Code — Thai dub: storytelling script sized to each scene
+
+Owner: "เสียงไทย ... เล่าเป็นคอนเท้น ... มีฟรีมั้ย" then delegated the choice
+("คุณว่าแบบไหนดี"). Cost finding: the voice stays FREE (edge-tts
+th-TH-PremwadeeNeural/NiwatNeural); only the script is an LLM call (cents).
+Changed `ThaiDubCycle._translate` from a translation to a spoken-storytelling
+retelling (casual Thai, hook from the viewer's experience, no academic words,
+facts unchanged, still claim-safety screened). Each line is given its
+scene's `seconds` and `max_chars` (Thai edge-tts ~15 chars/s measured; lines
+sized to 13/s) so `_synthesize_track`'s per-scene atempo stays near 1.0;
+lines over 1.4x their budget trigger one retry with a shorten note, then a
+reported failure (never silently rushed). `tools/voice.py`: optional
+THAI_VOICE_RATE / THAI_VOICE_PITCH (unset = unchanged voice; a higher rate
+would just be undone by the time-fit, so no tweak is on by default). I
+cannot listen to audio, so the voice choice itself is the owner's by ear
+(samples 1/2 female, 3 male via THAI_VOICE). Not tried: Gemini TTS /
+OpenAI TTS for Thai (possible upgrades, unverified quality, small cost).
+Commits: see git log
+
 ## 2026-10-04 — Claude Code — Thai-audio Reels on Facebook, credit-exhaustion alert, brain activity pulses
 
 Owner approved three things in one message. (1) Thai Facebook: Facebook has

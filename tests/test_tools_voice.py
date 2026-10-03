@@ -34,6 +34,26 @@ class SynthesizeThaiVoiceTests(unittest.TestCase):
                 synthesize_thai_voice("สวัสดี", "out.mp3")
         self.assertEqual("th-TH-NiwatNeural", _FakeCommunicate.calls[0][1])
 
+    def test_rate_and_pitch_are_optional_and_only_sent_when_configured(self):
+        seen = []
+
+        class TunableCommunicate(_FakeCommunicate):
+            def __init__(self, text, voice, rate=None, pitch=None):
+                super().__init__(text, voice)
+                seen.append((rate, pitch))
+
+        with mock.patch.dict(os.environ, {"THAI_VOICE_RATE": "+8%", "THAI_VOICE_PITCH": "+3Hz"}):
+            with mock.patch("edge_tts.Communicate", TunableCommunicate):
+                synthesize_thai_voice("สวัสดี", "out.mp3")
+        self.assertEqual([("+8%", "+3Hz")], seen)
+        seen.clear()
+        with mock.patch.dict(os.environ, {}, clear=False):
+            os.environ.pop("THAI_VOICE_RATE", None)
+            os.environ.pop("THAI_VOICE_PITCH", None)
+            with mock.patch("edge_tts.Communicate", TunableCommunicate):
+                synthesize_thai_voice("สวัสดี", "out.mp3")
+        self.assertEqual([(None, None)], seen)
+
     def test_retries_a_transient_failure_before_succeeding(self):
         attempts = {"n": 0}
 
