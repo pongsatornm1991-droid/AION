@@ -121,7 +121,12 @@ class ThaiDubCycleTests(unittest.TestCase):
             self.assertEqual("dubbed", result["stage"])
             self.assertEqual("ep-1", result["episode_id"])
             self.assertEqual("content/reels_thai/live-title-vid-1-thai.mp3", result["audio_path"])
-            localize_fn.assert_called_once_with("vid-1", "th", "ทำไมแผนที่ถึงแตกต่างกัน", "คำอธิบายภาษาไทย")
+            localize_fn.assert_called_once()
+            args = localize_fn.call_args.args
+            self.assertEqual(("vid-1", "th", "ทำไมแผนที่ถึงแตกต่างกัน"), args[:3])
+            self.assertTrue(args[3].startswith("คำอธิบายภาษาไทย"))
+            self.assertIn(ThaiDubCycle.SUBSCRIBE_TH, args[3])
+            self.assertIn("ฉันคือ AI ไม่ใช่มนุษย์", args[3])
             saved = json.loads(memory.all(CATEGORY)[0]["content"])
             self.assertEqual("ep-1", saved["episode_id"])
 
@@ -396,4 +401,26 @@ class StorytellingTranslationTests(unittest.TestCase):
         self.assertEqual(["หนึ่ง", "สอง"], data["narration"])
         self.assertEqual(1, len(provider.prompts))
         self.assertNotIn("max_chars", provider.prompts[0].split("NARRATION (in order):")[1])
+
+
+class FinishDescriptionTests(unittest.TestCase):
+    # 2026-10-04: the storytelling retelling is only the opening paragraph, so
+    # the subscribe line, hashtags and AI disclosure are re-added by code.
+    LIVE = "English text.\n\nSubscribe line.\n\n#Earthquakes #Shorts #AION #AI"
+
+    def test_adds_the_subscribe_line_the_live_hashtags_and_the_ai_disclosure(self):
+        text = ThaiDubCycle._finish_description("เล่าสนุกๆ", self.LIVE)
+        self.assertTrue(text.startswith("เล่าสนุกๆ"))
+        self.assertIn(ThaiDubCycle.SUBSCRIBE_TH, text)
+        self.assertIn("#Earthquakes #Shorts #AION #AI", text)
+        self.assertTrue(text.rstrip().endswith("ฉันคือ AI ไม่ใช่มนุษย์ ฉันชื่อ AION"))
+
+    def test_nothing_is_duplicated_when_the_model_already_wrote_it(self):
+        once = ThaiDubCycle._finish_description("เล่าสนุกๆ", self.LIVE)
+        twice = ThaiDubCycle._finish_description(once, self.LIVE)
+        self.assertEqual(once, twice)
+
+    def test_a_live_description_without_hashtags_adds_none(self):
+        text = ThaiDubCycle._finish_description("เล่า", "No tags here")
+        self.assertNotIn("#", text)
 

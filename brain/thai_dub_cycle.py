@@ -29,6 +29,7 @@ from datetime import datetime, timezone
 from pathlib import Path
 
 from brain.evaluator import OutputEvaluator
+from brain.identity_disclosure import DISCLOSURE_TH, append_identity_disclosure
 from brain.youtube_creator_queue import YouTubeCreatorQueue
 
 CATEGORY = "youtube_thai_dubs"
@@ -185,6 +186,28 @@ class ThaiDubCycle:
             if seconds and self._spoken_chars(line) > self.CHARS_PER_SECOND * seconds * self.OVERLENGTH_TOLERANCE
         ]
 
+    SUBSCRIBE_TH = "คำถามใหม่ หลักฐานใหม่ ทุกวัน กดติดตามเพื่อตามไปด้วยกัน"
+
+    @classmethod
+    def _finish_description(cls, thai_description, live_description):
+        """The storytelling retelling plus what every YouTube description must keep.
+
+        The retelling is only the opening paragraph, so on its own the Thai
+        description would lose the subscribe invitation, the video's hashtags
+        and AION's AI disclosure that the English description carries. Add them
+        back deterministically (never left to the model).
+        """
+        text = str(thai_description or "").strip()
+        if cls.SUBSCRIBE_TH not in text:
+            text += f"\n\n{cls.SUBSCRIBE_TH}"
+        hashtags = next((line.strip() for line in reversed(str(live_description or "").splitlines())
+                         if line.strip().startswith("#")), "")
+        if hashtags and hashtags not in text:
+            text += f"\n\n{hashtags}"
+        if DISCLOSURE_TH not in text:
+            text = append_identity_disclosure(text, "facebook")
+        return text
+
     def _translate(self, title, description, narration_lines, scene_durations=None):
         """Retell the episode in Thai as spoken storytelling (not a translation).
 
@@ -225,7 +248,8 @@ class ThaiDubCycle:
                 "- No academic wording: avoid แหล่งข้อมูล, งานวิจัย, หลักฐาน, ผลการศึกษา, ตามที่ระบุ.",
                 "- Each narration line is spoken over ONE scene. When a line has max_chars, stay close to it "
                 "(Thai is spoken at about 13 characters per second) and never exceed it.",
-                "- Title: a short curious hook. Description: 2-3 casual sentences.",
+                "- Title: a short curious hook. Description: 2-3 casual sentences retelling the video (the hashtags, "
+                "subscribe line and AI disclosure are added separately; do not write them).",
                 "- Never phrase anything as AION having feelings, consciousness, or subjective experience -- "
                 "AION is an AI narrator describing evidence, never a sentient being.",
                 "Return ONLY valid JSON with exactly this shape, no markdown fences, no extra commentary:",
@@ -365,6 +389,8 @@ class ThaiDubCycle:
         ]
         if unsafe_texts:
             return {"stage": "translation-blocked-claim-safety", "episode_id": episode_id, "unsafe_example": unsafe_texts[0]}
+
+        translated["description"] = self._finish_description(translated["description"], live["description"])
 
         try:
             self.localize_fn(video_id, "th", translated["title"], translated["description"])

@@ -13,6 +13,22 @@ Format:
 Commits: <hash> [, <hash> ...]
 ```
 
+## 2026-10-04 — Claude Code — YouTube Thai = the same storytelling script (no translation anywhere)
+
+Owner: "ของ youtube ก็เอาเสียงไทยแบบนี้ ไม่เอาแบบแปลแล้ว". Checked every Thai path: the
+ONLY place Thai text for YouTube is produced is `ThaiDubCycle._translate`, so
+the storytelling script already drives (a) the Thai title/description written
+to the video via the Data API localizations (automatic) and (b) the Thai
+audio mp3 (still a manual Studio upload -- no API for audio tracks). No other
+translation path exists. One regression found and fixed: the retelling is
+only an opening paragraph, so the Thai description would have lost the
+subscribe invitation, the video's hashtags and AION's AI disclosure that the
+translated description used to carry. `_finish_description` now re-adds them
+deterministically (Thai subscribe line, hashtags copied from the live
+description, Thai AI disclosure; idempotent). Redubbing the 8 existing
+videos (queued) overwrites their Thai localization with this version.
+Commits: see git log
+
 ## 2026-10-04 — Claude Code — Thai script style: playful, plain-spoken (SCRIPT_VERSION v2)
 
 Owner: "เล่าบทแบบเพจไอ้ก้าง สนุกฟังง่ายเข้าใจ". The Thai storytelling prompt now
