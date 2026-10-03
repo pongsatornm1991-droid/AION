@@ -8,6 +8,7 @@ from pathlib import Path
 from unittest import mock
 
 from brain.memory import MemoryEngine
+from brain.thai_dub_cycle import SCRIPT_VERSION
 from brain.thai_facebook_crosspost import MAX_ATTEMPTS, ThaiFacebookCrosspost, mux_thai_audio
 
 
@@ -55,14 +56,14 @@ class ThaiFacebookCrosspostTests(unittest.TestCase):
         self.quality.start()
         self.addCleanup(self.quality.stop)
 
-    def dub(self, episode_id, generated_at, with_files=True):
+    def dub(self, episode_id, generated_at, with_files=True, script_version=SCRIPT_VERSION):
         if with_files:
             (self.tmp / "content" / "reels" / f"{episode_id}.mp4").write_bytes(b"v")
             (self.tmp / "content" / "reels_thai" / f"{episode_id}.mp3").write_bytes(b"a")
         record = {
             "episode_id": episode_id, "video_id": f"yt-{episode_id}", "title_th": f"ชื่อ {episode_id}",
             "description_th": "ย่อหน้าทั่วไป\n\nจงระบุให้ชัดว่ายังไม่ยืนยันอะไร\n\n#Tag1 #Shorts", "audio_path": f"content/reels_thai/{episode_id}.mp3",
-            "generated_at": generated_at,
+            "generated_at": generated_at, "script_version": script_version,
         }
         self.memory.remember("youtube_thai_dubs", json.dumps(record, ensure_ascii=False),
                              memory_type="action", source=f"aion-thai-dub:{episode_id}", importance=3)
@@ -94,6 +95,19 @@ class ThaiFacebookCrosspostTests(unittest.TestCase):
         self.assertIn("#Tag1 #Shorts", posted[0][1])
         # The generic description paragraphs are not carried over to Facebook.
         self.assertNotIn("จงระบุให้ชัดว่า", posted[0][1])
+
+    def test_a_dub_from_an_older_script_is_never_posted_until_it_has_been_redone(self):
+        # 2026-10-04: the first dubs were word-for-word translations; the owner
+        # wanted them redone as storytelling BEFORE anything reached Facebook.
+        self.dub("translated", "2026-10-02T00:00:00", script_version=None)
+        publisher = mock.Mock()
+        report = self.cycle().publish_once(facebook_publisher=publisher, muxer=self.fake_mux)
+        self.assertEqual("nothing-to-publish", report["stage"])
+        publisher.assert_not_called()
+        # Once the episode has been dubbed again, the newer record is the one posted.
+        self.dub("translated", "2026-10-05T00:00:00")
+        report = self.cycle().publish_once(facebook_publisher=lambda path, caption="": {"id": "x"}, muxer=self.fake_mux)
+        self.assertEqual("translated", report["episode_id"])
 
     def test_each_episode_is_posted_at_most_once(self):
         self.dub("only", "2026-10-02T00:00:00")

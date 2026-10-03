@@ -5,7 +5,7 @@ from pathlib import Path
 from unittest import mock
 
 from brain.memory import MemoryEngine
-from brain.thai_dub_cycle import CATEGORY, ThaiDubCycle, has_unsafe_claim
+from brain.thai_dub_cycle import CATEGORY, SCRIPT_VERSION, ThaiDubCycle, has_unsafe_claim
 from brain.youtube_creator_queue import YouTubeCreatorQueue
 
 
@@ -180,9 +180,36 @@ class ThaiDubCycleTests(unittest.TestCase):
             _write_episode(root, "ep-1")
             memory = MemoryEngine(Path(root) / "memory")
             _publish_record(memory, "ep-1", "vid-1")
-            memory.remember(CATEGORY, json.dumps({"episode_id": "ep-1"}), memory_type="action", source="aion-thai-dub:ep-1")
+            memory.remember(CATEGORY, json.dumps({"episode_id": "ep-1", "script_version": SCRIPT_VERSION}),
+                            memory_type="action", source="aion-thai-dub:ep-1")
             cycle = _cycle(memory, root, SAFE_TRANSLATION)
             self.assertEqual({"stage": "nothing-to-dub"}, cycle.dub_once())
+
+    def test_a_dub_made_with_an_older_script_is_redone_but_a_skip_marker_never_is(self):
+        # 2026-10-04: the first dubs were word-for-word translations; they are
+        # dubbed again with the storytelling script. Backlog-skip markers carry
+        # no audio and stay skipped.
+        with tempfile.TemporaryDirectory() as root:
+            for episode_id in ("old", "skipped"):
+                _write_episode(root, episode_id)
+            memory = MemoryEngine(Path(root) / "memory")
+            _publish_record(memory, "old", "vid-old")
+            _publish_record(memory, "skipped", "vid-skipped")
+            memory.remember(CATEGORY, json.dumps({"episode_id": "old", "audio_path": "x.mp3"}),
+                            memory_type="action", source="aion-thai-dub:old")
+            memory.remember(CATEGORY, json.dumps({"episode_id": "skipped", "skipped": True}),
+                            memory_type="action", source="aion-thai-dub:skipped")
+            cycle = _cycle(memory, root, SAFE_TRANSLATION)
+            self.assertEqual(["old"], [episode for _, episode, _ in cycle._published_candidates()])
+
+    def test_a_new_dub_record_is_stamped_with_the_script_version(self):
+        with tempfile.TemporaryDirectory() as root:
+            _write_episode(root, "ep-1")
+            memory = MemoryEngine(Path(root) / "memory")
+            _publish_record(memory, "ep-1", "vid-1")
+            with mock.patch("brain.thai_dub_cycle.subprocess.run"),                  mock.patch.object(ThaiDubCycle, "_clip_duration", return_value=5.0):
+                _cycle(memory, root, SAFE_TRANSLATION).dub_once()
+            self.assertEqual(SCRIPT_VERSION, json.loads(memory.all(CATEGORY)[0]["content"])["script_version"])
 
     def test_skips_a_private_or_superseded_upload(self):
         with tempfile.TemporaryDirectory() as root:

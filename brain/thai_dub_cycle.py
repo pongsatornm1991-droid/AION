@@ -33,6 +33,12 @@ from brain.youtube_creator_queue import YouTubeCreatorQueue
 
 CATEGORY = "youtube_thai_dubs"
 SOURCE_PREFIX = "aion-thai-dub:"
+# Bumped when the Thai script is written differently. A record of an older
+# version is NOT counted as dubbed, so the episode is dubbed again with the
+# current script (2026-10-04: the first 8 dubs were word-for-word translations;
+# the owner wanted them told as storytelling). Skipped/backlog markers carry no
+# audio and are never redone.
+SCRIPT_VERSION = "storytelling-v1"
 
 # Every other ffmpeg-invoking module (tools/reel_render.py, brain/video_quality.py,
 # tools/produce_creator_motion.py) sets this so a console window doesn't flash for
@@ -79,11 +85,18 @@ class ThaiDubCycle:
     # ------------------------------------------------------------------
 
     def _dubbed_episode_ids(self):
-        return {
-            entry["source"][len(SOURCE_PREFIX):]
-            for entry in self.memory.all(CATEGORY)
-            if str(entry.get("source") or "").startswith(SOURCE_PREFIX)
-        }
+        done = set()
+        for entry in self.memory.all(CATEGORY):
+            source = str(entry.get("source") or "")
+            if not source.startswith(SOURCE_PREFIX):
+                continue
+            try:
+                payload = json.loads(entry.get("content") or "{}")
+            except (TypeError, ValueError):
+                payload = {}
+            if payload.get("skipped") or payload.get("script_version") == SCRIPT_VERSION:
+                done.add(source[len(SOURCE_PREFIX):])
+        return done
 
     def _published_candidates(self):
         """Newest-first published episodes with a real video id, not yet dubbed.
@@ -365,6 +378,7 @@ class ThaiDubCycle:
             "episode_id": episode_id, "video_id": video_id,
             "title_th": translated["title"], "description_th": translated["description"],
             "audio_path": relative_audio_path, "audio_duration_seconds": duration,
+            "script_version": SCRIPT_VERSION,
             "generated_at": datetime.now(timezone.utc).isoformat(),
         }
         self.memory.remember(

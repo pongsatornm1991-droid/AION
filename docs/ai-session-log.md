@@ -13,6 +13,25 @@ Format:
 Commits: <hash> [, <hash> ...]
 ```
 
+## 2026-10-04 — Claude Code — Redo the 8 Thai dubs as storytelling BEFORE any reached Facebook
+
+Owner: yes to "pause the Facebook queue and redo the 8 old dubs with the new
+storytelling script first". Pausing without a token (workflows cannot be
+disabled from here) is done in code: `SCRIPT_VERSION = "storytelling-v1"`
+(brain/thai_dub_cycle.py) is stamped on every new dub record; a record
+without it is NOT counted as dubbed, so `ThaiDubCycle` dubs those 8 episodes
+again (newest first, `dub_batch(limit=3)` per run, ~1 day to clear; skipped/
+backlog markers never redo), and `ThaiFacebookCrosspost.candidates()` only
+accepts the current version, so no word-for-word translation can be posted.
+Checked against the real memory: 8 episodes queued for redub, 0 eligible for
+Facebook (no thai-facebook-reels run had happened yet). Side effects to
+expect: each redub rewrites the same `content/reels_thai/*.mp3` path (new
+audio replaces the old) and re-writes the YouTube Thai title/description
+localization with the new storytelling wording. Cost: 8 small LLM calls +
+free TTS. After a redub completes, thai-facebook-reels.yml (triggered by Thai
+dub completing, and every 6h) posts it. Untested against a live model.
+Commits: see git log
+
 ## 2026-10-04 — Claude Code — Thai dub: storytelling script sized to each scene
 
 Owner: "เสียงไทย ... เล่าเป็นคอนเท้น ... มีฟรีมั้ย" then delegated the choice

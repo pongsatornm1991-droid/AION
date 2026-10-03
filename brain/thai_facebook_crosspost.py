@@ -29,6 +29,7 @@ from datetime import datetime, timezone
 from pathlib import Path
 
 from brain.identity_disclosure import append_identity_disclosure
+from brain.thai_dub_cycle import SCRIPT_VERSION
 from brain.video_quality import VideoQualityGate
 
 CATEGORY = "thai_facebook_crossposts"
@@ -114,6 +115,11 @@ class ThaiFacebookCrosspost:
             if episode_id in seen:
                 continue
             seen.add(episode_id)
+            # Only the current storytelling script is posted: the earlier
+            # word-for-word translations are being redone first (owner,
+            # 2026-10-04), so an unversioned dub is left alone.
+            if dub.get("script_version") != SCRIPT_VERSION:
+                continue
             _, record = self._crosspost_record(episode_id)
             if record and (record.get("status") == "published" or int(record.get("attempts") or 0) >= MAX_ATTEMPTS):
                 continue
