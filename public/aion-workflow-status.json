@@ -1,10 +1,10 @@
 {
-  "generated_at": "2026-10-03T08:04:31.288185+00:00",
+  "generated_at": "2026-10-03T08:06:42.361463+00:00",
   "tiles": {
     "total": 43,
-    "ok": 32,
+    "ok": 33,
     "attn": 1,
-    "running": 2
+    "running": 1
   },
   "groups": [
     {
@@ -85,8 +85,8 @@
         {
           "name": "AION - external learning cycle",
           "file": "learning-cycle.yml",
-          "status_class": "running",
-          "status_label": "กำลังรัน",
+          "status_class": "success",
+          "status_label": "สำเร็จ",
           "html_url": "https://github.com/pongsatornm1991-droid/AION/actions/runs/37108379369",
           "created_at": "2026-10-03T08:02:54Z"
         },
@@ -153,8 +153,8 @@
           "file": "automation-health.yml",
           "status_class": "success",
           "status_label": "ไม่มีเหตุให้ดำเนินการ",
-          "html_url": "https://github.com/pongsatornm1991-droid/AION/actions/runs/37108393450",
-          "created_at": "2026-10-03T08:03:07Z"
+          "html_url": "https://github.com/pongsatornm1991-droid/AION/actions/runs/37108477727",
+          "created_at": "2026-10-03T08:04:36Z"
         },
         {
           "name": "AION - Cyber Guard defensive audit",
