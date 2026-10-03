@@ -1,10 +1,10 @@
 {
-  "generated_at": "2026-10-03T23:16:02.074597+00:00",
+  "generated_at": "2026-10-03T23:17:33.106437+00:00",
   "tiles": {
     "total": 37,
-    "ok": 29,
+    "ok": 30,
     "attn": 1,
-    "running": 2
+    "running": 1
   },
   "groups": [
     {
@@ -319,8 +319,8 @@
         {
           "name": "AION - production control",
           "file": "production-control.yml",
-          "status_class": "running",
-          "status_label": "กำลังรัน",
+          "status_class": "success",
+          "status_label": "สำเร็จ",
           "html_url": "https://github.com/pongsatornm1991-droid/AION/actions/runs/37161050573",
           "created_at": "2026-10-03T23:13:08Z"
         },
