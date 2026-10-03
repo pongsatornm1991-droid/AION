@@ -120,5 +120,19 @@ class BuildBrainGraphTests(unittest.TestCase):
         self.assertIn("const GRAPH = /*__GRAPH_DATA__*/null;", template)
 
 
+    def test_human_brain_mode_maps_every_category_to_a_region_and_states_it_is_an_analogy(self):
+        template = (Path(__file__).resolve().parents[1] / "dashboard" / "brain3d.template.html").read_text(encoding="utf-8")
+        # Every region a category or code rule points at must be defined...
+        import re
+        regions = set(re.findall(r"^  (\w+): \{ th: ", template, re.MULTILINE))
+        self.assertTrue({"prefrontal", "hippocampus", "motor", "sensory", "cerebellum", "brainstem", "amygdala", "dmn", "language", "visual"} <= regions)
+        used = set(re.findall(r":\s*'(\w+)'", template[template.index("const CAT_REGION"):template.index("function regionOf")]))
+        used |= set(re.findall(r"'(\w+)'\],", template[template.index("const CODE_RULES"):template.index("function regionOf")]))
+        self.assertLessEqual(used, regions)
+        # ...and the page must say this is a functional analogy, never a claim.
+        self.assertIn("ไม่ใช่การอ้างว่า AION ทำงานเหมือนสมองจริง", template)
+        self.assertIn("modeBrain", template)
+
+
 if __name__ == "__main__":
     unittest.main()

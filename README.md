@@ -119,7 +119,11 @@ and writes `brain3d-output/brain.html` -- double-click it to open in a browser
 (needs internet once to load three.js from a CDN). **The file embeds private
 memory: it is git-ignored and must never be published or committed.**
 `--no-code` builds the memory-only brain. The viewer itself is
-`dashboard/brain3d.template.html` (no data).
+`dashboard/brain3d.template.html` (no data). The 🧠 "สมองมนุษย์" mode lays the same
+nodes out as a human brain (hemispheres, cerebellum, brainstem), each part of
+AION placed in the region with the most similar job (memory -> hippocampus,
+planning -> prefrontal, audience input -> sensory cortex, publishing -> motor
+cortex...). It is a functional analogy only, stated as such on the page.
 
 ### AION Observatory dashboard
 

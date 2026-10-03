@@ -29,6 +29,10 @@
   .nb{display:block;padding:3px 0;cursor:pointer;color:var(--text)}
   .nb:hover{color:var(--accent)}
   .nb small{color:var(--dim)}
+  button.on{background:rgba(255,43,214,.22);border-color:var(--pink);color:#ffd6f6}
+  .reg{padding:5px 0;border-bottom:1px solid rgba(120,160,255,.08)}
+  .reg b{font-weight:600}
+  .reg small{display:block;color:var(--dim)}
   pre{white-space:pre-wrap;word-break:break-word;margin:6px 0;color:#c4d0ee;font:12px/1.5 ui-monospace,Consolas,monospace}
   #stat{color:var(--dim);font-size:11px;margin-top:8px}
   #msg{position:fixed;inset:0;display:none;align-items:center;justify-content:center;text-align:center;padding:30px;color:#ff9aa8}
@@ -51,6 +55,10 @@
   <h1>AION BRAIN 3D</h1>
   <div class="sub" id="gen"></div>
   <input id="q" type="search" placeholder="ค้นหาโน้ต / โค้ด / tag …" autocomplete="off">
+  <div class="sec">โหมดมุมมอง</div>
+  <div style="display:flex;gap:6px"><button id="modeNet" style="flex:1">เครือข่าย</button><button id="modeBrain" style="flex:1">🧠 สมองมนุษย์</button></div>
+  <div id="brainNote" style="display:none;margin-top:8px;padding:8px;border:1px solid var(--line);border-radius:8px;color:var(--dim);font-size:11px">เป็นการเปรียบเทียบเชิงหน้าที่ว่าส่วนไหนของ AION ทำหน้าที่คล้ายบริเวณใดของสมองมนุษย์ ไม่ใช่การอ้างว่า AION ทำงานเหมือนสมองจริง หรือมีจิตสำนึก</div>
+  <div id="regions"></div>
   <div class="sec">ชั้นข้อมูล</div>
   <div id="layers"></div>
   <div class="sec">เส้นเชื่อม</div>
@@ -164,7 +172,11 @@ const Graph = ForceGraph3D({ controlType: 'orbit' })($('graph'))
   .linkDirectionalParticleSpeed(0.006)
   .d3VelocityDecay(0.28)
   .cooldownTicks(320)
-  .onEngineStop(() => { if (!window.__fitted) { window.__fitted = true; Graph.zoomToFit(1200, 70); } })
+  .onEngineStop(() => {
+    if (window.__fitted) return;
+    window.__fitted = true;
+    fitView();
+  })
   .onNodeClick((n) => select(n))
   .onBackgroundClick(() => select(null));
 Graph.d3Force('charge').strength((n) => (n.layer === 'hub' ? -900 : n.layer === 'tag' ? -30 : -75));
@@ -196,7 +208,151 @@ try { setGlow(true); } catch (e) { console.warn('bloom unavailable', e); $('glow
 $('glow').addEventListener('change', (e) => setGlow(e.target.checked));
 $('flow').addEventListener('change', (e) => { state.flow = e.target.checked; refresh(); });
 $('rot').addEventListener('change', (e) => { Graph.controls().autoRotate = e.target.checked; Graph.controls().autoRotateSpeed = 0.5; });
-$('reset').addEventListener('click', () => { select(null); Graph.zoomToFit(900, 40); });
+$('reset').addEventListener('click', () => { select(null); fitView(); });
+
+
+// ---------------------------------------------------------------------------
+// Human-brain mode. A FUNCTIONAL ANALOGY only: each part of AION is placed in
+// the region of the human brain whose job is most similar. Coordinates are a
+// rough head frame (+y up, +z front, x = right) scaled by SCALE.
+const SCALE = 4.4;
+const REGIONS = {
+  prefrontal: { th: 'สมองส่วนหน้า', en: 'Prefrontal cortex', c: [0, 22, 72], color: '#00f0ff', does: 'วางแผน ตั้งเป้า ตัดสินใจ — เป้าหมาย คำถามที่ตั้งเอง ข้อเสนอพัฒนา' },
+  motor: { th: 'เปลือกสมองสั่งการ', en: 'Motor cortex', c: [0, 56, 18], color: '#ff7a00', does: 'ลงมือทำ — การเผยแพร่คลิปและโพสต์' },
+  sensory: { th: 'เปลือกสมองรับสัมผัส', en: 'Sensory cortex / thalamus', c: [0, 52, -34], color: '#a6ff00', does: 'รับสัญญาณจากภายนอก — ผู้ชม ฟีดแบ็ก คอมเมนต์' },
+  language: { th: 'บริเวณภาษา (Broca/Wernicke)', en: 'Language areas', c: [-50, 6, 4], color: '#e040fb', does: 'ภาษาและการสื่อสาร — บันทึกการใช้ภาษา เสียง การพากย์' },
+  hippocampus: { th: 'ฮิปโปแคมปัส / กลีบขมับ', en: 'Hippocampus / temporal lobe', c: [[-46, -18, 4], [46, -18, 4]], color: '#4d9bff', does: 'ความจำระยะยาว — บทเรียน ความเชื่อ ความรู้ภายนอก' },
+  amygdala: { th: 'อะมิกดาลา / การยับยั้ง', en: 'Amygdala / inhibitory control', c: [[-24, -10, 22], [24, -10, 22]], color: '#ff4d4d', does: 'ตรวจจับความเสี่ยงและยับยั้ง — claim-safety, Cyber Guard, ตัวตรวจคุณภาพ' },
+  dmn: { th: 'โครงข่ายโหมดพื้นฐาน', en: 'Default mode network', c: [0, 14, -8], color: '#ffb000', does: 'การคิดถึงตัวเอง — เรื่องเล่าตัวตน ข้อมูลเชิงลึกการเติบโต แก่นตัวตน' },
+  visual: { th: 'เปลือกสมองการเห็น', en: 'Visual cortex', c: [0, 4, -84], color: '#ff2bd6', does: 'ภาพและวิดีโอ — การสร้างภาพ ฉาก ลุคภาพ' },
+  cerebellum: { th: 'ซีรีเบลลัม', en: 'Cerebellum', c: [0, -46, -66], color: '#7c4dff', does: 'ทำนายและแก้ความคลาดเคลื่อน — การพยากรณ์ ผลย้อนหลัง การปรับปรุง' },
+  brainstem: { th: 'ก้านสมอง', en: 'Brainstem', c: [0, -62, -26], color: '#80d8ff', does: 'ระบบอัตโนมัติ — workflow ตัวตั้งเวลา โครงสร้างพื้นฐาน' },
+};
+const CAT_REGION = {
+  goals: 'prefrontal', questions: 'prefrontal', evolution_proposals: 'prefrontal', content_expansion: 'prefrontal',
+  lessons: 'hippocampus', beliefs: 'hippocampus', external_knowledge: 'hippocampus', learning_forecasts: 'cerebellum',
+  learning_forecast_reviews: 'cerebellum', social_feedback: 'sensory', social_language_log: 'language',
+  published_reels: 'motor', pending_reels: 'motor', self_narratives: 'dmn', growth_insights: 'dmn',
+};
+const CODE_RULES = [
+  [/safety|guard|evaluator|claim|cyber|integrity|gate|quarantine|disclosure|boundary/i, 'amygdala'],
+  [/voice|tts|speech|narrat|language|thai|dub|caption/i, 'language'],
+  [/image|visual|scene|render|video|motion|cover|thumbnail|costume|style|diorama|reel_render/i, 'visual'],
+  [/publish|upload|crosspost|post|release|queue|studio|creator_queue|youtube_creator/i, 'motor'],
+  [/comment|audience|feedback|signal|instagram|facebook|social|insight|analytics/i, 'sensory'],
+  [/memory|obsidian|reflect|narrative|identity|belief|lesson|persona|autobiograph/i, 'hippocampus'],
+  [/forecast|performance|growth|evolution|improv|repair|attribution|experiment|review|recover/i, 'cerebellum'],
+  [/goal|initiative|plan|decid|director|policy|channel|curios|inquiry|research|learning|brief|story|portfolio|constitution/i, 'prefrontal'],
+];
+function regionOf(n) {
+  if (n.layer === 'tag') return null;
+  if (n.layer === 'code') {
+    if (n.type === 'doc' || n.type === 'data') return 'dmn';
+    for (const [rule, region] of CODE_RULES) if (rule.test(n.source || n.label)) return region;
+    return 'brainstem';
+  }
+  if (n.layer === 'hub') return CAT_REGION[n.cat] || 'dmn';
+  return CAT_REGION[n.cat] || 'dmn';
+}
+const hash = (text) => { let h = 0; for (const ch of String(text)) h = (h * 31 + ch.charCodeAt(0)) | 0; return Math.abs(h); };
+const centerOf = (region, id) => {
+  const c = REGIONS[region].c;
+  const p = Array.isArray(c[0]) ? c[hash(id) % c.length] : c;
+  return { x: p[0] * SCALE, y: p[1] * SCALE, z: p[2] * SCALE };
+};
+const regionCount = {};
+for (const n of nodes) {
+  const region = regionOf(n);
+  n.region = region;
+  if (region) { n.target = centerOf(region, n.id); regionCount[region] = (regionCount[region] || 0) + 1; }
+}
+// Hubs become landmarks fixed at their region (fanned out a little so they never overlap).
+const hubSlot = {};
+for (const n of nodes) if (n.layer === 'hub' && n.region) { hubSlot[n.region] = (hubSlot[n.region] || 0) + 1; n.hubOffset = (hubSlot[n.region] - 1) * 22; }
+
+function brainForce(alpha) {
+  const k = 0.24 * alpha;
+  for (const n of nodes) {
+    if (!n.target) continue;
+    n.vx += (n.target.x - n.x) * k; n.vy += (n.target.y - n.y) * k; n.vz += (n.target.z - n.z) * k;
+  }
+}
+
+let brainGroup = null;
+function ensureBrainShape() {
+  if (brainGroup) return brainGroup;
+  brainGroup = new THREE.Group();
+  const shell = (cx, cy, cz, rx, ry, rz, color) => {
+    const mesh = new THREE.Mesh(
+      new THREE.SphereGeometry(1, 28, 20),
+      new THREE.MeshBasicMaterial({ color, wireframe: true, transparent: true, opacity: 0.16, depthWrite: false }),
+    );
+    mesh.position.set(cx * SCALE, cy * SCALE, cz * SCALE); mesh.scale.set(rx * SCALE, ry * SCALE, rz * SCALE);
+    brainGroup.add(mesh); return mesh;
+  };
+  shell(-33, 8, 4, 36, 52, 86, 0x4d9bff); shell(33, 8, 4, 36, 52, 86, 0x4d9bff); // hemispheres
+  shell(0, -46, -66, 38, 24, 30, 0x7c4dff);                                         // cerebellum
+  shell(0, -62, -26, 12, 34, 13, 0x80d8ff);                                         // brainstem
+  for (const [id, r] of Object.entries(REGIONS)) {                                  // region name tags
+    const canvas = document.createElement('canvas'); canvas.width = 640; canvas.height = 150;
+    const ctx = canvas.getContext('2d'); ctx.textAlign = 'center'; ctx.shadowColor = r.color; ctx.shadowBlur = 16;
+    ctx.fillStyle = '#ffffff'; ctx.font = '600 46px system-ui, sans-serif'; ctx.fillText(r.th, 320, 58);
+    ctx.fillStyle = r.color; ctx.font = '500 34px system-ui, sans-serif'; ctx.fillText(r.en, 320, 112);
+    const sprite = new THREE.Sprite(new THREE.SpriteMaterial({ map: new THREE.CanvasTexture(canvas), transparent: true, depthWrite: false, depthTest: false }));
+    const c = Array.isArray(r.c[0]) ? r.c[0].map((v, i) => (v + r.c[1][i]) / 2) : r.c;
+    sprite.scale.set(190, 44.5, 1); sprite.position.set(c[0] * SCALE, c[1] * SCALE + 58, c[2] * SCALE);
+    sprite.renderOrder = 10; brainGroup.add(sprite);
+  }
+  return brainGroup;
+}
+
+let mode = 'network';
+// Network mode: fit everything. Brain mode: a three-quarter view from the
+// front-left so the two hemispheres, cerebellum and brainstem read as a brain.
+function fitView() {
+  if (mode !== 'brain') { Graph.zoomToFit(1200, 70); return; }
+  const extent = Math.max(...nodes.filter((n) => n.layer !== 'tag').map((n) => Math.hypot(n.x || 0, n.y || 0, n.z || 0)));
+  const d = Math.max(extent, SCALE * 120) * 2.6;
+  Graph.cameraPosition({ x: -d * 0.62, y: d * 0.3, z: d * 0.72 }, { x: 0, y: -10, z: 0 }, 1400);
+}
+let defaultLinkStrength = null;
+function setMode(next) {
+  if (next === mode) return;
+  mode = next;
+  const brain = mode === 'brain';
+  $('modeNet').classList.toggle('on', !brain); $('modeBrain').classList.toggle('on', brain);
+  $('brainNote').style.display = brain ? 'block' : 'none'; $('regions').style.display = brain ? 'block' : 'none';
+  const link = Graph.d3Force('link');
+  if (defaultLinkStrength === null) defaultLinkStrength = link.strength();
+  for (const n of nodes) {
+    if (brain && n.layer === 'hub' && n.target) {
+      n.fx = n.target.x + n.hubOffset; n.fy = n.target.y - n.hubOffset * 0.4; n.fz = n.target.z;
+    } else { n.fx = n.fy = n.fz = undefined; }
+  }
+  if (brain) {
+    Graph.d3Force('brain', brainForce);
+    link.strength((l) => (l.type === 'hub' ? 0 : 0.012)).distance((l) => (l.type === 'hub' ? 60 : 28));
+    Graph.d3Force('charge').strength((n) => (n.layer === 'hub' ? 0 : n.layer === 'tag' ? -8 : -34));
+    Graph.scene().add(ensureBrainShape());
+    state.layers.delete('tag');
+  } else {
+    Graph.d3Force('brain', null);
+    link.strength(defaultLinkStrength).distance((l) => (l.type === 'hub' ? 150 : l.type === 'tag' ? 46 : l.type === 'bridge' ? 120 : 42));
+    Graph.d3Force('charge').strength((n) => (n.layer === 'hub' ? -900 : n.layer === 'tag' ? -30 : -75));
+    if (brainGroup) Graph.scene().remove(brainGroup);
+  }
+  document.querySelectorAll('#layers input')[2] && (document.querySelectorAll('#layers input')[2].checked = state.layers.has('tag'));
+  window.__fitted = false;
+  Graph.d3ReheatSimulation();
+  refresh();
+  setTimeout(fitView, 4500);
+}
+$('modeNet').addEventListener('click', () => setMode('network'));
+$('modeBrain').addEventListener('click', () => setMode('brain'));
+$('modeNet').classList.add('on');
+$('regions').style.display = 'none';
+$('regions').innerHTML = `<div class="sec">บริเวณของสมอง ↔ ส่วนของ AION</div>` + Object.entries(REGIONS)
+  .map(([id, r]) => `<div class="reg"><span class="dot" style="display:inline-block;color:${r.color};background:${r.color};margin-right:6px"></span><b>${r.th}</b> <small style="display:inline">· ${r.en} · ${regionCount[id] || 0} โหนด</small><small>${r.does}</small></div>`).join('');
 
 function refresh() {
   Graph.nodeVisibility(visibleNode).linkVisibility(Graph.linkVisibility()).nodeColor(Graph.nodeColor())
@@ -268,7 +424,7 @@ $('play').addEventListener('click', () => {
 
 addEventListener('resize', () => Graph.width(innerWidth).height(innerHeight));
 refresh();
-window.AION_BRAIN = { Graph, nodes, links };
+window.AION_BRAIN = { Graph, nodes, links, setMode, REGIONS };
 </script>
 </body>
 </html>

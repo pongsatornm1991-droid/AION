@@ -13,6 +13,23 @@ Format:
 Commits: <hash> [, <hash> ...]
 ```
 
+## 2026-10-04 — Claude Code — Brain 3D: human-brain mode
+
+Owner: "อ้างอิงจากสมองของมนุษย์เลยทำได้มั้ย ... ทำต่อเลย". Added a "🧠 สมองมนุษย์"
+mode to `dashboard/brain3d.template.html` (toggle against the network mode):
+nodes are pulled toward the region of a human brain with the most similar
+job (REGIONS / CAT_REGION / CODE_RULES in the template): prefrontal (goals,
+questions, planning), hippocampus/temporal (lessons, beliefs, knowledge),
+sensory cortex (audience feedback), motor cortex (publishing), language
+areas, visual cortex (image/video code), cerebellum (forecasts, error
+correction), amygdala (safety/guard/gates), default-mode network (self
+narrative, identity docs), brainstem (workflows/infra). Hemisphere,
+cerebellum and brainstem wireframes plus Thai/English region labels; hubs
+are pinned as landmarks. It is a FUNCTIONAL ANALOGY and the page says so (no
+claim AION works like a brain or is conscious). Verified in the Browser
+pane (mode switch both ways, no console errors, clusters land in regions).
+Commits: see git log
+
 ## 2026-10-04 — Claude Code — Facebook Page feedback capture (measure before deciding Facebook's role)
 
 Owner asked what Facebook should do and approved "do as you said". Honest
