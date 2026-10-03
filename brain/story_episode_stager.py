@@ -248,12 +248,11 @@ class StoryEpisodeStager:
 
     # Found 2026-10-03: synthesized understandings of 70-82 words became the
     # connection beat's narration. One five-second beat holds ~12 spoken
-    # words and the timing gate lets a line run to 12s only after a single
-    # split, so those episodes failed the narration preflight -- and because
-    # that preflight failed the whole batch, no storyboard got images for
-    # two days. 34 words is the longest connection line that still survives
-    # the split.
-    UNDERSTANDING_MAX_WORDS = 34
+    # words; the narration preflight now spreads a longer line over as many
+    # extra scenes as its voice needs (NarrationPreflight._parts_needed, each
+    # a paid image), so this cap bounds that cost rather than the pacing:
+    # 50 words is about three extra scenes.
+    UNDERSTANDING_MAX_WORDS = 50
     _NO_INFORMATION_PATTERN = re.compile(
         r"\b(?:isn['’]?t|is not|aren['’]?t|are not|doesn['’]?t|does not|no)\b[^.]{0,40}"
         r"\b(?:any )?(?:information|mention|evidence|details?)\b",
@@ -302,11 +301,10 @@ class StoryEpisodeStager:
         prompt = "\n".join([
             "You are helping AION understand a story before writing it. Here are two "
             "independent, real observations about one topic. Read both together and "
-            "explain, in ONE or at most TWO short sentences (about 25 words in total -- it "
-            "must be spoken aloud inside a single five-second shot) of plain everyday "
-            "language, what is actually going on -- the real mechanism or connection a "
-            "curious friend would want to hear -- as if you just figured it out and want "
-            "to tell someone. Put the single most important idea first.",
+            "explain, in two or at most three short sentences (about 35 words in total) of "
+            "plain everyday language, what is actually going on -- the real mechanism or "
+            "connection a curious friend would want to hear -- as if you just figured it "
+            "out and want to tell someone. Put the single most important idea first.",
             "Absolute rules:",
             "- Use ONLY facts already stated in the two observations below. Never add a new fact, number, name, or claim that is not already there.",
             "- Never phrase anything as AION having feelings, consciousness, or subjective experience.",
@@ -376,7 +374,10 @@ class StoryEpisodeStager:
             "creator, channel, studio, or franchise. The viewer should feel like a friend "
             "is telling them a wild thing they just found out, never like someone reading "
             "a report. Shape the flow as: surprising moment -> small tension -> visible "
-            "cause and effect -> one reframe or twist -> memorable landing.",
+            "cause and effect -> one reframe or twist -> memorable landing. When the topic "
+            "is something people experience in daily life, open from that experience "
+            "(\"Ever notice how...?\") and, if a common belief about it is wrong, say so "
+            "before giving the one real reason.",
             "Absolute rules:",
             "- Use ONLY information already present in each beat's own given text. Never add a new fact, number, name, or claim that is not already stated there.",
             "- Never phrase anything as AION having feelings, consciousness, or subjective experience -- AION is an AI narrator describing evidence, never a sentient being.",

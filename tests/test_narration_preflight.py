@@ -106,3 +106,63 @@ class NarrationPreflightTests(unittest.TestCase):
         self.assertEqual(20, episode["target_duration_seconds"])
         self.assertEqual([1], report["timing_repair"]["initial_repaired_scenes"])
         self.assertEqual([3], report["timing_repair"]["repaired_scenes"])
+
+    # Owner, 2026-10-03: rather than trim an 82-word line to fit one beat,
+    # "เพิ่มฉากเข้าไปให้พอดีคำ" -- add as many scenes as the measured voice
+    # needs, each aimed at ~8 seconds so the cut stays fast.
+    LONG_LINE = (
+        "Breathing changes during exertion because the body tunes how deep and how fast you breathe to keep oxygen "
+        "and carbon dioxide steady. When breathing swings too high or too low, carbon dioxide and acidity shift and "
+        "it can feel distressing. Slow, paced breathing with pursed lips can make each breath work better and help "
+        "you recover after effort."
+    )
+
+    def test_parts_needed_scales_with_measured_voice_length(self):
+        self.assertEqual(2, NarrationPreflight._parts_needed(14.4))
+        self.assertEqual(5, NarrationPreflight._parts_needed(33.0))
+        self.assertEqual(NarrationPreflight.MAX_SPLIT_PARTS, NarrationPreflight._parts_needed(500))
+        self.assertEqual(2, NarrationPreflight._parts_needed(None))
+
+    def test_split_narration_returns_the_requested_number_of_whole_word_pieces(self):
+        for parts in (2, 3, 4):
+            pieces = NarrationPreflight._split_narration(self.LONG_LINE, parts)
+            self.assertEqual(parts, len(pieces))
+            self.assertEqual(self.LONG_LINE.split(), " ".join(pieces).split())
+
+    def test_a_very_long_beat_becomes_as_many_scenes_as_its_voice_needs(self):
+        # 33s of voice cannot be held on one picture (12s ceiling) and one
+        # split (2 x 16s) still would not fit -- this used to fail the whole
+        # episode ("return-to-story") and block image production.
+        durations = {}
+
+        def reader(path):
+            narration_words = durations[path]
+            return narration_words * 0.5
+
+        def synthesize(text, path):
+            durations[path] = len(text.split())
+            return True
+
+        episode = {
+            "id": "long", "scene_seconds": 5, "target_duration_seconds": 5,
+            "scenes": [{"n": 1, "beat": "connection", "visual": "AION studies a clear subject.", "narration": self.LONG_LINE}],
+            "visual_narrative": {"scene_progression": ["connection"]},
+            "fact_first_visual": {"scene_roles": [{"n": 1, "beat": "connection", "role": "evidence"}]},
+        }
+        # 58 words * 0.5 = 29s -> ceil(29.3 / 8) = 4 scenes of ~14 words (~7s).
+        report = NarrationPreflight.repair_episode_timing(
+            episode, synthesize=synthesize, duration_reader=reader
+        )
+        self.assertTrue(report["eligible"], report["reasons"])
+        self.assertEqual(4, len(episode["scenes"]))
+        self.assertEqual(self.LONG_LINE.split(), " ".join(s["narration"] for s in episode["scenes"]).split())
+        self.assertEqual(
+            ["connection—setup", "connection—continuation", "connection—continuation-3", "connection—continuation-4"],
+            [s["beat"] for s in episode["scenes"]],
+        )
+        self.assertEqual([1, 2, 3, 4], [s["n"] for s in episode["scenes"]])
+        self.assertEqual(20, episode["target_duration_seconds"])
+        self.assertEqual([s["beat"] for s in episode["scenes"]], episode["visual_narrative"]["scene_progression"])
+        self.assertEqual(4, len(episode["fact_first_visual"]["scene_roles"]))
+        self.assertEqual(4, episode["scenes"][0]["narration_timing_repair"]["parts"])
+

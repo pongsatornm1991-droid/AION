@@ -1,5 +1,6 @@
 """Voice-timing preflight run before AION spends work on scene images."""
 
+import math
 import re
 import shutil
 import tempfile
@@ -71,35 +72,67 @@ class NarrationPreflight:
             "detail": "เสียงจริงกำหนด timeline ทุกฉากก่อนเริ่มผลิตภาพ" if not failures else "มีบทที่ยาวเกินช่วงปลอดภัย ส่งกลับฝ่ายเรื่องเล่าก่อนสร้างภาพ",
         }
 
-    @staticmethod
-    def _split_narration(narration):
-        """Split one overlong spoken beat at a readable pause, if possible.
+    # Owner, 2026-10-03: instead of cutting an overlong line down, "เพิ่มฉาก
+    # เข้าไปให้พอดีคำ" -- give it as many scenes as its measured voice needs.
+    # Each resulting scene is aimed at TARGET_PART_SECONDS so it keeps the
+    # fast cut a Short depends on and stays well inside the 12-second hold.
+    # Every extra scene is a paid image and motion clip, hence the ceiling.
+    TARGET_PART_SECONDS = 8.0
+    MAX_SPLIT_PARTS = 6
 
-        This is deliberately conservative.  It prefers a sentence or phrase
-        boundary nearest the middle and only falls back to a word boundary for
-        a sufficiently long, space-delimited line.  It never truncates words
-        or changes the spoken claim.
+    @classmethod
+    def _parts_needed(cls, audio_seconds):
+        try:
+            seconds = float(audio_seconds) + AudioVisualTimingGate.END_HOLD_SECONDS
+        except (TypeError, ValueError):
+            return 2
+        return max(2, min(cls.MAX_SPLIT_PARTS, math.ceil(seconds / cls.TARGET_PART_SECONDS)))
+
+    @staticmethod
+    def _split_narration(narration, parts=2):
+        """Split one overlong spoken beat into up to `parts` readable pieces.
+
+        Prefers a sentence or phrase pause nearest each equal-share point and
+        only falls back to a word boundary when no pause is close. Never
+        truncates words or changes the spoken claim. Returns a list of at
+        least two pieces, or None when the line cannot be split sensibly.
         """
         text = " ".join(str(narration or "").split())
-        midpoint = len(text) / 2
-        boundaries = [match.end() for match in re.finditer(r"[.!?…;,:]+(?:[\"')\]]*)\s+", text)]
-        if not boundaries and len(text.split()) >= 8:
-            boundaries = [match.end() for match in re.finditer(r"\s+(?=[^\s])", text)]
-        if not boundaries:
+        parts = max(2, int(parts))
+        pauses = [match.end() for match in re.finditer(r"[.!?…;,:]+(?:[\"')\]]*)\s+", text)]
+        words = [match.end() for match in re.finditer(r"\s+(?=[^\s])", text)]
+        if not pauses and len(text.split()) < 8:
             return None
-        boundary = min(boundaries, key=lambda point: abs(point - midpoint))
-        first, second = text[:boundary].strip(), text[boundary:].strip()
-        if not first or not second:
-            return None
-        return first, second
+        share = len(text) / parts
+        cuts = []
+        for index in range(1, parts):
+            target = share * index
+            pause = min(pauses, key=lambda point: abs(point - target), default=None)
+            if pause is not None and abs(pause - target) <= share * 0.5:
+                cut = pause
+            elif words:
+                cut = min(words, key=lambda point: abs(point - target))
+            else:
+                continue
+            if cut not in cuts:
+                cuts.append(cut)
+        cuts.sort()
+        pieces, start = [], 0
+        for cut in cuts + [len(text)]:
+            piece = text[start:cut].strip()
+            if piece:
+                pieces.append(piece)
+            start = cut
+        return pieces if len(pieces) >= 2 and all(len(piece.split()) >= 2 for piece in pieces) else None
 
     @classmethod
     def repair_episode_timing(cls, episode, synthesize=None, duration_reader=None, remaining_passes=2):
         """Boundedly repair narration that exceeds the visual safety window.
 
-        The first measured preflight is authoritative. Each source beat is
-        split at most once into two adjacent beats, retaining the original
-        narration as provenance, then every resulting beat is measured again.
+        The first measured preflight is authoritative. Each overlong source
+        beat is split once into as many adjacent beats as its measured voice
+        needs (see _parts_needed), retaining the original narration as
+        provenance, then every resulting beat is measured again.
         A bounded second pass can catch a different untouched beat whose live
         voice duration changes between measurements. No image is generated
         during either pass and no episode is discarded.
@@ -124,7 +157,10 @@ class NarrationPreflight:
             if scene_number not in failed_numbers:
                 revised_scenes.append(scene)
                 continue
-            parts = cls._split_narration(scene.get("narration"))
+            failed_item = next(item for item in failures if item["scene"] == scene_number)
+            parts = cls._split_narration(
+                scene.get("narration"), cls._parts_needed(failed_item.get("audio_seconds"))
+            )
             if not parts:
                 revised_scenes.append(scene)
                 continue
@@ -133,19 +169,21 @@ class NarrationPreflight:
                 "version": "narration-aware-split-v1",
                 "source_scene": scene_number,
                 "source_narration": original,
-                "parts": 2,
+                "parts": len(parts),
             }
-            first, second = dict(scene), dict(scene)
-            first["narration"] = parts[0]
-            second["narration"] = parts[1]
-            first["beat"] = f"{scene.get('beat', 'story')}—setup"
-            second["beat"] = f"{scene.get('beat', 'story')}—continuation"
+            beat = scene.get("beat", "story")
             visual = str(scene.get("visual") or "").strip()
-            first["visual"] = f"{visual} Show the first causal step in a distinct composition."
-            second["visual"] = f"{visual} Show the next causal step in a distinct composition."
-            first["narration_timing_repair"] = {**base_repair, "part": 1}
-            second["narration_timing_repair"] = {**base_repair, "part": 2}
-            revised_scenes.extend((first, second))
+            pieces = []
+            for part_number, narration in enumerate(parts, 1):
+                piece = dict(scene)
+                piece["narration"] = narration
+                suffix = "setup" if part_number == 1 else "continuation" if part_number == 2 else f"continuation-{part_number}"
+                piece["beat"] = f"{beat}—{suffix}"
+                step = "first" if part_number == 1 else "next"
+                piece["visual"] = f"{visual} Show the {step} causal step in a distinct composition."
+                piece["narration_timing_repair"] = {**base_repair, "part": part_number}
+                pieces.append(piece)
+            revised_scenes.extend(pieces)
             repaired_scenes.append(scene_number)
 
         if not repaired_scenes:
@@ -173,7 +211,7 @@ class NarrationPreflight:
         episode["narration_timing_repairs"] = {
             "version": "narration-aware-split-v1",
             "source_scene_numbers": repaired_scenes,
-            "policy": "one automatic split per originally overlong scene; all resulting scenes are remeasured",
+            "policy": "one automatic split per originally overlong scene, into as many scenes as its measured voice needs; all resulting scenes are remeasured",
         }
         repaired_report = cls.assess_episode(episode, synthesize, duration_reader)
         repaired_report["timing_repair"] = {

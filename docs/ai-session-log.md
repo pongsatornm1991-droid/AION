@@ -46,7 +46,23 @@ Overlap note: Codex's (expired, uncommitted) claim said not to edit
 story_episode_stager.py; this hotfix touched it -- narrow hunks (the
 synthesis function and its constants), separate from Codex's prompt-line
 edits.
-Commits: see git log (hotfix push 2026-10-03)
+
+Same day, owner follow-ups: (a) "ทำไมไม่เพิ่มฉากเข้าไปให้พอดีคำ" -- instead
+of trimming an overlong line, `NarrationPreflight` now splits it into as
+many adjacent scenes as its measured voice needs (`_parts_needed`: ~8s per
+scene, max 6; beats `x—setup`, `x—continuation`, `x—continuation-3`...),
+all re-measured; the synthesis cap was raised from 34 to 50 words (about
+three extra scenes, each a paid image + motion clip). (b) "เพิ่มตอนแนวนี้":
+owner likes the Thai channel Sticky_TH (everyday, personally-experienced
+questions -- morning breath, knuckle cracking, wet fabric darker -- one
+mechanism each, myth-bust hooks). Added 30 such questions to
+`AutonomousInitiative.RECOVERY_INQUIRIES` (domains everyday-body /
+everyday-home, queued ahead of the older reserve via
+FAST_RECOVERY_DOMAINS, checked not to repeat anything in the catalogue)
+and a hook line in the narration-rewrite prompt (open from the viewer's
+own experience, correct a common wrong belief first) without naming any
+channel, per the prompt's "do not imitate any creator" rule.
+Commits: 31fbf02 (hotfix), then the follow-up push below
 
 ## 2026-09-30 — Claude Code — Pinned the remaining external-provider SDKs
 

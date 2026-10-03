@@ -246,3 +246,25 @@ class AutonomousInitiativeTests(unittest.TestCase):
             CuriosityEngine(memory).record_attempt(question["id"])
             second = planner.initiate_recovery_batch(14, target=2, seed_limit=1)
             self.assertEqual("recovery-reserve-rate-limited", second["stage"])
+
+    def test_everyday_experience_questions_are_prioritised_and_do_not_repeat_older_topics(self):
+        # 2026-10-03: a batch of "something you have personally experienced"
+        # questions (modelled on a Thai channel the owner likes) was added at
+        # the end of the catalogue; it must be queued ahead of the older
+        # reserve and must not collide with topics already in it, or the
+        # novelty gate would just block them after the research was spent.
+        from brain.topic_novelty import TopicNoveltyGate
+
+        new_domains = {"everyday-body", "everyday-home"}
+        everyday = [item for item in AutonomousInitiative.RECOVERY_INQUIRIES if item[0] in new_domains]
+        older = [item for item in AutonomousInitiative.RECOVERY_INQUIRIES if item[0] not in new_domains]
+        self.assertGreaterEqual(len(everyday), 25)
+        self.assertTrue(new_domains <= AutonomousInitiative.FAST_RECOVERY_DOMAINS)
+        self.assertEqual(len(everyday), len({item[1].lower() for item in everyday}))
+        for _, question, _ in everyday:
+            for _, other, _ in older:
+                self.assertFalse(
+                    TopicNoveltyGate.same_topic({"topic_key": question}, {"topic_key": other}),
+                    f"{question!r} repeats {other!r}",
+                )
+

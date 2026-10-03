@@ -352,6 +352,44 @@ class AutonomousInitiative:
         ("plant-water", "How does water travel from a plant's roots to its leaves?", "Show a continuous water column pulled upward as water evaporates from leaves."),
         ("technology-gps", "How can a phone estimate its location using satellites?", "Show distance signals from several satellites meeting at one point on a map."),
     )
+    # Third batch, 2026-10-03. Owner shared a Thai channel (Sticky_TH) whose
+    # storytelling he likes: every video starts from something the viewer has
+    # personally experienced ("ever wonder why your leg goes numb?") and
+    # answers with ONE mechanism, where AION's catalogue so far leaned toward
+    # distant history and science. These are the same kind of compact, visual,
+    # well-sourced questions (body, kitchen, home, sky) under the same
+    # two-independent-sources rule as everything else, and the two domains
+    # below are queued ahead of the older reserve (FAST_RECOVERY_DOMAINS).
+    RECOVERY_INQUIRIES += (
+        ('everyday-body', 'Why does your breath smell worse when you wake up?', 'Show saliva slowing during sleep while mouth bacteria release smelly gases.'),
+        ('everyday-body', 'Why do people feel sleepy after a big meal?', 'Show digestion, hormones and the body clock each nudging alertness, without blaming one cause.'),
+        ('everyday-body', 'What actually makes the popping sound when you crack your knuckles?', "Show a joint's fluid space changing pressure as a gas bubble forms or collapses."),
+        ('everyday-body', 'Why does your leg feel like pins and needles after you sit on it?', 'Show a squeezed nerve going quiet, then firing erratically as pressure lifts.'),
+        ('everyday-body', 'Why does your body sometimes jerk just as you fall asleep?', "Show relaxing muscles and the brain's switch from awake to asleep producing one sudden twitch."),
+        ('everyday-body', 'Why do you see sparks or dots when you close your eyes in the dark?', 'Show light-sensing cells and the visual system staying active even with no outside light.'),
+        ('everyday-body', 'Why does a tiny paper cut hurt so much?', 'Show a shallow cut crossing thin skin packed with pain-sensing nerve endings.'),
+        ('everyday-body', 'Why does eating ice cream too fast give you a brain freeze?', 'Show cold touching the roof of the mouth and blood vessels reacting, felt as head pain.'),
+        ('everyday-body', 'Why does your stomach growl when you are hungry?', 'Show gut muscles squeezing gas and fluid along an empty digestive tract.'),
+        ('everyday-body', 'Why do your fingers wrinkle after a long bath?', 'Show nerve-controlled blood vessels tightening and pulling the skin into ridges.'),
+        ('everyday-body', 'Why does a song keep replaying in your head?', 'Show the brain looping a short musical fragment that never got finished.'),
+        ('everyday-body', 'Why do your ears pop when a plane climbs or descends?', 'Show air pressure changing outside while a small tube lets the middle ear equalise.'),
+        ('everyday-body', 'Why do mosquito bites itch?', 'Show the body reacting to proteins in saliva the mosquito leaves behind.'),
+        ('everyday-home', 'Why does fabric look darker when it gets wet?', 'Show water changing how light bounces around inside the fibres.'),
+        ('everyday-home', 'Why do you get static shocks more often when the air is dry?', 'Show charge building up by rubbing and jumping to a conductor, helped by dry air.'),
+        ('everyday-home', 'Why are soap bubbles round?', 'Show surface tension pulling the thin film into the smallest shape that holds the air.'),
+        ('everyday-home', 'Why does soap wash off grease that plain water cannot?', 'Show soap molecules gripping oil on one end and water on the other.'),
+        ('everyday-home', 'Why does fizzy water tingle on your tongue?', 'Show dissolved carbon dioxide reacting in the mouth and nerves reading it as a sting.'),
+        ('everyday-home', 'Why does a cut apple turn brown?', 'Show an enzyme in the flesh reacting with oxygen once the skin is broken.'),
+        ('everyday-home', 'Why does microwave food heat unevenly?', 'Show microwaves forming hot and cold spots inside the oven.'),
+        ('everyday-home', 'Why does a kettle get noisy just before it boils?', 'Show tiny steam bubbles forming near the hot base and collapsing in cooler water.'),
+        ('everyday-home', 'Why does iron rust faster in damp air?', 'Show water and oxygen together turning iron into flaky rust.'),
+        ('everyday-home', 'Why does a shower curtain blow inward toward you?', 'Show moving air and water lowering the pressure inside the shower.'),
+        ('everyday-home', 'Why do oil patches on a wet road look rainbow-coloured?', 'Show a thin oil film bouncing light from its top and bottom so colours add and cancel.'),
+        ('everyday-home', 'Why does your singing sound better in the bathroom?', 'Show hard tiled walls bouncing sound back so each note lingers a little.'),
+        ('everyday-home', 'Why does popcorn pop?', 'Show steam pressure building inside the kernel until the shell bursts.'),
+        ('everyday-home', 'Why does spilled coffee leave a dark ring when it dries?', 'Show evaporation pulling coffee particles toward the edge of the drop.'),
+        ('everyday-home', 'Why does the Moon seem to follow you when you travel?', 'Show how very distant objects barely shift against nearby scenery.'),
+    )
     RECOVERY_TAG = "shorts-recovery"
     FAST_RECOVERY_TAG = "shorts-fast-lane"
     # When the release buffer is critical, begin with questions whose core
@@ -361,6 +399,7 @@ class AutonomousInitiative:
     FAST_RECOVERY_DOMAINS = {
         "weather-science", "light-science", "space-science", "chemistry",
         "food-science", "water-science", "sound-science", "materials-science",
+        "everyday-body", "everyday-home",
     }
     # Keep research ahead of production.  This is deliberately a reserve of
     # research questions, not a promise of 21 completed episodes: each item

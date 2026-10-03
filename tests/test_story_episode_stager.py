@@ -244,7 +244,7 @@ class SynthesizeUnderstandingTests(unittest.TestCase):
         self.assertTrue(meta["trimmed_to_beat"])
 
     def test_a_synthesis_whose_first_sentence_alone_is_too_long_is_rejected(self):
-        one_long_sentence = "Yakhchal " + "stored ice " * 20 + "below ground in a dome with Wind towers."
+        one_long_sentence = "Yakhchal " + "stored ice " * 30 + "below ground in a dome with Wind towers."
         stager = StoryEpisodeStager(memory=None, root=".", provider=FakeProvider(response=one_long_sentence))
         understanding, meta = stager._synthesize_understanding(self.TOPIC, self.EVIDENCE_ONE, self.EVIDENCE_TWO)
         self.assertIsNone(understanding)
@@ -386,7 +386,7 @@ class StoryEpisodeStagerTests(unittest.TestCase):
                 if "Rewrite each beat below" in prompt:
                     payload = json.loads(prompt.splitlines()[-1])
                     return json.dumps({n: item["original"] for n, item in payload.items()})
-                if "ONE or at most TWO short sentences" in prompt:
+                if "two or at most three short sentences" in prompt:
                     return synthesis
                 return "How can an octopus flash color so fast"
 
