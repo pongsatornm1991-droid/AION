@@ -1,0 +1,274 @@
+<!doctype html>
+<html lang="th">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>AION Brain 3D</title>
+<style>
+  :root{--bg:#02030a;--panel:rgba(8,12,28,.82);--line:rgba(120,160,255,.22);--text:#dbe6ff;--dim:#7e8db3;--accent:#00f0ff;--pink:#ff2bd6}
+  *{box-sizing:border-box}
+  html,body{margin:0;height:100%;background:var(--bg);color:var(--text);font:13px/1.45 system-ui,"Segoe UI","Noto Sans Thai",sans-serif;overflow:hidden}
+  #graph{position:fixed;inset:0}
+  .panel{position:fixed;background:var(--panel);border:1px solid var(--line);border-radius:12px;backdrop-filter:blur(10px);box-shadow:0 0 30px rgba(0,240,255,.06)}
+  #left{top:14px;left:14px;width:292px;max-height:calc(100% - 100px);overflow:auto;padding:14px}
+  #right{top:14px;right:14px;width:340px;max-height:calc(100% - 100px);overflow:auto;padding:14px;display:none}
+  #bottom{left:50%;bottom:14px;transform:translateX(-50%);width:min(760px,calc(100% - 28px));padding:10px 14px;display:flex;gap:12px;align-items:center}
+  h1{margin:0 0 2px;font-size:16px;letter-spacing:.14em;color:var(--accent);text-shadow:0 0 12px rgba(0,240,255,.6)}
+  .sub{color:var(--dim);font-size:11px;margin-bottom:10px}
+  input[type=search]{width:100%;padding:8px 10px;border-radius:8px;border:1px solid var(--line);background:rgba(0,0,0,.35);color:var(--text);outline:none}
+  input[type=search]:focus{border-color:var(--accent)}
+  .sec{margin:12px 0 4px;color:var(--dim);font-size:10px;letter-spacing:.12em;text-transform:uppercase}
+  label.row{display:flex;align-items:center;gap:8px;padding:2px 0;cursor:pointer;user-select:none}
+  .dot{width:10px;height:10px;border-radius:50%;flex:none;box-shadow:0 0 8px currentColor}
+  .cnt{margin-left:auto;color:var(--dim);font-variant-numeric:tabular-nums}
+  button{background:rgba(0,240,255,.1);color:var(--accent);border:1px solid var(--line);border-radius:8px;padding:6px 10px;cursor:pointer;font:inherit}
+  button:hover{background:rgba(0,240,255,.2)}
+  #slider{flex:1}
+  #date{min-width:92px;text-align:right;color:var(--accent);font-variant-numeric:tabular-nums}
+  .tag{display:inline-block;margin:2px 4px 2px 0;padding:1px 7px;border:1px solid var(--line);border-radius:999px;color:var(--dim);font-size:11px}
+  .nb{display:block;padding:3px 0;cursor:pointer;color:var(--text)}
+  .nb:hover{color:var(--accent)}
+  .nb small{color:var(--dim)}
+  pre{white-space:pre-wrap;word-break:break-word;margin:6px 0;color:#c4d0ee;font:12px/1.5 ui-monospace,Consolas,monospace}
+  #stat{color:var(--dim);font-size:11px;margin-top:8px}
+  #msg{position:fixed;inset:0;display:none;align-items:center;justify-content:center;text-align:center;padding:30px;color:#ff9aa8}
+  .hint{position:fixed;right:16px;bottom:16px;color:var(--dim);font-size:11px;text-align:right;pointer-events:none}
+  @media (max-width:900px){#right{width:calc(100% - 28px);top:auto;bottom:70px;max-height:42%}#left{width:230px}}
+</style>
+<script type="importmap">
+{"imports":{
+  "three":"https://esm.sh/three@0.160.0",
+  "three/addons/":"https://esm.sh/three@0.160.0/examples/jsm/",
+  "3d-force-graph":"https://esm.sh/3d-force-graph@1.73.3?deps=three@0.160.0,three-render-objects@1.29.3,three-forcegraph@1.41.13"
+}}
+</script>
+</head>
+<body>
+<div id="graph"></div>
+<div id="msg"></div>
+
+<div id="left" class="panel">
+  <h1>AION BRAIN 3D</h1>
+  <div class="sub" id="gen"></div>
+  <input id="q" type="search" placeholder="ค้นหาโน้ต / โค้ด / tag …" autocomplete="off">
+  <div class="sec">ชั้นข้อมูล</div>
+  <div id="layers"></div>
+  <div class="sec">เส้นเชื่อม</div>
+  <div id="edges"></div>
+  <div class="sec">หมวด</div>
+  <div id="cats"></div>
+  <div class="sec">การแสดงผล</div>
+  <label class="row"><input type="checkbox" id="rot"> หมุนอัตโนมัติ</label>
+  <label class="row"><input type="checkbox" id="glow" checked> เรืองแสง (bloom)</label>
+  <label class="row"><input type="checkbox" id="flow" checked> อนุภาคไหลตามเส้น</label>
+  <div style="margin-top:8px"><button id="reset">รีเซ็ตมุมมอง</button></div>
+  <div id="stat"></div>
+</div>
+
+<div id="right" class="panel"></div>
+
+<div id="bottom" class="panel">
+  <button id="play">▶ เล่นย้อนเวลา</button>
+  <input type="range" id="slider" min="0" max="1000" value="1000">
+  <span id="date"></span>
+</div>
+<div class="hint">ลาก = หมุน · ล้อเมาส์ = ซูม · คลิกขวาลาก = เลื่อน · คลิกโหนด = รายละเอียด</div>
+
+<script type="module">
+const GRAPH = /*__GRAPH_DATA__*/null;
+
+const $ = (id) => document.getElementById(id);
+const fail = (text) => { const m = $('msg'); m.style.display = 'flex'; m.textContent = text; };
+if (!GRAPH) { fail('ไม่มีข้อมูลกราฟ — สร้างไฟล์นี้ด้วย tools/build_brain_graph.py'); throw new Error('no data'); }
+
+let ForceGraph3D, THREE, UnrealBloomPass, SpriteText;
+try {
+  ({ default: ForceGraph3D } = await import('3d-force-graph'));
+  THREE = await import('three');
+  ({ UnrealBloomPass } = await import('three/addons/postprocessing/UnrealBloomPass.js'));
+} catch (error) {
+  fail('โหลดไลบรารี 3D ไม่สำเร็จ (ต้องต่ออินเทอร์เน็ตเพื่อโหลด three.js จาก CDN): ' + error.message);
+  throw error;
+}
+
+const nodes = GRAPH.nodes.map((n) => ({ ...n }));
+const byId = new Map(nodes.map((n) => [n.id, n]));
+const links = GRAPH.links.map((l) => ({ ...l }));
+const neighbours = new Map(nodes.map((n) => [n.id, new Set()]));
+for (const l of links) {
+  if (l.type === 'hub') continue;
+  neighbours.get(l.source)?.add(l.target);
+  neighbours.get(l.target)?.add(l.source);
+}
+
+const LAYER_LABEL = { memory: 'ความจำ', hub: 'ฮับหมวด', tag: 'Tag', code: 'โค้ด' };
+const EDGE_LABEL = {
+  related: ['Related (เกี่ยวข้องโดยตรง)', '#00f0ff'], mention: ['อ้างถึงกัน', '#ff2bd6'],
+  import: ['import ของโค้ด', '#ffb000'], runs: ['workflow รันสคริปต์', '#a6ff00'],
+  bridge: ['โค้ด ↔ หมวดความจำ', '#7c4dff'], tag: ['Tag', '#5a6b8c'], hub: ['สังกัดฮับ (โครงเลย์เอาต์)', '#2a3a66'],
+};
+const state = {
+  layers: new Set(Object.keys(GRAPH.layers)),
+  edges: new Set(['related', 'mention', 'import', 'runs', 'bridge']),
+  cats: new Set(Object.keys(GRAPH.counts)),
+  time: null, query: '', selected: null, flow: true,
+};
+state.layers.delete('tag'); // tags are opt-in: they are numerous and drown the real structure
+
+$('gen').textContent = `สร้างเมื่อ ${GRAPH.generated} · ${nodes.length} โหนด · ${links.length} เส้น`;
+
+function checkbox(parent, key, label, checked, color, count, onChange) {
+  const row = document.createElement('label'); row.className = 'row';
+  row.innerHTML = `<input type="checkbox" ${checked ? 'checked' : ''}><span class="dot" style="color:${color};background:${color}"></span><span>${label}</span><span class="cnt">${count ?? ''}</span>`;
+  row.querySelector('input').addEventListener('change', (e) => onChange(key, e.target.checked));
+  parent.appendChild(row);
+}
+const toggle = (set) => (key, on) => { on ? set.add(key) : set.delete(key); refresh(); };
+for (const [layer, count] of Object.entries(GRAPH.layers)) {
+  checkbox($('layers'), layer, LAYER_LABEL[layer] || layer, state.layers.has(layer), '#9fb4ff', count, toggle(state.layers));
+}
+for (const [type, [label, color]] of Object.entries(EDGE_LABEL)) {
+  const on = state.edges.has(type);
+  checkbox($('edges'), type, label, on, color, '', toggle(state.edges));
+}
+for (const [cat, count] of Object.entries(GRAPH.counts).sort((a, b) => b[1] - a[1])) {
+  checkbox($('cats'), cat, cat.replace(/_/g, ' '), true, GRAPH.colors[cat] || '#9aa4b2', count, toggle(state.cats));
+}
+
+const [minT, maxT] = GRAPH.range || [0, 0];
+const dateText = (t) => (t ? new Date(t).toISOString().slice(0, 10) : '—');
+$('date').textContent = GRAPH.range ? dateText(maxT) : 'ไม่มีวันที่';
+if (!GRAPH.range) { $('slider').disabled = true; $('play').disabled = true; }
+
+const visibleNode = (n) =>
+  state.layers.has(n.layer) && state.cats.has(n.cat) && (n.date == null || state.time == null || n.date <= state.time);
+const matches = (n) => (n.label + ' ' + n.tags.join(' ') + ' ' + n.cat).toLowerCase().includes(state.query);
+const highlighted = (id) => state.selected && (id === state.selected.id || neighbours.get(state.selected.id)?.has(id));
+
+const Graph = ForceGraph3D({ controlType: 'orbit' })($('graph'))
+  .backgroundColor('#02030a')
+  .graphData({ nodes, links })
+  .nodeLabel((n) => `<div style="padding:4px 8px;background:#050a1c;border:1px solid ${n.color};border-radius:6px"><b style="color:${n.color}">${esc(n.label)}</b><br><span style="color:#8a9ac4">${esc(n.cat)}${n.date ? ' · ' + dateText(n.date) : ''}</span></div>`)
+  .nodeVal((n) => (n.layer === 'hub' ? 26 : n.layer === 'tag' ? 1.2 : 1.4 + Math.sqrt(n.deg) * 1.1 + (n.importance || 3) * 0.25))
+  .nodeColor((n) => ((state.selected && !highlighted(n.id)) || (state.query && !matches(n)) ? '#1a2240' : n.color))
+  .nodeOpacity(0.95)
+  .nodeResolution(14)
+  .nodeVisibility(visibleNode)
+  .linkVisibility((l) => state.edges.has(l.type) && visibleNode(endpoint(l.source)) && visibleNode(endpoint(l.target)) &&
+    (!state.selected || highlighted(endpoint(l.source).id) && highlighted(endpoint(l.target).id)))
+  .linkColor((l) => (EDGE_LABEL[l.type] || ['', '#44507a'])[1])
+  .linkOpacity(0.5)
+  .linkWidth((l) => (l.type === 'related' ? 1.4 : l.type === 'mention' ? 0.9 : 0.5))
+  .linkDirectionalParticles((l) => (state.flow && (l.type === 'related' || l.type === 'mention' || l.type === 'bridge') ? 2 : 0))
+  .linkDirectionalParticleWidth(1.6)
+  .linkDirectionalParticleSpeed(0.006)
+  .d3VelocityDecay(0.28)
+  .cooldownTicks(320)
+  .onEngineStop(() => { if (!window.__fitted) { window.__fitted = true; Graph.zoomToFit(1200, 70); } })
+  .onNodeClick((n) => select(n))
+  .onBackgroundClick(() => select(null));
+Graph.d3Force('charge').strength((n) => (n.layer === 'hub' ? -900 : n.layer === 'tag' ? -30 : -75));
+Graph.d3Force('link').distance((l) => (l.type === 'hub' ? 150 : l.type === 'tag' ? 46 : l.type === 'bridge' ? 120 : 42));
+
+// Hub notes are drawn as labelled landmarks so the brain has readable regions.
+Graph.nodeThreeObjectExtend(true).nodeThreeObject((n) => {
+  if (n.layer !== 'hub') return null;
+  const canvas = document.createElement('canvas'); canvas.width = 512; canvas.height = 96;
+  const ctx = canvas.getContext('2d');
+  ctx.font = '600 44px system-ui, sans-serif'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+  ctx.shadowColor = n.color; ctx.shadowBlur = 18; ctx.fillStyle = '#ffffff';
+  ctx.fillText(n.label, 256, 48);
+  const sprite = new THREE.Sprite(new THREE.SpriteMaterial({ map: new THREE.CanvasTexture(canvas), transparent: true, depthWrite: false }));
+  sprite.scale.set(46, 8.6, 1); sprite.position.set(0, 12, 0);
+  return sprite;
+});
+
+function endpoint(x) { return typeof x === 'object' ? x : byId.get(x); }
+function esc(s) { return String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c])); }
+
+let bloom = null;
+function setGlow(on) {
+  const composer = Graph.postProcessingComposer();
+  if (on && !bloom) { bloom = new UnrealBloomPass(new THREE.Vector2(innerWidth, innerHeight), 0.55, 0.5, 0.22); composer.addPass(bloom); }
+  if (bloom) bloom.enabled = on;
+}
+try { setGlow(true); } catch (e) { console.warn('bloom unavailable', e); $('glow').disabled = true; }
+$('glow').addEventListener('change', (e) => setGlow(e.target.checked));
+$('flow').addEventListener('change', (e) => { state.flow = e.target.checked; refresh(); });
+$('rot').addEventListener('change', (e) => { Graph.controls().autoRotate = e.target.checked; Graph.controls().autoRotateSpeed = 0.5; });
+$('reset').addEventListener('click', () => { select(null); Graph.zoomToFit(900, 40); });
+
+function refresh() {
+  Graph.nodeVisibility(visibleNode).linkVisibility(Graph.linkVisibility()).nodeColor(Graph.nodeColor())
+    .linkDirectionalParticles(Graph.linkDirectionalParticles());
+  const shown = nodes.filter(visibleNode).length;
+  const found = state.query ? ` · พบ ${nodes.filter((n) => visibleNode(n) && matches(n)).length}` : '';
+  $('stat').textContent = `แสดง ${shown} / ${nodes.length} โหนด${found}`;
+}
+
+function select(node) {
+  state.selected = node;
+  const panel = $('right');
+  if (!node) { panel.style.display = 'none'; refresh(); return; }
+  const near = [...(neighbours.get(node.id) || [])].map((id) => byId.get(id)).filter(Boolean)
+    .sort((a, b) => b.deg - a.deg).slice(0, 40);
+  panel.style.display = 'block';
+  panel.innerHTML = `
+    <div style="color:${node.color};font-weight:700;font-size:15px;text-shadow:0 0 10px ${node.color}">${esc(node.label)}</div>
+    <div class="sub">${esc(LAYER_LABEL[node.layer] || node.layer)} · ${esc(node.cat)}${node.type ? ' · ' + esc(node.type) : ''}${node.date ? ' · ' + dateText(node.date) : ''}${node.source ? '<br>' + esc(node.source) : ''}</div>
+    ${node.tags.map((t) => `<span class="tag">#${esc(t)}</span>`).join('')}
+    ${node.excerpt ? `<pre>${esc(node.excerpt)}</pre>` : ''}
+    <div class="sec">เชื่อมกับ ${near.length}${neighbours.get(node.id).size > 40 ? '+' : ''} โหนด</div>
+    ${near.map((n) => `<span class="nb" data-id="${esc(n.id)}"><span class="dot" style="display:inline-block;color:${n.color};background:${n.color};margin-right:6px"></span>${esc(n.label)} <small>${esc(n.cat)}</small></span>`).join('')}`;
+  panel.querySelectorAll('.nb').forEach((el) => el.addEventListener('click', () => focusNode(byId.get(el.dataset.id), true)));
+  refresh();
+}
+
+function focusNode(node, open = false) {
+  if (!node) return;
+  if (!state.layers.has(node.layer)) { state.layers.add(node.layer); }
+  if (!state.cats.has(node.cat)) state.cats.add(node.cat);
+  const distance = 90;
+  const ratio = 1 + distance / Math.hypot(node.x || 1, node.y || 1, node.z || 1);
+  Graph.cameraPosition({ x: node.x * ratio, y: node.y * ratio, z: node.z * ratio }, node, 1100);
+  if (open) select(node);
+}
+
+let searchTimer;
+$('q').addEventListener('input', (e) => {
+  clearTimeout(searchTimer);
+  searchTimer = setTimeout(() => {
+    state.query = e.target.value.trim().toLowerCase();
+    if (state.query) for (const n of nodes) if (matches(n)) state.layers.add(n.layer);
+    refresh();
+    if (state.query) focusNode(nodes.find((n) => visibleNode(n) && matches(n)));
+  }, 220);
+});
+$('q').addEventListener('keydown', (e) => { if (e.key === 'Enter') { const hit = nodes.find((n) => visibleNode(n) && matches(n)); if (hit) focusNode(hit, true); } });
+
+// Growth replay: nodes with a timestamp appear in the order AION formed them.
+let timer = null;
+function setTime(fraction) {
+  state.time = GRAPH.range ? minT + (maxT - minT) * fraction : null;
+  $('date').textContent = GRAPH.range ? dateText(state.time) : '';
+  refresh();
+}
+$('slider').addEventListener('input', (e) => { stop(); setTime(e.target.value / 1000); });
+function stop() { clearInterval(timer); timer = null; $('play').textContent = '▶ เล่นย้อนเวลา'; }
+$('play').addEventListener('click', () => {
+  if (timer) return stop();
+  let step = Number($('slider').value) >= 1000 ? 0 : Number($('slider').value);
+  $('play').textContent = '❚❚ หยุด';
+  timer = setInterval(() => {
+    step += 6;
+    if (step >= 1000) { step = 1000; stop(); }
+    $('slider').value = step; setTime(step / 1000);
+  }, 70);
+});
+
+addEventListener('resize', () => Graph.width(innerWidth).height(innerHeight));
+refresh();
+window.AION_BRAIN = { Graph, nodes, links };
+</script>
+</body>
+</html>

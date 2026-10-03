@@ -13,6 +13,27 @@ Format:
 Commits: <hash> [, <hash> ...]
 ```
 
+## 2026-10-04 — Claude Code — AION Brain 3D: rotatable Obsidian-style map of the brain + code
+
+Owner: "ระบบสมองที่เก็บไฟล์ของ aion ทั้งหมด คล้าย Obsidian แต่เป็น 3D ขยับหมุนได้
+... คุณออกแบบมาได้เลยทั้งหมด". Built `tools/build_brain_graph.py` +
+`dashboard/brain3d.template.html`: parses the brain vault (884 notes) and
+this repo's code (modules/tools/workflows/core/docs) into one self-contained
+page (three.js + 3d-force-graph from esm.sh with sub-dependencies pinned to
+three@0.160 -- unpinned, three-render-objects pulls a newer three needing
+`three/webgpu` and the page dies). The vault's `[[wikilinks]]` are a pure
+star (every note -> dashboard + category hub), so the REAL structure comes
+from: Related ids (452 notes), ids named in note text (~1,000 edges), tags
+(147 nodes, opt-in), python imports, workflows->scripts, and code that
+quotes a memory category slug (code<->brain bridge); hub spokes are kept
+for layout but hidden. Viewer: orbit/zoom, bloom glow, particles on strong
+edges, search (dims non-matches), per-layer/edge/category toggles, click ->
+details + neighbours, and a time slider with play ("growth replay").
+PRIVACY: the generated `brain3d-output/brain.html` embeds private memory;
+it is git-ignored and must never be committed or published. Verified in the
+Browser pane (render, search, replay, click detail). 6 tests; full suite green.
+Commits: see git log
+
 ## 2026-10-03 — Claude Code — No clips for 2 days: my own synthesis feature blocked all image production
 
 Owner: "เกิดอะไรขึ้นไม่มีคลิปลง" + "ตอนล่าสุดไม่มีเสียงไทย". Last upload was

@@ -101,6 +101,26 @@ lives only in the private `aion-memory-data` repository, so AION's internal
 thoughts and audience observations are not exposed through the public code
 repository.
 
+### AION Brain 3D (rotatable map of the brain and its code)
+
+A 3D, Obsidian-graph-style map you can orbit, zoom, search and replay through
+time. Nodes are the brain vault's notes (colored by category, sized by how
+connected they are) plus an optional code layer (modules, tools, workflows);
+edges are real relationships: a note's `Related:` ids, notes that name each
+other, tags, python imports, workflows running scripts, and code that
+reads/writes a memory category.
+
+```powershell
+python tools/build_brain_graph.py
+```
+
+It reads `.aion-memory-inspect/AION Brain Vault` (or pass `--memory "<path>"`)
+and writes `brain3d-output/brain.html` -- double-click it to open in a browser
+(needs internet once to load three.js from a CDN). **The file embeds private
+memory: it is git-ignored and must never be published or committed.**
+`--no-code` builds the memory-only brain. The viewer itself is
+`dashboard/brain3d.template.html` (no data).
+
 ### AION Observatory dashboard
 
 `Start-AION-Observatory.bat` opens a separate private dashboard at
