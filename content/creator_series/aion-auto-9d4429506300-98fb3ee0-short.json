@@ -13,9 +13,11 @@
   "hook_phrase_style": {
     "origin": "ai-rewrite"
   },
-  "story_understanding": "Bread dough rises because carbon dioxide gas is made inside it. In soda bread, lactic acid in buttermilk reacts with baking soda (sodium bicarbonate) to make bubbles of CO2, so quick breads rise quickly without the time and labor of kneaded yeast breads. In yeast breads, Saccharomyces yeasts ferment sugars into ethanol and CO2, the same fermentation used in bread, beer, and wine making, so you can notice or test it in those settings.",
+  "story_understanding": "Bread dough rises because carbon dioxide gas is made inside it.",
   "story_understanding_style": {
-    "origin": "ai-synthesis"
+    "origin": "ai-synthesis",
+    "trimmed_to_beat": true,
+    "repaired": "2026-10-03"
   },
   "growth_plan": {
     "version": "evidence-led-creator-growth-v1",
@@ -160,7 +162,7 @@
       "n": 9,
       "beat": "connection",
       "visual": "A visual comparison of the two documented observations about Where could someone notice or test the idea behind: Why does bread dough rise before it bakes?; show the causal relationship as the only focal point. No AION character in this scene.",
-      "narration": "Here’s the punchline: bread dough puffs up because carbon dioxide forms inside it. In soda bread, lactic acid in buttermilk meets baking soda (sodium bicarbonate) and makes CO2 bubbles, so quick breads rise fast without the time and labor of kneaded yeast loaves. In yeast breads, Saccharomyces ferment sugars into ethanol and CO2—the same fermentation used in bread, beer, and wine—so you can notice or test it in those settings."
+      "narration": "Bread dough rises because carbon dioxide gas is made inside it."
     },
     {
       "n": 10,

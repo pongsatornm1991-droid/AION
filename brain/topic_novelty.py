@@ -32,6 +32,18 @@ class TopicNoveltyGate:
         "people", "person", "someone", "everyone", "anyone",
         "first", "make", "makes", "made", "learn", "learns", "learned",
         "who", "each", "other", "met", "meet", "never",
+        # Found 2026-10-03, blocking a seasons explainer as a repeat of the
+        # maps video on the single word "different" -- a long (>=7 letter)
+        # word alone counts as a subject match, so every long generic
+        # connective is a false-positive waiting for its next topic.
+        "different", "depending", "between", "because", "instead", "during",
+        "another", "around", "whether", "something", "anything", "everything",
+        "nothing", "example", "certain", "similar", "usually", "simple",
+        "common", "several", "important", "together", "enough", "always",
+        "actually", "causes", "happen", "happens", "reason", "explain",
+        "explains", "parts", "while", "after", "before", "their", "there",
+        "these", "those", "which", "often", "some", "many", "more", "most",
+        "than", "then", "they", "them", "have", "are", "can", "not",
     }
 
     @classmethod

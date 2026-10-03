@@ -56,3 +56,18 @@ class TopicNoveltyGateTests(unittest.TestCase):
             {"topic_key": "Why do people yawn when they see someone else yawn?"},
             {"topic_key": "A Day in the Life of a Roman Nobody"},
         ))
+
+    def test_different_does_not_make_a_seasons_explainer_a_repeat_of_the_maps_video(self):
+        # Regression, 2026-10-03: "different" (9 letters) alone satisfied the
+        # single-unusual-token rule, so a new seasons topic was blocked as a
+        # duplicate of "Why do maps look different..." and stayed unproduced.
+        self.assertFalse(TopicNoveltyGate.same_topic(
+            {"topic_key": "Why do different parts of Earth have different seasons?"},
+            {"topic_key": "AION Wonders: Why do maps look different depending on what they are made for?"},
+        ))
+        # A real shared subject must still be caught.
+        self.assertTrue(TopicNoveltyGate.same_topic(
+            {"topic_key": "Why do maps look different on a globe?"},
+            {"topic_key": "Why do maps look different depending on what they are made for?"},
+        ))
+

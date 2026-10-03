@@ -1,3 +1,4 @@
+import json
 import tempfile
 import unittest
 from pathlib import Path
@@ -359,6 +360,28 @@ class CreatorSceneProductionTests(unittest.TestCase):
             # is nothing to do rather than ever calling the generator again.
             result = production.produce_once(limit=5)
             self.assertEqual("no-subject-first-storyboard-ready", result["stage"])
+
+    def test_a_storyboard_flagged_by_the_narration_preflight_is_skipped_for_the_next_one(self):
+        """Regression for 2026-10-03: tools/preflight_creator_narration.py now
+        flags a storyboard whose narration cannot fit scene timing instead of
+        failing the whole batch; scene production must then spend no image
+        budget on it and pick the next ready storyboard instead."""
+        with tempfile.TemporaryDirectory() as root:
+            root = Path(root)
+            episode_dir = root / "content" / "creator_series"; episode_dir.mkdir(parents=True)
+            base = {"series": "AION Wonders", "title": "Test story", "audience_promise": "A useful evidence-led story for every age.", "wonder_hook": "Could this work?", "creative_device": "journey", "age_layers": {"children": "Ask.", "family": "Talk.", "deeper": "Test."}, "target_duration_seconds": 15, "scene_seconds": 5, "format": "illustrated-narrated-short", "pacing_policy": "fast-cut-subject-first-v1", "visual_direction": {"focus": "subject-first", "aion_role": "contextual-guide", "aion_frame_share_max": 0.20}, "history_boundary": "A boundary.", "sources": [{"url": "https://one.test"}, {"url": "https://two.test"}], "status": "storyboard-ready-needs-assets", "scenes": [{"n": 1, "beat": "hook", "visual": "AION explores a historical place.", "narration": "One."}, {"n": 2, "beat": "reveal", "visual": "AION observes the subject.", "narration": "Two."}, {"n": 3, "beat": "end", "visual": "AION shares a question.", "narration": "Three."}]}
+            flagged = {**base, "id": "a-flagged", "narration_preflight": {"eligible": False, "reasons": ["scene-9:narration-exceeds-safe-scene-window"]}}
+            (episode_dir / "a-flagged.json").write_text(json.dumps(flagged), encoding="utf-8")
+            (episode_dir / "b-ready.json").write_text(json.dumps({**base, "id": "b-ready"}), encoding="utf-8")
+
+            def generator(prompt, destination):
+                Path(destination).write_bytes(b"png")
+                return "Visual focus" in prompt
+
+            production = CreatorSceneProduction(root, generator)
+            result = production.produce_once(limit=1)
+
+            self.assertEqual("b-ready", result["episode_id"])
 
     def test_one_invalid_episode_does_not_block_a_valid_one_in_the_same_shift(self):
         """Regression for 2026-09-25: CreatorSeriesRegistry.episodes() used to

@@ -4,7 +4,7 @@ import unittest
 from pathlib import Path
 from unittest.mock import patch
 
-from tools.preflight_creator_narration import preflight
+from tools.preflight_creator_narration import blocks_everything, preflight
 
 
 class PreflightCreatorNarrationTests(unittest.TestCase):
@@ -106,3 +106,49 @@ class PreflightCreatorNarrationTests(unittest.TestCase):
                 saved["visual_narrative"]["scene_progression"],
             )
             self.assertEqual(4, len(saved["fact_first_visual"]["scene_roles"]))
+
+    def test_one_unfittable_storyboard_is_flagged_and_does_not_block_the_others(self):
+        # Regression for 2026-10-03: a single storyboard with an 82-word
+        # connection beat failed `--require-eligible` for the whole batch, so
+        # image production stopped for every ready storyboard for two days.
+        with tempfile.TemporaryDirectory() as root:
+            directory = Path(root) / "content" / "creator_series"
+            directory.mkdir(parents=True)
+            base = {
+                "series": "A", "title": "Episode", "status": "storyboard-ready-needs-assets",
+                "format": "illustrated-narrated-short", "scene_seconds": 5, "target_duration_seconds": 15,
+                "audience_promise": "A clear benefit for curious viewers of every age.", "wonder_hook": "Why does this happen?",
+                "creative_device": "journey", "age_layers": {"children": "Ask", "family": "Talk", "deeper": "Test"},
+                "science_boundary": "A boundary.", "sources": [{"url": "https://one"}, {"url": "https://two"}],
+                "scenes": [{"n": n, "visual": "AION explores.", "narration": "AION asks."} for n in range(3)],
+            }
+            for name in ("fits", "too-long"):
+                (directory / f"{name}.json").write_text(json.dumps({**base, "id": name}), encoding="utf-8")
+
+            def repair(episode, *args, **kwargs):
+                if episode["id"] == "too-long":
+                    return {"eligible": False, "episode_id": "too-long", "reasons": ["scene-9:narration-exceeds-safe-scene-window"]}
+                return {"eligible": True, "episode_id": "fits", "scene_durations": [5, 5, 5]}
+
+            with patch("tools.preflight_creator_narration.NarrationPreflight.repair_episode_timing", side_effect=repair):
+                result = preflight(root=root, write_timeline=True)
+                again = preflight(root=root, write_timeline=True)
+
+            self.assertEqual(["fits"], result["ready_for_images"])
+            self.assertEqual(["too-long"], result["blocked"])
+            self.assertFalse(blocks_everything(result))
+            flagged = json.loads((directory / "too-long.json").read_text(encoding="utf-8"))
+            self.assertEqual(
+                {"eligible": False, "reasons": ["scene-9:narration-exceeds-safe-scene-window"]},
+                flagged["narration_preflight"],
+            )
+            fits = json.loads((directory / "fits.json").read_text(encoding="utf-8"))
+            self.assertNotIn("narration_preflight", fits)
+            self.assertEqual("audio-driven-v1", fits["audio_visual_timeline"]["version"])
+            self.assertEqual(result["blocked"], again["blocked"])
+
+    def test_the_step_still_fails_loudly_when_nothing_can_start_image_production(self):
+        self.assertTrue(blocks_everything({"blocked": ["a"], "ready_for_images": []}))
+        self.assertFalse(blocks_everything({"blocked": [], "ready_for_images": []}))
+        self.assertFalse(blocks_everything({"blocked": ["a"], "ready_for_images": ["b"]}))
+

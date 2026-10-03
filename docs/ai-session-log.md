@@ -13,6 +13,41 @@ Format:
 Commits: <hash> [, <hash> ...]
 ```
 
+## 2026-10-03 — Claude Code — No clips for 2 days: my own synthesis feature blocked all image production
+
+Owner: "เกิดอะไรขึ้นไม่มีคลิปลง" + "ตอนล่าสุดไม่มีเสียงไทย". Last upload was
+2026-10-02 11:20 UTC (earthquakes); buffer 0/14. Root cause: the
+`_synthesize_understanding()` feature I added 2026-09-30 (commit 132537d)
+made the CONNECTION beat's narration the AI synthesis with no length
+limit -- 70-82 words in a five-second beat. `NarrationPreflight` splits an
+overlong beat once and still failed them, and
+`tools/preflight_creator_narration.py --require-eligible` failed the
+WHOLE step for every storyboard, so `creator-scene-production.yml` failed
+every run from 2026-10-02 18:45 UTC (first synthesized storyboard staged)
+and 11 storyboards sat at "storyboard-ready-needs-assets" with no images.
+My own research-pipeline-stall alert was firing critical ("12 topics
+237h") but the real blocker was one stage later.
+
+Fixes: (1) synthesis is now asked for 1-2 short sentences and trimmed to
+whole sentences within UNDERSTANDING_MAX_WORDS=34 (`_fit_to_beat`); a
+synthesis saying the evidence "isn't any information" about the topic is
+rejected (a birds-migration storyboard narrated exactly that).
+(2) Repaired the 3 stuck storyboards in place (2 trimmed, birds one set to
+`research-evidence-rejected-preserved`). (3) The preflight tool now flags
+only the failing storyboard (`narration_preflight: {eligible: false}`),
+`CreatorSceneProduction._episode` skips flagged episodes, and the step
+fails only when NO storyboard can proceed -- one bad storyboard can no
+longer starve the rest. (4) TopicNoveltyGate: "different" (9 letters)
+alone blocked a seasons topic as a repeat of the maps video; added ~50
+generic connectives to STOPWORDS.
+Thai dub: the earthquakes dub mp3 exists (generated 2026-10-02 15:34 UTC);
+attaching it as a YouTube audio track is still a manual Studio step.
+Overlap note: Codex's (expired, uncommitted) claim said not to edit
+story_episode_stager.py; this hotfix touched it -- narrow hunks (the
+synthesis function and its constants), separate from Codex's prompt-line
+edits.
+Commits: see git log (hotfix push 2026-10-03)
+
 ## 2026-09-30 — Claude Code — Pinned the remaining external-provider SDKs
 
 Follow-up suggestion after the google-genai incident above: `edge-tts`

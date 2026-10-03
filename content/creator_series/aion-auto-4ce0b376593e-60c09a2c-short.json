@@ -13,9 +13,11 @@
   "hook_phrase_style": {
     "origin": "ai-rewrite"
   },
-  "story_understanding": "Breathing changes during exertion because homeostatic controls automatically adjust how deep and how fast you breathe to keep arterial oxygen and carbon dioxide steady, which also keeps extracellular fluid pH stable. When ventilation swings too high or too low (hyperventilation or hypoventilation), CO₂ and pH shift and symptoms can be distressing. In COPD, using pursed‑lips breathing, exhaling on effort, and relaxed, slower, deeper, paced breathing during exertion can make ventilation more effective, reduce respiratory rate, maintain control, aid recovery, and reduce dyspnoea.",
+  "story_understanding": "Breathing changes during exertion because homeostatic controls automatically adjust how deep and how fast you breathe to keep arterial oxygen and carbon dioxide steady, which also keeps extracellular fluid pH stable.",
   "story_understanding_style": {
-    "origin": "ai-synthesis"
+    "origin": "ai-synthesis",
+    "trimmed_to_beat": true,
+    "repaired": "2026-10-03"
   },
   "growth_plan": {
     "version": "evidence-led-creator-growth-v1",
@@ -160,7 +162,7 @@
       "n": 9,
       "beat": "connection",
       "visual": "A visual comparison of the two documented observations about Why does breathing get faster during exercise?; show the causal relationship as the only focal point. No AION character in this scene.",
-      "narration": "Breathing changes during exertion because homeostatic controls automatically tune how deep and how fast you breathe to keep arterial oxygen and carbon dioxide steady, which also keeps extracellular fluid pH stable. But when ventilation swings too high or too low—hyperventilation or hypoventilation—CO2 and pH shift, and the symptoms can be distressing. In COPD, using pursed‑lips breathing, exhaling on effort, and relaxed, slower, deeper, paced breathing during exertion can make ventilation more effective, reduce respiratory rate, maintain control, aid recovery, and reduce dyspnoea."
+      "narration": "Breathing changes during exertion because homeostatic controls automatically adjust how deep and how fast you breathe to keep arterial oxygen and carbon dioxide steady, which also keeps extracellular fluid pH stable."
     },
     {
       "n": 10,

@@ -246,6 +246,36 @@ class StoryEpisodeStager:
             return topic, {"origin": "bounded-fallback", "reason": "subject-drift"}
         return candidate, {"origin": "ai-rewrite"}
 
+    # Found 2026-10-03: synthesized understandings of 70-82 words became the
+    # connection beat's narration. One five-second beat holds ~12 spoken
+    # words and the timing gate lets a line run to 12s only after a single
+    # split, so those episodes failed the narration preflight -- and because
+    # that preflight failed the whole batch, no storyboard got images for
+    # two days. 34 words is the longest connection line that still survives
+    # the split.
+    UNDERSTANDING_MAX_WORDS = 34
+    _NO_INFORMATION_PATTERN = re.compile(
+        r"\b(?:isn['’]?t|is not|aren['’]?t|are not|doesn['’]?t|does not|no)\b[^.]{0,40}"
+        r"\b(?:any )?(?:information|mention|evidence|details?)\b",
+        re.IGNORECASE,
+    )
+
+    @classmethod
+    def _fit_to_beat(cls, text, max_words=None):
+        """Longest run of whole leading sentences within `max_words`, or None.
+
+        Cutting at a sentence boundary keeps the line a faithful subset of
+        text that already passed the claim-safety checks; cutting mid-
+        sentence would not.
+        """
+        limit = max_words or cls.UNDERSTANDING_MAX_WORDS
+        kept = []
+        for sentence in re.split(r"(?<=[.!?])\s+", " ".join(str(text or "").split())):
+            if len(" ".join(kept + [sentence]).split()) > limit:
+                break
+            kept.append(sentence)
+        return " ".join(kept) or None
+
     def _synthesize_understanding(self, topic, evidence_one, evidence_two):
         """Read both source observations together and produce ONE synthesized
         understanding of what is actually going on, before any beat is
@@ -272,9 +302,11 @@ class StoryEpisodeStager:
         prompt = "\n".join([
             "You are helping AION understand a story before writing it. Here are two "
             "independent, real observations about one topic. Read both together and "
-            "explain, in 2-4 short sentences of plain spoken language, what is actually "
-            "going on -- the real mechanism or connection a curious friend would want to "
-            "hear -- as if you just figured it out and want to tell someone.",
+            "explain, in ONE or at most TWO short sentences (about 25 words in total -- it "
+            "must be spoken aloud inside a single five-second shot) of plain everyday "
+            "language, what is actually going on -- the real mechanism or connection a "
+            "curious friend would want to hear -- as if you just figured it out and want "
+            "to tell someone. Put the single most important idea first.",
             "Absolute rules:",
             "- Use ONLY facts already stated in the two observations below. Never add a new fact, number, name, or claim that is not already there.",
             "- Never phrase anything as AION having feelings, consciousness, or subjective experience.",
@@ -288,11 +320,22 @@ class StoryEpisodeStager:
             candidate = str(self.provider.generate(prompt) or "").strip()
         except Exception as exc:
             return None, {"origin": "bounded-fallback", "reason": f"provider-error:{type(exc).__name__}"}
-        if not candidate or OutputEvaluator.has_unsafe_claim(candidate):
+        if self._NO_INFORMATION_PATTERN.search(candidate):
+            # The model is reporting that the evidence does not answer the
+            # question (e.g. "There isn't any information here about how
+            # birds find their way"): narrating that as the story's payoff
+            # would publish a non-answer.
+            return None, {"origin": "bounded-fallback", "reason": "evidence-does-not-address-topic"}
+        if not candidate:
             return None, {"origin": "bounded-fallback", "reason": "empty-or-unsafe"}
-        if not self._preserves_key_facts(f"{evidence_one} {evidence_two}", candidate):
+        fitted = self._fit_to_beat(candidate)
+        if not fitted:
+            return None, {"origin": "bounded-fallback", "reason": "too-long-for-one-beat"}
+        if OutputEvaluator.has_unsafe_claim(fitted):
+            return None, {"origin": "bounded-fallback", "reason": "empty-or-unsafe"}
+        if not self._preserves_key_facts(f"{evidence_one} {evidence_two}", fitted):
             return None, {"origin": "bounded-fallback", "reason": "fact-drift"}
-        return candidate, {"origin": "ai-synthesis"}
+        return fitted, {"origin": "ai-synthesis", "trimmed_to_beat": fitted != " ".join(candidate.split())}
 
     def _rewrite_scene_narrations(self, scenes, topic, understanding=None):
         """Retell each evidence-literal beat as natural, engaging spoken

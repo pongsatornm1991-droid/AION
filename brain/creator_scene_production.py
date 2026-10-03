@@ -122,6 +122,11 @@ class CreatorSceneProduction:
         return next((item for item in episodes
                      if item.get("status") in {"storyboard-ready-needs-assets", "assets-ready-for-assembly", "production-ready-assets-and-script"}
                      and not self._cover_exists(item)
+                     # tools/preflight_creator_narration.py flags a storyboard
+                     # whose narration cannot fit scene timing so it does not
+                     # block the rest of the batch -- never spend image budget
+                     # on a flagged one.
+                     and (item.get("narration_preflight") or {}).get("eligible") is not False
                      and (not episode_format or item.get("format") == episode_format)
                      and item.get("pacing_policy") in {VisualStoryPolicy.VERSION, "fast-cut-subject-first-v1"}
                      and CreatorSourceIntegrity.assess(item.get("sources"), item.get("topic_key"), "").get("eligible")

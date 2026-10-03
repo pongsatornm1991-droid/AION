@@ -226,6 +226,39 @@ class SynthesizeUnderstandingTests(unittest.TestCase):
         self.assertIsNone(understanding)
         self.assertEqual("provider-error:RuntimeError", meta["reason"])
 
+    # Regression, 2026-10-03: 70-82 word syntheses became the connection
+    # beat's narration, failed the narration-timing preflight, and (because
+    # that preflight failed the whole batch) stopped image production for
+    # every storyboard for two days.
+    def test_a_long_synthesis_is_trimmed_to_whole_sentences_that_fit_one_beat(self):
+        long_text = (
+            "Ice sat below ground in a shaded dome while wind towers dragged the heat away above it. "
+            + "The Yakhchal walls were thick and insulated so the cold stayed in all summer long and the heat stayed out. "
+            + "Wind towers also pulled air across the structure to carry heat away from the stored ice for months."
+        )
+        stager = StoryEpisodeStager(memory=None, root=".", provider=FakeProvider(response=long_text))
+        understanding, meta = stager._synthesize_understanding(self.TOPIC, self.EVIDENCE_ONE, self.EVIDENCE_TWO)
+        self.assertLessEqual(len(understanding.split()), StoryEpisodeStager.UNDERSTANDING_MAX_WORDS)
+        self.assertTrue(long_text.startswith(understanding))
+        self.assertTrue(understanding.endswith("."))
+        self.assertTrue(meta["trimmed_to_beat"])
+
+    def test_a_synthesis_whose_first_sentence_alone_is_too_long_is_rejected(self):
+        one_long_sentence = "Yakhchal " + "stored ice " * 20 + "below ground in a dome with Wind towers."
+        stager = StoryEpisodeStager(memory=None, root=".", provider=FakeProvider(response=one_long_sentence))
+        understanding, meta = stager._synthesize_understanding(self.TOPIC, self.EVIDENCE_ONE, self.EVIDENCE_TWO)
+        self.assertIsNone(understanding)
+        self.assertEqual("too-long-for-one-beat", meta["reason"])
+
+    def test_a_synthesis_that_says_the_evidence_does_not_cover_the_topic_is_rejected(self):
+        stager = StoryEpisodeStager(
+            memory=None, root=".",
+            provider=FakeProvider(response="There isn’t any information here about how a Yakhchal worked or Wind towers."),
+        )
+        understanding, meta = stager._synthesize_understanding(self.TOPIC, self.EVIDENCE_ONE, self.EVIDENCE_TWO)
+        self.assertIsNone(understanding)
+        self.assertEqual("evidence-does-not-address-topic", meta["reason"])
+
 
 class StoryEpisodeStagerTests(unittest.TestCase):
     def test_stages_one_traceable_subject_first_short(self):
@@ -353,7 +386,7 @@ class StoryEpisodeStagerTests(unittest.TestCase):
                 if "Rewrite each beat below" in prompt:
                     payload = json.loads(prompt.splitlines()[-1])
                     return json.dumps({n: item["original"] for n, item in payload.items()})
-                if "explain, in 2-4 short sentences" in prompt:
+                if "ONE or at most TWO short sentences" in prompt:
                     return synthesis
                 return "How can an octopus flash color so fast"
 
