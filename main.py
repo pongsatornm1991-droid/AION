@@ -32,7 +32,7 @@ from brain.reflection_schema import (
     filter_meta_reflection_entries,
 )
 from brain.visual_content import VisualContentCycle
-from brain.social_feedback import InstagramFeedbackCycle
+from brain.social_feedback import FacebookFeedbackCycle, InstagramFeedbackCycle
 from brain.reels import ReelContentCycle
 from brain.youtube import YouTubeShortsCycle
 from brain.youtube_creator_queue import YouTubeCreatorQueue
@@ -2648,6 +2648,35 @@ def run_instagram_feedback(args):
         print(f"Error: {report['error']}")
 
 
+def run_facebook_feedback(args):
+    """Read changed Facebook Page metrics into AION's memory.
+
+    Read-only, like run_instagram_feedback: it records the Page's follower
+    counters and each recent post's reactions/comments/shares so decisions
+    about Facebook's role rest on real numbers.
+    """
+
+    load_dotenv()
+    from tools.facebook_insights import get_page_overview, get_recent_posts
+
+    cycle = FacebookFeedbackCycle(
+        Thinker().memory,
+        overview_reader=get_page_overview,
+        posts_reader=get_recent_posts,
+    )
+    report = cycle.capture_once(limit=args.limit)
+
+    print("\nAION FACEBOOK FEEDBACK")
+    print(f"Stage: {report['stage']}")
+    print(f"Recorded: {report['recorded']}")
+    if report.get("overview"):
+        overview = report["overview"]
+        print(f"Followers: {overview.get('followers_count')} (fans: {overview.get('fan_count')})")
+    if report.get("error"):
+        print(f"Error: {report['error']}")
+        print(f"::warning title=facebook-feedback::{report['error']}"[:300])
+
+
 def run_export_obsidian_vault(args):
     """Export a read-only linked view of AION's brain for Obsidian."""
     from brain.obsidian import ObsidianVaultExporter
@@ -3838,6 +3867,16 @@ def build_parser():
         help="Maximum recent Instagram posts to observe (default: 10).",
     )
 
+    facebook_feedback_parser = subparsers.add_parser(
+        "run-facebook-feedback",
+        help="Read changed Facebook Page follower and post-engagement metrics "
+             "into AION's memory; never publishes anything.",
+    )
+    facebook_feedback_parser.add_argument(
+        "--limit", type=int, default=10,
+        help="Maximum recent Facebook posts to observe (default: 10).",
+    )
+
     obsidian_parser = subparsers.add_parser(
         "export-obsidian-vault",
         help="Export AION memory as a linked Markdown vault for Obsidian.",
@@ -4120,6 +4159,10 @@ def main():
 
     if args.command == "run-instagram-feedback":
         run_instagram_feedback(args)
+        return
+
+    if args.command == "run-facebook-feedback":
+        run_facebook_feedback(args)
         return
 
     if args.command == "export-obsidian-vault":

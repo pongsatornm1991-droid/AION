@@ -102,3 +102,108 @@ class InstagramFeedbackCycle:
             "growth": growth,
             "attribution": attribution,
         }
+
+
+class FacebookFeedbackCycle:
+    """Records only changed Facebook Page counters, never repeated snapshots.
+
+    Added 2026-10-04: AION recorded Instagram and YouTube audience numbers but
+    nothing at all for its Facebook Page, so any decision about what Facebook
+    should do (community questions, topic testing, Thai-first) would have been
+    a guess. Read-only; no publishing side effect.
+
+    Uses its own `kind` values ("facebook-page", "facebook-post") and source so
+    the Instagram consumers (growth, attribution, dashboard), which key on
+    kind == "account"/"media", never mistake these for Instagram snapshots.
+    """
+
+    CATEGORY = "social_feedback"
+    SOURCE = "facebook-feedback"
+
+    def __init__(self, memory, overview_reader, posts_reader):
+        self.memory = memory
+        self.overview_reader = overview_reader
+        self.posts_reader = posts_reader
+
+    def _latest_snapshots(self):
+        snapshots = {"page": None, "posts": {}}
+        try:
+            entries = self.memory.all(self.CATEGORY)
+        except Exception:
+            entries = []
+        for entry in entries:
+            if entry.get("source") != self.SOURCE:
+                continue
+            try:
+                data = json.loads(entry.get("content") or "")
+            except (TypeError, ValueError):
+                continue
+            if data.get("kind") == "facebook-page":
+                snapshots["page"] = data
+            elif data.get("kind") == "facebook-post" and data.get("post_id"):
+                snapshots["posts"][data["post_id"]] = data
+        return snapshots
+
+    @staticmethod
+    def _page_snapshot(overview):
+        return {
+            "kind": "facebook-page",
+            "name": overview.get("name"),
+            "fan_count": overview.get("fan_count"),
+            "followers_count": overview.get("followers_count"),
+        }
+
+    @staticmethod
+    def _post_snapshot(post):
+        return {
+            "kind": "facebook-post",
+            "post_id": post.get("id"),
+            "message": str(post.get("message") or "")[:280],
+            "published_at": post.get("created_time"),
+            "reactions": post.get("reactions", 0),
+            "comments": post.get("comments", 0),
+            "shares": post.get("shares", 0),
+            "permalink": post.get("permalink_url"),
+        }
+
+    def capture_once(self, limit=10):
+        try:
+            overview = self.overview_reader()
+            posts = self.posts_reader(limit=limit)
+        except Exception as exc:
+            return {"stage": "fetch-failed", "error": str(exc), "recorded": 0}
+
+        previous = self._latest_snapshots()
+        recorded = []
+
+        page = self._page_snapshot(overview)
+        if page != previous["page"]:
+            recorded.append(self.memory.remember(
+                category=self.CATEGORY,
+                content=json.dumps(page, ensure_ascii=False, sort_keys=True),
+                memory_type="observation",
+                source=self.SOURCE,
+                importance=3,
+                tags=["facebook", "audience", "metrics"],
+            ))
+
+        for item in posts:
+            snapshot = self._post_snapshot(item)
+            if snapshot == previous["posts"].get(snapshot["post_id"]):
+                continue
+            recorded.append(self.memory.remember(
+                category=self.CATEGORY,
+                content=json.dumps(snapshot, ensure_ascii=False, sort_keys=True),
+                memory_type="observation",
+                source=self.SOURCE,
+                importance=2,
+                tags=["facebook", "post", "metrics"],
+            ))
+
+        return {
+            "stage": "captured" if recorded else "no-changes",
+            "recorded": len(recorded),
+            "overview": page,
+            "posts_seen": len(posts),
+        }
+

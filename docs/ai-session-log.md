@@ -13,6 +13,28 @@ Format:
 Commits: <hash> [, <hash> ...]
 ```
 
+## 2026-10-04 — Claude Code — Facebook Page feedback capture (measure before deciding Facebook's role)
+
+Owner asked what Facebook should do and approved "do as you said". Honest
+finding first: memory holds Instagram (@aion_i.robot: 1 follower, 45 posts,
+1 like) and YouTube numbers but NOTHING for the Facebook Page, so any
+recommendation (community questions, topic testing before paid production,
+Thai-first, AION learning log) was unmeasured. Added the missing sensor,
+mirroring Instagram: `tools/facebook_insights.py` (read-only: fan/follower
+counts + per-post reactions/comments/shares via the existing
+FACEBOOK_PAGE_ACCESS_TOKEN/FACEBOOK_PAGE_ID), `FacebookFeedbackCycle` in
+`brain/social_feedback.py` (records only CHANGED counters; its own kinds
+`facebook-page`/`facebook-post` so the Instagram consumers keyed on
+kind "account"/"media" -- growth, growth_pulse, attribution, dashboard --
+never mistake them), `main.py run-facebook-feedback`, and
+`.github/workflows/facebook-feedback.yml` (every 6h at :53). A failed
+read (e.g. missing pages_read_engagement permission) is reported with a
+GitHub warning annotation, never recorded as zeros. Not yet done: acting
+on the numbers (wait for the first captures), and the Facebook roles
+themselves (community-question posts feeding CuriosityEngine, pre-production
+topic polling, Thai-first, learning-log posts).
+Commits: see git log
+
 ## 2026-10-04 — Claude Code — AION Brain 3D: rotatable Obsidian-style map of the brain + code
 
 Owner: "ระบบสมองที่เก็บไฟล์ของ aion ทั้งหมด คล้าย Obsidian แต่เป็น 3D ขยับหมุนได้
