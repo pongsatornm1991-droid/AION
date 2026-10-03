@@ -363,6 +363,17 @@ class StorytellingTranslationTests(unittest.TestCase):
         self.assertIn('"max_chars": 104', prompt)
         self.assertIn("แหล่งข้อมูล", prompt)  # named as wording to avoid
 
+    def test_the_prompt_describes_a_playful_plain_spoken_style_without_naming_any_channel(self):
+        # Owner, 2026-10-04: "เล่าบทแบบเพจไอ้ก้าง สนุก ฟังง่าย เข้าใจ". The traits are
+        # described; no creator or channel is named or copied (project rule).
+        provider = SequenceProvider(_translation("หนึ่ง", "สอง"))
+        self.cycle(provider)._translate("T", "D", ["a", "b"], [5.0, 5.0])
+        prompt = provider.prompts[0]
+        for trait in ("playful", "a ten-year-old should get it", "ลองนึกภาพว่า", "tease the twist", "never rude"):
+            self.assertIn(trait.lower(), prompt.lower())
+        for named in ("ก้าง", "kurzgesagt", "sticky", "youtube channel"):
+            self.assertNotIn(named, prompt.lower())
+
     def test_a_line_far_too_long_for_its_scene_is_retried_once_with_a_shorten_note(self):
         long_line = "ก" * 200
         provider = SequenceProvider(_translation("สั้น", long_line), _translation("สั้น", "พอดี"))

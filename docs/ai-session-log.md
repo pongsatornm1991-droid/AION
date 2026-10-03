@@ -13,6 +13,20 @@ Format:
 Commits: <hash> [, <hash> ...]
 ```
 
+## 2026-10-04 — Claude Code — Thai script style: playful, plain-spoken (SCRIPT_VERSION v2)
+
+Owner: "เล่าบทแบบเพจไอ้ก้าง สนุกฟังง่ายเข้าใจ". The Thai storytelling prompt now
+describes the traits of that style -- funniest/clearest friend explaining
+something wild, plain everyday Thai, a vivid comparison for every hard idea
+("ลองนึกภาพว่า..."), short punchy sentences, reactions ("เดี๋ยวก่อน...", "ที่เด็ดคือ..."),
+curiosity built then paid off, friendly never rude -- plus one invented
+stiff-vs-fun example. NO channel or creator is named (the project's prompts
+deliberately never imitate a specific creator; the owner was told). Facts stay
+exact and every line still passes claim-safety and the per-scene length
+budget. SCRIPT_VERSION bumped to storytelling-v2, so any dub already made with
+v1 is redone too. Untested against a live model.
+Commits: see git log
+
 ## 2026-10-04 — Claude Code — Redo the 8 Thai dubs as storytelling BEFORE any reached Facebook
 
 Owner: yes to "pause the Facebook queue and redo the 8 old dubs with the new

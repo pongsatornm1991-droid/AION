@@ -33,12 +33,16 @@ from brain.youtube_creator_queue import YouTubeCreatorQueue
 
 CATEGORY = "youtube_thai_dubs"
 SOURCE_PREFIX = "aion-thai-dub:"
+# v2 (2026-10-04, owner: "เล่าบทแบบเพจไอ้ก้าง สนุก ฟังง่าย เข้าใจ"): a playful,
+# plain-spoken storyteller. Only the TRAITS of that style are described to the
+# model -- no channel is named or copied (the project's prompts deliberately
+# never imitate a specific creator).
 # Bumped when the Thai script is written differently. A record of an older
 # version is NOT counted as dubbed, so the episode is dubbed again with the
 # current script (2026-10-04: the first 8 dubs were word-for-word translations;
 # the owner wanted them told as storytelling). Skipped/backlog markers carry no
 # audio and are never redone.
-SCRIPT_VERSION = "storytelling-v1"
+SCRIPT_VERSION = "storytelling-v2"
 
 # Every other ffmpeg-invoking module (tools/reel_render.py, brain/video_quality.py,
 # tools/produce_creator_motion.py) sets this so a console window doesn't flash for
@@ -207,8 +211,17 @@ class ThaiDubCycle:
                 "storytelling page (เพจเล่าเรื่อง) tells a surprising fact to a friend. It is NOT a translation.",
                 "Rules:",
                 "- Keep every fact, number and name exactly as given; add no new fact.",
-                "- Short, casual spoken sentences. Particles such as นะ / เลย / แหละ are fine.",
-                "- Open the first line from something the viewer has personally experienced, or a surprising question.",
+                "- Tell it like the funniest, clearest friend in the group explaining something wild they just learned: "
+                "playful, witty, a little cheeky, and always easy to follow. Fun first, but the facts stay exact.",
+                "- Plain everyday Thai only. Explain any hard idea with a vivid everyday comparison (\"ลองนึกภาพว่า...\" "
+                "/ \"เหมือนกับ...\"), never with jargon. A ten-year-old should get it on the first listen.",
+                "- Short punchy sentences. Casual spoken particles (นะ / เลย / แหละ / ล่ะ) and reactions "
+                "(\"เดี๋ยวก่อน...\", \"ที่เด็ดคือ...\", \"แล้วรู้ไหมว่า...\") are welcome; keep it friendly, never rude, "
+                "vulgar or mocking anyone.",
+                "- Build curiosity: open with something the viewer has personally felt or a surprising question, "
+                "tease the twist, then pay it off in the later lines. Light humour must never bend a fact.",
+                "- Example of the feel (an invented topic, not to be reused): stiff = \"แรงเสียดทานระหว่างแผ่นเปลือกโลกสะสมจนเกิดการปลดปล่อยพลังงาน\"; "
+                "fun = \"เปลือกโลกเหมือนจิ๊กซอว์ยักษ์ที่ขยับชนกันทุกวัน ตอนแรกก็ฝืดๆ ติดอยู่ พอแรงสะสมเยอะเข้า... ดีดทีเดียว! นั่นแหละแผ่นดินไหว\".",
                 "- No academic wording: avoid แหล่งข้อมูล, งานวิจัย, หลักฐาน, ผลการศึกษา, ตามที่ระบุ.",
                 "- Each narration line is spoken over ONE scene. When a line has max_chars, stay close to it "
                 "(Thai is spoken at about 13 characters per second) and never exceed it.",
