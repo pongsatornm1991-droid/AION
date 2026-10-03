@@ -12,6 +12,15 @@ class OpenAIProvider(AIProvider):
 
     DEFAULT_BASE_URL = "https://api.openai.com/v1"
     DEFAULT_MODEL = "gpt-5"
+    # Owner's OpenAI usage page, 2026-10-03: gpt-5 output was ~$7 of $14.4
+    # spent in 7 days -- the largest line, ahead of images and speech. gpt-5
+    # is a reasoning model and its hidden reasoning tokens are billed as
+    # output at the default (medium) effort; nearly every AION call here is a
+    # short rewrite/classify/JSON task that does not need that, so default
+    # to low effort. Override with OPENAI_REASONING_EFFORT (minimal | low |
+    # medium | high), or set it empty to send no reasoning setting at all.
+    DEFAULT_REASONING_EFFORT = "low"
+    REASONING_EFFORTS = ("minimal", "low", "medium", "high")
 
     def __init__(self):
         load_dotenv()
@@ -31,6 +40,17 @@ class OpenAIProvider(AIProvider):
             os.getenv("OPENAI_MODEL", self.DEFAULT_MODEL).strip()
             or self.DEFAULT_MODEL
         )
+        effort = os.getenv("OPENAI_REASONING_EFFORT", self.DEFAULT_REASONING_EFFORT).strip().lower()
+        # Only the gpt-5 family accepts the setting; other models would 400.
+        self.reasoning_effort = (
+            effort if effort in self.REASONING_EFFORTS and self.model.lower().startswith("gpt-5") else None
+        )
+
+    def _request_body(self, prompt):
+        body = {"model": self.model, "input": prompt, "store": False}
+        if self.reasoning_effort:
+            body["reasoning"] = {"effort": self.reasoning_effort}
+        return body
 
     @staticmethod
     def _output_text(payload):
@@ -66,11 +86,7 @@ class OpenAIProvider(AIProvider):
                     "Authorization": f"Bearer {self.api_key}",
                     "Content-Type": "application/json",
                 },
-                json={
-                    "model": self.model,
-                    "input": prompt,
-                    "store": False,
-                },
+                json=self._request_body(prompt),
                 timeout=60,
             )
 

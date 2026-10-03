@@ -54,6 +54,31 @@ class OpenAIProviderTests(unittest.TestCase):
             "store": False,
         })
 
+    @mock.patch("requests.post")
+    def test_gpt5_defaults_to_low_reasoning_effort_to_cap_hidden_output_tokens(self, post):
+        # 2026-10-03: gpt-5 output was the largest line of the owner's bill.
+        post.return_value = _Response()
+        with mock.patch.dict(os.environ, {"OPENAI_MODEL": "gpt-5"}):
+            OpenAIProvider().generate("hello")
+        self.assertEqual({"effort": "low"}, post.call_args.kwargs["json"]["reasoning"])
+
+    @mock.patch("requests.post")
+    def test_reasoning_effort_can_be_overridden_or_disabled(self, post):
+        post.return_value = _Response()
+        with mock.patch.dict(os.environ, {"OPENAI_MODEL": "gpt-5-mini", "OPENAI_REASONING_EFFORT": "high"}):
+            OpenAIProvider().generate("hello")
+        self.assertEqual({"effort": "high"}, post.call_args.kwargs["json"]["reasoning"])
+        with mock.patch.dict(os.environ, {"OPENAI_MODEL": "gpt-5", "OPENAI_REASONING_EFFORT": ""}):
+            OpenAIProvider().generate("hello")
+        self.assertNotIn("reasoning", post.call_args.kwargs["json"])
+
+    @mock.patch("requests.post")
+    def test_models_outside_the_gpt5_family_never_receive_a_reasoning_setting(self, post):
+        post.return_value = _Response()
+        with mock.patch.dict(os.environ, {"OPENAI_MODEL": "gpt-4.1-mini"}):
+            OpenAIProvider().generate("hello")
+        self.assertNotIn("reasoning", post.call_args.kwargs["json"])
+
     def test_requires_api_key(self):
         with mock.patch.dict(os.environ, {"OPENAI_API_KEY": ""}, clear=False):
             with self.assertRaises(RuntimeError):

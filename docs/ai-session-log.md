@@ -88,10 +88,16 @@ Fixed: results are now cached per storyboard, keyed on the narration text
 `narration_preflight`), so unchanged storyboards cost nothing after the
 first measurement. Images are ~10-20/day (gpt-image-2 medium) and the
 final render synthesizes each scene once per assembly -- not changed.
-UNVERIFIED: the repo variable AI_PROVIDER (set in GitHub, unreadable
-without a token) -- if it is "openai", 17 scheduled workflows run gpt-5
-and that could dominate; the owner should check the OpenAI usage page
-grouped by model.
+RESOLVED by the owner's OpenAI usage screenshot (last 7 days, $14.41):
+gpt-5 text ~$7.5 (52%: output $7.14, input $0.35), gpt-image-2 ~$4.4
+(31%), gpt-4o-mini-tts ~$2.5 (17%). So AI_PROVIDER is "openai" and gpt-5
+is the biggest line; Oct 1-3 alone was $10.40 (~$3.5/day, ~$105/month at
+that rate), with gpt-5 and TTS spiking Oct 2-3. gpt-5 is a reasoning
+model whose hidden reasoning tokens bill as output; providers/openai.py
+sent no reasoning setting (default medium). Now sends
+`reasoning.effort` (default "low", env OPENAI_REASONING_EFFORT, gpt-5
+family only). Further saving the owner can opt into without code: set the
+GitHub repository variable OPENAI_MODEL to gpt-5-mini.
 
 ## 2026-09-30 — Claude Code — Pinned the remaining external-provider SDKs
 
