@@ -64,6 +64,20 @@ own experience, correct a common wrong belief first) without naming any
 channel, per the prompt's "do not imitate any creator" rule.
 Commits: 31fbf02 (hotfix), then the follow-up push below
 
+**Real blocker found afterwards (read this first):** after the timing fix
+every storyboard was STILL "returned to Story" in CI with
+`voice-synthesis-failed` on every scene, and the new speech annotation
+(commit 535ccd8) showed `openai-speech: HTTP 429 credit_balance_exhausted`.
+The OpenAI account behind OPENAI_API_KEY is out of credit, so both the
+narration-timing preflight (OpenAI TTS) and image generation (gpt-image-2)
+are stopped. Not fixable in code -- the owner must top up the OpenAI
+billing balance. The first failing run (2026-10-02 18:45 UTC) coincided
+with the first synthesized storyboard, which is why the timing bug looked
+like the whole story; both were real. Once credit is back, the hourly
+scene-production run resumes on its own with 9 storyboards waiting.
+A durable alert for provider credit exhaustion (SystemIntegrity/Telegram)
+is still to be built.
+
 ## 2026-09-30 — Claude Code — Pinned the remaining external-provider SDKs
 
 Follow-up suggestion after the google-genai incident above: `edge-tts`
