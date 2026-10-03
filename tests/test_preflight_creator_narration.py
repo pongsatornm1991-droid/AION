@@ -1,10 +1,11 @@
 import json
+import os
 import tempfile
 import unittest
 from pathlib import Path
 from unittest.mock import patch
 
-from tools.preflight_creator_narration import blocks_everything, preflight
+from tools.preflight_creator_narration import blocks_everything, narration_key, preflight
 
 
 class PreflightCreatorNarrationTests(unittest.TestCase):
@@ -138,9 +139,9 @@ class PreflightCreatorNarrationTests(unittest.TestCase):
             self.assertEqual(["too-long"], result["blocked"])
             self.assertFalse(blocks_everything(result))
             flagged = json.loads((directory / "too-long.json").read_text(encoding="utf-8"))
+            self.assertFalse(flagged["narration_preflight"]["eligible"])
             self.assertEqual(
-                {"eligible": False, "reasons": ["scene-9:narration-exceeds-safe-scene-window"]},
-                flagged["narration_preflight"],
+                ["scene-9:narration-exceeds-safe-scene-window"], flagged["narration_preflight"]["reasons"]
             )
             fits = json.loads((directory / "fits.json").read_text(encoding="utf-8"))
             self.assertNotIn("narration_preflight", fits)
@@ -151,4 +152,56 @@ class PreflightCreatorNarrationTests(unittest.TestCase):
         self.assertTrue(blocks_everything({"blocked": ["a"], "ready_for_images": []}))
         self.assertFalse(blocks_everything({"blocked": [], "ready_for_images": []}))
         self.assertFalse(blocks_everything({"blocked": ["a"], "ready_for_images": ["b"]}))
+
+    def test_an_unchanged_storyboard_is_not_re_measured_with_the_paid_voice(self):
+        # 2026-10-03: every run re-synthesized every scene of every waiting
+        # storyboard (10-14 runs a day) although neither narration nor voice
+        # had changed -- the largest avoidable speech spend.
+        with tempfile.TemporaryDirectory() as root:
+            directory = Path(root) / "content" / "creator_series"
+            directory.mkdir(parents=True)
+            base = {
+                "series": "A", "title": "Episode", "status": "storyboard-ready-needs-assets",
+                "format": "illustrated-narrated-short", "scene_seconds": 5, "target_duration_seconds": 15,
+                "audience_promise": "A clear benefit for curious viewers of every age.", "wonder_hook": "Why does this happen?",
+                "creative_device": "journey", "age_layers": {"children": "Ask", "family": "Talk", "deeper": "Test"},
+                "science_boundary": "A boundary.", "sources": [{"url": "https://one"}, {"url": "https://two"}],
+                "scenes": [{"n": n, "visual": "AION explores.", "narration": "AION asks."} for n in range(3)],
+            }
+            for name in ("fits", "too-long"):
+                (directory / f"{name}.json").write_text(json.dumps({**base, "id": name}), encoding="utf-8")
+
+            def repair(episode, *args, **kwargs):
+                if episode["id"] == "too-long":
+                    return {"eligible": False, "episode_id": "too-long", "reasons": ["scene-1:narration-exceeds-safe-scene-window"]}
+                return {"eligible": True, "episode_id": "fits", "scene_durations": [5, 5, 5]}
+
+            with patch("tools.preflight_creator_narration.NarrationPreflight.repair_episode_timing", side_effect=repair) as measure:
+                first = preflight(root=root, write_timeline=True)
+                self.assertEqual(2, measure.call_count)
+                second = preflight(root=root, write_timeline=True)
+                self.assertEqual(2, measure.call_count, "unchanged narration must not be measured (paid) again")
+            self.assertEqual(first["ready_for_images"], second["ready_for_images"])
+            self.assertEqual(first["blocked"], second["blocked"])
+            self.assertEqual(["scene-1:narration-exceeds-safe-scene-window"], second["reports"][1]["reasons"])
+
+            # A different narration is measured again...
+            edited = json.loads((directory / "too-long.json").read_text(encoding="utf-8"))
+            edited["scenes"][0]["narration"] = "A shorter line."
+            (directory / "too-long.json").write_text(json.dumps(edited), encoding="utf-8")
+            with patch("tools.preflight_creator_narration.NarrationPreflight.repair_episode_timing", side_effect=repair) as measure:
+                preflight(root=root, write_timeline=True)
+                self.assertEqual(1, measure.call_count)
+            # ...and so is the same narration under a different voice.
+            with patch.dict(os.environ, {"REEL_VOICE": "another-voice"}),                  patch("tools.preflight_creator_narration.NarrationPreflight.repair_episode_timing", side_effect=repair) as measure:
+                preflight(root=root, write_timeline=True)
+                self.assertEqual(2, measure.call_count)
+
+    def test_narration_key_depends_on_the_lines_and_the_voice(self):
+        episode = {"scene_seconds": 5, "scenes": [{"narration": "One."}, {"narration": "Two."}]}
+        same = narration_key(dict(episode))
+        self.assertEqual(same, narration_key({"scene_seconds": 5, "scenes": [{"narration": "One."}, {"narration": "Two."}]}))
+        self.assertNotEqual(same, narration_key({"scene_seconds": 5, "scenes": [{"narration": "One."}, {"narration": "Three."}]}))
+        with patch.dict(os.environ, {"REEL_VOICE_PROVIDER": "edge-tts"}):
+            self.assertNotEqual(same, narration_key(episode))
 

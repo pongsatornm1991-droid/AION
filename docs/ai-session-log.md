@@ -78,6 +78,21 @@ scene-production run resumes on its own with 9 storyboards waiting.
 A durable alert for provider credit exhaustion (SystemIntegrity/Telegram)
 is still to be built.
 
+Owner then asked why credit disappears so fast. What the repo controls:
+the preflight synthesized EVERY scene of EVERY waiting storyboard with the
+paid OpenAI voice on every scene-production run (10-14 runs/day, ~120
+speech calls per run with ~10 storyboards queued, no caching) -- the
+largest avoidable spend, and it grew while the stall piled storyboards up.
+Fixed: results are now cached per storyboard, keyed on the narration text
++ voice settings (`narration_key`, stored in `audio_visual_timeline` /
+`narration_preflight`), so unchanged storyboards cost nothing after the
+first measurement. Images are ~10-20/day (gpt-image-2 medium) and the
+final render synthesizes each scene once per assembly -- not changed.
+UNVERIFIED: the repo variable AI_PROVIDER (set in GitHub, unreadable
+without a token) -- if it is "openai", 17 scheduled workflows run gpt-5
+and that could dominate; the owner should check the OpenAI usage page
+grouped by model.
+
 ## 2026-09-30 — Claude Code — Pinned the remaining external-provider SDKs
 
 Follow-up suggestion after the google-genai incident above: `edge-tts`

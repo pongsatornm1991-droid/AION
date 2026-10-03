@@ -1,7 +1,9 @@
 """Reject timing-unsafe new Creator storyboards before image production."""
 
 import argparse
+import hashlib
 import json
+import os
 import sys
 from pathlib import Path
 
@@ -13,6 +15,44 @@ from brain.creator_series import CreatorSeriesRegistry
 from brain.narration_preflight import NarrationPreflight
 
 
+def narration_key(episode):
+    """Fingerprint of everything that decides an episode's measured timing.
+
+    The measurement synthesizes EVERY scene's line with the paid speech
+    provider. This workflow runs 10-14 times a day and used to re-measure
+    every waiting storyboard each time even though neither the narration nor
+    the voice had changed -- the single largest avoidable speech spend while
+    storyboards queue for images. The same text with the same voice measures
+    the same, so a stored result keyed on both is reused instead.
+    """
+    voice = "|".join(os.getenv(name, "") for name in (
+        "REEL_VOICE_PROVIDER", "REEL_VOICE", "OPENAI_TTS_MODEL", "OPENAI_TTS_INSTRUCTIONS",
+    ))
+    lines = "\n".join(str(scene.get("narration") or "").strip() for scene in episode.get("scenes") or [])
+    return hashlib.sha256(f"{voice}\n{episode.get('scene_seconds')}\n{lines}".encode("utf-8")).hexdigest()[:24]
+
+
+def _cached_report(episode):
+    """A previous result for this exact narration + voice, or None."""
+    key = narration_key(episode)
+    timeline = episode.get("audio_visual_timeline") or {}
+    scenes = episode.get("scenes") or []
+    durations = timeline.get("scene_durations") or []
+    if timeline.get("source") == "narration-preflight" and timeline.get("narration_key") == key             and len(durations) == len(scenes):
+        return {
+            "eligible": True, "state": "pass", "cached": True, "episode_id": episode.get("id"),
+            "checks": [], "reasons": [], "scene_durations": durations,
+            "timing_repair": {"attempted": False, "repaired_scenes": []},
+        }
+    flag = episode.get("narration_preflight") or {}
+    if flag.get("eligible") is False and flag.get("narration_key") == key:
+        return {
+            "eligible": False, "state": "return-to-story", "cached": True, "episode_id": episode.get("id"),
+            "checks": [], "reasons": flag.get("reasons") or ["timing-failed"],
+        }
+    return None
+
+
 def preflight(root=ROOT, write_timeline=False):
     reports = []
     # One episode that currently fails a content-policy check must not stop
@@ -20,6 +60,10 @@ def preflight(root=ROOT, write_timeline=False):
     # see brain/creator_series.py's episodes(skip_invalid=True) docstring.
     for episode in CreatorSeriesRegistry(root).episodes(skip_invalid=True):
         if episode.get("status") != "storyboard-ready-needs-assets":
+            continue
+        cached = _cached_report(episode)
+        if cached:
+            reports.append(cached)
             continue
         report = NarrationPreflight.repair_episode_timing(episode)
         reports.append(report)
@@ -57,6 +101,7 @@ def preflight(root=ROOT, write_timeline=False):
                 "source": "narration-preflight",
                 "scene_durations": durations,
                 "rendered_target_duration_seconds": round(sum(durations), 2),
+                "narration_key": narration_key(episode),
             }
             payload.pop("narration_preflight", None)
             path.write_text(json.dumps(payload, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
@@ -81,7 +126,10 @@ def _flag_blocked(root, episode, report):
     """
     path = Path(root) / str(episode["file"])
     payload = json.loads(path.read_text(encoding="utf-8"))
-    flag = {"eligible": False, "reasons": report.get("reasons") or ["timing-failed"]}
+    flag = {
+        "eligible": False, "reasons": report.get("reasons") or ["timing-failed"],
+        "narration_key": narration_key(episode),
+    }
     if payload.get("narration_preflight") == flag:
         return
     payload["narration_preflight"] = flag
