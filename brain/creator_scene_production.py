@@ -199,31 +199,32 @@ class CreatorSceneProduction:
             # a display case". Same style id on purpose: storyboards already
             # staged under it simply render in the new look.
             labels = (
-                "Floating holographic label cards (infographic callouts): show one to three small glassy "
-                "neon panels, each with a tiny icon and a thin arrow or line to the part it names. Any "
-                "text on a card must be one to three words taken verbatim from the Scene description or "
-                "the Documented claims above -- never invented -- spelled exactly, in a large, clean, "
-                "legible sans-serif. No other text, paragraphs, logos or watermark anywhere."
+                "Floating holographic label cards (infographic callouts): glassy, neon-bordered rounded "
+                "panels in pink, cyan, violet or yellow, each with a small icon (a tool, gear or "
+                "magnifier), a short title and thin arrows linking the card to the part it names; show two "
+                "to four per frame. The title is one to three words taken verbatim from the Scene "
+                "description or the Documented claims above -- never invented -- spelled exactly in a "
+                "clean, legible sans-serif; any other marks on a card are tiny abstract bars and icons, "
+                "not readable text. No other text, paragraphs, logos or watermark anywhere."
                 if labels_allowed else
                 "No text, letters, labels, logos, watermark or UI anywhere."
             )
             return (
-                "Style: AION Neon Diorama 3D—an original isometric tilt-shift miniature-world illustration "
-                "lit by neon and drawn in a clean flat-infographic explainer language. View: an elevated "
-                "three-quarter isometric camera looking down at a small self-contained 3D world built like "
-                "a stylised toy model, with tilt-shift depth of field (a sharp central band, gently blurred "
-                "top and bottom edges). The miniature world fills the whole frame; never draw a display "
-                "case, glass box, cabinet, picture frame, plinth or stand around it. Characters, creatures "
-                "and props: simplified, rounded, flat-shaded forms with clean thick dark outlines and gentle "
-                "glossy highlights -- a friendly explainer-cartoon look, never photorealistic. Colour and "
-                "light: a deep dark purple-to-near-black atmosphere with electric pink/magenta, cyan-blue "
-                "and violet neon as the dominant scheme, glowing rim lights along edges, emissive accents "
-                "(glowing crystals, light strips, lanterns, signs) and soft bloom; warm orange only for "
-                "natural fire or sunlight when the story needs it. One clear hero mechanism or subject "
-                "holds the viewer's eye, supported by at most three props that serve the story: rich but "
-                "never cluttered, readable at a glance in one second. Cyan beyond this palette is still "
-                "reserved only for AION's tiny glowing question-mark held in one hand, never a full body "
-                "colour. " + labels + " Never imitate a named artist, studio, channel, mascot or franchise."
+                "Style: AION Neon Diorama 3D—an original stylised cartoon miniature-world illustration lit "
+                "by neon, in the spirit of a richly detailed explainer-infographic scene. View: a slightly "
+                "elevated three-quarter camera looking into a small self-contained 3D world built like a "
+                "toy-model set, with gentle tilt-shift depth of field. The miniature world fills the whole "
+                "frame; never draw a display case, glass box, cabinet, picture frame, plinth or stand around "
+                "it. People, creatures and props: expressive stylised cartoon forms with soft cel shading, "
+                "clean defined outlines and gentle glossy highlights -- warm, friendly and readable, never "
+                "photorealistic. Rich, story-relevant set dressing is welcome (glowing crystals, mushrooms, "
+                "tools, containers, a warm fire), but the hero mechanism or subject is always the largest, "
+                "brightest and clearest element. Colour and light: a deep dark purple atmosphere with "
+                "electric pink/magenta, cyan-blue and violet neon as the dominant scheme, glowing crystals "
+                "and light strips with soft bloom, and warm orange only from natural fire or sunlight. "
+                "Cyan beyond this palette is still reserved only for AION's tiny glowing question-mark held "
+                "in one hand, never a full body colour. " + labels + " Never imitate a named artist, "
+                "studio, channel, mascot or franchise."
             )
         if style_id == "aion-vivid-storyworld-2d-v1":
             return (
@@ -310,23 +311,23 @@ class CreatorSceneProduction:
         """
         beat = str(beat or "")
         if style_id == "aion-neon-diorama-3d-v1":
-            # The isometric tilt-shift miniature has its own camera language
-            # (2026-10-05); the generic "quiet colour field" / "warm" wording
-            # below belongs to the older flat-wide styles and would fight it.
+            # This look has its own camera language (2026-10-05); the generic
+            # "quiet colour field" / "warm" wording below belongs to the older
+            # flat-wide styles and would fight it.
             if beat in DYNAMIC_HOOK_BEATS:
                 return (
-                    "a closer, lower isometric angle that pulls the viewer into the miniature world for this "
-                    "opening moment, the hero mechanism large and unmistakable, one to two label callouts"
+                    "a closer, slightly lower angle that pulls the viewer into the miniature world for this "
+                    "opening moment, the hero mechanism large and unmistakable, with one or two label callouts"
                 )
             if beat in DYNAMIC_REVEAL_BEATS:
                 return (
-                    "a dramatic high isometric angle with the strongest neon rim light, the revealed "
-                    "relationship drawn clearly with one arrow-led label callout that names it"
+                    "a dramatic higher angle with the strongest neon rim light, the revealed relationship "
+                    "drawn clearly, with an arrow-led label callout that names it"
                 )
             return (
-                "an elevated three-quarter isometric view of the miniature world, one immediately readable "
-                "hero mechanism at the centre, at most three supporting props, label callouts pointing at "
-                "the parts that matter; never make AION the hero of the frame"
+                "a slightly elevated three-quarter view into the miniature world, the hero mechanism at the "
+                "centre as its largest and brightest element, rich supporting set dressing around it, and two "
+                "to four label callouts pointing at the parts that matter; never make AION the hero of the frame"
             )
         if beat in DYNAMIC_HOOK_BEATS:
             return (

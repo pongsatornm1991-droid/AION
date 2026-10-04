@@ -35,6 +35,14 @@ spelling accuracy and the overall look are unseen -- the owner should review the
 first generated scenes once credit returns. Labels are English only. Touches
 creator_scene_production.py, which Codex has uncommitted edits in (separate
 hunks: his are the WatchabilityGate import and preflight).
+Follow-up the same day: the owner then sent the case-less frame of the
+reference ("ปรับสไตล์ภาพเป็นแบบนี้"). Compared with it, the first rewrite was too
+austere (flat-shaded shapes, "at most three props", strict isometric), so the
+description now says: stylised cartoon with soft cel shading and clean outlines,
+rich story-relevant set dressing (crystals, mushrooms, fire) with the hero
+mechanism still the largest/brightest, a slightly elevated three-quarter camera,
+and 2-4 label cards (icon + 1-3 word title + arrows; other marks abstract bars
+only).
 Commits: see git log
 
 ## 2026-10-04 — Claude Code — Fly-brain model, one brain_map config, workflow health on the map

@@ -226,9 +226,9 @@ class CreatorSceneProductionTests(unittest.TestCase):
         )
         # 2026-10-05: the isometric tilt-shift look has its own camera language;
         # the old "Calm Minimal" quiet-colour-field composition no longer applies.
-        self.assertIn("elevated three-quarter isometric view of the miniature world", prompt)
-        self.assertIn("one immediately readable hero mechanism", prompt)
-        self.assertIn("at most three supporting props", prompt)
+        self.assertIn("slightly elevated three-quarter view into the miniature world", prompt)
+        self.assertIn("largest and brightest element", prompt)
+        self.assertIn("two to four label callouts", prompt)
         self.assertIn("AION Neon Diorama 3D", prompt)
         self.assertNotIn("Calm Minimal composition layer", prompt)
         self.assertNotIn("quiet colour field", prompt)
@@ -258,9 +258,11 @@ class CreatorSceneProductionTests(unittest.TestCase):
         # Owner, 2026-10-05 (reference video): isometric tilt-shift toy-model world
         # + pink/cyan/violet neon + flat explainer cartoon with thick outlines and
         # floating label callouts -- and NOT inside a display case.
-        self.assertIn("isometric tilt-shift miniature-world", prompt)
-        self.assertIn("tilt-shift depth of field", prompt)
-        self.assertIn("clean thick dark outlines", prompt)
+        self.assertIn("stylised cartoon miniature-world illustration", prompt)
+        self.assertIn("gentle tilt-shift depth of field", prompt)
+        self.assertIn("soft cel shading", prompt)
+        self.assertIn("clean defined outlines", prompt)
+        self.assertIn("Rich, story-relevant set dressing is welcome", prompt)
         self.assertIn("electric pink/magenta", prompt)
         self.assertIn("cyan-blue and violet neon", prompt)
         self.assertIn("never draw a display case, glass box, cabinet", prompt)
@@ -273,7 +275,8 @@ class CreatorSceneProductionTests(unittest.TestCase):
             episode, {"beat": "evidence-one-a", "visual": "Magma rises under a thin crust."}
         )
         self.assertIn("Floating holographic label cards", prompt)
-        self.assertIn("taken verbatim from the Scene description or the Documented claims", prompt)
+        self.assertIn("neon-bordered rounded panels", prompt)
+        self.assertIn("taken verbatim from the Scene", prompt)
         self.assertIn("never invented", prompt)
         # The old blanket ban must not contradict the labels in the same prompt.
         self.assertNotIn("No words, captions, logos, watermark, UI, or named-studio imitation.", prompt)
