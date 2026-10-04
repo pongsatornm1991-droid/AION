@@ -1,10 +1,10 @@
 {
-  "generated_at": "2026-10-04T02:49:35.728461+00:00",
+  "generated_at": "2026-10-04T02:51:11.480743+00:00",
   "tiles": {
     "total": 37,
-    "ok": 29,
+    "ok": 30,
     "attn": 1,
-    "running": 3
+    "running": 2
   },
   "groups": [
     {
@@ -77,8 +77,8 @@
         {
           "name": "AION - external learning cycle",
           "file": "learning-cycle.yml",
-          "status_class": "running",
-          "status_label": "กำลังรัน",
+          "status_class": "success",
+          "status_label": "สำเร็จ",
           "html_url": "https://github.com/pongsatornm1991-droid/AION/actions/runs/37172143576",
           "created_at": "2026-10-04T02:47:48Z"
         }
