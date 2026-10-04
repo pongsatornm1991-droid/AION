@@ -12,8 +12,15 @@ Each 50–180 second Short begins with an ordinary question, follows evidence
 through at least 10 distinct visual beats, and separates sourced fact from
 AION's reflection. The automatic lane accepts only the channel signature
 `aion-neon-diorama-3d-v1` after its Quality Gate passes.
-It uses cinematic neon realism: one factual mechanism in an atmospheric 3D
-setting with believable materials and lighting, never a generic toy cutaway.
+The look (revised 2026-10-05 from the owner's reference video) blends three
+things: an isometric tilt-shift miniature world seen from above like a toy
+model, pink/cyan/violet neon glow with glowing rim light, and a flat
+infographic explainer language -- simple characters with thick dark outlines
+and floating holographic label callouts that name the parts of the mechanism
+(one to three words, taken verbatim from the scene and its documented claims,
+never invented). The world fills the frame: no display case, glass box or
+stand around it. Thumbnails carry no label text. One factual mechanism per
+frame, never a generic toy cutaway.
 
 The first production-ready script is
 `content/creator_series/aion-wonders-001-petrichor.json`.

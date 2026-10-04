@@ -224,10 +224,14 @@ class CreatorSceneProductionTests(unittest.TestCase):
         prompt = CreatorSceneProduction()._prompt(
             episode, {"beat": "evidence-one-a", "visual": "A single bubble becomes round."}
         )
-        self.assertIn("Calm Minimal composition layer", prompt)
-        self.assertIn("one hero object/mechanism", prompt)
-        self.assertIn("no more than two supporting objects", prompt)
+        # 2026-10-05: the isometric tilt-shift look has its own camera language;
+        # the old "Calm Minimal" quiet-colour-field composition no longer applies.
+        self.assertIn("elevated three-quarter isometric view of the miniature world", prompt)
+        self.assertIn("one immediately readable hero mechanism", prompt)
+        self.assertIn("at most three supporting props", prompt)
         self.assertIn("AION Neon Diorama 3D", prompt)
+        self.assertNotIn("Calm Minimal composition layer", prompt)
+        self.assertNotIn("quiet colour field", prompt)
 
     def test_scene_prompt_carries_the_picture_first_reveal_contract(self):
         episode = {
@@ -251,15 +255,46 @@ class CreatorSceneProductionTests(unittest.TestCase):
             episode, {"visual": "A bioluminescent jellyfish pulses in the deep sea."}
         )
         self.assertIn("AION Neon Diorama 3D", prompt)
-        self.assertIn("cinematic 3D-rendered miniature-world", prompt)
-        self.assertIn("believable wet metal, stone, glass, water, soil, weather and light", prompt)
-        self.assertIn("shallow depth of field", prompt)
+        # Owner, 2026-10-05 (reference video): isometric tilt-shift toy-model world
+        # + pink/cyan/violet neon + flat explainer cartoon with thick outlines and
+        # floating label callouts -- and NOT inside a display case.
+        self.assertIn("isometric tilt-shift miniature-world", prompt)
+        self.assertIn("tilt-shift depth of field", prompt)
+        self.assertIn("clean thick dark outlines", prompt)
         self.assertIn("electric pink/magenta", prompt)
-        self.assertIn("REPLACES the channel's usual restrained palette", prompt)
-        self.assertIn("Calm Minimal composition layer", prompt)
-        self.assertIn("no more than two supporting objects", prompt)
-        self.assertIn("cyan", prompt)
+        self.assertIn("cyan-blue and violet neon", prompt)
+        self.assertIn("never draw a display case, glass box, cabinet", prompt)
         self.assertIn("never a full body colour", prompt)
+
+    def test_scene_prompts_allow_label_cards_but_only_with_words_from_the_scene(self):
+        episode = {"format": "illustrated-narrated-short", "visual_direction": {},
+                   "visual_style": {"id": "aion-neon-diorama-3d-v1"}}
+        prompt = CreatorSceneProduction()._prompt(
+            episode, {"beat": "evidence-one-a", "visual": "Magma rises under a thin crust."}
+        )
+        self.assertIn("Floating holographic label cards", prompt)
+        self.assertIn("taken verbatim from the Scene description or the Documented claims", prompt)
+        self.assertIn("never invented", prompt)
+        # The old blanket ban must not contradict the labels in the same prompt.
+        self.assertNotIn("No words, captions, logos, watermark, UI, or named-studio imitation.", prompt)
+        self.assertIn("Beyond the label cards described in the style", prompt)
+
+    def test_a_guide_beat_keeps_the_label_allowance_consistent(self):
+        episode = {"format": "illustrated-narrated-short",
+                   "visual_direction": {"aion_presence_beats": ["hook"]},
+                   "visual_style": {"id": "aion-neon-diorama-3d-v1"}}
+        prompt = CreatorSceneProduction()._prompt(
+            episode, {"beat": "hook", "visual": "AION notices magma under a thin crust."}
+        )
+        self.assertIn("the only text allowed is the floating label cards", prompt)
+        self.assertNotIn("No embedded text, logos, watermark", prompt)
+
+    def test_other_styles_keep_their_blanket_no_text_rule(self):
+        episode = {"format": "illustrated-narrated-short", "visual_direction": {},
+                   "visual_style": {"id": "aion-neon-vector-shorts-v1"}}
+        prompt = CreatorSceneProduction()._prompt(episode, {"beat": "evidence-one-a", "visual": "A bubble."})
+        self.assertIn("No words, captions, logos, watermark, UI, or named-studio imitation.", prompt)
+        self.assertNotIn("Floating holographic label cards", prompt)
         self.assertIn("never imitate a named artist, studio, channel, mascot or franchise", prompt)
 
     def test_neon_diorama_3d_cover_matches_the_scene_style_instead_of_warm_3d(self):
@@ -273,6 +308,9 @@ class CreatorSceneProductionTests(unittest.TestCase):
         self.assertIn("AION Neon Diorama 3D", cover_prompt)
         self.assertNotIn("warm 3D educational storytelling with rounded appealing forms", cover_prompt)
         self.assertNotIn("do not use grey wash, neon clutter", cover_prompt)
+        # A thumbnail carries no label cards: the YouTube title does that job.
+        self.assertNotIn("Floating holographic label cards", cover_prompt)
+        self.assertIn("No text, letters, labels, logos, watermark or UI anywhere.", cover_prompt)
 
     def test_thoughtscape_direction_is_specific_to_the_story_without_copying_a_style(self):
         episode = {"format": "illustrated-narrated-short", "visual_direction": {},

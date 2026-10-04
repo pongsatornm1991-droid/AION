@@ -126,12 +126,17 @@ class VisualStoryPolicy:
         return {"eligible": not reasons, "reasons": reasons, "version": cls.VERSION}
 
     @classmethod
-    def prompt_rules(cls, context, frame_share=None):
+    def prompt_rules(cls, context, frame_share=None, allow_labels=False):
         target_share = float(frame_share or cls.DEFAULT_AION_FRAME_SHARE)
         return (
             f"Visual focus: the historical/scientific subject and environment are primary; "
             f"AION is a {cls.DEFAULT_AION_ROLE}, usually at most {int(target_share * 100)}% "
             f"of the frame when present. Wardrobe: {context}. Use a new scene-specific image. "
             f"Colour direction: {cls.COLOR_DIRECTION} "
-            "No embedded text, logos, watermark, or celebrity/studio imitation."
+            + (
+                "No logos, watermark, or celebrity/studio imitation; the only text allowed is the floating "
+                "label cards the style describes."
+                if allow_labels else
+                "No embedded text, logos, watermark, or celebrity/studio imitation."
+            )
         )

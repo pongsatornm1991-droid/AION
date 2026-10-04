@@ -13,6 +13,30 @@ Format:
 Commits: <hash> [, <hash> ...]
 ```
 
+## 2026-10-05 — Claude Code — New image style: isometric neon diorama + flat infographic labels
+
+Owner shared a reference video (a neon-lit cave diorama inside a glass case with
+holographic label cards -- "Obsidian Blade", "Spear Thrower"...) and asked for
+the style without the display case, combining (1) isometric/tilt-shift toy-model
+miniature, (2) pink-cyan-purple neon glow, (3) Kurzgesagt-style flat characters
+with thick dark outlines and floating label callouts. Rewrote the
+`aion-neon-diorama-3d-v1` description in `CreatorSceneProduction._style_rule`
+IN PLACE (same id, so the 9 storyboards already staged under it, which have no
+images yet, simply render in the new look) with a new isometric composition
+language in `_composition_direction(beat, style_id)`. Text in images: the old
+rules banned ALL text (style, `_prompt` footer, `VisualStoryPolicy.prompt_rules`),
+which contradicted label cards, so for this style scene prompts now allow 1-3
+holographic label cards whose words must be 1-3 words taken verbatim from the
+Scene description or Documented claims (never invented), while covers keep
+"no text anywhere" and every other style keeps the blanket ban (guarded by
+tests). `prompt_rules` gained `allow_labels`. NOT verified: no image has been
+generated in the new style (OpenAI credit exhausted, no key locally), so label
+spelling accuracy and the overall look are unseen -- the owner should review the
+first generated scenes once credit returns. Labels are English only. Touches
+creator_scene_production.py, which Codex has uncommitted edits in (separate
+hunks: his are the WatchabilityGate import and preflight).
+Commits: see git log
+
 ## 2026-10-04 — Claude Code — Fly-brain model, one brain_map config, workflow health on the map
 
 Owner read about the fruit-fly brain (fully mapped connectome, FlyWire 2024)
