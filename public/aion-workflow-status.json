@@ -1,10 +1,10 @@
 {
-  "generated_at": "2026-10-05T09:14:42.037611+00:00",
+  "generated_at": "2026-10-05T09:15:38.119880+00:00",
   "tiles": {
     "total": 44,
-    "ok": 37,
+    "ok": 38,
     "attn": 1,
-    "running": 2
+    "running": 1
   },
   "groups": [
     {
@@ -153,14 +153,14 @@
           "file": "automation-health.yml",
           "status_class": "success",
           "status_label": "ไม่มีเหตุให้ดำเนินการ",
-          "html_url": "https://github.com/pongsatornm1991-droid/AION/actions/runs/37288545154",
-          "created_at": "2026-10-05T09:12:49Z"
+          "html_url": "https://github.com/pongsatornm1991-droid/AION/actions/runs/37288736305",
+          "created_at": "2026-10-05T09:14:35Z"
         },
         {
           "name": "AION - Cyber Guard defensive audit",
           "file": "cyber-guard.yml",
-          "status_class": "running",
-          "status_label": "กำลังรัน",
+          "status_class": "success",
+          "status_label": "สำเร็จ",
           "html_url": "https://github.com/pongsatornm1991-droid/AION/actions/runs/37288666605",
           "created_at": "2026-10-05T09:13:56Z"
         },
@@ -201,8 +201,8 @@
           "file": "publish-workflow-status.yml",
           "status_class": "running",
           "status_label": "กำลังรัน",
-          "html_url": "https://github.com/pongsatornm1991-droid/AION/actions/runs/37288570024",
-          "created_at": "2026-10-05T09:13:03Z"
+          "html_url": "https://github.com/pongsatornm1991-droid/AION/actions/runs/37288736334",
+          "created_at": "2026-10-05T09:14:35Z"
         },
         {
           "name": "AION - system reliability",
@@ -279,8 +279,8 @@
           "file": "youtube-release-watchdog.yml",
           "status_class": "success",
           "status_label": "สำเร็จ",
-          "html_url": "https://github.com/pongsatornm1991-droid/AION/actions/runs/37288469383",
-          "created_at": "2026-10-05T09:12:06Z"
+          "html_url": "https://github.com/pongsatornm1991-droid/AION/actions/runs/37288742424",
+          "created_at": "2026-10-05T09:14:39Z"
         },
         {
           "name": "AION - YouTube release-window recovery",
