@@ -1,10 +1,10 @@
 {
-  "generated_at": "2026-10-05T01:05:57.872665+00:00",
+  "generated_at": "2026-10-05T01:06:57.275180+00:00",
   "tiles": {
     "total": 46,
-    "ok": 38,
+    "ok": 39,
     "attn": 1,
-    "running": 4
+    "running": 3
   },
   "groups": [
     {
@@ -87,8 +87,8 @@
           "file": "learning-cycle.yml",
           "status_class": "running",
           "status_label": "กำลังรัน",
-          "html_url": "https://github.com/pongsatornm1991-droid/AION/actions/runs/37249982129",
-          "created_at": "2026-10-05T01:04:54Z"
+          "html_url": "https://github.com/pongsatornm1991-droid/AION/actions/runs/37250057218",
+          "created_at": "2026-10-05T01:05:57Z"
         }
       ]
     },
@@ -183,10 +183,10 @@
         {
           "name": "AION - delivery evidence watchdog",
           "file": "publish-delivery-status.yml",
-          "status_class": "success",
-          "status_label": "สำเร็จ",
-          "html_url": "https://github.com/pongsatornm1991-droid/AION/actions/runs/37239782821",
-          "created_at": "2026-10-04T22:22:39Z"
+          "status_class": "running",
+          "status_label": "กำลังรัน",
+          "html_url": "https://github.com/pongsatornm1991-droid/AION/actions/runs/37250057760",
+          "created_at": "2026-10-05T01:05:58Z"
         },
         {
           "name": "AION - deterministic tests",
@@ -237,8 +237,8 @@
         {
           "name": "AION - Creator release readiness",
           "file": "release-readiness.yml",
-          "status_class": "running",
-          "status_label": "กำลังรัน",
+          "status_class": "success",
+          "status_label": "สำเร็จ",
           "html_url": "https://github.com/pongsatornm1991-droid/AION/actions/runs/37250000579",
           "created_at": "2026-10-05T01:05:10Z"
         },
@@ -389,8 +389,8 @@
         {
           "name": "AION - production control",
           "file": "production-control.yml",
-          "status_class": "running",
-          "status_label": "กำลังรัน",
+          "status_class": "success",
+          "status_label": "สำเร็จ",
           "html_url": "https://github.com/pongsatornm1991-droid/AION/actions/runs/37250000581",
           "created_at": "2026-10-05T01:05:10Z"
         },
