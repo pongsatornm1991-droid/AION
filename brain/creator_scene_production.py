@@ -171,6 +171,11 @@ class CreatorSceneProduction:
     def _safe_name(scene):
         return str(scene.get("beat") or "scene").replace("/", "-").replace(" ", "-")
 
+    # Holographic label callouts for the diorama style. Off: the clip the owner
+    # liked (2026-10-05) has none. Flip to True to bring them back, prompts and
+    # the no-text rules follow.
+    LABEL_CARDS = False
+
     def _style_rule(self, visual_style, deliberation=None, labels_allowed=False):
         deliberation = deliberation or visual_style.get("aion_deliberation") or {}
         style_id = visual_style.get("id")
@@ -192,12 +197,13 @@ class CreatorSceneProduction:
                 "imitate a named artist, studio, channel, mascot or franchise."
             )
         if style_id == "aion-neon-diorama-3d-v1":
-            # Owner, 2026-10-05, from a reference video: blend (1) an isometric
-            # tilt-shift toy-model miniature world, (2) pink/cyan/violet neon glow
-            # and (3) the Kurzgesagt-style flat explainer look -- thick-outlined
-            # simple characters with floating label callouts -- "but not inside
-            # a display case". Same style id on purpose: storyboards already
-            # staged under it simply render in the new look.
+            # Owner, 2026-10-05: first a neon-diorama reference, then -- shown a
+            # finished clip made elsewhere (a firelit stone-age cave, Morocco) --
+            # "I like this style". That look is a warm, richly dressed 3D
+            # storybook world, not a neon one, so the description follows the
+            # clip. Same style id on purpose: storyboards already staged under
+            # it simply render in the new look. Label cards stay available
+            # behind LABEL_CARDS but are off, since the liked clip has none.
             labels = (
                 "Floating holographic label cards (infographic callouts): glassy, neon-bordered rounded "
                 "panels in pink, cyan, violet or yellow, each with a small icon (a tool, gear or "
@@ -210,21 +216,22 @@ class CreatorSceneProduction:
                 "No text, letters, labels, logos, watermark or UI anywhere."
             )
             return (
-                "Style: AION Neon Diorama 3D—an original stylised cartoon miniature-world illustration lit "
-                "by neon, in the spirit of a richly detailed explainer-infographic scene. View: a slightly "
-                "elevated three-quarter camera looking into a small self-contained 3D world built like a "
-                "toy-model set, with gentle tilt-shift depth of field. The miniature world fills the whole "
-                "frame; never draw a display case, glass box, cabinet, picture frame, plinth or stand around "
-                "it. People, creatures and props: expressive stylised cartoon forms with soft cel shading, "
-                "clean defined outlines and gentle glossy highlights -- warm, friendly and readable, never "
-                "photorealistic. Rich, story-relevant set dressing is welcome (glowing crystals, mushrooms, "
-                "tools, containers, a warm fire), but the hero mechanism or subject is always the largest, "
-                "brightest and clearest element. Colour and light: a deep dark purple atmosphere with "
-                "electric pink/magenta, cyan-blue and violet neon as the dominant scheme, glowing crystals "
-                "and light strips with soft bloom, and warm orange only from natural fire or sunlight. "
-                "Cyan beyond this palette is still reserved only for AION's tiny glowing question-mark held "
-                "in one hand, never a full body colour. " + labels + " Never imitate a named artist, "
-                "studio, channel, mascot or franchise."
+                "Style: AION Warm Diorama 3D\u2014an original stylised 3D animated-storybook illustration, "
+                "like a frame from a high-end family animated film: soft rounded character forms with "
+                "slightly large expressive eyes, believable skin, hair, fur, leather and stone textures, "
+                "gentle subsurface glow and soft global illumination. View: a natural cinematic camera "
+                "slightly above eye level looking into a richly detailed, lived-in set built like a "
+                "hand-made miniature world with shallow depth of field; the set fills the whole frame and "
+                "is never shown inside a display case, glass box, picture frame, plinth or stand. Dense, "
+                "story-relevant set dressing (tools, containers, plants, props, small background "
+                "activity) makes the world feel inhabited, but the hero subject or mechanism stays the "
+                "clearest, best-lit element and the eye lands on it first. Colour and light: motivated, "
+                "warm lighting -- amber and golden firelight or sunlight against deep violet-blue shadows, "
+                "with soft volumetric haze and drifting embers or dust; saturated but natural colours, "
+                "and neon pink, cyan or violet only as small accents such as glowing crystals or "
+                "bioluminescence. Cyan beyond this is still reserved only for AION's tiny glowing "
+                "question-mark held in one hand, never a full body colour. " + labels + " Never imitate "
+                "a named artist, studio, channel, mascot or franchise."
             )
         if style_id == "aion-vivid-storyworld-2d-v1":
             return (
@@ -311,23 +318,23 @@ class CreatorSceneProduction:
         """
         beat = str(beat or "")
         if style_id == "aion-neon-diorama-3d-v1":
-            # This look has its own camera language (2026-10-05); the generic
-            # "quiet colour field" / "warm" wording below belongs to the older
+            # This look has its own cinematic camera language (2026-10-05); the
+            # generic "quiet colour field" wording below belongs to the older
             # flat-wide styles and would fight it.
             if beat in DYNAMIC_HOOK_BEATS:
                 return (
-                    "a closer, slightly lower angle that pulls the viewer into the miniature world for this "
-                    "opening moment, the hero mechanism large and unmistakable, with one or two label callouts"
+                    "a closer, slightly lower cinematic angle that pulls the viewer into the set for this "
+                    "opening moment, the hero subject large, expressive and unmistakable"
                 )
             if beat in DYNAMIC_REVEAL_BEATS:
                 return (
-                    "a dramatic higher angle with the strongest neon rim light, the revealed relationship "
-                    "drawn clearly, with an arrow-led label callout that names it"
+                    "a more dramatic angle with the strongest motivated light on the revealed relationship, "
+                    "drawn clearly so the cause and effect can be seen at a glance"
                 )
             return (
-                "a slightly elevated three-quarter view into the miniature world, the hero mechanism at the "
-                "centre as its largest and brightest element, rich supporting set dressing around it, and two "
-                "to four label callouts pointing at the parts that matter; never make AION the hero of the frame"
+                "a natural cinematic medium-wide view slightly above eye level, the hero subject or "
+                "mechanism the clearest and best-lit element, rich lived-in set dressing around it, "
+                "warm light against cool shadow; never make AION the hero of the frame"
             )
         if beat in DYNAMIC_HOOK_BEATS:
             return (
@@ -377,8 +384,8 @@ class CreatorSceneProduction:
         narrative_plan = episode.get("visual_narrative") or {}
         reveal_plan = narrative_plan.get("reveal") or {}
         deliberation = visual_style.get("aion_deliberation") or {}
-        style_rule = self._style_rule(visual_style, deliberation, labels_allowed=True)
-        neon = visual_style.get("id") == "aion-neon-diorama-3d-v1"
+        style_rule = self._style_rule(visual_style, deliberation, labels_allowed=self.LABEL_CARDS)
+        neon = self.LABEL_CARDS and visual_style.get("id") == "aion-neon-diorama-3d-v1"
         return " ".join((
             f"Use case: historical-scene. Asset type: {aspect} educational video scene.",
             f"Scene: {scene.get('visual')}",

@@ -13,6 +13,24 @@ Format:
 Commits: <hash> [, <hash> ...]
 ```
 
+## 2026-10-05 — Claude Code — Image style follows the clip the owner liked (warm 3D storybook)
+
+Owner made a 2:30 clip on meta.ai (firelit stone-age cave, Morocco; 720x1280, burned-in
+English subs, music) and said "I like this style". Frames show a warm, stylised 3D
+animated-storybook look -- soft rounded characters, dense lived-in set, amber firelight
+against violet shadow, no label text -- not the neon/infographic look from earlier today.
+Rewrote the `aion-neon-diorama-3d-v1` description and its composition direction in place
+(same id, so staged storyboards just render in the new look; style is now named "AION Warm
+Diorama 3D"). Label cards are kept behind `CreatorSceneProduction.LABEL_CARDS`, now False:
+no label text in scene images, the blanket no-text rule applies again. NOT verified with
+real images (OpenAI credit still exhausted): check the first generated scenes once credit
+returns. Also researched meta.ai: `api.meta.ai/v1` offers text and image (`muse-image-1.0`)
+but no video generation in its docs; a muse-image provider is a possible fallback while
+OpenAI credit is out, not built. The clip itself is posted by the owner by hand, not via
+the pipeline. Touches creator_scene_production.py (Codex has uncommitted edits in other
+hunks), tests/test_creator_scene_production.py, docs/YOUTUBE_CHANNEL.md.
+Commits: see git log
+
 ## 2026-10-05 — Claude Code — New image style: isometric neon diorama + flat infographic labels
 
 Owner shared a reference video (a neon-lit cave diorama inside a glass case with

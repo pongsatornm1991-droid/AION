@@ -12,16 +12,15 @@ Each 50–180 second Short begins with an ordinary question, follows evidence
 through at least 10 distinct visual beats, and separates sourced fact from
 AION's reflection. The automatic lane accepts only the channel signature
 `aion-neon-diorama-3d-v1` after its Quality Gate passes.
-The look (revised 2026-10-05 from the owner's reference video and then the
-case-less frame of it) is a stylised cartoon miniature world seen from a slightly
-elevated three-quarter angle with gentle tilt-shift depth: soft-shaded, clean-
-outlined cartoon people and props in a dense, glowing set (crystals, mushrooms,
-a warm fire), lit with pink/cyan/violet neon and rim glow, plus floating
-holographic label cards (icon, one-to-three-word title, arrows) that name the
-parts of the mechanism, using only words from the scene and its documented
-claims. The world fills the frame: no display case, glass box or stand around
-it. Thumbnails carry no label text. The hero mechanism is always the largest and
-brightest element, never a generic toy cutaway.
+The look (revised 2026-10-05 after the owner shared a finished clip they liked) is a
+warm, stylised 3D animated-storybook world: soft rounded characters with
+expressive eyes and believable textures in a dense, lived-in, hand-made-miniature
+set, lit by motivated amber firelight or sunlight against deep violet-blue shadow
+with soft haze and embers, and neon only as small accents (glowing crystals,
+bioluminescence). A natural cinematic camera slightly above eye level; the set
+fills the frame with no display case, glass box or stand. The hero subject is
+always the clearest, best-lit element. No text in the image: floating label cards
+exist in code (`CreatorSceneProduction.LABEL_CARDS`) but are off.
 
 The first production-ready script is
 `content/creator_series/aion-wonders-001-petrichor.json`.
