@@ -1,10 +1,10 @@
 {
-  "generated_at": "2026-10-05T17:26:57.980916+00:00",
+  "generated_at": "2026-10-05T17:28:07.414304+00:00",
   "tiles": {
     "total": 46,
-    "ok": 38,
+    "ok": 41,
     "attn": 1,
-    "running": 5
+    "running": 2
   },
   "groups": [
     {
@@ -22,8 +22,8 @@
         {
           "name": "AION - YouTube Creator Studio",
           "file": "youtube-creator.yml",
-          "status_class": "running",
-          "status_label": "กำลังรัน",
+          "status_class": "success",
+          "status_label": "สำเร็จ",
           "html_url": "https://github.com/pongsatornm1991-droid/AION/actions/runs/37348359085",
           "created_at": "2026-10-05T17:25:49Z"
         },
@@ -85,8 +85,8 @@
         {
           "name": "AION - external learning cycle",
           "file": "learning-cycle.yml",
-          "status_class": "running",
-          "status_label": "กำลังรัน",
+          "status_class": "success",
+          "status_label": "สำเร็จ",
           "html_url": "https://github.com/pongsatornm1991-droid/AION/actions/runs/37348364916",
           "created_at": "2026-10-05T17:25:52Z"
         },
@@ -389,8 +389,8 @@
         {
           "name": "AION - production control",
           "file": "production-control.yml",
-          "status_class": "running",
-          "status_label": "กำลังรัน",
+          "status_class": "success",
+          "status_label": "สำเร็จ",
           "html_url": "https://github.com/pongsatornm1991-droid/AION/actions/runs/37348410945",
           "created_at": "2026-10-05T17:26:14Z"
         },
