@@ -1,10 +1,10 @@
 {
-  "generated_at": "2026-10-08T17:46:04.872119+00:00",
+  "generated_at": "2026-10-08T17:47:10.514372+00:00",
   "tiles": {
     "total": 45,
-    "ok": 40,
+    "ok": 42,
     "attn": 1,
-    "running": 3
+    "running": 1
   },
   "groups": [
     {
@@ -153,8 +153,8 @@
           "file": "automation-health.yml",
           "status_class": "success",
           "status_label": "ไม่มีเหตุให้ดำเนินการ",
-          "html_url": "https://github.com/pongsatornm1991-droid/AION/actions/runs/37818994613",
-          "created_at": "2026-10-08T17:45:14Z"
+          "html_url": "https://github.com/pongsatornm1991-droid/AION/actions/runs/37819122813",
+          "created_at": "2026-10-08T17:46:13Z"
         },
         {
           "name": "AION - Cyber Guard defensive audit",
@@ -191,8 +191,8 @@
         {
           "name": "AION - delivery evidence watchdog",
           "file": "publish-delivery-status.yml",
-          "status_class": "running",
-          "status_label": "กำลังรัน",
+          "status_class": "success",
+          "status_label": "สำเร็จ",
           "html_url": "https://github.com/pongsatornm1991-droid/AION/actions/runs/37818994887",
           "created_at": "2026-10-08T17:45:14Z"
         },
@@ -209,8 +209,8 @@
           "file": "publish-workflow-status.yml",
           "status_class": "running",
           "status_label": "กำลังรัน",
-          "html_url": "https://github.com/pongsatornm1991-droid/AION/actions/runs/37818975019",
-          "created_at": "2026-10-08T17:45:06Z"
+          "html_url": "https://github.com/pongsatornm1991-droid/AION/actions/runs/37819078172",
+          "created_at": "2026-10-08T17:45:52Z"
         }
       ]
     },
@@ -277,8 +277,8 @@
         {
           "name": "AION - YouTube release watchdog",
           "file": "youtube-release-watchdog.yml",
-          "status_class": "running",
-          "status_label": "กำลังรัน",
+          "status_class": "success",
+          "status_label": "สำเร็จ",
           "html_url": "https://github.com/pongsatornm1991-droid/AION/actions/runs/37819024387",
           "created_at": "2026-10-08T17:45:27Z"
         },
