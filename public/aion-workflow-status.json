@@ -1,10 +1,10 @@
 {
-  "generated_at": "2026-10-07T23:17:40.614877+00:00",
+  "generated_at": "2026-10-08T01:27:38.290084+00:00",
   "tiles": {
     "total": 45,
-    "ok": 41,
-    "attn": 1,
-    "running": 2
+    "ok": 40,
+    "attn": 0,
+    "running": 4
   },
   "groups": [
     {
@@ -38,11 +38,10 @@
         {
           "name": "AION - subject-first scene production",
           "file": "creator-scene-production.yml",
-          "status_class": "failure",
-          "status_label": "ล้มเหลว",
-          "html_url": "https://github.com/pongsatornm1991-droid/AION/actions/runs/37693981311",
-          "created_at": "2026-10-07T22:06:19Z",
-          "detail": "ขั้นที่ล้มเหลว: Verify actual narration timing before creating scene images"
+          "status_class": "running",
+          "status_label": "กำลังรัน",
+          "html_url": "https://github.com/pongsatornm1991-droid/AION/actions/runs/37712957374",
+          "created_at": "2026-10-08T01:26:41Z"
         }
       ]
     },
@@ -55,8 +54,8 @@
           "file": "research-to-story.yml",
           "status_class": "success",
           "status_label": "สำเร็จ",
-          "html_url": "https://github.com/pongsatornm1991-droid/AION/actions/runs/37693876467",
-          "created_at": "2026-10-07T22:05:23Z"
+          "html_url": "https://github.com/pongsatornm1991-droid/AION/actions/runs/37712893509",
+          "created_at": "2026-10-08T01:25:54Z"
         },
         {
           "name": "AION - Scientific Discovery Lab",
@@ -153,8 +152,8 @@
           "file": "automation-health.yml",
           "status_class": "success",
           "status_label": "ไม่มีเหตุให้ดำเนินการ",
-          "html_url": "https://github.com/pongsatornm1991-droid/AION/actions/runs/37701375165",
-          "created_at": "2026-10-07T23:17:05Z"
+          "html_url": "https://github.com/pongsatornm1991-droid/AION/actions/runs/37712957400",
+          "created_at": "2026-10-08T01:26:41Z"
         },
         {
           "name": "AION - Cyber Guard defensive audit",
@@ -209,8 +208,8 @@
           "file": "publish-workflow-status.yml",
           "status_class": "running",
           "status_label": "กำลังรัน",
-          "html_url": "https://github.com/pongsatornm1991-droid/AION/actions/runs/37701353514",
-          "created_at": "2026-10-07T23:16:52Z"
+          "html_url": "https://github.com/pongsatornm1991-droid/AION/actions/runs/37712957382",
+          "created_at": "2026-10-08T01:26:41Z"
         }
       ]
     },
@@ -229,26 +228,26 @@
         {
           "name": "AION - Creator release readiness",
           "file": "release-readiness.yml",
-          "status_class": "success",
-          "status_label": "สำเร็จ",
-          "html_url": "https://github.com/pongsatornm1991-droid/AION/actions/runs/37695375992",
-          "created_at": "2026-10-07T22:18:56Z"
+          "status_class": "running",
+          "status_label": "กำลังรัน",
+          "html_url": "https://github.com/pongsatornm1991-droid/AION/actions/runs/37712957495",
+          "created_at": "2026-10-08T01:26:41Z"
         },
         {
           "name": "AION - Facebook feedback",
           "file": "facebook-feedback.yml",
           "status_class": "success",
           "status_label": "สำเร็จ",
-          "html_url": "https://github.com/pongsatornm1991-droid/AION/actions/runs/37633014913",
-          "created_at": "2026-10-07T13:59:54Z"
+          "html_url": "https://github.com/pongsatornm1991-droid/AION/actions/runs/37701701349",
+          "created_at": "2026-10-07T23:20:26Z"
         },
         {
           "name": "AION - Instagram feedback",
           "file": "instagram-feedback.yml",
           "status_class": "success",
           "status_label": "สำเร็จ",
-          "html_url": "https://github.com/pongsatornm1991-droid/AION/actions/runs/37632770387",
-          "created_at": "2026-10-07T13:58:06Z"
+          "html_url": "https://github.com/pongsatornm1991-droid/AION/actions/runs/37701606104",
+          "created_at": "2026-10-07T23:19:28Z"
         },
         {
           "name": "AION - Thai Facebook Reels",
@@ -279,8 +278,8 @@
           "file": "youtube-release-watchdog.yml",
           "status_class": "running",
           "status_label": "กำลังรัน",
-          "html_url": "https://github.com/pongsatornm1991-droid/AION/actions/runs/37701379589",
-          "created_at": "2026-10-07T23:17:08Z"
+          "html_url": "https://github.com/pongsatornm1991-droid/AION/actions/runs/37712961286",
+          "created_at": "2026-10-08T01:26:44Z"
         },
         {
           "name": "AION - YouTube release-window recovery",
@@ -303,8 +302,8 @@
           "file": "audience-accessibility.yml",
           "status_class": "success",
           "status_label": "สำเร็จ",
-          "html_url": "https://github.com/pongsatornm1991-droid/AION/actions/runs/37632916793",
-          "created_at": "2026-10-07T13:59:11Z"
+          "html_url": "https://github.com/pongsatornm1991-droid/AION/actions/runs/37701624210",
+          "created_at": "2026-10-07T23:19:39Z"
         },
         {
           "name": "AION - automatic motion production",
@@ -327,8 +326,8 @@
           "file": "content-experiment-evaluator.yml",
           "status_class": "success",
           "status_label": "สำเร็จ",
-          "html_url": "https://github.com/pongsatornm1991-droid/AION/actions/runs/37631963753",
-          "created_at": "2026-10-07T13:52:16Z"
+          "html_url": "https://github.com/pongsatornm1991-droid/AION/actions/runs/37701419972",
+          "created_at": "2026-10-07T23:17:32Z"
         },
         {
           "name": "AION - costume continuity briefs",
@@ -375,8 +374,8 @@
           "file": "platform-recovery.yml",
           "status_class": "success",
           "status_label": "สำเร็จ",
-          "html_url": "https://github.com/pongsatornm1991-droid/AION/actions/runs/37667879173",
-          "created_at": "2026-10-07T18:34:32Z"
+          "html_url": "https://github.com/pongsatornm1991-droid/AION/actions/runs/37702514563",
+          "created_at": "2026-10-07T23:28:56Z"
         },
         {
           "name": "AION - production control",
