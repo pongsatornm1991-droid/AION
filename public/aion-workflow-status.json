@@ -1,10 +1,10 @@
 {
-  "generated_at": "2026-10-10T07:35:07.139783+00:00",
+  "generated_at": "2026-10-10T07:44:19.647454+00:00",
   "tiles": {
     "total": 45,
-    "ok": 38,
+    "ok": 35,
     "attn": 1,
-    "running": 2
+    "running": 7
   },
   "groups": [
     {
@@ -15,9 +15,9 @@
           "name": "AION - Creator queue quality gate",
           "file": "creator-queue-quality.yml",
           "status_class": "success",
-          "status_label": "ไม่มีเหตุให้ดำเนินการ",
-          "html_url": "https://github.com/pongsatornm1991-droid/AION/actions/runs/38031382310",
-          "created_at": "2026-10-10T06:34:01Z"
+          "status_label": "สำเร็จ",
+          "html_url": "https://github.com/pongsatornm1991-droid/AION/actions/runs/38035284629",
+          "created_at": "2026-10-10T07:41:21Z"
         },
         {
           "name": "AION - YouTube Creator Studio",
@@ -61,10 +61,10 @@
         {
           "name": "AION - Scientific Discovery Lab",
           "file": "scientific-discovery.yml",
-          "status_class": "success",
-          "status_label": "สำเร็จ",
-          "html_url": "https://github.com/pongsatornm1991-droid/AION/actions/runs/37902173136",
-          "created_at": "2026-10-09T07:59:03Z"
+          "status_class": "running",
+          "status_label": "กำลังรัน",
+          "html_url": "https://github.com/pongsatornm1991-droid/AION/actions/runs/38035404619",
+          "created_at": "2026-10-10T07:43:29Z"
         },
         {
           "name": "AION - YouTube discovery learning",
@@ -85,10 +85,10 @@
         {
           "name": "AION - external learning cycle",
           "file": "learning-cycle.yml",
-          "status_class": "success",
-          "status_label": "สำเร็จ",
-          "html_url": "https://github.com/pongsatornm1991-droid/AION/actions/runs/38034798023",
-          "created_at": "2026-10-10T07:32:57Z"
+          "status_class": "running",
+          "status_label": "กำลังรัน",
+          "html_url": "https://github.com/pongsatornm1991-droid/AION/actions/runs/38035393302",
+          "created_at": "2026-10-10T07:43:18Z"
         },
         {
           "name": "AION - self-narrative",
@@ -153,8 +153,8 @@
           "file": "automation-health.yml",
           "status_class": "success",
           "status_label": "ไม่มีเหตุให้ดำเนินการ",
-          "html_url": "https://github.com/pongsatornm1991-droid/AION/actions/runs/38034873192",
-          "created_at": "2026-10-10T07:34:15Z"
+          "html_url": "https://github.com/pongsatornm1991-droid/AION/actions/runs/38035400779",
+          "created_at": "2026-10-10T07:43:25Z"
         },
         {
           "name": "AION - Cyber Guard defensive audit",
@@ -209,8 +209,8 @@
           "file": "publish-workflow-status.yml",
           "status_class": "running",
           "status_label": "กำลังรัน",
-          "html_url": "https://github.com/pongsatornm1991-droid/AION/actions/runs/38034850733",
-          "created_at": "2026-10-10T07:33:51Z"
+          "html_url": "https://github.com/pongsatornm1991-droid/AION/actions/runs/38035400774",
+          "created_at": "2026-10-10T07:43:25Z"
         }
       ]
     },
@@ -231,8 +231,8 @@
           "file": "release-readiness.yml",
           "status_class": "success",
           "status_label": "สำเร็จ",
-          "html_url": "https://github.com/pongsatornm1991-droid/AION/actions/runs/38034759273",
-          "created_at": "2026-10-10T07:32:14Z"
+          "html_url": "https://github.com/pongsatornm1991-droid/AION/actions/runs/38035354100",
+          "created_at": "2026-10-10T07:42:36Z"
         },
         {
           "name": "AION - Facebook feedback",
@@ -269,18 +269,18 @@
         {
           "name": "AION - YouTube publication drift check",
           "file": "youtube-publication-drift.yml",
-          "status_class": "success",
-          "status_label": "สำเร็จ",
-          "html_url": "https://github.com/pongsatornm1991-droid/AION/actions/runs/37976533277",
-          "created_at": "2026-10-09T18:54:31Z"
+          "status_class": "running",
+          "status_label": "กำลังรัน",
+          "html_url": "https://github.com/pongsatornm1991-droid/AION/actions/runs/38035402314",
+          "created_at": "2026-10-10T07:43:26Z"
         },
         {
           "name": "AION - YouTube release watchdog",
           "file": "youtube-release-watchdog.yml",
           "status_class": "running",
           "status_label": "กำลังรัน",
-          "html_url": "https://github.com/pongsatornm1991-droid/AION/actions/runs/38034876084",
-          "created_at": "2026-10-10T07:34:17Z"
+          "html_url": "https://github.com/pongsatornm1991-droid/AION/actions/runs/38035402851",
+          "created_at": "2026-10-10T07:43:27Z"
         },
         {
           "name": "AION - YouTube release-window recovery",
@@ -309,10 +309,10 @@
         {
           "name": "AION - automatic motion production",
           "file": "creator-motion-production.yml",
-          "status_class": "success",
-          "status_label": "ไม่มีเหตุให้ดำเนินการ",
-          "html_url": "https://github.com/pongsatornm1991-droid/AION/actions/runs/38034010051",
-          "created_at": "2026-10-10T07:19:06Z"
+          "status_class": "running",
+          "status_label": "กำลังรัน",
+          "html_url": "https://github.com/pongsatornm1991-droid/AION/actions/runs/38035397915",
+          "created_at": "2026-10-10T07:43:22Z"
         },
         {
           "name": "AION - autonomous internal improvement cycle",
@@ -381,10 +381,10 @@
         {
           "name": "AION - production control",
           "file": "production-control.yml",
-          "status_class": "success",
-          "status_label": "สำเร็จ",
-          "html_url": "https://github.com/pongsatornm1991-droid/AION/actions/runs/38034805900",
-          "created_at": "2026-10-10T07:33:05Z"
+          "status_class": "running",
+          "status_label": "กำลังรัน",
+          "html_url": "https://github.com/pongsatornm1991-droid/AION/actions/runs/38035400776",
+          "created_at": "2026-10-10T07:43:25Z"
         },
         {
           "name": "AION - revenue readiness",
