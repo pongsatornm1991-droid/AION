@@ -1,10 +1,10 @@
 {
-  "generated_at": "2026-10-11T19:52:20.617748+00:00",
+  "generated_at": "2026-10-11T20:11:22.071994+00:00",
   "tiles": {
     "total": 45,
-    "ok": 38,
+    "ok": 39,
     "attn": 1,
-    "running": 2
+    "running": 1
   },
   "groups": [
     {
@@ -85,8 +85,8 @@
         {
           "name": "AION - external learning cycle",
           "file": "learning-cycle.yml",
-          "status_class": "running",
-          "status_label": "กำลังรัน",
+          "status_class": "success",
+          "status_label": "สำเร็จ",
           "html_url": "https://github.com/pongsatornm1991-droid/AION/actions/runs/38169765615",
           "created_at": "2026-10-11T19:51:21Z"
         },
@@ -209,8 +209,8 @@
           "file": "publish-workflow-status.yml",
           "status_class": "running",
           "status_label": "กำลังรัน",
-          "html_url": "https://github.com/pongsatornm1991-droid/AION/actions/runs/38169714031",
-          "created_at": "2026-10-11T19:50:36Z"
+          "html_url": "https://github.com/pongsatornm1991-droid/AION/actions/runs/38171075103",
+          "created_at": "2026-10-11T20:10:21Z"
         }
       ]
     },
