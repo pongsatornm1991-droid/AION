@@ -1,10 +1,10 @@
 {
-  "generated_at": "2026-10-13T21:17:41.821831+00:00",
+  "generated_at": "2026-10-13T21:23:17.849065+00:00",
   "tiles": {
     "total": 45,
-    "ok": 39,
+    "ok": 38,
     "attn": 1,
-    "running": 1
+    "running": 2
   },
   "groups": [
     {
@@ -153,8 +153,8 @@
           "file": "automation-health.yml",
           "status_class": "success",
           "status_label": "ไม่มีเหตุให้ดำเนินการ",
-          "html_url": "https://github.com/pongsatornm1991-droid/AION/actions/runs/38468694720",
-          "created_at": "2026-10-13T21:11:29Z"
+          "html_url": "https://github.com/pongsatornm1991-droid/AION/actions/runs/38470080891",
+          "created_at": "2026-10-13T21:22:18Z"
         },
         {
           "name": "AION - Cyber Guard defensive audit",
@@ -177,8 +177,8 @@
           "file": "publish-public-summary.yml",
           "status_class": "success",
           "status_label": "สำเร็จ",
-          "html_url": "https://github.com/pongsatornm1991-droid/AION/actions/runs/38427596987",
-          "created_at": "2026-10-13T16:05:19Z"
+          "html_url": "https://github.com/pongsatornm1991-droid/AION/actions/runs/38469748646",
+          "created_at": "2026-10-13T21:19:41Z"
         },
         {
           "name": "AION - bounded self repair",
@@ -193,8 +193,8 @@
           "file": "publish-delivery-status.yml",
           "status_class": "success",
           "status_label": "สำเร็จ",
-          "html_url": "https://github.com/pongsatornm1991-droid/AION/actions/runs/38458929889",
-          "created_at": "2026-10-13T19:57:12Z"
+          "html_url": "https://github.com/pongsatornm1991-droid/AION/actions/runs/38469983929",
+          "created_at": "2026-10-13T21:21:31Z"
         },
         {
           "name": "AION - media-library hygiene",
@@ -209,8 +209,8 @@
           "file": "publish-workflow-status.yml",
           "status_class": "running",
           "status_label": "กำลังรัน",
-          "html_url": "https://github.com/pongsatornm1991-droid/AION/actions/runs/38469324495",
-          "created_at": "2026-10-13T21:16:21Z"
+          "html_url": "https://github.com/pongsatornm1991-droid/AION/actions/runs/38470080947",
+          "created_at": "2026-10-13T21:22:18Z"
         }
       ]
     },
@@ -277,10 +277,10 @@
         {
           "name": "AION - YouTube release watchdog",
           "file": "youtube-release-watchdog.yml",
-          "status_class": "success",
-          "status_label": "สำเร็จ",
-          "html_url": "https://github.com/pongsatornm1991-droid/AION/actions/runs/38468700543",
-          "created_at": "2026-10-13T21:11:32Z"
+          "status_class": "running",
+          "status_label": "กำลังรัน",
+          "html_url": "https://github.com/pongsatornm1991-droid/AION/actions/runs/38470087253",
+          "created_at": "2026-10-13T21:22:21Z"
         },
         {
           "name": "AION - YouTube release-window recovery",
