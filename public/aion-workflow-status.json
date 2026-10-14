@@ -1,10 +1,10 @@
 {
-  "generated_at": "2026-10-14T22:07:40.445898+00:00",
+  "generated_at": "2026-10-14T22:08:49.283284+00:00",
   "tiles": {
     "total": 45,
-    "ok": 35,
+    "ok": 37,
     "attn": 1,
-    "running": 3
+    "running": 1
   },
   "groups": [
     {
@@ -85,8 +85,8 @@
         {
           "name": "AION - external learning cycle",
           "file": "learning-cycle.yml",
-          "status_class": "running",
-          "status_label": "กำลังรัน",
+          "status_class": "success",
+          "status_label": "สำเร็จ",
           "html_url": "https://github.com/pongsatornm1991-droid/AION/actions/runs/38645290537",
           "created_at": "2026-10-14T22:06:34Z"
         },
@@ -153,8 +153,8 @@
           "file": "automation-health.yml",
           "status_class": "success",
           "status_label": "ไม่มีเหตุให้ดำเนินการ",
-          "html_url": "https://github.com/pongsatornm1991-droid/AION/actions/runs/38645327281",
-          "created_at": "2026-10-14T22:06:53Z"
+          "html_url": "https://github.com/pongsatornm1991-droid/AION/actions/runs/38645391307",
+          "created_at": "2026-10-14T22:07:24Z"
         },
         {
           "name": "AION - Cyber Guard defensive audit",
@@ -279,8 +279,8 @@
           "file": "youtube-release-watchdog.yml",
           "status_class": "success",
           "status_label": "สำเร็จ",
-          "html_url": "https://github.com/pongsatornm1991-droid/AION/actions/runs/38645213046",
-          "created_at": "2026-10-14T22:05:55Z"
+          "html_url": "https://github.com/pongsatornm1991-droid/AION/actions/runs/38645418677",
+          "created_at": "2026-10-14T22:07:37Z"
         },
         {
           "name": "AION - YouTube release-window recovery",
@@ -373,8 +373,8 @@
         {
           "name": "AION - platform delivery recovery",
           "file": "platform-recovery.yml",
-          "status_class": "running",
-          "status_label": "กำลังรัน",
+          "status_class": "success",
+          "status_label": "สำเร็จ",
           "html_url": "https://github.com/pongsatornm1991-droid/AION/actions/runs/38645238383",
           "created_at": "2026-10-14T22:06:08Z"
         },
