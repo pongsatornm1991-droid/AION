@@ -1,9 +1,9 @@
 {
-  "generated_at": "2026-10-14T17:43:10.422720+00:00",
+  "generated_at": "2026-10-14T17:44:19.498849+00:00",
   "tiles": {
     "total": 45,
-    "ok": 40,
-    "attn": 0,
+    "ok": 39,
+    "attn": 1,
     "running": 4
   },
   "groups": [
@@ -38,10 +38,11 @@
         {
           "name": "AION - subject-first scene production",
           "file": "creator-scene-production.yml",
-          "status_class": "running",
-          "status_label": "กำลังรัน",
+          "status_class": "failure",
+          "status_label": "ล้มเหลว",
           "html_url": "https://github.com/pongsatornm1991-droid/AION/actions/runs/38608881594",
-          "created_at": "2026-10-14T17:42:06Z"
+          "created_at": "2026-10-14T17:42:06Z",
+          "detail": "ขั้นที่ล้มเหลว: Verify actual narration timing before creating scene images"
         }
       ]
     },
@@ -84,10 +85,10 @@
         {
           "name": "AION - external learning cycle",
           "file": "learning-cycle.yml",
-          "status_class": "success",
-          "status_label": "สำเร็จ",
-          "html_url": "https://github.com/pongsatornm1991-droid/AION/actions/runs/38577891072",
-          "created_at": "2026-10-14T14:08:39Z"
+          "status_class": "running",
+          "status_label": "กำลังรัน",
+          "html_url": "https://github.com/pongsatornm1991-droid/AION/actions/runs/38609009392",
+          "created_at": "2026-10-14T17:43:01Z"
         },
         {
           "name": "AION - self-narrative",
@@ -152,8 +153,8 @@
           "file": "automation-health.yml",
           "status_class": "success",
           "status_label": "ไม่มีเหตุให้ดำเนินการ",
-          "html_url": "https://github.com/pongsatornm1991-droid/AION/actions/runs/38608881478",
-          "created_at": "2026-10-14T17:42:06Z"
+          "html_url": "https://github.com/pongsatornm1991-droid/AION/actions/runs/38609049929",
+          "created_at": "2026-10-14T17:43:19Z"
         },
         {
           "name": "AION - Cyber Guard defensive audit",
@@ -208,8 +209,8 @@
           "file": "publish-workflow-status.yml",
           "status_class": "running",
           "status_label": "กำลังรัน",
-          "html_url": "https://github.com/pongsatornm1991-droid/AION/actions/runs/38608881319",
-          "created_at": "2026-10-14T17:42:06Z"
+          "html_url": "https://github.com/pongsatornm1991-droid/AION/actions/runs/38609031380",
+          "created_at": "2026-10-14T17:43:11Z"
         }
       ]
     },
@@ -228,8 +229,8 @@
         {
           "name": "AION - Creator release readiness",
           "file": "release-readiness.yml",
-          "status_class": "running",
-          "status_label": "กำลังรัน",
+          "status_class": "success",
+          "status_label": "สำเร็จ",
           "html_url": "https://github.com/pongsatornm1991-droid/AION/actions/runs/38608881622",
           "created_at": "2026-10-14T17:42:06Z"
         },
@@ -278,8 +279,8 @@
           "file": "youtube-release-watchdog.yml",
           "status_class": "running",
           "status_label": "กำลังรัน",
-          "html_url": "https://github.com/pongsatornm1991-droid/AION/actions/runs/38608891414",
-          "created_at": "2026-10-14T17:42:10Z"
+          "html_url": "https://github.com/pongsatornm1991-droid/AION/actions/runs/38609057512",
+          "created_at": "2026-10-14T17:43:22Z"
         },
         {
           "name": "AION - YouTube release-window recovery",
@@ -380,10 +381,10 @@
         {
           "name": "AION - production control",
           "file": "production-control.yml",
-          "status_class": "success",
-          "status_label": "สำเร็จ",
-          "html_url": "https://github.com/pongsatornm1991-droid/AION/actions/runs/38604535803",
-          "created_at": "2026-10-14T17:11:29Z"
+          "status_class": "running",
+          "status_label": "กำลังรัน",
+          "html_url": "https://github.com/pongsatornm1991-droid/AION/actions/runs/38609031338",
+          "created_at": "2026-10-14T17:43:11Z"
         },
         {
           "name": "AION - revenue readiness",
