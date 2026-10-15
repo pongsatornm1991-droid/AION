@@ -1,10 +1,10 @@
 {
-  "generated_at": "2026-10-15T23:11:29.652024+00:00",
+  "generated_at": "2026-10-15T23:13:07.945942+00:00",
   "tiles": {
     "total": 45,
-    "ok": 37,
+    "ok": 39,
     "attn": 1,
-    "running": 4
+    "running": 2
   },
   "groups": [
     {
@@ -85,10 +85,10 @@
         {
           "name": "AION - external learning cycle",
           "file": "learning-cycle.yml",
-          "status_class": "running",
-          "status_label": "กำลังรัน",
-          "html_url": "https://github.com/pongsatornm1991-droid/AION/actions/runs/38821945374",
-          "created_at": "2026-10-15T23:10:25Z"
+          "status_class": "success",
+          "status_label": "สำเร็จ",
+          "html_url": "https://github.com/pongsatornm1991-droid/AION/actions/runs/38822041447",
+          "created_at": "2026-10-15T23:11:19Z"
         },
         {
           "name": "AION - self-narrative",
@@ -231,8 +231,8 @@
           "file": "release-readiness.yml",
           "status_class": "running",
           "status_label": "กำลังรัน",
-          "html_url": "https://github.com/pongsatornm1991-droid/AION/actions/runs/38821964299",
-          "created_at": "2026-10-15T23:10:35Z"
+          "html_url": "https://github.com/pongsatornm1991-droid/AION/actions/runs/38822179335",
+          "created_at": "2026-10-15T23:12:39Z"
         },
         {
           "name": "AION - Facebook feedback",
@@ -381,8 +381,8 @@
         {
           "name": "AION - production control",
           "file": "production-control.yml",
-          "status_class": "running",
-          "status_label": "กำลังรัน",
+          "status_class": "success",
+          "status_label": "สำเร็จ",
           "html_url": "https://github.com/pongsatornm1991-droid/AION/actions/runs/38821964280",
           "created_at": "2026-10-15T23:10:35Z"
         },
