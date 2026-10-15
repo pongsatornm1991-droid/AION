@@ -1,10 +1,10 @@
 {
-  "generated_at": "2026-10-15T00:56:47.669438+00:00",
+  "generated_at": "2026-10-15T01:23:57.507565+00:00",
   "tiles": {
     "total": 44,
-    "ok": 36,
+    "ok": 39,
     "attn": 1,
-    "running": 4
+    "running": 1
   },
   "groups": [
     {
@@ -85,10 +85,10 @@
         {
           "name": "AION - external learning cycle",
           "file": "learning-cycle.yml",
-          "status_class": "running",
-          "status_label": "กำลังรัน",
-          "html_url": "https://github.com/pongsatornm1991-droid/AION/actions/runs/38662784634",
-          "created_at": "2026-10-15T00:55:36Z"
+          "status_class": "success",
+          "status_label": "สำเร็จ",
+          "html_url": "https://github.com/pongsatornm1991-droid/AION/actions/runs/38662932150",
+          "created_at": "2026-10-15T00:57:13Z"
         }
       ]
     },
@@ -145,8 +145,8 @@
           "file": "automation-health.yml",
           "status_class": "success",
           "status_label": "ไม่มีเหตุให้ดำเนินการ",
-          "html_url": "https://github.com/pongsatornm1991-droid/AION/actions/runs/38662847047",
-          "created_at": "2026-10-15T00:56:17Z"
+          "html_url": "https://github.com/pongsatornm1991-droid/AION/actions/runs/38664775081",
+          "created_at": "2026-10-15T01:16:48Z"
         },
         {
           "name": "AION - Cyber Guard defensive audit",
@@ -201,8 +201,8 @@
           "file": "publish-workflow-status.yml",
           "status_class": "running",
           "status_label": "กำลังรัน",
-          "html_url": "https://github.com/pongsatornm1991-droid/AION/actions/runs/38662799739",
-          "created_at": "2026-10-15T00:55:46Z"
+          "html_url": "https://github.com/pongsatornm1991-droid/AION/actions/runs/38665326466",
+          "created_at": "2026-10-15T01:22:49Z"
         }
       ]
     },
@@ -221,8 +221,8 @@
         {
           "name": "AION - Creator release readiness",
           "file": "release-readiness.yml",
-          "status_class": "running",
-          "status_label": "กำลังรัน",
+          "status_class": "success",
+          "status_label": "สำเร็จ",
           "html_url": "https://github.com/pongsatornm1991-droid/AION/actions/runs/38662847057",
           "created_at": "2026-10-15T00:56:17Z"
         },
@@ -271,8 +271,8 @@
           "file": "youtube-release-watchdog.yml",
           "status_class": "success",
           "status_label": "สำเร็จ",
-          "html_url": "https://github.com/pongsatornm1991-droid/AION/actions/runs/38662713951",
-          "created_at": "2026-10-15T00:54:51Z"
+          "html_url": "https://github.com/pongsatornm1991-droid/AION/actions/runs/38664793763",
+          "created_at": "2026-10-15T01:17:00Z"
         },
         {
           "name": "AION - YouTube release-window recovery",
@@ -359,22 +359,22 @@
           "file": "autonomic-drive.yml",
           "status_class": "success",
           "status_label": "สำเร็จ",
-          "html_url": "https://github.com/pongsatornm1991-droid/AION/actions/runs/38649455655",
-          "created_at": "2026-10-14T22:42:23Z"
+          "html_url": "https://github.com/pongsatornm1991-droid/AION/actions/runs/38663016648",
+          "created_at": "2026-10-15T00:58:09Z"
         },
         {
           "name": "AION - platform delivery recovery",
           "file": "platform-recovery.yml",
           "status_class": "success",
           "status_label": "สำเร็จ",
-          "html_url": "https://github.com/pongsatornm1991-droid/AION/actions/runs/38645238383",
-          "created_at": "2026-10-14T22:06:08Z"
+          "html_url": "https://github.com/pongsatornm1991-droid/AION/actions/runs/38664700219",
+          "created_at": "2026-10-15T01:15:58Z"
         },
         {
           "name": "AION - production control",
           "file": "production-control.yml",
-          "status_class": "running",
-          "status_label": "กำลังรัน",
+          "status_class": "success",
+          "status_label": "สำเร็จ",
           "html_url": "https://github.com/pongsatornm1991-droid/AION/actions/runs/38662846947",
           "created_at": "2026-10-15T00:56:17Z"
         },
