@@ -1,10 +1,10 @@
 {
-  "generated_at": "2026-10-15T07:20:35.984052+00:00",
+  "generated_at": "2026-10-15T07:21:34.477544+00:00",
   "tiles": {
-    "total": 42,
-    "ok": 32,
+    "total": 40,
+    "ok": 30,
     "attn": 1,
-    "running": 4
+    "running": 5
   },
   "groups": [
     {
@@ -85,10 +85,10 @@
         {
           "name": "AION - external learning cycle",
           "file": "learning-cycle.yml",
-          "status_class": "unknown",
-          "status_label": "ยกเลิก",
-          "html_url": "https://github.com/pongsatornm1991-droid/AION/actions/runs/38692531827",
-          "created_at": "2026-10-15T06:27:39Z"
+          "status_class": "running",
+          "status_label": "กำลังรัน",
+          "html_url": "https://github.com/pongsatornm1991-droid/AION/actions/runs/38698106987",
+          "created_at": "2026-10-15T07:20:39Z"
         },
         {
           "name": "AION - self-narrative",
@@ -111,14 +111,6 @@
           "status_label": "สำเร็จ",
           "html_url": "https://github.com/pongsatornm1991-droid/AION/actions/runs/38692817303",
           "created_at": "2026-10-15T06:30:30Z"
-        },
-        {
-          "name": "AION - propose profile change",
-          "file": "propose-profile-change.yml",
-          "status_class": "success",
-          "status_label": "สำเร็จ",
-          "html_url": "https://github.com/pongsatornm1991-droid/AION/actions/runs/38535513788",
-          "created_at": "2026-10-14T08:29:52Z"
         }
       ]
     },
@@ -153,8 +145,8 @@
           "file": "automation-health.yml",
           "status_class": "success",
           "status_label": "ไม่มีเหตุให้ดำเนินการ",
-          "html_url": "https://github.com/pongsatornm1991-droid/AION/actions/runs/38698025640",
-          "created_at": "2026-10-15T07:19:57Z"
+          "html_url": "https://github.com/pongsatornm1991-droid/AION/actions/runs/38698122088",
+          "created_at": "2026-10-15T07:20:47Z"
         },
         {
           "name": "AION - Obsidian brain dashboard",
@@ -171,14 +163,6 @@
           "status_label": "สำเร็จ",
           "html_url": "https://github.com/pongsatornm1991-droid/AION/actions/runs/38683549676",
           "created_at": "2026-10-15T04:50:11Z"
-        },
-        {
-          "name": "AION - bounded self repair",
-          "file": "self-repair.yml",
-          "status_class": "success",
-          "status_label": "สำเร็จ",
-          "html_url": "https://github.com/pongsatornm1991-droid/AION/actions/runs/38536793384",
-          "created_at": "2026-10-14T08:40:32Z"
         },
         {
           "name": "AION - delivery evidence watchdog",
@@ -201,8 +185,8 @@
           "file": "publish-workflow-status.yml",
           "status_class": "running",
           "status_label": "กำลังรัน",
-          "html_url": "https://github.com/pongsatornm1991-droid/AION/actions/runs/38698025607",
-          "created_at": "2026-10-15T07:19:57Z"
+          "html_url": "https://github.com/pongsatornm1991-droid/AION/actions/runs/38698122001",
+          "created_at": "2026-10-15T07:20:47Z"
         }
       ]
     },
@@ -271,8 +255,8 @@
           "file": "youtube-release-watchdog.yml",
           "status_class": "running",
           "status_label": "กำลังรัน",
-          "html_url": "https://github.com/pongsatornm1991-droid/AION/actions/runs/38698030836",
-          "created_at": "2026-10-15T07:20:00Z"
+          "html_url": "https://github.com/pongsatornm1991-droid/AION/actions/runs/38698130901",
+          "created_at": "2026-10-15T07:20:52Z"
         },
         {
           "name": "AION - YouTube release-window recovery",
@@ -367,8 +351,8 @@
           "file": "production-control.yml",
           "status_class": "running",
           "status_label": "กำลังรัน",
-          "html_url": "https://github.com/pongsatornm1991-droid/AION/actions/runs/38698025593",
-          "created_at": "2026-10-15T07:19:57Z"
+          "html_url": "https://github.com/pongsatornm1991-droid/AION/actions/runs/38698122045",
+          "created_at": "2026-10-15T07:20:47Z"
         },
         {
           "name": "AION - self-improvement proposals",
