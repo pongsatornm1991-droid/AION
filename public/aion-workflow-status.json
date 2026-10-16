@@ -1,10 +1,10 @@
 {
-  "generated_at": "2026-10-16T07:06:21.313195+00:00",
+  "generated_at": "2026-10-16T07:12:56.307136+00:00",
   "tiles": {
-    "total": 38,
-    "ok": 31,
+    "total": 39,
+    "ok": 33,
     "attn": 1,
-    "running": 2
+    "running": 1
   },
   "groups": [
     {
@@ -85,8 +85,8 @@
         {
           "name": "AION - external learning cycle",
           "file": "learning-cycle.yml",
-          "status_class": "running",
-          "status_label": "กำลังรัน",
+          "status_class": "success",
+          "status_label": "สำเร็จ",
           "html_url": "https://github.com/pongsatornm1991-droid/AION/actions/runs/38864973318",
           "created_at": "2026-10-16T07:05:04Z"
         },
@@ -169,8 +169,8 @@
           "file": "publish-workflow-status.yml",
           "status_class": "running",
           "status_label": "กำลังรัน",
-          "html_url": "https://github.com/pongsatornm1991-droid/AION/actions/runs/38864989494",
-          "created_at": "2026-10-16T07:05:13Z"
+          "html_url": "https://github.com/pongsatornm1991-droid/AION/actions/runs/38865683380",
+          "created_at": "2026-10-16T07:11:54Z"
         }
       ]
     },
@@ -299,6 +299,14 @@
           "created_at": "2026-10-16T06:05:43Z"
         },
         {
+          "name": "AION - creator competitive scan",
+          "file": "creator-competitive-scan.yml",
+          "status_class": "success",
+          "status_label": "สำเร็จ",
+          "html_url": "https://github.com/pongsatornm1991-droid/AION/actions/runs/38865566624",
+          "created_at": "2026-10-16T07:10:47Z"
+        },
+        {
           "name": "AION - creator reference study",
           "file": "creator-reference-study.yml",
           "status_class": "success",
@@ -335,8 +343,8 @@
           "file": "production-control.yml",
           "status_class": "success",
           "status_label": "สำเร็จ",
-          "html_url": "https://github.com/pongsatornm1991-droid/AION/actions/runs/38864877861",
-          "created_at": "2026-10-16T07:04:10Z"
+          "html_url": "https://github.com/pongsatornm1991-droid/AION/actions/runs/38865598251",
+          "created_at": "2026-10-16T07:11:05Z"
         },
         {
           "name": "AION - self-improvement proposals",
