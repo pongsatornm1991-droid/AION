@@ -1,10 +1,10 @@
 {
-  "generated_at": "2026-10-17T00:34:02.582708+00:00",
+  "generated_at": "2026-10-17T00:34:59.178932+00:00",
   "tiles": {
     "total": 44,
-    "ok": 36,
+    "ok": 38,
     "attn": 1,
-    "running": 5
+    "running": 3
   },
   "groups": [
     {
@@ -85,8 +85,8 @@
         {
           "name": "AION - external learning cycle",
           "file": "learning-cycle.yml",
-          "status_class": "running",
-          "status_label": "กำลังรัน",
+          "status_class": "success",
+          "status_label": "สำเร็จ",
           "html_url": "https://github.com/pongsatornm1991-droid/AION/actions/runs/38986899051",
           "created_at": "2026-10-17T00:33:13Z"
         }
@@ -145,8 +145,8 @@
           "file": "automation-health.yml",
           "status_class": "success",
           "status_label": "ไม่มีเหตุให้ดำเนินการ",
-          "html_url": "https://github.com/pongsatornm1991-droid/AION/actions/runs/38986930317",
-          "created_at": "2026-10-17T00:33:37Z"
+          "html_url": "https://github.com/pongsatornm1991-droid/AION/actions/runs/38986971407",
+          "created_at": "2026-10-17T00:34:09Z"
         },
         {
           "name": "AION - Cyber Guard defensive audit",
@@ -201,8 +201,8 @@
           "file": "publish-workflow-status.yml",
           "status_class": "running",
           "status_label": "กำลังรัน",
-          "html_url": "https://github.com/pongsatornm1991-droid/AION/actions/runs/38986909079",
-          "created_at": "2026-10-17T00:33:21Z"
+          "html_url": "https://github.com/pongsatornm1991-droid/AION/actions/runs/38986962859",
+          "created_at": "2026-10-17T00:34:03Z"
         }
       ]
     },
@@ -269,8 +269,8 @@
         {
           "name": "AION - YouTube release watchdog",
           "file": "youtube-release-watchdog.yml",
-          "status_class": "running",
-          "status_label": "กำลังรัน",
+          "status_class": "success",
+          "status_label": "สำเร็จ",
           "html_url": "https://github.com/pongsatornm1991-droid/AION/actions/runs/38986933907",
           "created_at": "2026-10-17T00:33:40Z"
         },
