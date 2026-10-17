@@ -1,10 +1,10 @@
 {
-  "generated_at": "2026-10-17T11:19:27.660151+00:00",
+  "generated_at": "2026-10-17T11:20:19.723658+00:00",
   "tiles": {
     "total": 45,
-    "ok": 34,
+    "ok": 37,
     "attn": 1,
-    "running": 5
+    "running": 2
   },
   "groups": [
     {
@@ -87,8 +87,8 @@
           "file": "learning-cycle.yml",
           "status_class": "running",
           "status_label": "กำลังรัน",
-          "html_url": "https://github.com/pongsatornm1991-droid/AION/actions/runs/39028214203",
-          "created_at": "2026-10-17T11:18:46Z"
+          "html_url": "https://github.com/pongsatornm1991-droid/AION/actions/runs/39028263686",
+          "created_at": "2026-10-17T11:19:36Z"
         },
         {
           "name": "AION - self-narrative",
@@ -229,8 +229,8 @@
         {
           "name": "AION - Creator release readiness",
           "file": "release-readiness.yml",
-          "status_class": "running",
-          "status_label": "กำลังรัน",
+          "status_class": "success",
+          "status_label": "สำเร็จ",
           "html_url": "https://github.com/pongsatornm1991-droid/AION/actions/runs/39028165190",
           "created_at": "2026-10-17T11:18:00Z"
         },
@@ -277,8 +277,8 @@
         {
           "name": "AION - YouTube release watchdog",
           "file": "youtube-release-watchdog.yml",
-          "status_class": "running",
-          "status_label": "กำลังรัน",
+          "status_class": "success",
+          "status_label": "สำเร็จ",
           "html_url": "https://github.com/pongsatornm1991-droid/AION/actions/runs/39028169817",
           "created_at": "2026-10-17T11:18:04Z"
         },
@@ -381,8 +381,8 @@
         {
           "name": "AION - production control",
           "file": "production-control.yml",
-          "status_class": "running",
-          "status_label": "กำลังรัน",
+          "status_class": "success",
+          "status_label": "สำเร็จ",
           "html_url": "https://github.com/pongsatornm1991-droid/AION/actions/runs/39028223485",
           "created_at": "2026-10-17T11:18:54Z"
         },
