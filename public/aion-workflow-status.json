@@ -1,10 +1,10 @@
 {
-  "generated_at": "2026-10-19T22:34:59.436567+00:00",
+  "generated_at": "2026-10-19T22:36:08.117666+00:00",
   "tiles": {
     "total": 47,
-    "ok": 41,
+    "ok": 39,
     "attn": 1,
-    "running": 2
+    "running": 4
   },
   "groups": [
     {
@@ -14,10 +14,10 @@
         {
           "name": "AION - Creator queue quality gate",
           "file": "creator-queue-quality.yml",
-          "status_class": "success",
-          "status_label": "สำเร็จ",
-          "html_url": "https://github.com/pongsatornm1991-droid/AION/actions/runs/39334788522",
-          "created_at": "2026-10-19T22:25:02Z"
+          "status_class": "running",
+          "status_label": "กำลังรัน",
+          "html_url": "https://github.com/pongsatornm1991-droid/AION/actions/runs/39336020638",
+          "created_at": "2026-10-19T22:35:27Z"
         },
         {
           "name": "AION - YouTube Creator Studio",
@@ -85,8 +85,8 @@
         {
           "name": "AION - external learning cycle",
           "file": "learning-cycle.yml",
-          "status_class": "running",
-          "status_label": "กำลังรัน",
+          "status_class": "success",
+          "status_label": "สำเร็จ",
           "html_url": "https://github.com/pongsatornm1991-droid/AION/actions/runs/39335819888",
           "created_at": "2026-10-19T22:33:46Z"
         },
@@ -161,8 +161,8 @@
           "file": "automation-health.yml",
           "status_class": "success",
           "status_label": "ไม่มีเหตุให้ดำเนินการ",
-          "html_url": "https://github.com/pongsatornm1991-droid/AION/actions/runs/39335836289",
-          "created_at": "2026-10-19T22:33:54Z"
+          "html_url": "https://github.com/pongsatornm1991-droid/AION/actions/runs/39335973351",
+          "created_at": "2026-10-19T22:35:05Z"
         },
         {
           "name": "AION - Cyber Guard defensive audit",
@@ -217,8 +217,8 @@
           "file": "publish-workflow-status.yml",
           "status_class": "running",
           "status_label": "กำลังรัน",
-          "html_url": "https://github.com/pongsatornm1991-droid/AION/actions/runs/39335836277",
-          "created_at": "2026-10-19T22:33:54Z"
+          "html_url": "https://github.com/pongsatornm1991-droid/AION/actions/runs/39335916444",
+          "created_at": "2026-10-19T22:34:35Z"
         },
         {
           "name": "AION - system reliability",
@@ -295,8 +295,8 @@
           "file": "youtube-release-watchdog.yml",
           "status_class": "success",
           "status_label": "สำเร็จ",
-          "html_url": "https://github.com/pongsatornm1991-droid/AION/actions/runs/39335853323",
-          "created_at": "2026-10-19T22:34:02Z"
+          "html_url": "https://github.com/pongsatornm1991-droid/AION/actions/runs/39335979499",
+          "created_at": "2026-10-19T22:35:08Z"
         },
         {
           "name": "AION - YouTube release-window recovery",
@@ -309,10 +309,10 @@
         {
           "name": "AION - admin operations audit",
           "file": "admin-operations.yml",
-          "status_class": "success",
-          "status_label": "สำเร็จ",
-          "html_url": "https://github.com/pongsatornm1991-droid/AION/actions/runs/39263701993",
-          "created_at": "2026-10-19T13:51:11Z"
+          "status_class": "running",
+          "status_label": "กำลังรัน",
+          "html_url": "https://github.com/pongsatornm1991-droid/AION/actions/runs/39336021847",
+          "created_at": "2026-10-19T22:35:28Z"
         },
         {
           "name": "AION - audience accessibility checks",
@@ -365,10 +365,10 @@
         {
           "name": "AION - creator reference study",
           "file": "creator-reference-study.yml",
-          "status_class": "success",
-          "status_label": "สำเร็จ",
-          "html_url": "https://github.com/pongsatornm1991-droid/AION/actions/runs/39263704060",
-          "created_at": "2026-10-19T13:51:12Z"
+          "status_class": "running",
+          "status_label": "กำลังรัน",
+          "html_url": "https://github.com/pongsatornm1991-droid/AION/actions/runs/39336031049",
+          "created_at": "2026-10-19T22:35:32Z"
         },
         {
           "name": "AION - cross-post verified Creator Short",
