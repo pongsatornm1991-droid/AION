@@ -1,8 +1,8 @@
 {
-  "generated_at": "2026-10-22T17:35:46.868805+00:00",
+  "generated_at": "2026-10-22T17:40:26.110953+00:00",
   "tiles": {
     "total": 45,
-    "ok": 22,
+    "ok": 23,
     "attn": 0,
     "running": 4
   },
@@ -84,8 +84,8 @@
         {
           "name": "AION - external learning cycle",
           "file": "learning-cycle.yml",
-          "status_class": "running",
-          "status_label": "กำลังรัน",
+          "status_class": "unknown",
+          "status_label": "ยกเลิก",
           "html_url": "https://github.com/pongsatornm1991-droid/AION/actions/runs/39823911754",
           "created_at": "2026-10-22T17:34:33Z"
         },
@@ -150,10 +150,10 @@
         {
           "name": "AION - Automation Health Monitor",
           "file": "automation-health.yml",
-          "status_class": "success",
-          "status_label": "ไม่มีเหตุให้ดำเนินการ",
-          "html_url": "https://github.com/pongsatornm1991-droid/AION/actions/runs/39823976310",
-          "created_at": "2026-10-22T17:35:01Z"
+          "status_class": "running",
+          "status_label": "กำลังรัน",
+          "html_url": "https://github.com/pongsatornm1991-droid/AION/actions/runs/39824681480",
+          "created_at": "2026-10-22T17:39:56Z"
         },
         {
           "name": "AION - Cyber Guard defensive audit",
@@ -208,8 +208,8 @@
           "file": "publish-workflow-status.yml",
           "status_class": "running",
           "status_label": "กำลังรัน",
-          "html_url": "https://github.com/pongsatornm1991-droid/AION/actions/runs/39823932727",
-          "created_at": "2026-10-22T17:34:42Z"
+          "html_url": "https://github.com/pongsatornm1991-droid/AION/actions/runs/39824615393",
+          "created_at": "2026-10-22T17:39:28Z"
         }
       ]
     },
@@ -244,10 +244,10 @@
         {
           "name": "AION - Instagram feedback",
           "file": "instagram-feedback.yml",
-          "status_class": "unknown",
-          "status_label": "ยกเลิก",
-          "html_url": "https://github.com/pongsatornm1991-droid/AION/actions/runs/39778688757",
-          "created_at": "2026-10-22T12:28:58Z"
+          "status_class": "running",
+          "status_label": "กำลังรัน",
+          "html_url": "https://github.com/pongsatornm1991-droid/AION/actions/runs/39824511690",
+          "created_at": "2026-10-22T17:38:44Z"
         },
         {
           "name": "AION - Thai Facebook Reels",
@@ -276,10 +276,10 @@
         {
           "name": "AION - YouTube release watchdog",
           "file": "youtube-release-watchdog.yml",
-          "status_class": "running",
-          "status_label": "กำลังรัน",
-          "html_url": "https://github.com/pongsatornm1991-droid/AION/actions/runs/39823985082",
-          "created_at": "2026-10-22T17:35:04Z"
+          "status_class": "success",
+          "status_label": "สำเร็จ",
+          "html_url": "https://github.com/pongsatornm1991-droid/AION/actions/runs/39824527041",
+          "created_at": "2026-10-22T17:38:50Z"
         },
         {
           "name": "AION - YouTube release-window recovery",
@@ -302,8 +302,8 @@
           "file": "audience-accessibility.yml",
           "status_class": "success",
           "status_label": "สำเร็จ",
-          "html_url": "https://github.com/pongsatornm1991-droid/AION/actions/runs/39778861405",
-          "created_at": "2026-10-22T12:30:12Z"
+          "html_url": "https://github.com/pongsatornm1991-droid/AION/actions/runs/39824609408",
+          "created_at": "2026-10-22T17:39:25Z"
         },
         {
           "name": "AION - automatic motion production",
@@ -326,8 +326,8 @@
           "file": "content-experiment-evaluator.yml",
           "status_class": "unknown",
           "status_label": "ยกเลิก",
-          "html_url": "https://github.com/pongsatornm1991-droid/AION/actions/runs/39777695210",
-          "created_at": "2026-10-22T12:21:40Z"
+          "html_url": "https://github.com/pongsatornm1991-droid/AION/actions/runs/39824157561",
+          "created_at": "2026-10-22T17:36:16Z"
         },
         {
           "name": "AION - costume continuity briefs",
