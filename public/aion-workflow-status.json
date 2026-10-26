@@ -1,10 +1,10 @@
 {
-  "generated_at": "2026-10-26T15:08:56.518522+00:00",
+  "generated_at": "2026-10-26T15:23:37.727833+00:00",
   "tiles": {
-    "total": 46,
-    "ok": 40,
+    "total": 45,
+    "ok": 36,
     "attn": 1,
-    "running": 1
+    "running": 4
   },
   "groups": [
     {
@@ -85,10 +85,10 @@
         {
           "name": "AION - external learning cycle",
           "file": "learning-cycle.yml",
-          "status_class": "success",
-          "status_label": "สำเร็จ",
-          "html_url": "https://github.com/pongsatornm1991-droid/AION/actions/runs/40346019001",
-          "created_at": "2026-10-26T15:06:21Z"
+          "status_class": "running",
+          "status_label": "กำลังรัน",
+          "html_url": "https://github.com/pongsatornm1991-droid/AION/actions/runs/40348707579",
+          "created_at": "2026-10-26T15:22:37Z"
         },
         {
           "name": "AION - self-narrative",
@@ -161,8 +161,8 @@
           "file": "automation-health.yml",
           "status_class": "success",
           "status_label": "ไม่มีเหตุให้ดำเนินการ",
-          "html_url": "https://github.com/pongsatornm1991-droid/AION/actions/runs/40346243861",
-          "created_at": "2026-10-26T15:07:41Z"
+          "html_url": "https://github.com/pongsatornm1991-droid/AION/actions/runs/40348731188",
+          "created_at": "2026-10-26T15:22:46Z"
         },
         {
           "name": "AION - Cyber Guard defensive audit",
@@ -217,8 +217,8 @@
           "file": "publish-workflow-status.yml",
           "status_class": "running",
           "status_label": "กำลังรัน",
-          "html_url": "https://github.com/pongsatornm1991-droid/AION/actions/runs/40346174256",
-          "created_at": "2026-10-26T15:07:16Z"
+          "html_url": "https://github.com/pongsatornm1991-droid/AION/actions/runs/40348731303",
+          "created_at": "2026-10-26T15:22:46Z"
         },
         {
           "name": "AION - system reliability",
@@ -247,8 +247,8 @@
           "file": "release-readiness.yml",
           "status_class": "success",
           "status_label": "สำเร็จ",
-          "html_url": "https://github.com/pongsatornm1991-droid/AION/actions/runs/40345900884",
-          "created_at": "2026-10-26T15:05:39Z"
+          "html_url": "https://github.com/pongsatornm1991-droid/AION/actions/runs/40348581744",
+          "created_at": "2026-10-26T15:21:51Z"
         },
         {
           "name": "AION - Facebook feedback",
@@ -293,18 +293,10 @@
         {
           "name": "AION - YouTube release watchdog",
           "file": "youtube-release-watchdog.yml",
-          "status_class": "success",
-          "status_label": "สำเร็จ",
-          "html_url": "https://github.com/pongsatornm1991-droid/AION/actions/runs/40346078628",
-          "created_at": "2026-10-26T15:06:42Z"
-        },
-        {
-          "name": "AION - YouTube release-window recovery",
-          "file": "youtube-release-recovery.yml",
-          "status_class": "success",
-          "status_label": "สำเร็จ",
-          "html_url": "https://github.com/pongsatornm1991-droid/AION/actions/runs/40216907682",
-          "created_at": "2026-10-25T17:31:48Z"
+          "status_class": "running",
+          "status_label": "กำลังรัน",
+          "html_url": "https://github.com/pongsatornm1991-droid/AION/actions/runs/40348758932",
+          "created_at": "2026-10-26T15:22:56Z"
         },
         {
           "name": "AION - admin operations audit",
@@ -389,10 +381,10 @@
         {
           "name": "AION - production control",
           "file": "production-control.yml",
-          "status_class": "success",
-          "status_label": "สำเร็จ",
-          "html_url": "https://github.com/pongsatornm1991-droid/AION/actions/runs/40346047444",
-          "created_at": "2026-10-26T15:06:31Z"
+          "status_class": "running",
+          "status_label": "กำลังรัน",
+          "html_url": "https://github.com/pongsatornm1991-droid/AION/actions/runs/40348731233",
+          "created_at": "2026-10-26T15:22:46Z"
         },
         {
           "name": "AION - revenue readiness",
