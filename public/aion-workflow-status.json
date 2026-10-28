@@ -1,10 +1,10 @@
 {
-  "generated_at": "2026-10-28T05:53:01.638968+00:00",
+  "generated_at": "2026-10-28T05:53:55.061290+00:00",
   "tiles": {
     "total": 45,
-    "ok": 40,
+    "ok": 41,
     "attn": 1,
-    "running": 3
+    "running": 2
   },
   "groups": [
     {
@@ -85,8 +85,8 @@
         {
           "name": "AION - external learning cycle",
           "file": "learning-cycle.yml",
-          "status_class": "running",
-          "status_label": "กำลังรัน",
+          "status_class": "success",
+          "status_label": "สำเร็จ",
           "html_url": "https://github.com/pongsatornm1991-droid/AION/actions/runs/40640444062",
           "created_at": "2026-10-28T05:51:52Z"
         },
@@ -175,10 +175,10 @@
         {
           "name": "AION - Publish public brain summary",
           "file": "publish-public-summary.yml",
-          "status_class": "success",
-          "status_label": "สำเร็จ",
-          "html_url": "https://github.com/pongsatornm1991-droid/AION/actions/runs/40604760066",
-          "created_at": "2026-10-27T23:49:44Z"
+          "status_class": "running",
+          "status_label": "กำลังรัน",
+          "html_url": "https://github.com/pongsatornm1991-droid/AION/actions/runs/40640584745",
+          "created_at": "2026-10-28T05:53:23Z"
         },
         {
           "name": "AION - bounded self repair",
@@ -381,8 +381,8 @@
         {
           "name": "AION - production control",
           "file": "production-control.yml",
-          "status_class": "running",
-          "status_label": "กำลังรัน",
+          "status_class": "success",
+          "status_label": "สำเร็จ",
           "html_url": "https://github.com/pongsatornm1991-droid/AION/actions/runs/40640457026",
           "created_at": "2026-10-28T05:52:00Z"
         },
