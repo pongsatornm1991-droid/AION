@@ -1,10 +1,10 @@
 {
-  "generated_at": "2026-11-01T09:07:50.637540+00:00",
+  "generated_at": "2026-11-01T09:08:52.233111+00:00",
   "tiles": {
     "total": 45,
-    "ok": 37,
+    "ok": 38,
     "attn": 1,
-    "running": 3
+    "running": 2
   },
   "groups": [
     {
@@ -87,8 +87,8 @@
           "file": "learning-cycle.yml",
           "status_class": "running",
           "status_label": "กำลังรัน",
-          "html_url": "https://github.com/pongsatornm1991-droid/AION/actions/runs/41291678455",
-          "created_at": "2026-11-01T09:06:58Z"
+          "html_url": "https://github.com/pongsatornm1991-droid/AION/actions/runs/41291740626",
+          "created_at": "2026-11-01T09:07:45Z"
         },
         {
           "name": "AION - self-narrative",
@@ -107,10 +107,10 @@
         {
           "name": "AION - check comments",
           "file": "check-comments.yml",
-          "status_class": "success",
-          "status_label": "สำเร็จ",
-          "html_url": "https://github.com/pongsatornm1991-droid/AION/actions/runs/41263743654",
-          "created_at": "2026-11-01T02:05:37Z"
+          "status_class": "running",
+          "status_label": "กำลังรัน",
+          "html_url": "https://github.com/pongsatornm1991-droid/AION/actions/runs/41291747831",
+          "created_at": "2026-11-01T09:07:51Z"
         },
         {
           "name": "AION - propose profile change",
@@ -229,8 +229,8 @@
         {
           "name": "AION - Creator release readiness",
           "file": "release-readiness.yml",
-          "status_class": "running",
-          "status_label": "กำลังรัน",
+          "status_class": "success",
+          "status_label": "สำเร็จ",
           "html_url": "https://github.com/pongsatornm1991-droid/AION/actions/runs/41291629728",
           "created_at": "2026-11-01T09:06:15Z"
         },
@@ -381,8 +381,8 @@
         {
           "name": "AION - production control",
           "file": "production-control.yml",
-          "status_class": "running",
-          "status_label": "กำลังรัน",
+          "status_class": "success",
+          "status_label": "สำเร็จ",
           "html_url": "https://github.com/pongsatornm1991-droid/AION/actions/runs/41291690824",
           "created_at": "2026-11-01T09:07:07Z"
         },
