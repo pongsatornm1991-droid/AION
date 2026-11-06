@@ -1,10 +1,10 @@
 {
-  "generated_at": "2026-11-06T07:21:27.373510+00:00",
+  "generated_at": "2026-11-06T07:22:17.774487+00:00",
   "tiles": {
     "total": 45,
-    "ok": 39,
+    "ok": 38,
     "attn": 0,
-    "running": 1
+    "running": 2
   },
   "groups": [
     {
@@ -152,8 +152,8 @@
           "file": "automation-health.yml",
           "status_class": "success",
           "status_label": "ไม่มีเหตุให้ดำเนินการ",
-          "html_url": "https://github.com/pongsatornm1991-droid/AION/actions/runs/42180254098",
-          "created_at": "2026-11-06T07:20:43Z"
+          "html_url": "https://github.com/pongsatornm1991-droid/AION/actions/runs/42180344248",
+          "created_at": "2026-11-06T07:21:33Z"
         },
         {
           "name": "AION - Cyber Guard defensive audit",
@@ -324,10 +324,10 @@
         {
           "name": "AION - content experiment evaluator",
           "file": "content-experiment-evaluator.yml",
-          "status_class": "success",
-          "status_label": "สำเร็จ",
-          "html_url": "https://github.com/pongsatornm1991-droid/AION/actions/runs/42101544783",
-          "created_at": "2026-11-05T20:14:35Z"
+          "status_class": "running",
+          "status_label": "กำลังรัน",
+          "html_url": "https://github.com/pongsatornm1991-droid/AION/actions/runs/42180360831",
+          "created_at": "2026-11-06T07:21:42Z"
         },
         {
           "name": "AION - costume continuity briefs",
