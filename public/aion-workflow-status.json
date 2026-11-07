@@ -1,10 +1,10 @@
 {
-  "generated_at": "2026-11-07T10:22:40.865970+00:00",
+  "generated_at": "2026-11-07T10:23:31.821029+00:00",
   "tiles": {
     "total": 45,
-    "ok": 38,
+    "ok": 40,
     "attn": 1,
-    "running": 3
+    "running": 1
   },
   "groups": [
     {
@@ -85,8 +85,8 @@
         {
           "name": "AION - external learning cycle",
           "file": "learning-cycle.yml",
-          "status_class": "running",
-          "status_label": "กำลังรัน",
+          "status_class": "success",
+          "status_label": "สำเร็จ",
           "html_url": "https://github.com/pongsatornm1991-droid/AION/actions/runs/42363661390",
           "created_at": "2026-11-07T10:22:07Z"
         },
@@ -153,8 +153,8 @@
           "file": "automation-health.yml",
           "status_class": "success",
           "status_label": "ไม่มีเหตุให้ดำเนินการ",
-          "html_url": "https://github.com/pongsatornm1991-droid/AION/actions/runs/42363673265",
-          "created_at": "2026-11-07T10:22:17Z"
+          "html_url": "https://github.com/pongsatornm1991-droid/AION/actions/runs/42363708944",
+          "created_at": "2026-11-07T10:22:48Z"
         },
         {
           "name": "AION - Cyber Guard defensive audit",
@@ -209,8 +209,8 @@
           "file": "publish-workflow-status.yml",
           "status_class": "running",
           "status_label": "กำลังรัน",
-          "html_url": "https://github.com/pongsatornm1991-droid/AION/actions/runs/42363673270",
-          "created_at": "2026-11-07T10:22:17Z"
+          "html_url": "https://github.com/pongsatornm1991-droid/AION/actions/runs/42363687679",
+          "created_at": "2026-11-07T10:22:29Z"
         }
       ]
     },
@@ -381,8 +381,8 @@
         {
           "name": "AION - production control",
           "file": "production-control.yml",
-          "status_class": "running",
-          "status_label": "กำลังรัน",
+          "status_class": "success",
+          "status_label": "สำเร็จ",
           "html_url": "https://github.com/pongsatornm1991-droid/AION/actions/runs/42363673277",
           "created_at": "2026-11-07T10:22:17Z"
         },
