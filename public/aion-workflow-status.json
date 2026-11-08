@@ -1,10 +1,10 @@
 {
-  "generated_at": "2026-11-08T13:43:53.865251+00:00",
+  "generated_at": "2026-11-08T13:59:07.180442+00:00",
   "tiles": {
     "total": 45,
     "ok": 40,
-    "attn": 1,
-    "running": 3
+    "attn": 0,
+    "running": 4
   },
   "groups": [
     {
@@ -38,11 +38,10 @@
         {
           "name": "AION - subject-first scene production",
           "file": "creator-scene-production.yml",
-          "status_class": "failure",
-          "status_label": "ล้มเหลว",
-          "html_url": "https://github.com/pongsatornm1991-droid/AION/actions/runs/42472140069",
-          "created_at": "2026-11-08T10:36:22Z",
-          "detail": "ขั้นที่ล้มเหลว: Verify actual narration timing before creating scene images"
+          "status_class": "running",
+          "status_label": "กำลังรัน",
+          "html_url": "https://github.com/pongsatornm1991-droid/AION/actions/runs/42487465927",
+          "created_at": "2026-11-08T13:58:16Z"
         }
       ]
     },
@@ -55,8 +54,8 @@
           "file": "research-to-story.yml",
           "status_class": "success",
           "status_label": "สำเร็จ",
-          "html_url": "https://github.com/pongsatornm1991-droid/AION/actions/runs/42472052197",
-          "created_at": "2026-11-08T10:35:10Z"
+          "html_url": "https://github.com/pongsatornm1991-droid/AION/actions/runs/42487401262",
+          "created_at": "2026-11-08T13:57:25Z"
         },
         {
           "name": "AION - Scientific Discovery Lab",
@@ -69,8 +68,8 @@
         {
           "name": "AION - YouTube discovery learning",
           "file": "youtube-learning.yml",
-          "status_class": "running",
-          "status_label": "กำลังรัน",
+          "status_class": "success",
+          "status_label": "สำเร็จ",
           "html_url": "https://github.com/pongsatornm1991-droid/AION/actions/runs/42486288183",
           "created_at": "2026-11-08T13:43:13Z"
         },
@@ -153,8 +152,8 @@
           "file": "automation-health.yml",
           "status_class": "success",
           "status_label": "ไม่มีเหตุให้ดำเนินการ",
-          "html_url": "https://github.com/pongsatornm1991-droid/AION/actions/runs/42486275550",
-          "created_at": "2026-11-08T13:43:03Z"
+          "html_url": "https://github.com/pongsatornm1991-droid/AION/actions/runs/42487465932",
+          "created_at": "2026-11-08T13:58:16Z"
         },
         {
           "name": "AION - Cyber Guard defensive audit",
@@ -209,8 +208,8 @@
           "file": "publish-workflow-status.yml",
           "status_class": "running",
           "status_label": "กำลังรัน",
-          "html_url": "https://github.com/pongsatornm1991-droid/AION/actions/runs/42486275540",
-          "created_at": "2026-11-08T13:43:03Z"
+          "html_url": "https://github.com/pongsatornm1991-droid/AION/actions/runs/42487465857",
+          "created_at": "2026-11-08T13:58:16Z"
         }
       ]
     },
@@ -229,26 +228,26 @@
         {
           "name": "AION - Creator release readiness",
           "file": "release-readiness.yml",
-          "status_class": "success",
-          "status_label": "สำเร็จ",
-          "html_url": "https://github.com/pongsatornm1991-droid/AION/actions/runs/42472890851",
-          "created_at": "2026-11-08T10:47:15Z"
+          "status_class": "running",
+          "status_label": "กำลังรัน",
+          "html_url": "https://github.com/pongsatornm1991-droid/AION/actions/runs/42487465904",
+          "created_at": "2026-11-08T13:58:16Z"
         },
         {
           "name": "AION - Facebook feedback",
           "file": "facebook-feedback.yml",
           "status_class": "success",
           "status_label": "สำเร็จ",
-          "html_url": "https://github.com/pongsatornm1991-droid/AION/actions/runs/42455981440",
-          "created_at": "2026-11-08T06:44:36Z"
+          "html_url": "https://github.com/pongsatornm1991-droid/AION/actions/runs/42487206232",
+          "created_at": "2026-11-08T13:54:52Z"
         },
         {
           "name": "AION - Instagram feedback",
           "file": "instagram-feedback.yml",
           "status_class": "success",
           "status_label": "สำเร็จ",
-          "html_url": "https://github.com/pongsatornm1991-droid/AION/actions/runs/42455898120",
-          "created_at": "2026-11-08T06:43:18Z"
+          "html_url": "https://github.com/pongsatornm1991-droid/AION/actions/runs/42487080493",
+          "created_at": "2026-11-08T13:53:15Z"
         },
         {
           "name": "AION - Thai Facebook Reels",
@@ -279,8 +278,8 @@
           "file": "youtube-release-watchdog.yml",
           "status_class": "running",
           "status_label": "กำลังรัน",
-          "html_url": "https://github.com/pongsatornm1991-droid/AION/actions/runs/42486287679",
-          "created_at": "2026-11-08T13:43:12Z"
+          "html_url": "https://github.com/pongsatornm1991-droid/AION/actions/runs/42487469704",
+          "created_at": "2026-11-08T13:58:19Z"
         },
         {
           "name": "AION - YouTube release-window recovery",
@@ -303,8 +302,8 @@
           "file": "audience-accessibility.yml",
           "status_class": "success",
           "status_label": "สำเร็จ",
-          "html_url": "https://github.com/pongsatornm1991-droid/AION/actions/runs/42455949025",
-          "created_at": "2026-11-08T06:44:07Z"
+          "html_url": "https://github.com/pongsatornm1991-droid/AION/actions/runs/42487125074",
+          "created_at": "2026-11-08T13:53:50Z"
         },
         {
           "name": "AION - automatic motion production",
@@ -327,8 +326,8 @@
           "file": "content-experiment-evaluator.yml",
           "status_class": "success",
           "status_label": "สำเร็จ",
-          "html_url": "https://github.com/pongsatornm1991-droid/AION/actions/runs/42455658912",
-          "created_at": "2026-11-08T06:39:42Z"
+          "html_url": "https://github.com/pongsatornm1991-droid/AION/actions/runs/42486978386",
+          "created_at": "2026-11-08T13:51:58Z"
         },
         {
           "name": "AION - costume continuity briefs",
@@ -367,8 +366,8 @@
           "file": "autonomic-drive.yml",
           "status_class": "success",
           "status_label": "สำเร็จ",
-          "html_url": "https://github.com/pongsatornm1991-droid/AION/actions/runs/42455999232",
-          "created_at": "2026-11-08T06:44:54Z"
+          "html_url": "https://github.com/pongsatornm1991-droid/AION/actions/runs/42487186893",
+          "created_at": "2026-11-08T13:54:37Z"
         },
         {
           "name": "AION - platform delivery recovery",
