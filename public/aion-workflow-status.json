@@ -1,10 +1,10 @@
 {
-  "generated_at": "2026-11-17T14:35:09.625758+00:00",
+  "generated_at": "2026-11-17T14:36:04.172318+00:00",
   "tiles": {
     "total": 47,
-    "ok": 41,
+    "ok": 42,
     "attn": 1,
-    "running": 3
+    "running": 2
   },
   "groups": [
     {
@@ -161,8 +161,8 @@
           "file": "automation-health.yml",
           "status_class": "success",
           "status_label": "ไม่มีเหตุให้ดำเนินการ",
-          "html_url": "https://github.com/pongsatornm1991-droid/AION/actions/runs/44104620379",
-          "created_at": "2026-11-17T14:34:36Z"
+          "html_url": "https://github.com/pongsatornm1991-droid/AION/actions/runs/44104748970",
+          "created_at": "2026-11-17T14:35:18Z"
         },
         {
           "name": "AION - Cyber Guard defensive audit",
@@ -217,8 +217,8 @@
           "file": "publish-workflow-status.yml",
           "status_class": "running",
           "status_label": "กำลังรัน",
-          "html_url": "https://github.com/pongsatornm1991-droid/AION/actions/runs/44104620544",
-          "created_at": "2026-11-17T14:34:36Z"
+          "html_url": "https://github.com/pongsatornm1991-droid/AION/actions/runs/44104648539",
+          "created_at": "2026-11-17T14:34:45Z"
         },
         {
           "name": "AION - system reliability",
@@ -397,8 +397,8 @@
         {
           "name": "AION - production control",
           "file": "production-control.yml",
-          "status_class": "running",
-          "status_label": "กำลังรัน",
+          "status_class": "success",
+          "status_label": "สำเร็จ",
           "html_url": "https://github.com/pongsatornm1991-droid/AION/actions/runs/44104620403",
           "created_at": "2026-11-17T14:34:36Z"
         },
