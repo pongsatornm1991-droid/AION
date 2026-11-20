@@ -1,10 +1,10 @@
 {
-  "generated_at": "2026-11-20T13:16:26.253415+00:00",
+  "generated_at": "2026-11-20T13:17:20.513385+00:00",
   "tiles": {
     "total": 45,
-    "ok": 39,
+    "ok": 40,
     "attn": 1,
-    "running": 2
+    "running": 1
   },
   "groups": [
     {
@@ -85,8 +85,8 @@
         {
           "name": "AION - external learning cycle",
           "file": "learning-cycle.yml",
-          "status_class": "running",
-          "status_label": "กำลังรัน",
+          "status_class": "success",
+          "status_label": "สำเร็จ",
           "html_url": "https://github.com/pongsatornm1991-droid/AION/actions/runs/44742754016",
           "created_at": "2026-11-20T13:15:41Z"
         },
@@ -279,8 +279,8 @@
           "file": "youtube-release-watchdog.yml",
           "status_class": "success",
           "status_label": "สำเร็จ",
-          "html_url": "https://github.com/pongsatornm1991-droid/AION/actions/runs/44742431130",
-          "created_at": "2026-11-20T13:13:33Z"
+          "html_url": "https://github.com/pongsatornm1991-droid/AION/actions/runs/44742813518",
+          "created_at": "2026-11-20T13:16:05Z"
         },
         {
           "name": "AION - YouTube release-window recovery",
