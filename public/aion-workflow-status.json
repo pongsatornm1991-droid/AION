@@ -1,10 +1,10 @@
 {
-  "generated_at": "2026-11-24T11:11:47.420088+00:00",
+  "generated_at": "2026-11-24T11:12:40.494006+00:00",
   "tiles": {
     "total": 47,
-    "ok": 39,
+    "ok": 41,
     "attn": 1,
-    "running": 4
+    "running": 1
   },
   "groups": [
     {
@@ -85,8 +85,8 @@
         {
           "name": "AION - external learning cycle",
           "file": "learning-cycle.yml",
-          "status_class": "running",
-          "status_label": "กำลังรัน",
+          "status_class": "success",
+          "status_label": "สำเร็จ",
           "html_url": "https://github.com/pongsatornm1991-droid/AION/actions/runs/45381737184",
           "created_at": "2026-11-24T11:10:33Z"
         },
@@ -159,8 +159,8 @@
         {
           "name": "AION - Automation Health Monitor",
           "file": "automation-health.yml",
-          "status_class": "running",
-          "status_label": "กำลังรัน",
+          "status_class": "success",
+          "status_label": "ไม่มีเหตุให้ดำเนินการ",
           "html_url": "https://github.com/pongsatornm1991-droid/AION/actions/runs/45381844527",
           "created_at": "2026-11-24T11:11:15Z"
         },
@@ -295,8 +295,8 @@
           "file": "youtube-release-watchdog.yml",
           "status_class": "success",
           "status_label": "สำเร็จ",
-          "html_url": "https://github.com/pongsatornm1991-droid/AION/actions/runs/45381445694",
-          "created_at": "2026-11-24T11:08:42Z"
+          "html_url": "https://github.com/pongsatornm1991-droid/AION/actions/runs/45381878379",
+          "created_at": "2026-11-24T11:11:27Z"
         },
         {
           "name": "AION - YouTube release-window recovery",
@@ -397,8 +397,8 @@
         {
           "name": "AION - production control",
           "file": "production-control.yml",
-          "status_class": "running",
-          "status_label": "กำลังรัน",
+          "status_class": "success",
+          "status_label": "สำเร็จ",
           "html_url": "https://github.com/pongsatornm1991-droid/AION/actions/runs/45381609315",
           "created_at": "2026-11-24T11:09:45Z"
         },
