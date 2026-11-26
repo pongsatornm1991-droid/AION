@@ -1,8 +1,8 @@
 {
-  "generated_at": "2026-11-26T08:40:09.770775+00:00",
+  "generated_at": "2026-11-26T08:41:09.340266+00:00",
   "tiles": {
     "total": 45,
-    "ok": 36,
+    "ok": 35,
     "attn": 2,
     "running": 4
   },
@@ -69,10 +69,10 @@
         {
           "name": "AION - YouTube discovery learning",
           "file": "youtube-learning.yml",
-          "status_class": "success",
-          "status_label": "สำเร็จ",
-          "html_url": "https://github.com/pongsatornm1991-droid/AION/actions/runs/45708164561",
-          "created_at": "2026-11-25T21:51:40Z"
+          "status_class": "running",
+          "status_label": "กำลังรัน",
+          "html_url": "https://github.com/pongsatornm1991-droid/AION/actions/runs/45785138918",
+          "created_at": "2026-11-26T08:40:20Z"
         },
         {
           "name": "AION - audience-independent inquiry",
@@ -85,10 +85,10 @@
         {
           "name": "AION - external learning cycle",
           "file": "learning-cycle.yml",
-          "status_class": "running",
-          "status_label": "กำลังรัน",
-          "html_url": "https://github.com/pongsatornm1991-droid/AION/actions/runs/45784939119",
-          "created_at": "2026-11-26T08:38:54Z"
+          "status_class": "unknown",
+          "status_label": "ยกเลิก",
+          "html_url": "https://github.com/pongsatornm1991-droid/AION/actions/runs/45785124807",
+          "created_at": "2026-11-26T08:40:14Z"
         },
         {
           "name": "AION - self-narrative",
@@ -230,8 +230,8 @@
         {
           "name": "AION - Creator release readiness",
           "file": "release-readiness.yml",
-          "status_class": "running",
-          "status_label": "กำลังรัน",
+          "status_class": "success",
+          "status_label": "สำเร็จ",
           "html_url": "https://github.com/pongsatornm1991-droid/AION/actions/runs/45784996443",
           "created_at": "2026-11-26T08:39:19Z"
         },
@@ -398,10 +398,10 @@
         {
           "name": "AION - self-improvement proposals",
           "file": "self-improvement.yml",
-          "status_class": "success",
-          "status_label": "สำเร็จ",
-          "html_url": "https://github.com/pongsatornm1991-droid/AION/actions/runs/45708178308",
-          "created_at": "2026-11-25T21:51:46Z"
+          "status_class": "running",
+          "status_label": "กำลังรัน",
+          "html_url": "https://github.com/pongsatornm1991-droid/AION/actions/runs/45785054308",
+          "created_at": "2026-11-26T08:39:45Z"
         }
       ]
     }
