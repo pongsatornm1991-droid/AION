@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-11-27T02:57:55.018750+00:00",
+  "generated_at": "2026-11-27T02:58:45.966480+00:00",
   "tiles": {
     "total": 45,
     "ok": 40,
@@ -191,10 +191,10 @@
         {
           "name": "AION - delivery evidence watchdog",
           "file": "publish-delivery-status.yml",
-          "status_class": "success",
-          "status_label": "สำเร็จ",
-          "html_url": "https://github.com/pongsatornm1991-droid/AION/actions/runs/45905311130",
-          "created_at": "2026-11-26T22:31:18Z"
+          "status_class": "running",
+          "status_label": "กำลังรัน",
+          "html_url": "https://github.com/pongsatornm1991-droid/AION/actions/runs/45931399080",
+          "created_at": "2026-11-27T02:58:10Z"
         },
         {
           "name": "AION - media-library hygiene",
@@ -381,8 +381,8 @@
         {
           "name": "AION - production control",
           "file": "production-control.yml",
-          "status_class": "running",
-          "status_label": "กำลังรัน",
+          "status_class": "success",
+          "status_label": "สำเร็จ",
           "html_url": "https://github.com/pongsatornm1991-droid/AION/actions/runs/45931275759",
           "created_at": "2026-11-27T02:56:49Z"
         },
